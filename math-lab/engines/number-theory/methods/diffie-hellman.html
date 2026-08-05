@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Diffie–Hellman Key Exchange — Number Theory Engine</title>
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#a3623c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Number&nbsp;Theory&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Cryptography</span>
+    <h1 class="h2" style="margin-top:14px;">Diffie–Hellman Key Exchange</h1>
+    <p class="method-summary">Two parties who've never met agree on a shared secret over a public channel. Pick a prime <span class="mono">p</span> and a generator <span class="mono">g</span>; each chooses a private exponent, sends the public value <span class="mono">g^private mod p</span>, and raises the other's public value to their own private exponent. Both land on <span class="mono">g^(ab) mod p</span> — a value an eavesdropper watching every transmitted number cannot compute, because recovering <span class="mono">a</span> from <span class="mono">g^a</span> is the discrete logarithm problem the previous page showed is hard.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="dhForm">
+        <span class="panel-title">Input</span>
+        <div class="field-row">
+          <div class="field"><label for="pInput">prime p</label><input type="text" id="pInput" class="mono" value="23" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+          <div class="field"><label for="gInput">generator g</label><input type="text" id="gInput" class="mono" value="5" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+          <div class="field"><label for="aInput">Alice's private a</label><input type="text" id="aInput" class="mono" value="6" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+          <div class="field"><label for="bInput">Bob's private b</label><input type="text" id="bInput" class="mono" value="15" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+        </div>
+        <span class="field-note">p = 23, g = 5 (a primitive root mod 23). The privates a = 6, b = 15 never travel; only g^a and g^b do. Yet both compute the same shared secret g^(ab) mod 23.</span>
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Run exchange</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try p=23, g=5</span></button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter p, g, and the two private exponents — the public values, the shared secret, and the wire diagram will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent"><div class="label">shared secret matches?</div><div class="value" id="statMatch">—</div></div>
+            <div class="result-stat"><div class="label">Alice's public A</div><div class="value" id="statA">—</div></div>
+            <div class="result-stat"><div class="label">Bob's public B</div><div class="value" id="statB">—</div></div>
+            <div class="result-stat"><div class="label">shared g^(ab)</div><div class="value" id="statShared">—</div></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">The exchange</span>
+            <div class="formula-block formula-block--result" id="dhBlock"></div>
+            <div class="field-note" id="dhNote" style="margin-top:10px;"></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Why an eavesdropper gains nothing</span>
+            <div class="formula-block formula-block--reference" id="eveBlock"></div>
+            <div class="field-note" id="eveNote" style="margin-top:10px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Number Theory Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/number-theory.js" defer></script>
+<script src="../../../assets/js/diffie-hellman.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

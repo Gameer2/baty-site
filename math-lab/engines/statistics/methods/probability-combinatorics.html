@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Probability &amp; Combinatorics — Statistics Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#c99a3c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Statistics&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Probability</span>
+    <h1 class="h2" style="margin-top:14px;">Probability &amp; Combinatorics</h1>
+    <p class="method-summary">Counting (factorials, permutations, combinations — C(52,5) = 2,598,960 poker hands), the conditional-probability definition P(A|B) = P(A∩B)/P(B), and Bayes' theorem in both two-hypothesis (disease-testing) and general N-hypothesis (Monty Hall) forms.</p>
+  </div>
+</section>
+
+<section class="section--tight" x-data>
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="probForm" onsubmit="return false;">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label>Mode</label>
+          <div class="hero-actions" id="modeRow" role="tablist" aria-label="Probability mode selector">
+            <button type="button" class="btn btn--ghost btn--sm chip active" data-mode="counting" role="tab" aria-selected="true">Counting</button>
+            <button type="button" class="btn btn--ghost btn--sm chip" data-mode="conditional" role="tab" aria-selected="false">Conditional</button>
+            <button type="button" class="btn btn--ghost btn--sm chip" data-mode="bayes" role="tab" aria-selected="false">Bayes</button>
+          </div>
+        </div>
+
+        <!-- Counting fields -->
+        <div class="field-row" id="countingFields">
+          <div class="field">
+            <label for="countN">n</label>
+            <input type="number" id="countN" class="mono" step="1" min="0" max="1000" value="52" />
+          </div>
+          <div class="field">
+            <label for="countK">k</label>
+            <input type="number" id="countK" class="mono" step="1" min="0" max="1000" value="5" />
+          </div>
+        </div>
+
+        <!-- Conditional fields -->
+        <div class="field-row" id="conditionalFields" style="display:none;">
+          <div class="field">
+            <label for="pAandB">P(A ∩ B)</label>
+            <input type="number" id="pAandB" class="mono" step="0.01" min="0" max="1" value="0.12" />
+          </div>
+          <div class="field">
+            <label for="pB">P(B)</label>
+            <input type="number" id="pB" class="mono" step="0.01" min="0.01" max="1" value="0.30" />
+          </div>
+        </div>
+
+        <!-- Bayes fields -->
+        <div id="bayesFields" style="display:none;">
+          <div class="field" style="margin-bottom:10px;">
+            <label>Bayes form</label>
+            <div class="hero-actions" id="bayesModeRow" role="tablist" aria-label="Bayes form selector">
+              <button type="button" class="btn btn--ghost btn--sm chip active" data-bayes="simple" role="tab" aria-selected="true">Simple</button>
+              <button type="button" class="btn btn--ghost btn--sm chip" data-bayes="general" role="tab" aria-selected="false">General</button>
+            </div>
+          </div>
+
+          <!-- Bayes simple fields -->
+          <div class="field-row" id="bayesSimpleFields">
+            <div class="field">
+              <label for="bayesPH">P(H) (prior)</label>
+              <input type="number" id="bayesPH" class="mono" step="0.01" min="0" max="1" value="0.01" />
+            </div>
+            <div class="field">
+              <label for="bayesPEH">P(E | H) (sensitivity)</label>
+              <input type="number" id="bayesPEH" class="mono" step="0.01" min="0" max="1" value="0.99" />
+            </div>
+            <div class="field">
+              <label for="bayesPEnH">P(E | ¬H) (false-positive)</label>
+              <input type="number" id="bayesPEnH" class="mono" step="0.01" min="0" max="1" value="0.05" />
+            </div>
+          </div>
+
+          <!-- Bayes general fields -->
+          <div id="bayesGeneralFields" style="display:none;">
+            <div class="field" style="margin-top:10px;">
+              <label for="bayesPriorInput">Priors — one per line</label>
+              <textarea id="bayesPriorInput" class="mono" rows="4" spellcheck="false"
+                style="width:100%;background:var(--core-black);border:1px solid rgba(255,255,255,.12);border-radius:var(--radius-sm);color:var(--off-white);padding:12px 14px;font-family:var(--font-mono);font-size:14px;resize:vertical;"
+              >0.3333333333
+0.3333333333
+0.3333333333</textarea>
+              <span class="field-note">Priors must sum to 1 (tolerance 1e-9)</span>
+            </div>
+            <div class="field" style="margin-top:10px;">
+              <label for="bayesLikelihoodInput">Likelihoods P(E | H<sub>i</sub>) — one per line</label>
+              <textarea id="bayesLikelihoodInput" class="mono" rows="4" spellcheck="false"
+                style="width:100%;background:var(--core-black);border:1px solid rgba(255,255,255,.12);border-radius:var(--radius-sm);color:var(--off-white);padding:12px 14px;font-family:var(--font-mono);font-size:14px;resize:vertical;"
+              >0.5
+1
+0</textarea>
+              <span class="field-note">Same count as priors; Monty Hall defaults: [1/2, 1, 0]</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="status-line" id="statusLine" style="margin-top:14px;" aria-live="polite">
+          <span class="status-dot"></span><span id="statusText">Choose a mode and adjust inputs.</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;" aria-live="polite">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Choose a mode, adjust the inputs, then compute — the result strip and formula will appear here. In Bayes General mode, a posterior bar chart contrasts the prior against the posterior.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip" id="resultStrip"></div>
+
+          <div id="bayesTableWrap" style="display:none; margin-top:14px;">
+            <span class="field-note">Posterior breakdown — one row per hypothesis</span>
+            <table class="data-table" style="width:100%; margin-top:8px; border-collapse:collapse;">
+              <thead>
+                <tr style="text-align:left; border-bottom:1px solid rgba(255,255,255,.12);">
+                  <th style="padding:6px 10px;">H<sub>i</sub></th>
+                  <th style="padding:6px 10px;">Prior P(H<sub>i</sub>)</th>
+                  <th style="padding:6px 10px;">Likelihood P(E|H<sub>i</sub>)</th>
+                  <th style="padding:6px 10px;">Posterior P(H<sub>i</sub>|E)</th>
+                </tr>
+              </thead>
+              <tbody id="bayesTableBody"></tbody>
+            </table>
+          </div>
+
+          <span class="field-note" style="margin-top:14px;">Reference — formula updates with the selected mode</span>
+          <div class="formula-block formula-block--reference" id="formulaBlock"></div>
+
+          <div class="plot-wrap crosshair-host" id="bayesPlotWrap" style="display:none;">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">Posterior vs Prior</span></div>
+            <div id="bayesPlot" style="height:280px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Statistics Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/proto/proto.js" defer></script>
+<script src="../../../assets/js/stats-algorithms.js" defer></script>
+<script src="../../../assets/js/probability-combinatorics.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

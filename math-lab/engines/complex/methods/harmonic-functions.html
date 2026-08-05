@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Harmonic Functions &amp; Conjugates — Complex Analysis Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>
+  :root{ --electric-teal:#b45fd0; }
+  .contour-plot { width: 100%; height: 460px; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Complex&nbsp;Analysis&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">The Plane &amp; Analyticity</span>
+    <h1 class="h2" style="margin-top:14px;">Harmonic Functions &amp; Conjugates</h1>
+    <p class="method-summary">Every analytic <span class="mono">f = u + iv</span> forces both <span class="mono">u</span> and <span class="mono">v</span> to satisfy Laplace's equation, <span class="mono">u_xx + u_yy = 0</span> — the real and imaginary parts of an analytic function are harmonic. The converse is the useful direction: given any harmonic <span class="mono">u(x, y)</span>, the Cauchy-Riemann equations pin down its conjugate <span class="mono">v</span> up to a constant. This page recovers it exactly, by symbolic integration, and plots the level curves of <span class="mono">u</span> and <span class="mono">v</span> — which, by Cauchy-Riemann, always cross at right angles. The same equation governs steady-state heat and electrostatic potential — the ODE/PDE Engine doesn't have a dedicated Laplace's-equation page yet, but this is exactly the equation it would solve.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="hfForm">
+        <span class="panel-title">Input — u(x, y)</span>
+
+        <div class="field">
+          <label for="uInput">u(x, y) =</label>
+          <input type="text" id="uInput" class="mono" value="x^2-y^2" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="uPreview"></div>
+        </div>
+
+        <div class="field" style="margin-top:18px;">
+          <label for="x0Input">base point (v = 0 here) — (</label>
+          <input type="text" id="x0Input" class="mono" value="0" autocomplete="off" spellcheck="false" style="max-width:80px;" />
+          <span class="field-note">,</span>
+          <input type="text" id="y0Input" class="mono" value="0" autocomplete="off" spellcheck="false" style="max-width:80px;" />
+          <span class="field-note">)</span>
+        </div>
+
+        <div class="field" style="margin-top:14px;">
+          <label for="rangeInput">View range — |x|, |y| ≤</label>
+          <input type="number" id="rangeInput" value="2.5" step="any" min="0.2" max="20" />
+        </div>
+
+        <div class="status-line" id="startStatus"><span class="status-dot"></span><span id="startStatusText">Checking…</span></div>
+
+        <div class="field" id="formError" style="display:none; margin-top:12px;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Find the conjugate</span></button>
+        </div>
+
+        <span class="field-note" style="margin-top:22px;">Examples — click to load</span>
+        <div class="chip-row" id="exampleChips">
+          <button type="button" class="chip" data-u="x^2-y^2" data-x0="0" data-y0="0" data-range="2.5">x² − y² — conjugate 2xy (this is z²)</button>
+          <button type="button" class="chip" data-u="e^x*cos(y)" data-x0="0" data-y0="0" data-range="3">eˣcos(y) — conjugate eˣsin(y) (this is eᶻ)</button>
+          <button type="button" class="chip" data-u="x^3-3*x*y^2" data-x0="0" data-y0="0" data-range="1.5">x³ − 3xy² — Churchill &amp; Brown's own example</button>
+          <button type="button" class="chip" data-u="x*y" data-x0="0" data-y0="0" data-range="2.5">xy — conjugate (y² − x²)/2</button>
+          <button type="button" class="chip" data-u="x^2+y^2" data-x0="0" data-y0="0" data-range="2.5">x² + y² — NOT harmonic, refused honestly</button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter a harmonic u(x, y) and a base point, then find the conjugate — the exact v(x, y), the derivation, and the orthogonal level-curve families of u and v will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="status-line ok" id="verdictStatus" style="font-size:14px;">
+            <span class="status-dot"></span><span id="verdictText">—</span>
+          </div>
+
+          <div class="result-strip" style="margin-top:14px;">
+            <div class="result-stat">
+              <div class="label">u(x, y)</div>
+              <div class="value" id="statU" style="font-size:16px;">—</div>
+            </div>
+            <div class="result-stat accent">
+              <div class="label">v(x, y) — the conjugate</div>
+              <div class="value" id="statV" style="font-size:16px;">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">∇²u (should be 0)</div>
+              <div class="value" id="statLaplacian">—</div>
+            </div>
+          </div>
+
+          <div class="panel crosshair-host" style="margin-top:16px;">
+            <span class="panel-title">Derivation</span>
+            <div class="data-table-wrap">
+              <table class="data-table" id="stepTable">
+                <thead><tr><th>#</th><th>Rule</th><th>Expression</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <div class="slider-row" style="margin-top:16px;">
+              <input type="range" id="stepSlider" min="0" max="0" value="0" />
+              <span class="step-label" id="stepLabel">step 0</span>
+            </div>
+          </div>
+
+          <div class="plot-wrap crosshair-host" style="margin-top:16px;">
+            <div class="plot-wrap-head">
+              <span class="panel-title" style="margin:0;">Level curves — u and v cross at right angles</span>
+              <div class="legend-swatches" style="display:flex; gap:16px; font-family:var(--font-mono); font-size:11px; color:var(--neural-fog);">
+                <span><span style="display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:5px;background:#5c939f;"></span>u = Re f</span>
+                <span><span style="display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:5px;background:#ed6d40;"></span>v = Im f</span>
+              </div>
+            </div>
+            <div id="contourPlot" class="contour-plot"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Complex Analysis Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/nerdamer.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/complex-symbolic.js" defer></script>
+<script src="../../../assets/js/cas-client.js" defer></script>
+<script src="../../../assets/js/harmonic-functions.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

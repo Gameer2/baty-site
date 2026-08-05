@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Secant Method — Numerical Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Numerical&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Root Finding</span>
+    <h1 class="h2" style="margin-top:14px;">Secant Method</h1>
+    <p class="method-summary">Replaces Newton's tangent with a secant line through the last two iterates — <span class="mono">x_{n+1} = x_n − f(x_n)·(x_n − x_{n-1}) / (f(x_n) − f(x_{n-1}))</span> — no derivative needed, superlinear convergence (order ≈ 1.618).</p>
+  </div>
+</section>
+
+<section class="section--tight" x-data>
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="secantForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="fxInput">f(x) = 0</label>
+          <input type="text" id="fxInput" class="mono" value="x^3 - x - 2" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="fxPreview"></div>
+          <button type="button" class="keypad-toggle is-open" id="keypadToggle">
+            <span>Math Keypad</span><span class="chev">⌄</span>
+          </button>
+          <div class="math-keypad is-open" id="fxKeypad"></div>
+        </div>
+
+        <div class="field-row" style="margin-top:18px;">
+          <div class="field">
+            <label for="x0Input">x₀</label>
+            <input type="number" id="x0Input" value="1" step="any" />
+          </div>
+          <div class="field">
+            <label for="x1Input">x₁</label>
+            <input type="number" id="x1Input" value="2" step="any" />
+          </div>
+        </div>
+        <div class="status-line" id="startStatus">
+          <span class="status-dot"></span><span id="startStatusText">Checking f(x₀), f(x₁)…</span>
+        </div>
+
+        <div class="field-row" style="margin-top:18px;">
+          <div class="field">
+            <label for="tolInput">Tolerance</label>
+            <input type="number" id="tolInput" value="0.000001" step="any" />
+          </div>
+          <div class="field">
+            <label for="maxIterInput">Max iterations</label>
+            <input type="number" id="maxIterInput" value="30" step="1" min="1" max="200" />
+          </div>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter a function and two starting points, then compute — the secant-line trace, error decay and full iteration table will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">Root ≈</div>
+              <div class="value" id="statRoot">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Iterations</div>
+              <div class="value" id="statIters">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">f(root)</div>
+              <div class="value" id="statFRoot">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Final error</div>
+              <div class="value" id="statError">—</div>
+            </div>
+          </div>
+
+          <span class="field-note">Iteration formula</span>
+          <div class="formula-block formula-block--reference" id="formulaBlock"></div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">f(x) &amp; secant line per step</span></div>
+            <div id="fxPlot" style="height:320px;"></div>
+          </div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">Error decay (log scale)</span></div>
+            <div id="errorPlot" style="height:220px;"></div>
+          </div>
+
+          <div class="data-table-wrap">
+            <table class="data-table" id="iterTable">
+              <thead>
+                <tr><th>n</th><th>x_{n-1}</th><th>xₙ</th><th>f(x_{n-1})</th><th>f(xₙ)</th><th>xₙ₊₁</th><th>error</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Step through</span>
+            <div class="slider-row">
+              <input type="range" id="stepSlider" min="0" max="0" value="0" />
+              <span class="step-label" id="stepLabel">step 0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Numerical Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/algorithms.js" defer></script>
+<script src="../../../assets/js/secant.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

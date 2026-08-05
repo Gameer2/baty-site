@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Taylor Series — Calculus Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#4f9e82; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Calculus&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="riemann-sums.html"><span>Riemann Sums</span><span class="dup" aria-hidden="true">Riemann Sums</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Sequences &amp; Series</span>
+    <h1 class="h2" style="margin-top:14px;">Taylor &amp; Maclaurin Series</h1>
+    <p class="method-summary">Builds the degree-<span class="mono">n</span> polynomial that best approximates <span class="mono">f(x)</span> near a chosen center <span class="mono">a</span> — coefficient <span class="mono">k</span> is <span class="mono">f⁽ᵏ⁾(a) / k!</span>, computed by exact repeated symbolic differentiation, not numeric finite differences. Checked before display: the polynomial must equal <span class="mono">f(a)</span> and must track <span class="mono">f</span> in a neighborhood of <span class="mono">a</span>.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="taylorForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="fxInput">f(x) =</label>
+          <input type="text" id="fxInput" class="mono" value="e^x" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="fxPreview"></div>
+          <button type="button" class="keypad-toggle is-open" id="keypadToggle">
+            <span>Math Keypad</span><span class="chev">⌄</span>
+          </button>
+          <div class="math-keypad is-open" id="fxKeypad"></div>
+        </div>
+
+        <div class="field-row" style="margin-top:18px;">
+          <div class="field">
+            <label for="centerInput">Center point a</label>
+            <input type="number" id="centerInput" value="0" step="any" />
+          </div>
+          <div class="field">
+            <label for="degreeSlider">Degree — <span id="degreeVal" class="mono">4</span></label>
+            <div class="slider-row"><input type="range" id="degreeSlider" min="0" max="10" value="4" /></div>
+          </div>
+        </div>
+
+        <div class="status-line" id="startStatus" style="margin-top:18px;">
+          <span class="status-dot"></span><span id="startStatusText">Checking…</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Expand</span></button>
+        </div>
+
+        <span class="field-note" style="margin-top:22px;">Worked examples — click to load</span>
+        <div class="method-tags" id="presetRow">
+          <button type="button" class="tag" data-fx="e^x" data-center="0" data-degree="4" data-tex="e^x"></button>
+          <button type="button" class="tag" data-fx="sin(x)" data-center="0" data-degree="5" data-tex="\sin x"></button>
+          <button type="button" class="tag" data-fx="cos(x)" data-center="0" data-degree="6" data-tex="\cos x"></button>
+          <button type="button" class="tag" data-fx="log(x)" data-center="1" data-degree="4" data-tex="\ln x"></button>
+          <button type="button" class="tag" data-fx="1/(1-x)" data-center="0" data-degree="5" data-tex="\frac{1}{1-x}"></button>
+          <button type="button" class="tag" data-fx="sqrt(x)" data-center="4" data-degree="3" data-tex="\sqrt{x}"></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter a function, a center and a degree, then expand — the polynomial, the derivation of each coefficient, and a plot of f(x) against the approximation will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">Degree</div>
+              <div class="value" id="statDegree">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">P(a)</div>
+              <div class="value" id="statPa">—</div>
+            </div>
+          </div>
+
+          <span class="field-note">Taylor polynomial</span>
+          <div class="formula-block formula-block--result" id="formulaResult"></div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Derivation</span>
+            <div class="data-table-wrap">
+              <table class="data-table" id="stepTable">
+                <thead><tr><th>#</th><th>Rule</th><th>Expression</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <div class="slider-row" style="margin-top:16px;">
+              <input type="range" id="stepSlider" min="0" max="0" value="0" />
+              <span class="step-label" id="stepLabel">step 0</span>
+            </div>
+          </div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">f(x) vs. Taylor polynomial</span></div>
+            <div id="fxPlot" style="height:360px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Calculus Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/vendor/nerdamer.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/proto/proto.js" defer></script>
+<!-- calculus-symbolic.js is loaded here only as the in-page fallback for when a Worker
+     cannot be created (opening this file over file://). In normal use the worker owns its
+     own copy and this one is never called. -->
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/calculus-symbolic.js" defer></script>
+<script src="../../../assets/js/cas-client.js" defer></script>
+<script src="../../../assets/js/taylor-series.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

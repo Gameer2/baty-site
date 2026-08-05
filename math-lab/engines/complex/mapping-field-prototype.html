@@ -1,0 +1,712 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mapping Field — Complex Engine Prototype</title>
+<style>
+  :root{
+    --core-black:#090909; --rich-carbon:#111111; --urban-smoke:#1b1b1b;
+    --pulse-ash:#7d858c; --off-white:#e7e7e7; --neural-fog:#dadada;
+    --cx-domain:#b45fd0; --cx-codomain:#d0a93f; --infrared:#ed6d40; --validation-red:#cb3500;
+    --font-mono:"Azeret Mono", ui-monospace, Menlo, monospace;
+    --font-serif:"Fraunces", Georgia, serif;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; margin:0; }
+  body{ background:var(--core-black); color:var(--off-white); font-family:var(--font-mono); overflow:hidden; }
+  .cx-shell{ position:fixed; inset:0; display:grid; grid-template-rows:44px 1fr 56px; }
+
+  .cx-rail{ display:flex; align-items:center; gap:18px; padding:0 20px;
+    border-bottom:1px solid rgba(255,255,255,.08); background:var(--core-black); z-index:5; }
+  .cx-rail .dot{ width:7px; height:7px; border-radius:50%; background:var(--infrared); }
+  .cx-rail .name{ letter-spacing:.12em; text-transform:uppercase; font-size:12px; }
+  .cx-rail .name b{ color:var(--cx-domain); }
+  .cx-rail .sep{ color:var(--pulse-ash); }
+  .cx-rail .formula{ font-family:var(--font-serif); font-size:18px; color:var(--neural-fog); }
+  .cx-rail .formula .dom{ color:var(--cx-domain); }
+  .cx-rail .formula .cod{ color:var(--cx-codomain); }
+  .cx-rail .grow{ flex:1; }
+  .cx-rail .hint{ font-size:10px; color:var(--pulse-ash); letter-spacing:.08em; text-transform:uppercase; }
+
+  .cx-stage{ position:relative; background:var(--core-black); overflow:hidden; }
+  #field{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+
+  .cx-controls{ position:absolute; top:14px; left:14px; z-index:4;
+    display:flex; flex-direction:column; gap:12px; padding:16px 16px 14px;
+    background:rgba(9,9,9,.72); backdrop-filter:blur(6px);
+    border:1px solid rgba(255,255,255,.08); width:230px; }
+  .cx-controls .label{ font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--pulse-ash); }
+  .cx-controls select, .cx-controls input[type=range]{
+    width:100%; background:var(--core-black); color:var(--off-white);
+    border:1px solid rgba(255,255,255,.14); border-radius:4px;
+    font-family:var(--font-mono); font-size:12px; padding:7px 8px; -webkit-appearance:none; appearance:none; }
+  .cx-controls .row{ display:flex; align-items:center; gap:10px; }
+  .cx-controls .row span{ font-size:11px; color:var(--neural-fog); min-width:34px; text-align:right; }
+  .cx-controls .toggle{ display:flex; gap:10px; flex-wrap:wrap; }
+  .cx-controls .toggle label{ font-size:11px; color:var(--neural-fog); display:flex; align-items:center; gap:6px; cursor:pointer; }
+  .cx-controls .legend{ display:flex; flex-direction:column; gap:5px; margin-top:2px; }
+  .cx-controls .legend i{ display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:8px; vertical-align:middle; }
+  .cx-controls .legend .ld i{ background:var(--cx-domain); }
+  .cx-controls .legend .lc i{ background:var(--cx-codomain); }
+  .cx-controls .legend small{ color:var(--pulse-ash); font-size:10px; }
+  .cx-controls input[type=text]{
+    width:100%; background:var(--core-black); color:var(--off-white);
+    border:1px solid rgba(255,255,255,.14); border-radius:4px;
+    font-family:var(--font-mono); font-size:13px; padding:7px 8px; }
+  .cx-controls input[type=text].bad{ border-color:var(--validation-red); }
+  .cx-controls .label .err{ color:var(--validation-red); text-transform:none; letter-spacing:0; font-size:10px; margin-left:6px; }
+
+  .cx-result{ display:flex; align-items:center; gap:22px; padding:0 20px;
+    border-top:1px solid rgba(255,255,255,.08); background:var(--core-black);
+    font-size:13px; letter-spacing:.04em; overflow-x:auto; white-space:nowrap; }
+  .cx-result .k{ color:var(--pulse-ash); text-transform:uppercase; font-size:10px; letter-spacing:.14em; margin-right:8px; }
+  .cx-result .v{ color:var(--off-white); } .cx-result .dom{ color:var(--cx-domain); } .cx-result .cod{ color:var(--cx-codomain); }
+  .cx-result .grow{ flex:1; } .cx-result .hint{ color:var(--pulse-ash); font-size:11px; }
+
+  .cx-help{ position:absolute; bottom:14px; right:16px; z-index:4;
+    font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--pulse-ash);
+    text-align:right; line-height:1.6; }
+  .cx-help b{ color:var(--neural-fog); }
+
+  .cx-2d{ position:absolute; top:14px; left:50%; transform:translateX(-50%); z-index:4;
+    display:flex; align-items:center; gap:16px; padding:10px 16px;
+    background:rgba(9,9,9,.72); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,.08); }
+  .cx-2d[hidden]{ display:none; }
+  .cx-2d .title{ font-family:var(--font-serif); font-size:15px; color:var(--neural-fog); }
+  .cx-2d .title .dom{ color:var(--cx-domain); } .cx-2d .title .cod{ color:var(--cx-codomain); }
+  .cx-2d .ax{ font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--pulse-ash); }
+  .cx-2d button{ background:var(--core-black); color:var(--off-white); border:1px solid rgba(255,255,255,.18);
+    font-family:var(--font-mono); font-size:11px; padding:7px 12px; cursor:pointer; letter-spacing:.08em; }
+  .cx-2d button:hover{ border-color:var(--infrared); color:var(--infrared); }
+</style>
+</head>
+<body>
+<div class="cx-shell">
+
+  <div class="cx-rail">
+    <span class="dot"></span>
+    <span class="name"><b>Complex</b> · Mapping Field</span>
+    <span class="sep">/</span>
+    <span class="formula"><span class="dom">z</span> ↦ <span class="cod">f(z)</span></span>
+    <span class="grow"></span>
+    <span class="hint">click a plane → filled 2D view · shift+click → probe</span>
+  </div>
+
+  <div class="cx-stage">
+    <canvas id="field"></canvas>
+
+    <div class="cx-controls">
+      <div>
+        <div class="label">Function f(z)</div>
+        <select id="fn">
+          <option value="z2">z²</option>
+          <option value="z3">z³</option>
+          <option value="ez">e^z</option>
+          <option value="inv">1 / z</option>
+          <option value="z2m1">z² − 1</option>
+          <option value="sinz">sin(z)</option>
+          <option value="mob">Möbius (z-1)/(z+1)</option>
+          <option value="custom">custom…</option>
+        </select>
+      </div>
+      <div>
+        <div class="label">f(z) = <span id="exprErr" class="err"></span></div>
+        <input id="fnExpr" type="text" spellcheck="false" value="z^2" />
+      </div>
+      <div>
+        <div class="label">Grid density</div>
+        <div class="row"><input id="res" type="range" min="6" max="16" step="1" value="11"><span id="resv">11</span></div>
+      </div>
+      <div>
+        <div class="label">Plane separation</div>
+        <div class="row"><input id="sep" type="range" min="1.2" max="4" step="0.05" value="2.2"><span id="sepv">2.2</span></div>
+      </div>
+      <div>
+        <div class="label">Surface opacity</div>
+        <div class="row"><input id="opa" type="range" min="0" max="1" step="0.05" value="0.82"><span id="opav">0.82</span></div>
+      </div>
+      <div class="toggle">
+        <label><input id="showSurface" type="checkbox" checked> surface</label>
+        <label><input id="showGrids" type="checkbox"> grid overlay</label>
+        <label><input id="showStrands" type="checkbox"> strands</label>
+      </div>
+      <div class="legend">
+        <div class="ld"><i></i>domain plane (below) <small>· solid purple</small></div>
+        <div class="lc"><i></i>codomain plane (above) <small>· solid gold, deformed by f</small></div>
+      </div>
+    </div>
+
+    <div class="cx-2d" id="cx2d" hidden>
+      <button id="back3d">← back to 3D</button>
+      <div class="title" id="title2d"></div>
+      <div class="ax">Re → · ↑ Im</div>
+    </div>
+
+    <div class="cx-help">
+      <div><b>click plane</b> filled 2D · <b>shift+click</b> probe</div>
+      <div><b>drag</b> orbit · <b>wheel</b> dolly · <b>shift+drag</b> fly</div>
+      <div><b>R</b> reset · <b>B/Esc</b> back to 3D</div>
+    </div>
+  </div>
+
+  <div class="cx-result" id="strip">
+    <span><span class="k">f</span><span class="v" id="rf">z²</span></span>
+    <span><span class="k">probe z</span><span class="dom" id="rz">— shift+click the purple plane —</span></span>
+    <span><span class="k">f(z)</span><span class="cod" id="rw">—</span></span>
+    <span><span class="k">|f(z)|</span><span class="v" id="rm">—</span></span>
+    <span class="grow"></span>
+    <span class="hint">filled planes = complex plots · surface = the map z→f(z)</span>
+  </div>
+
+</div>
+
+<script src="../../assets/vendor/three.min.js"></script>
+<script src="../../assets/vendor/math.min.js"></script>
+<script>
+(function(){
+  const canvas = document.getElementById("field");
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setClearColor(0x090909, 1);
+
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0x090909, 18, 42);
+
+  const cam3d = new THREE.PerspectiveCamera(46, 1, 0.1, 200);
+  const cam2d = new THREE.OrthographicCamera(-1,1,1,-1,0.1,100);
+  let activeCam = cam3d;
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.28));
+  const dir = new THREE.DirectionalLight(0xffffff, 1.15); dir.position.set(6,11,6); scene.add(dir);
+  const fill = new THREE.DirectionalLight(0xb45fd0, 0.30); fill.position.set(-7,2,-4); scene.add(fill);
+  const rim = new THREE.DirectionalLight(0xed6d40, 0.55); rim.position.set(-3,-6,8); scene.add(rim);
+  const kicker = new THREE.PointLight(0xd0a93f, 0.6, 24, 2); kicker.position.set(4,6,-3); scene.add(kicker);
+
+  const C_DOM = new THREE.Color(0xb45fd0);
+  const C_COD = new THREE.Color(0xd0a93f);
+
+  /* state */
+  let sep=2.2, N=11, opacity=0.82, mode="3d";
+  const EXT=2.2, M=16, SUB=4, S_LINE=40;
+
+  /* ---- function evaluation via math.js: presets fill the text field, but any complex
+     expression in z can be typed — this is the "manipulate the function" surface. ---- */
+  const PRESETS = {
+    z2:"z^2", z3:"z^3", ez:"exp(z)", inv:"1/z", z2m1:"z^2 - 1", sinz:"sin(z)", mob:"(z-1)/(z+1)"
+  };
+  const FN_LABEL={z2:"z²",z3:"z³",ez:"e^z",inv:"1/z",z2m1:"z² − 1",sinz:"sin(z)",mob:"Möbius (z-1)/(z+1)"};
+  let compiled=null, exprOk=true;
+  function compileExpr(exprStr){
+    try{
+      const node=math.parse(exprStr);
+      const code=node.compile();
+      const probe=code.evaluate({z:math.complex(0.37,0.61)});      // sanity-check it actually runs
+      if (typeof probe==="number" && !isFinite(probe)) throw new Error("not finite");
+      compiled=code; exprOk=true;
+    }catch(err){ exprOk=false; }
+    return exprOk;
+  }
+  function fRaw(x,y){
+    if (!compiled) return [NaN,NaN];
+    try{
+      const w=compiled.evaluate({z:math.complex(x,y)});
+      if (w==null) return [NaN,NaN];
+      if (typeof w==="number") return [w,0];
+      if (typeof w.re==="number" && typeof w.im==="number") return [w.re,w.im];
+      return [NaN,NaN];
+    }catch(e){ return [NaN,NaN]; }
+  }
+  /* recomputed once per rebuild: a robust (percentile-based) magnitude cutoff, so ONE far-out
+     point near a pole doesn't drag the clamp radius (and therefore the whole plate's scale)
+     out with it — only genuinely blown-up samples get treated as invalid/near-singular. */
+  let robustCutoff=1e6;
+  function computeRobustCutoff(){
+    const {pts}=fineGrid(), mags=[];
+    for (const [x,y] of pts){ const [u,v]=fRaw(x,y); if(Number.isFinite(u)&&Number.isFinite(v)) mags.push(Math.hypot(u,v)); }
+    mags.sort((a,b)=>a-b);
+    const p=mags.length? mags[Math.min(mags.length-1,Math.floor(mags.length*0.92))] : 10;
+    robustCutoff=Math.max(p*2.4, 1e-3);
+  }
+  function fz(x,y){
+    const [u,v]=fRaw(x,y);
+    const fin=Number.isFinite(u)&&Number.isFinite(v);
+    if (!fin) return {u:0,v:0,clamped:true};
+    const r=Math.hypot(u,v);
+    if (r>robustCutoff){                 // pull runaway-but-finite values back to the cutoff radius so
+      const s=robustCutoff/(r||1e-9);    // dropped/invalid vertices never leave huge coordinates behind
+      return {u:u*s, v:v*s, clamped:true};
+    }
+    return {u,v,clamped:false};
+  }
+
+  /* ---- codomain display transform: rescales the (robust) image bounding box into the SAME
+     EXT×EXT footprint as the domain plate, so both planes always read as the same size —
+     the numbers stay true (used for probe readouts + axis tick labels), only the placement
+     on screen is normalized. ---- */
+  let codScale=1, codCx=0, codCy=0, codMinU=-1, codMaxU=1, codMinV=-1, codMaxV=1;
+  function codDispX(u){ return (u-codCx)*codScale; }
+  function codDispZ(v){ return (v-codCy)*codScale; }
+
+  /* ---- fine grid (shared by planes + surface) ---- */
+  function fineGrid(){
+    const G=(N-1)*SUB+1, pts=[];
+    for (let i=0;i<G;i++) for (let j=0;j<G;j++) pts.push([-EXT+2*EXT*i/(G-1), -EXT+2*EXT*j/(G-1)]);
+    return {pts,G};
+  }
+
+  /* ---- filled planes: each one a single solid color filling ONLY the valid region, exactly
+       like a textbook domain/range diagram — flat, unlit, no gradient. domain = purple, at true
+       scale. codomain = gold, rescaled (via codDispX/Z) into the SAME EXT×EXT footprint so the
+       two plates always read as the same size. Cells at a pole / genuinely out of range are
+       dropped (a real hole), everything else is robustly in-frame. ---- */
+  let domMesh=null, codMesh=null;
+  function buildPlanes(){
+    computeRobustCutoff();
+    [domMesh,codMesh].forEach(o=>{ if(o){ scene.remove(o); o.geometry.dispose(); o.material.dispose(); } });
+    const {pts,G}=fineGrid();
+    const idxf=(i,j)=>i*G+j;
+    const rimg=pts.map(([x,y])=>fz(x,y));     // {u,v,clamped}
+    const valid=rimg.map(r=>!r.clamped);
+    const validCell=(i,j)=> valid[idxf(i,j)]&&valid[idxf(i+1,j)]&&valid[idxf(i+1,j+1)]&&valid[idxf(i,j+1)];
+
+    let minu=Infinity,maxu=-Infinity,minv=Infinity,maxv=-Infinity;
+    for (let i=0;i<rimg.length;i++){ if(!valid[i]) continue; const r=rimg[i];
+      if(r.u<minu)minu=r.u; if(r.u>maxu)maxu=r.u; if(r.v<minv)minv=r.v; if(r.v>maxv)maxv=r.v; }
+    if (!(minu<maxu)){ minu=-1;maxu=1; } if (!(minv<maxv)){ minv=-1;maxv=1; }
+    codMinU=minu; codMaxU=maxu; codMinV=minv; codMaxV=maxv;
+    codCx=(minu+maxu)/2; codCy=(minv+maxv)/2;
+    const halfExtent=Math.max(maxu-minu,maxv-minv)/2 || 1;
+    codScale=(EXT*0.92)/halfExtent;
+
+    const dv=new Float32Array(G*G*3);   // domain: flat at y=-sep, true scale
+    const cv=new Float32Array(G*G*3);   // codomain: deformed at y=+sep, rescaled to match domain's footprint
+    for (let i=0;i<G;i++) for (let j=0;j<G;j++){
+      const [x,y]=pts[idxf(i,j)], o=idxf(i,j), r=rimg[o];
+      dv[o*3]=x; dv[o*3+1]=-sep; dv[o*3+2]=y;
+      cv[o*3]=codDispX(r.u); cv[o*3+1]=+sep; cv[o*3+2]=codDispZ(r.v);
+    }
+    const idx=[];
+    for (let i=0;i<G-1;i++) for (let j=0;j<G-1;j++){
+      if (!validCell(i,j)) continue;                             // drop cells whose image is out of range / at a pole
+      const a=idxf(i,j),b=idxf(i+1,j),c=idxf(i+1,j+1),d=idxf(i,j+1);
+      idx.push(a,b,d, b,c,d);
+    }
+    const dg=new THREE.BufferGeometry();
+    dg.setAttribute("position",new THREE.BufferAttribute(dv,3));
+    dg.setIndex(idx); dg.computeVertexNormals();
+    domMesh=new THREE.Mesh(dg,new THREE.MeshBasicMaterial({color:C_DOM,side:THREE.DoubleSide}));
+    scene.add(domMesh);
+    const cg=new THREE.BufferGeometry();
+    cg.setAttribute("position",new THREE.BufferAttribute(cv,3));
+    cg.setIndex(idx); cg.computeVertexNormals();
+    codMesh=new THREE.Mesh(cg,new THREE.MeshBasicMaterial({color:C_COD,side:THREE.DoubleSide}));
+    scene.add(codMesh);
+  }
+
+  /* ---- optional faint grid overlay (straight domain + smooth image curves) ---- */
+  let gridDom=null, gridCod=null;
+  function buildGridOverlay(){
+    [gridDom,gridCod].forEach(o=>{ if(o){ scene.remove(o); o.geometry.dispose(); o.material.dispose(); } });
+    const dp=[];
+    for (let i=0;i<N;i++){ const x=-EXT+2*EXT*i/(N-1); dp.push(x,-sep-0.01,-EXT, x,-sep-0.01,EXT); }
+    for (let j=0;j<N;j++){ const y=-EXT+2*EXT*j/(N-1); dp.push(-EXT,-sep-0.01,y, EXT,-sep-0.01,y); }
+    const dg=new THREE.BufferGeometry(); dg.setAttribute("position",new THREE.Float32BufferAttribute(dp,3));
+    gridDom=new THREE.LineSegments(dg,new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:0.18}));
+    scene.add(gridDom);
+    const cp=[], ccol=[];
+    function line(p0,p1){
+      let prev=null;
+      for (let s=0;s<=S_LINE;s++){
+        const t=s/S_LINE, x=p0[0]+(p1[0]-p0[0])*t, y=p0[1]+(p1[1]-p0[1])*t, r=fz(x,y);
+        if (r.clamped){ prev=null; continue; }                    // break the line at a pole/out-of-range instead of jumping
+        const cur=[codDispX(r.u), codDispZ(r.v)];
+        if (prev){ cp.push(prev[0],+sep+0.01,prev[1], cur[0],+sep+0.01,cur[1]); ccol.push(1,1,1,1,1,1); }
+        prev=cur;
+      }
+    }
+    for (let i=0;i<N;i++){ const x=-EXT+2*EXT*i/(N-1); line([x,-EXT],[x,EXT]); }
+    for (let j=0;j<N;j++){ const y=-EXT+2*EXT*j/(N-1); line([-EXT,y],[EXT,y]); }
+    const cg=new THREE.BufferGeometry();
+    cg.setAttribute("position",new THREE.Float32BufferAttribute(cp,3));
+    cg.setAttribute("color",new THREE.Float32BufferAttribute(ccol,3));
+    gridCod=new THREE.LineSegments(cg,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:0.22}));
+    scene.add(gridCod);
+    const show=document.getElementById("showGrids").checked;
+    gridDom.visible=show; gridCod.visible=show;
+  }
+
+  /* ---- mapping surface: NOT a decorative loft — each height t is the literal linear homotopy
+       w_t(z) = (1-t)·z + t·f(z), i.e. "apply f(z) at strength t." This is the standard way to
+       continuously deform the identity map into f: it's smooth for every t whenever f is smooth
+       (analytic) at z, and its local derivative is exactly (1-t) + t·f'(z) — so the surface's
+       curvature genuinely comes from f's own derivative, not from arbitrary control points.
+       The same domain→codomain display transform used by the planes is blended in step with t,
+       so the surface still meets both plates exactly at t=0 and t=1. ---- */
+  let surface=null, strandLines=null;
+  const _sfP=new THREE.Vector3();
+  function surfPoint(x,y,u,v,t,out){
+    out=out||_sfP;
+    const wx=(1-t)*x+t*u, wy=(1-t)*y+t*v;               // the homotopy value itself
+    const scale=1+t*(codScale-1);                        // blend identity (t=0) -> codomain rescale (t=1)
+    out.set((wx-t*codCx)*scale, -sep+t*(2*sep), (wy-t*codCy)*scale);
+    return out;
+  }
+  function buildSurface(){
+    if (surface){ scene.remove(surface); surface.geometry.dispose(); surface.material.dispose(); surface=null; }
+    if (strandLines){ scene.remove(strandLines); strandLines.geometry.dispose(); strandLines.material.dispose(); strandLines=null; }
+    const {pts,G}=fineGrid();
+    const idxf=(i,j)=>i*G+j;
+    const rimg=pts.map(([x,y])=>fz(x,y));   // {u,v,clamped}
+    const valid=rimg.map(r=>!r.clamped);
+    const validCell=(i,j)=> valid[idxf(i,j)]&&valid[idxf(i+1,j)]&&valid[idxf(i+1,j+1)]&&valid[idxf(i,j+1)];
+    const vert=new Float32Array(G*G*M*3), vcol=new Float32Array(G*G*M*3), tc=new THREE.Color(), p=new THREE.Vector3();
+    for (let i=0;i<G;i++) for (let j=0;j<G;j++){
+      const [x,y]=pts[idxf(i,j)]; const {u,v}=rimg[idxf(i,j)];
+      for (let k=0;k<M;k++){ const t=k/(M-1); surfPoint(x,y,u,v,t,p); const o=idxf(i,j)*M+k;
+        vert[o*3]=p.x; vert[o*3+1]=p.y; vert[o*3+2]=p.z;
+        tc.copy(C_DOM).lerp(C_COD,t); vcol[o*3]=tc.r; vcol[o*3+1]=tc.g; vcol[o*3+2]=tc.b;
+      }
+    }
+    const indices=[];
+    for (let i=0;i<G-1;i++) for (let j=0;j<G-1;j++){
+      if (!validCell(i,j)) continue;                              // only loft valid cells
+      for (let k=0;k<M-1;k++){
+        const a=idxf(i,j)*M+k,b=idxf(i+1,j)*M+k,c=idxf(i+1,j+1)*M+k,d=idxf(i,j+1)*M+k;
+        const a2=a+1,b2=b+1,c2=c+1,d2=d+1;
+        indices.push(a,b,a2, b,b2,a2,  b,c,b2, c,c2,b2,  c,d,c2, d,d2,c2,  d,a,d2, a,a2,d2);
+      }
+    }
+    const g=new THREE.BufferGeometry();
+    g.setAttribute("position",new THREE.BufferAttribute(vert,3));
+    g.setAttribute("color",new THREE.BufferAttribute(vcol,3));
+    g.setIndex(indices); g.computeVertexNormals();
+    surface=new THREE.Mesh(g,new THREE.MeshPhysicalMaterial({
+      vertexColors:true, side:THREE.DoubleSide, transparent:opacity<1, opacity:opacity,
+      roughness:0.32, metalness:0.12, clearcoat:0.4, clearcoatRoughness:0.35,
+      depthWrite:opacity>=0.94
+    }));
+    surface.visible=document.getElementById("showSurface").checked;
+    scene.add(surface);
+
+    const sp=[], scol=[]; const a=new THREE.Vector3(), b=new THREE.Vector3(), tcc=new THREE.Color();
+    for (let i=0;i<G;i+=SUB) for (let j=0;j<G;j+=SUB){
+      if (!valid[idxf(i,j)]) continue;                          // skip strands at out-of-range / pole points
+      const [x,y]=pts[idxf(i,j)]; const {u,v}=rimg[idxf(i,j)];
+      for (let k=0;k<M-1;k++){ const t0=k/(M-1),t1=(k+1)/(M-1);
+        surfPoint(x,y,u,v,t0,a); surfPoint(x,y,u,v,t1,b);
+        sp.push(a.x,a.y,a.z,b.x,b.y,b.z);
+        tcc.copy(C_DOM).lerp(C_COD,t0); scol.push(tcc.r,tcc.g,tcc.b);
+        tcc.copy(C_DOM).lerp(C_COD,t1); scol.push(tcc.r,tcc.g,tcc.b);
+      }
+    }
+    const sg=new THREE.BufferGeometry();
+    sg.setAttribute("position",new THREE.Float32BufferAttribute(sp,3));
+    sg.setAttribute("color",new THREE.Float32BufferAttribute(scol,3));
+    strandLines=new THREE.LineSegments(sg,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:0.4}));
+    strandLines.visible=document.getElementById("showStrands").checked;
+    scene.add(strandLines);
+  }
+
+  /* ---- axes: a textbook-style Re/Im crosshair + nice-number tick marks + numeric labels on
+       each plate. Domain ticks are true coordinates; codomain ticks are computed in the plate's
+       TRUE numeric range then pushed through the same display transform as the surface, so the
+       labels stay mathematically honest even though the plate itself is visually rescaled. ---- */
+  function niceStep(span,targetCount){
+    const rough=span/Math.max(targetCount,1)||1;
+    const mag=Math.pow(10,Math.floor(Math.log10(rough)));
+    const norm=rough/mag;
+    const step=norm<1.5?1:norm<3?2:norm<7?5:10;
+    return step*mag;
+  }
+  function niceTicks(min,max,targetCount){
+    if (!(max>min)) return [0];
+    const step=niceStep(max-min,targetCount);
+    const start=Math.ceil(min/step)*step;
+    const ticks=[];
+    for (let v=start; v<=max+step*1e-6; v+=step) ticks.push(Math.round(v/step)*step);
+    return ticks;
+  }
+  function fmtTick(v){ const r=Math.round(v*100)/100; return (Object.is(r,-0)?0:r).toString(); }
+  const _labelCache=new Map();
+  function makeLabel(text,color){
+    const key=text+"|"+color;
+    if (_labelCache.has(key)) return _labelCache.get(key).clone();
+    const cvs=document.createElement("canvas"); cvs.width=160; cvs.height=80;
+    const ctx=cvs.getContext("2d");
+    ctx.font="600 40px 'Azeret Mono', monospace";
+    ctx.fillStyle=color; ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.fillText(text,80,42);
+    const tex=new THREE.CanvasTexture(cvs); tex.minFilter=THREE.LinearFilter;
+    const spr=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false,sizeAttenuation:true}));
+    _labelCache.set(key,spr);
+    return spr.clone();
+  }
+  // sprites (axis labels) use a shared static geometry + cached, reused materials — never dispose those,
+  // only the fresh LineSegments geometry/material built per axis rebuild.
+  function disposeGroup(g){ if(!g) return; g.traverse(o=>{ if(o.isSprite) return; if(o.geometry) o.geometry.dispose(); if(o.material) o.material.dispose(); }); }
+  let axDom=null, axCod=null;
+  // axes always draw on top of the (opaque) plates — depthTest:false + a high renderOrder, rather
+  // than relying on a tiny y-offset that only reads as "in front" from one particular view side.
+  function onTop(obj,order){ obj.renderOrder=order; if(obj.material) obj.material.depthTest=false; return obj; }
+  function buildAxisGroup(yLevel, trueMinX,trueMaxX, trueMinZ,trueMaxZ, toDispX, toDispZ, reLabel, imLabel, tint){
+    const grp=new THREE.Group();
+    const y=yLevel;
+    const crossMat=new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:0.6});
+    const tickMat=new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:0.42});
+    const cross=[-EXT,y,0, EXT,y,0,  0,y,-EXT, 0,y,EXT];
+    const cg=new THREE.BufferGeometry(); cg.setAttribute("position",new THREE.Float32BufferAttribute(cross,3));
+    grp.add(onTop(new THREE.LineSegments(cg,crossMat),10));
+
+    const tPts=[];
+    const xt=niceTicks(trueMinX,trueMaxX,5);
+    xt.forEach(v=>{ const dx=toDispX(v); if(Math.abs(dx)>EXT*0.985) return;
+      tPts.push(dx,y,-0.055, dx,y,0.055);
+      if (Math.abs(v)>1e-9){ const lab=makeLabel(fmtTick(v),"#dadada"); lab.position.set(dx,y,0.26); lab.scale.set(0.30,0.15,1); grp.add(onTop(lab,11)); }
+    });
+    const zt=niceTicks(trueMinZ,trueMaxZ,5);
+    zt.forEach(v=>{ const dz=toDispZ(v); if(Math.abs(dz)>EXT*0.985) return;
+      tPts.push(-0.055,y,dz, 0.055,y,dz);
+      if (Math.abs(v)>1e-9){ const lab=makeLabel(fmtTick(v)+"i","#dadada"); lab.position.set(0.34,y,dz); lab.scale.set(0.34,0.17,1); grp.add(onTop(lab,11)); }
+    });
+    if (tPts.length){ const tg=new THREE.BufferGeometry(); tg.setAttribute("position",new THREE.Float32BufferAttribute(tPts,3)); grp.add(onTop(new THREE.LineSegments(tg,tickMat),10)); }
+
+    const reLab=makeLabel(reLabel,tint); reLab.position.set(EXT+0.34,y,0); reLab.scale.set(0.34,0.17,1); grp.add(onTop(reLab,11));
+    const imLab=makeLabel(imLabel,tint); imLab.position.set(0,y,EXT+0.34); imLab.scale.set(0.34,0.17,1); grp.add(onTop(imLab,11));
+    return grp;
+  }
+  function buildAxes(){
+    disposeGroup(axDom); disposeGroup(axCod);
+    if (axDom) scene.remove(axDom); if (axCod) scene.remove(axCod);
+    axDom=buildAxisGroup(-sep+0.016, -EXT,EXT, -EXT,EXT, v=>v, v=>v, "Re(z)","Im(z)","#caa8e0");
+    axCod=buildAxisGroup(+sep+0.016, codMinU,codMaxU, codMinV,codMaxV, codDispX, codDispZ, "Re(w)","Im(w)","#e8cf8e");
+    scene.add(axDom); scene.add(axCod);
+    axDom.visible = mode!=="codomain";
+    axCod.visible = mode!=="domain";
+  }
+
+  /* ---- probe ---- */
+  const probeGroup=new THREE.Group(); scene.add(probeGroup);
+  let probe=null;
+  function buildProbe(){
+    probeGroup.clear();
+    if (!probe) return;
+    const r=fz(probe.x,probe.y);
+    const d=new THREE.Mesh(new THREE.SphereGeometry(0.08,16,16), new THREE.MeshBasicMaterial({color:C_DOM}));
+    d.position.set(probe.x,-sep,probe.y); probeGroup.add(d);
+    const c=new THREE.Mesh(new THREE.SphereGeometry(0.08,16,16), new THREE.MeshBasicMaterial({color:C_COD}));
+    c.position.set(codDispX(r.u),+sep,codDispZ(r.v)); probeGroup.add(c);
+    const SEG=28, p=[], col=[]; const tc=new THREE.Color();
+    const pa=new THREE.Vector3(), pb=new THREE.Vector3();
+    for (let s=0;s<SEG;s++){ const t0=s/SEG,t1=(s+1)/SEG;
+      surfPoint(probe.x,probe.y,r.u,r.v,t0,pa); surfPoint(probe.x,probe.y,r.u,r.v,t1,pb);
+      const a=pa,b=pb;
+      p.push(a.x,a.y,a.z,b.x,b.y,b.z);
+      tc.copy(C_DOM).lerp(C_COD,t0); col.push(tc.r,tc.g,tc.b);
+      tc.copy(C_DOM).lerp(C_COD,t1); col.push(tc.r,tc.g,tc.b);
+    }
+    const g=new THREE.BufferGeometry();
+    g.setAttribute("position",new THREE.Float32BufferAttribute(p,3));
+    g.setAttribute("color",new THREE.Float32BufferAttribute(col,3));
+    probeGroup.add(new THREE.Line(g,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:0.95})));
+    document.getElementById("rz").textContent=`(${probe.x.toFixed(2)} ${probe.y>=0?"+":"−"} ${Math.abs(probe.y).toFixed(2)}i)`;
+    document.getElementById("rw").textContent=`(${r.u.toFixed(2)} ${r.v>=0?"+":"−"} ${Math.abs(r.v).toFixed(2)}i)`;
+    document.getElementById("rm").textContent=Math.hypot(r.u,r.v).toFixed(3);
+  }
+
+  /* ---- 3D camera ---- */
+  const cam={target:new THREE.Vector3(0,0,0),radius:10.5,theta:0.78,phi:0.92};
+  function applyCam(){
+    const r=cam.radius,p=cam.phi,t=cam.theta;
+    cam3d.position.set(cam.target.x+r*Math.sin(p)*Math.sin(t),cam.target.y+r*Math.cos(p),cam.target.z+r*Math.sin(p)*Math.cos(t));
+    cam3d.lookAt(cam.target);
+  }
+  applyCam();
+
+  /* ---- auto-frame the camera to whatever's actually on screen: some functions (1/z, e^z, Möbius)
+     push the codomain plate far larger than the domain plate, so a fixed radius either drowns in a
+     tiny function or clips a huge one. Re-fit on every rebuild instead of guessing one constant. ---- */
+  const fitBox=new THREE.Box3();
+  function fitCameraToScene(keepAngle){
+    fitBox.makeEmpty();
+    [domMesh,codMesh,surface].forEach(o=>{ if(o) fitBox.expandByObject(o); });
+    if (fitBox.isEmpty()) return;
+    const size=new THREE.Vector3(); fitBox.getSize(size);
+    const center=new THREE.Vector3(); fitBox.getCenter(center);
+    const halfDiag=size.length()/2;
+    const fitDist=halfDiag/Math.sin(THREE.MathUtils.degToRad(cam3d.fov/2));
+    const radius=Math.max(fitDist*1.08, 3);
+    cam.target.copy(center);
+    cam.radius=radius;
+    if (!keepAngle){ cam.theta=0.78; cam.phi=0.92; }
+    if (mode==="3d") applyCam();
+  }
+
+  /* ---- 2D mode: top-down ortho of one filled plane ---- */
+  const cx2d=document.getElementById("cx2d"), title2d=document.getElementById("title2d");
+  function enter2D(which){
+    mode=which; scene.rotation.y=0;
+    const showDom=which==="domain";
+    if (surface) surface.visible=false;
+    if (strandLines) strandLines.visible=false;
+    if (gridDom) gridDom.visible=false;
+    if (gridCod) gridCod.visible=false;
+    if (domMesh) domMesh.visible=showDom;
+    if (codMesh) codMesh.visible=!showDom;
+    if (axDom) axDom.visible=showDom;
+    if (axCod) axCod.visible=!showDom;
+    probeGroup.visible=false;
+
+    // both plates now share the same EXT×EXT display footprint, so one fit rule covers both —
+    // the axis tick labels (true values) are what still tell them apart numerically.
+    fit2D({minx:-EXT,maxx:EXT,minz:-EXT,maxz:EXT}, showDom);
+    title2d.innerHTML = showDom ? `<span class="dom">domain ℂ</span> — z-plane (solid purple fill)`
+                                : `<span class="cod">codomain ℂ</span> — w = f(z) = ${currentLabel()} (solid gold fill, deformed, axis at true scale)`;
+    cx2d.hidden=false;
+  }
+  function fit2D(bounds, showDom){
+    const cx=(bounds.minx+bounds.maxx)/2, cz=(bounds.minz+bounds.maxz)/2;
+    const half=Math.max((bounds.maxx-bounds.minx)/2,(bounds.maxz-bounds.minz)/2)*1.12 || 1;
+    const w=canvas.clientWidth||1, h=canvas.clientHeight||1, aspect=w/h;
+    let hw=half, hh=half; if (hw/hh>aspect) hh=hw/aspect; else hw=hh*aspect;
+    cam2d.left=cx-hw; cam2d.right=cx+hw; cam2d.top=cz+hh; cam2d.bottom=cz-hh;
+    cam2d.near=0.1; cam2d.far=100;
+    const planeY=showDom?-sep:+sep;
+    cam2d.position.set(cx, planeY-20, cz);              // look UP at the plane from below: with up=+Z this
+    cam2d.up.set(0,0,1); cam2d.lookAt(cx,planeY,cz);     // keeps +Im on screen-up AND +Re on screen-right
+
+    cam2d.updateProjectionMatrix();
+    activeCam=cam2d;
+  }
+  function exit2D(){
+    mode="3d";
+    if (domMesh) domMesh.visible=true;
+    if (codMesh) codMesh.visible=true;
+    if (axDom) axDom.visible=true;
+    if (axCod) axCod.visible=true;
+    if (surface) surface.visible=document.getElementById("showSurface").checked;
+    if (strandLines) strandLines.visible=document.getElementById("showStrands").checked;
+    const sg=document.getElementById("showGrids").checked;
+    if (gridDom) gridDom.visible=sg; if (gridCod) gridCod.visible=sg;
+    probeGroup.visible=true;
+    activeCam=cam3d; cx2d.hidden=true; applyCam();
+  }
+  document.getElementById("back3d").addEventListener("click", exit2D);
+
+  /* ---- pointers ---- */
+  let drag=null;
+  canvas.addEventListener("pointerdown",e=>{ canvas.setPointerCapture(e.pointerId); drag={x:e.clientX,y:e.clientY,button:e.button,shift:e.shiftKey,moved:false}; });
+  canvas.addEventListener("pointermove",e=>{
+    if (!drag || mode!=="3d"){ if (drag) drag=null; return; }
+    const dx=e.clientX-drag.x, dy=e.clientY-drag.y;
+    if (Math.abs(dx)+Math.abs(dy)>3) drag.moved=true;
+    if (drag.shift || drag.button===2){
+      const right=new THREE.Vector3().crossVectors(cam3d.up, cam3d.getWorldDirection(new THREE.Vector3())).normalize();
+      const s=cam.radius*0.0016;
+      cam.target.addScaledVector(right,-dx*s).addScaledVector(cam3d.up, dy*s);
+    } else { cam.theta-=dx*0.005; cam.phi=Math.min(Math.PI-0.04,Math.max(0.04,cam.phi-dy*0.005)); }
+    drag.x=e.clientX; drag.y=e.clientY; applyCam();
+  });
+  canvas.addEventListener("pointerup",e=>{
+    const wasDrag=drag&&drag.moved, wasPan=drag&&(drag.shift||drag.button===2), shift=drag&&drag.shift;
+    drag=null;
+    if (mode!=="3d") return;
+    if (wasDrag && !wasPan) return;
+    if (e.button!==0 && e.button!==undefined) return;
+    if (shift){ placeProbe(e); return; }
+    const rect=canvas.getBoundingClientRect();
+    const ndc=new THREE.Vector2(((e.clientX-rect.left)/rect.width)*2-1, -((e.clientY-rect.top)/rect.height)*2+1);
+    const ray=new THREE.Raycaster(); ray.setFromCamera(ndc, cam3d);
+    const hits=ray.intersectObjects([domMesh,codMesh],false);
+    if (hits.length){ enter2D(hits[0].object===domMesh?"domain":"codomain"); }
+  });
+  canvas.addEventListener("contextmenu",e=>e.preventDefault());
+  canvas.addEventListener("wheel",e=>{
+    e.preventDefault();
+    if (mode==="3d"){ cam.radius=Math.min(34,Math.max(2.5,cam.radius*(1+e.deltaY*0.0012))); applyCam(); }
+    else {
+      const f=1+e.deltaY*0.0012, cx=(cam2d.left+cam2d.right)/2, cz=(cam2d.top+cam2d.bottom)/2;
+      const hw=(cam2d.right-cam2d.left)/2*f, hh=(cam2d.top-cam2d.bottom)/2*f;
+      cam2d.left=cx-hw; cam2d.right=cx+hw; cam2d.top=cz+hh; cam2d.bottom=cz-hh; cam2d.updateProjectionMatrix();
+    }
+  },{passive:false});
+  window.addEventListener("keydown",e=>{
+    if (e.key==="r"||e.key==="R"){ fitCameraToScene(false); }
+    if (e.key==="b"||e.key==="B"||e.key==="Escape"){ if(mode!=="3d") exit2D(); }
+  });
+  function placeProbe(e){
+    const rect=canvas.getBoundingClientRect();
+    const ndc=new THREE.Vector2(((e.clientX-rect.left)/rect.width)*2-1, -((e.clientY-rect.top)/rect.height)*2+1);
+    const ray=new THREE.Raycaster(); ray.setFromCamera(ndc, cam3d);
+    const plane=new THREE.Plane(new THREE.Vector3(0,1,0), sep);
+    const hit=new THREE.Vector3();
+    if (ray.ray.intersectPlane(plane,hit)){ probe={x:hit.x,y:hit.z}; buildProbe(); }
+  }
+
+  /* ---- resize ---- */
+  function resize(){
+    const w=canvas.clientWidth||canvas.parentElement.clientWidth, h=canvas.clientHeight||canvas.parentElement.clientHeight;
+    renderer.setSize(w,h,false);
+    cam3d.aspect=w/h; cam3d.updateProjectionMatrix();
+    if (mode!=="3d"){
+      const cx=(cam2d.left+cam2d.right)/2, cz=(cam2d.top+cam2d.bottom)/2;
+      const half=Math.max((cam2d.right-cam2d.left)/2,(cam2d.top-cam2d.bottom)/2);
+      const aspect=w/h; let hw=half,hh=half; if (hw/hh>aspect) hh=hw/aspect; else hw=hh*aspect;
+      cam2d.left=cx-hw; cam2d.right=cx+hw; cam2d.top=cz+hh; cam2d.bottom=cz-hh; cam2d.updateProjectionMatrix();
+    }
+  }
+  window.addEventListener("resize",resize);
+
+  /* ---- controls ---- */
+  const fnSel=document.getElementById("fn"), fnExpr=document.getElementById("fnExpr"), exprErr=document.getElementById("exprErr");
+  let currentPresetKey="z2";
+  function currentLabel(){ return FN_LABEL[currentPresetKey] || fnExpr.value.trim() || "f(z)"; }
+  function rebuildAll(){
+    buildPlanes(); buildGridOverlay(); buildSurface(); buildAxes(); buildProbe(); fitCameraToScene(true);
+    document.getElementById("rf").textContent=currentLabel();
+    if (mode!=="3d"){ const m=mode; exit2D(); enter2D(m); }
+  }
+  function applyExpr(exprStr, fromPreset){
+    const ok=compileExpr(exprStr);
+    fnExpr.classList.toggle("bad", !ok);
+    exprErr.textContent = ok ? "" : "can't parse";
+    if (!ok) return;                      // keep showing the last valid map until the formula is fixed
+    if (!fromPreset) currentPresetKey=null;
+    rebuildAll();
+  }
+  fnSel.addEventListener("change",e=>{
+    const key=e.target.value;
+    if (key==="custom") return;           // leave whatever's already typed in fnExpr alone
+    currentPresetKey=key; fnExpr.value=PRESETS[key];
+    applyExpr(PRESETS[key], true);
+  });
+  fnExpr.addEventListener("change",()=>{
+    const typed=fnExpr.value.trim();
+    const matchKey=Object.keys(PRESETS).find(k=>PRESETS[k]===typed);
+    currentPresetKey=matchKey||null;
+    fnSel.value=matchKey||"custom";
+    applyExpr(typed, !!matchKey);
+  });
+  document.getElementById("res").addEventListener("input",e=>{ N=+e.target.value; document.getElementById("resv").textContent=N; rebuildAll(); });
+  document.getElementById("sep").addEventListener("input",e=>{ sep=+e.target.value; document.getElementById("sepv").textContent=sep.toFixed(1); rebuildAll(); });
+  document.getElementById("opa").addEventListener("input",e=>{ opacity=+e.target.value; document.getElementById("opav").textContent=opacity.toFixed(2); if(surface) surface.material.opacity=opacity; });
+  document.getElementById("showSurface").addEventListener("change",e=>{ if(surface && mode==="3d") surface.visible=e.target.checked; });
+  document.getElementById("showStrands").addEventListener("change",e=>{ if(strandLines && mode==="3d") strandLines.visible=e.target.checked; });
+  document.getElementById("showGrids").addEventListener("change",e=>{ if(mode==="3d"){ if(gridDom) gridDom.visible=e.target.checked; if(gridCod) gridCod.visible=e.target.checked; } });
+
+  compileExpr(PRESETS[currentPresetKey]);
+  rebuildAll();
+  resize();
+
+  let t0=performance.now();
+  function frame(){
+    const t=(performance.now()-t0)/1000;
+    if (mode==="3d") scene.rotation.y=Math.sin(t*0.06)*0.10;
+    renderer.render(scene, activeCam);
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
+</script>
+</body>
+</html>

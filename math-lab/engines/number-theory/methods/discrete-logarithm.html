@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Discrete Logarithm — Number Theory Engine</title>
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#a3623c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Number&nbsp;Theory&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Primitive roots</span>
+    <h1 class="h2" style="margin-top:14px;">Discrete Logarithm</h1>
+    <p class="method-summary">Given <span class="mono">g</span>, <span class="mono">h</span>, <span class="mono">n</span>, find <span class="mono">x</span> with <span class="mono">g^x ≡ h (mod n)</span> — the discrete log. Easy to state, believed hard to solve at scale (the security of Diffie-Hellman rests on exactly that). Baby-step giant-step solves it in ~√n steps by precomputing a table of <span class="mono">g^j</span> and then stepping down in giant strides of <span class="mono">g^(−m)</span>. The work is visible here, and so is the "not found" answer when h is outside the subgroup g generates.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="dlForm">
+        <span class="panel-title">Input — solve g^x ≡ h (mod n)</span>
+        <div class="field-row">
+          <div class="field"><label for="gInput">g</label><input type="text" id="gInput" class="mono" value="3" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+          <div class="field"><label for="hInput">h</label><input type="text" id="hInput" class="mono" value="4" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+          <div class="field"><label for="nInput">n</label><input type="text" id="nInput" class="mono" value="7" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+        </div>
+        <span class="field-note">Try 3^x ≡ 4 (mod 7) → x = 4. With a primitive root g, every unit is reachable; with a non-generator, many h have no solution.</span>
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Solve</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try 2^x≡3 mod 5</span></button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter g, h, n — the discrete log (or a "not found" result) and the baby/giant-step work will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent"><div class="label">discrete log x</div><div class="value" id="statX">—</div></div>
+            <div class="result-stat"><div class="label">baby steps (m=⌈√n⌉)</div><div class="value" id="statBaby">—</div></div>
+            <div class="result-stat"><div class="label">giant steps used</div><div class="value" id="statGiant">—</div></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Result</span>
+            <div class="formula-block formula-block--result" id="dlBlock"></div>
+            <div class="field-note" id="dlNote" style="margin-top:10px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Number Theory Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/number-theory.js" defer></script>
+<script src="../../../assets/js/discrete-logarithm.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Continued Fractions — Number Theory Engine</title>
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#a3623c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Number&nbsp;Theory&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Recommended additions</span>
+    <h1 class="h2" style="margin-top:14px;">Continued Fractions of √D</h1>
+    <p class="method-summary">Every irrational square root √D has a *periodic* continued fraction <span class="mono">[a₀; a₁, a₂, …, aₖ, 2a₀]</span> — a fact Lagrange proved and that makes √D's arithmetic fundamentally tamer than a generic irrational. Its convergents pₙ/qₙ are the best rational approximations to √D at their size, and — the bridge to the next page — the fundamental solution of Pell's equation x² − D·y² = 1 is always one of them. Watch the convergents lock onto √D, and the period repeat.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="cfForm">
+        <span class="panel-title">Input — D (not a perfect square)</span>
+        <div class="field-row">
+          <div class="field"><label for="dInput">D</label><input type="text" id="dInput" class="mono" value="13" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+          <div class="field"><label for="countInput">convergents to show</label><input type="text" id="countInput" class="mono" value="10" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+        </div>
+        <span class="field-note">D = 13 → √13 = [3; 1, 1, 1, 1, 6, 1, 1, 1, 1, 6, …], period 5. The convergents (3/1, 4/1, 7/2, 11/3, 18/5, 119/33, …) close in on √13 — and the 5th-but-one solves Pell.</span>
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Expand</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try D=2</span></button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter a non-square D — the periodic continued fraction and the convergent table with errors will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent"><div class="label">a₀ = ⌊√D⌋</div><div class="value" id="statA0">—</div></div>
+            <div class="result-stat"><div class="label">period length</div><div class="value" id="statPeriod">—</div></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Continued fraction</span>
+            <div class="formula-block formula-block--result" id="cfBlock"></div>
+            <div class="field-note" id="cfNote" style="margin-top:10px;"></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Convergents and error</span>
+            <div id="convTable"></div>
+            <div class="field-note" id="convNote" style="margin-top:10px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Number Theory Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/number-theory.js" defer></script>
+<script src="../../../assets/js/continued-fractions.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

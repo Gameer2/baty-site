@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Classical Ciphers — Number Theory Engine</title>
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#a3623c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Number&nbsp;Theory&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Cryptography</span>
+    <h1 class="h2" style="margin-top:14px;">Classical Ciphers — Affine &amp; Hill</h1>
+    <p class="method-summary">Before RSA, encryption was a permutation of the 26-letter alphabet. The affine cipher <span class="mono">E(x) = a·x + b mod 26</span> needs <span class="mono">gcd(a, 26) = 1</span> for the map to be invertible — exactly the modular-inverse problem from the linear-congruences page. The Hill cipher generalizes this to a matrix acting on letter-blocks; it's invertible only when the determinant is coprime to 26. Both break under frequency analysis, which is why they're a lesson, not a tool.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="cForm">
+        <span class="panel-title">Input</span>
+        <div class="field" style="margin-bottom:10px;">
+          <label for="textInput">plaintext (A–Z, others pass through)</label>
+          <input type="text" id="textInput" class="mono" value="HELLO WORLD" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="aInput">affine a (coprime to 26)</label><input type="text" id="aInput" class="mono" value="5" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+          <div class="field"><label for="bInput">affine b (shift)</label><input type="text" id="bInput" class="mono" value="8" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="h11">Hill key (diagonal a)</label><input type="text" id="h11" class="mono" value="3" inputmode="numeric" autocomplete="off" spellcheck="false" style="width:80px;" /></div>
+          <div class="field"><label for="h22">Hill key (diagonal d)</label><input type="text" id="h22" class="mono" value="5" inputmode="numeric" autocomplete="off" spellcheck="false" style="width:80px;" /></div>
+        </div>
+        <span class="field-note">Affine: a=5 (coprime to 26), b=8. Hill key matrix [[3,0],[0,5]] — diagonal entries entered directly; det = 3·5 = 15, coprime to 26, so it inverts. Try a non-coprime key (e.g. d=2) to see the invertibility failure.</span>
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Encrypt &amp; decrypt</span></button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter a plaintext and keys — the affine and Hill ciphertexts plus their decryptions will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="panel crosshair-host">
+            <span class="panel-title">Affine cipher — E(x) = a·x + b mod 26</span>
+            <div class="formula-block formula-block--reference" id="affBlock"></div>
+            <div class="field-note" id="affNote" style="margin-top:10px;"></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Hill cipher — 2×2 matrix mod 26</span>
+            <div class="formula-block formula-block--reference" id="hillBlock"></div>
+            <div class="field-note" id="hillNote" style="margin-top:10px;"></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Why classical ciphers fell</span>
+            <div class="field-note" id="breakNote"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Number Theory Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/number-theory.js" defer></script>
+<script src="../../../assets/js/classical-ciphers.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

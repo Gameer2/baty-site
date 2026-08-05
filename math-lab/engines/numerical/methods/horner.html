@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Horner's Method — Numerical Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+</head>
+<body>
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Numerical&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Polynomial Evaluation</span>
+    <h1 class="h2" style="margin-top:14px;">Horner's Method</h1>
+    <p class="method-summary">Efficient polynomial evaluation via nested multiplication, plus deflation to find remaining roots: <span class="mono">p(x) = (x − x₀)·q(x) + r</span>.</p>
+  </div>
+</section>
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+      <form class="panel crosshair-host" id="hornerForm">
+        <span class="panel-title">Input</span>
+        <div class="field">
+          <label for="coeffsInput">Coefficients [aₙ, …, a₁, a₀]</label>
+          <input type="text" id="coeffsInput" class="mono" value="2, -3, 4, -5" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Comma-separated, highest degree first</span>
+          <div class="katex-preview" id="polyPreview"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="xInput">Evaluate at x =</label><input type="number" id="xInput" value="2" step="any" /></div>
+        </div>
+        <div class="status-line" id="statusLine"><span class="status-dot"></span><span>Checking validity…</span></div>
+        <div class="field" id="formError" style="display:none;"><div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div></div>
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+      </form>
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel"><span class="panel-title">Output</span><p class="p1">Enter polynomial coefficients and an evaluation point.</p></div>
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent"><div class="label">p(x) ≈</div><div class="value" id="statValue">—</div></div>
+            <div class="result-stat"><div class="label">Deflated degree</div><div class="value" id="statDegree">—</div></div>
+          </div>
+          <div class="formula-block formula-block--reference"><div class="label">Deflation formula</div><div class="katex-wrap" id="formulaBlock"></div></div>
+          <div class="data-table-wrap" style="margin-top:18px;">
+            <table class="data-table" id="deflatedTable">
+              <thead><tr><th>Term</th><th>Coefficient</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<footer class="site-footer">
+  <div class="container bar"><span class="p2">Numerical Engine</span><a href="../methods.html" class="p2">← All Methods</a></div>
+</footer>
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/algorithms.js" defer></script>
+<script src="../../../assets/js/horner.js" defer></script>
+<script defer>document.addEventListener("DOMContentLoaded", () => Engine.initChrome());</script>
+</body>
+</html>

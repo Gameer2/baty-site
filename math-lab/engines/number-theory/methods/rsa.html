@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RSA — Number Theory Engine</title>
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#a3623c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Number&nbsp;Theory&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Cryptography</span>
+    <h1 class="h2" style="margin-top:14px;">RSA</h1>
+    <p class="method-summary">Two large primes p, q, multiplied into a public modulus n = pq. Anyone can encrypt with (n, e); only someone who knows the factorization can compute φ(n) = (p−1)(q−1) and hence the private exponent d. The whole security rests on one fact this engine has already shown you: multiplying primes is easy, factoring the product back is hard. Choose p, q here, generate a key, encrypt a number, and watch it decrypt back — then read why a modulus big enough that trial division visibly fails is the whole point.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="rsaForm">
+        <span class="panel-title">Input — two distinct primes p, q</span>
+        <div class="field-row">
+          <div class="field"><label for="pInput">p</label><input type="text" id="pInput" class="mono" value="61" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+          <div class="field"><label for="qInput">q</label><input type="text" id="qInput" class="mono" value="53" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+          <div class="field"><label for="msgInput">message m (a number &lt; n)</label><input type="text" id="msgInput" class="mono" value="42" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+        </div>
+        <span class="field-note">Tiny primes for transparency: n = 61·53 = 3233, a toy. Real RSA uses 1024+ bit primes — large enough that trial-dividing n is hopeless. Use "Generate big primes" to see a realistic modulus (factoring it would need the Pollard-ρ page, not this form).</span>
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Generate key &amp; encrypt</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="bigBtn"><span class="btn-text">Generate big primes</span></button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter two primes and a message — the public key, private key, ciphertext, and round-trip decryption will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent"><div class="label">decrypted = m?</div><div class="value" id="statRoundtrip">—</div></div>
+            <div class="result-stat"><div class="label">n = p·q</div><div class="value" id="statN">—</div></div>
+            <div class="result-stat"><div class="label">φ(n)</div><div class="value" id="statPhi">—</div></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Keys</span>
+            <div class="formula-block formula-block--reference" id="keyBlock"></div>
+            <div class="field-note" id="keyNote" style="margin-top:10px;"></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Encrypt then decrypt</span>
+            <div class="formula-block formula-block--result" id="cryptoBlock"></div>
+            <div class="field-note" id="cryptoNote" style="margin-top:10px;"></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Why it round-trips</span>
+            <div class="formula-block formula-block--reference" id="proofBlock"></div>
+            <div class="field-note" id="proofNote" style="margin-top:10px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Number Theory Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/number-theory.js" defer></script>
+<script src="../../../assets/js/rsa.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

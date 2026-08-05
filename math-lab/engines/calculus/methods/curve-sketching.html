@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Curve Sketching — Calculus Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#4f9e82; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Calculus&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="lhopital.html"><span>L'Hôpital</span><span class="dup" aria-hidden="true">L'Hôpital</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Limits &amp; Derivatives</span>
+    <h1 class="h2" style="margin-top:14px;">Curve Sketching</h1>
+    <p class="method-summary"><span class="mono">f′</span> tells you where <span class="mono">f</span> is increasing or decreasing and where it turns around; <span class="mono">f″</span> tells you which way it bends and where that changes. One function in, three linked plots out — a critical point on <span class="mono">f</span> lines up with a zero-crossing directly below it on <span class="mono">f′</span>, and an inflection point lines up with one on <span class="mono">f″</span>.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="curveForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="fxInput">f(x) =</label>
+          <input type="text" id="fxInput" class="mono" value="x^3-3*x" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="fxPreview"></div>
+          <button type="button" class="keypad-toggle is-open" id="keypadToggle">
+            <span>Math Keypad</span><span class="chev">⌄</span>
+          </button>
+          <div class="math-keypad is-open" id="fxKeypad"></div>
+        </div>
+
+        <div class="field-row" style="margin-top:18px;">
+          <div class="field">
+            <label for="aInput">Interval a</label>
+            <input type="number" id="aInput" value="-3" step="any" />
+          </div>
+          <div class="field">
+            <label for="bInput">Interval b</label>
+            <input type="number" id="bInput" value="3" step="any" />
+          </div>
+        </div>
+
+        <div class="status-line" id="startStatus" style="margin-top:18px;">
+          <span class="status-dot"></span><span id="startStatusText">Checking…</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Analyze</span></button>
+        </div>
+
+        <span class="field-note" style="margin-top:22px;">Worked examples — click to load</span>
+        <div class="method-tags" id="presetRow">
+          <button type="button" class="tag" data-fx="x^3-3*x" data-a="-3" data-b="3" data-tex="x^3-3x"></button>
+          <button type="button" class="tag" data-fx="x^4-4*x^2" data-a="-3" data-b="3" data-tex="x^4-4x^2"></button>
+          <button type="button" class="tag" data-fx="x^4" data-a="-2" data-b="2" data-tex="x^4"></button>
+          <button type="button" class="tag" data-fx="sin(x)" data-a="-6.2832" data-b="6.2832" data-tex="\sin x"></button>
+          <button type="button" class="tag" data-fx="e^x" data-a="-2" data-b="2" data-tex="e^x"></button>
+          <button type="button" class="tag" data-fx="x^3/3-2*x^2+3*x" data-a="-1" data-b="5" data-tex="\frac{x^3}{3}-2x^2+3x"></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter a function and an interval, then analyze — f′ and f″, every critical and inflection point, and three linked plots will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">Critical points</div>
+              <div class="value" id="statCritical">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Inflection points</div>
+              <div class="value" id="statInflection">—</div>
+            </div>
+          </div>
+
+          <span class="field-note">First derivative</span>
+          <div class="formula-block formula-block--result" id="formulaFp"></div>
+          <span class="field-note">Second derivative</span>
+          <div class="formula-block formula-block--result" id="formulaFpp"></div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">f(x) — critical points (●) &amp; inflection points (◆)</span></div>
+            <div id="fPlot" style="height:260px;"></div>
+          </div>
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">f′(x) — zero at every critical point</span></div>
+            <div id="fpPlot" style="height:220px;"></div>
+          </div>
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">f″(x) — zero (with a sign change) at every inflection point</span></div>
+            <div id="fppPlot" style="height:220px;"></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Monotonicity &amp; concavity</span>
+            <span class="field-note">f is...</span>
+            <p id="monotonicText" style="margin-top:8px;"></p>
+            <span class="field-note" style="margin-top:16px;">f is...</span>
+            <p id="concavityText" style="margin-top:8px;"></p>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Critical points</span>
+            <div class="data-table-wrap">
+              <table class="data-table" id="criticalTable">
+                <thead><tr><th>x</th><th>f(x)</th><th>classification</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Inflection points</span>
+            <div class="data-table-wrap">
+              <table class="data-table" id="inflectionTable">
+                <thead><tr><th>x</th><th>f(x)</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Derivation</span>
+            <div class="data-table-wrap">
+              <table class="data-table" id="stepTable">
+                <thead><tr><th>#</th><th>Rule</th><th>Expression</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <div class="slider-row" style="margin-top:16px;">
+              <input type="range" id="stepSlider" min="0" max="0" value="0" />
+              <span class="step-label" id="stepLabel">step 0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Calculus Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/vendor/nerdamer.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/proto/proto.js" defer></script>
+<!-- calculus-symbolic.js is loaded here only as the in-page fallback for when a Worker
+     cannot be created (opening this file over file://). In normal use the worker owns its
+     own copy and this one is never called. -->
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/calculus-symbolic.js" defer></script>
+<script src="../../../assets/js/cas-client.js" defer></script>
+<script src="../../../assets/js/curve-sketching.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

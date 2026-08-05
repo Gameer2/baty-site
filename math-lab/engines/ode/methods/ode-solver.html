@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ODE Solver — ODE/PDE Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#4f8fc0; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> ODE&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="laplace-transform.html"><span>Laplace</span><span class="dup" aria-hidden="true">Laplace</span></a></li>
+      <li><a href="series-solutions.html"><span>Series</span><span class="dup" aria-hidden="true">Series</span></a></li>
+      <li><a href="heat-equation.html"><span>Heat&nbsp;PDE</span><span class="dup" aria-hidden="true">Heat&nbsp;PDE</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Ordinary Differential Equations</span>
+    <h1 class="h2" style="margin-top:14px;">ODE Solver</h1>
+    <p class="method-summary">Type any ordinary differential equation — first-order, second-order, or higher — using <span class="mono">y'</span>, <span class="mono">y''</span>, etc. The engine classifies it and solves it in closed form where one exists, verified numerically before it's shown, and gives a numeric fallback when no closed form is found.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="solverForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="odeInput">Equation</label>
+          <input type="text" id="odeInput" class="mono" value="y' = x*y" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="odePreview"></div>
+          <button type="button" class="keypad-toggle is-open" id="keypadToggle">
+            <span>Math Keypad</span><span class="chev">⌄</span>
+          </button>
+          <div class="math-keypad is-open" id="odeKeypad"></div>
+        </div>
+
+        <span class="field-note" style="margin-top:18px;">Worked examples — click to load</span>
+        <div class="method-tags" id="exampleChips">
+          <button type="button" class="tag" data-eq="y' = x*y">Separable</button>
+          <button type="button" class="tag" data-eq="y' = x - y">Linear</button>
+          <button type="button" class="tag" data-eq="y' = y - y^2">Bernoulli — logistic</button>
+          <button type="button" class="tag" data-eq="(2*x*y+3) dx + (x^2-1) dy = 0">Exact</button>
+          <button type="button" class="tag" data-eq="y'' + 3*y' + 2*y = 0">Second-order, constant coefficient</button>
+          <button type="button" class="tag" data-eq="y'' + y = sin(x)">Second-order, resonance</button>
+          <button type="button" class="tag" data-eq="x^2*y'' - 2*x*y' + 2*y = 0">Euler-Cauchy</button>
+          <button type="button" class="tag" data-eq="y''' - y = 0">Third-order</button>
+        </div>
+
+        <label class="status-line" style="cursor:pointer; margin-top:18px;">
+          <input type="checkbox" id="icToggle" style="width:auto;" />
+          <span>Include an initial condition</span>
+        </label>
+
+        <div id="icFields" style="display:none; margin-top:12px;"></div>
+
+        <div class="status-line ok" id="startStatus">
+          <span class="status-dot"></span><span id="startStatusText">Ready — press Solve.</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Solve</span></button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Type an ODE and hit Solve — the classification and the general (and particular, if you gave an initial condition) solution will appear here.</p>
+        </div>
+        <div id="resultsArea" style="display:none;"></div>
+        <div id="fallbackPlotWrap" class="plot-wrap crosshair-host" style="display:none;">
+          <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">Numeric solution</span></div>
+          <div id="fallbackPlot" style="height:340px;"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">ODE/PDE Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/ode-symbolic.js" defer></script>
+<script src="../../../assets/js/ode-render.js" defer></script>
+<script src="../../../assets/js/sympy-client.js" defer></script>
+<script src="../../../assets/js/ode-solver.js" defer></script>
+<script src="../../../assets/js/ode-solver-page.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

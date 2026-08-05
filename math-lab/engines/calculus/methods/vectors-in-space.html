@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vectors in Space — Calculus Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>
+  :root{ --electric-teal:#4f9e82; }
+  .vec-row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .vec-row label{ min-width:1.5em; }
+  .vec-row input{ flex:1; min-width:120px; }
+  .scene-host{ height:380px; position:relative; border-radius:6px; overflow:hidden;
+    background:radial-gradient(circle at 50% 35%, rgba(79,158,130,0.06), transparent 70%); }
+  .scene-host canvas{ display:block; }
+  .scene-legend{ position:absolute; top:10px; left:12px; font-family:var(--font-mono);
+    font-size:12px; color:#cfd6cf; background:rgba(20,24,24,0.55); padding:6px 10px; border-radius:4px;
+    display:flex; gap:10px; align-items:center; pointer-events:none; }
+  .scene-legend .swatch{ display:inline-block; width:12px; height:12px; border-radius:2px; margin-right:4px; vertical-align:middle; }
+  .scene-hint{ position:absolute; bottom:8px; right:12px; font-family:var(--font-mono); font-size:11px;
+    color:#7d858c; pointer-events:none; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Calculus&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="power-series.html"><span>Power Series</span><span class="dup" aria-hidden="true">Power Series</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Multivariable · 3D</span>
+    <h1 class="h2" style="margin-top:14px;">Vectors in Space</h1>
+    <p class="method-summary">Vectors in three dimensions, worked exactly: every component is a closed form (<span class="mono">1/2</span>, <span class="mono">sqrt(14)</span>), and every result is checked before it is shown — a cross product that isn't perpendicular to either factor, or a "unit" vector whose norm isn't 1, is withheld rather than displayed. The same vectors are drawn live as arrows in a 3D scene you can orbit.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="vectorForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field" style="margin-top:14px;">
+          <label for="opSelect">Operation</label>
+          <select id="opSelect" class="mono">
+            <option value="add">a + b (add)</option>
+            <option value="subtract">a − b (subtract)</option>
+            <option value="scalarMultiply">c · a (scalar multiply)</option>
+            <option value="dot">a · b (dot product)</option>
+            <option value="cross">a × b (cross product)</option>
+            <option value="magnitude">‖a‖ (magnitude)</option>
+            <option value="unit">â (unit vector)</option>
+            <option value="distance">‖a − b‖ (distance)</option>
+            <option value="angle">angle between a and b</option>
+            <option value="projection">proj_b a (projection)</option>
+            <option value="tripleProduct">a · (b × c) (scalar triple product)</option>
+          </select>
+        </div>
+
+        <div class="field" id="aField" style="margin-top:18px;">
+          <label for="aInput">a =</label>
+          <input type="text" id="aInput" class="mono" value="1, 2, 3" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Three components, separated by commas</span>
+          <div class="katex-preview" id="aPreview"></div>
+        </div>
+
+        <div class="field" id="bField" style="margin-top:18px;">
+          <label for="bInput">b =</label>
+          <input type="text" id="bInput" class="mono" value="4, 5, 6" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Three components, separated by commas</span>
+          <div class="katex-preview" id="bPreview"></div>
+        </div>
+
+        <div class="field" id="scalarField" style="display:none; margin-top:18px;">
+          <label for="cInput">c =</label>
+          <input type="text" id="cInput" class="mono" value="2" autocomplete="off" spellcheck="false" />
+          <span class="field-note">A scalar</span>
+        </div>
+
+        <div class="field" id="wField" style="display:none; margin-top:18px;">
+          <label for="wInput">c =</label>
+          <input type="text" id="wInput" class="mono" value="0, 0, 1" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Third vector for the scalar triple product</span>
+        </div>
+
+        <div class="status-line" id="startStatus">
+          <span class="status-dot"></span><span id="startStatusText">Checking…</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Evaluate</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+
+        <span class="field-note" style="margin-top:22px;">Worked examples — click to load</span>
+        <div class="method-tags" id="presetRow">
+          <button type="button" class="tag" data-op="cross" data-a="1, 2, 3" data-b="4, 5, 6">a×b for ⟨1,2,3⟩,⟨4,5,6⟩</button>
+          <button type="button" class="tag" data-op="dot" data-a="1, 2, 3" data-b="4, -5, 6">a·b = 12</button>
+          <button type="button" class="tag" data-op="magnitude" data-a="1, 2, 3">‖a‖ = √14</button>
+          <button type="button" class="tag" data-op="unit" data-a="1, 2, 3">unit vector</button>
+          <button type="button" class="tag" data-op="angle" data-a="1, 0, 0" data-b="0, 1, 0">angle = 90°</button>
+          <button type="button" class="tag" data-op="projection" data-a="1, 2, 3" data-b="0, 0, 1">proj onto z-axis</button>
+          <button type="button" class="tag" data-op="distance" data-a="1, 2, 3" data-b="4, -5, 6">distance = √67</button>
+          <button type="button" class="tag" data-op="tripleProduct" data-a="1, 0, 0" data-b="0, 1, 0" data-w="0, 0, 1">unit volume = 1</button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Choose an operation and enter your vectors, then evaluate — the exact result, the derivation, and a 3D scene of the vectors will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">Result</div>
+              <div class="value" id="statResult">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Numeric</div>
+              <div class="value" id="statNumeric">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label" id="statExtraLabel">Angle</div>
+              <div class="value" id="statExtra"></div>
+            </div>
+          </div>
+
+          <span class="field-note">Result</span>
+          <div class="formula-block formula-block--result" id="formulaResult"></div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Derivation</span>
+            <div class="data-table-wrap">
+              <table class="data-table" id="stepTable">
+                <thead><tr><th>#</th><th>Rule</th><th>Expression</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <div class="slider-row" style="margin-top:16px;">
+              <input type="range" id="stepSlider" min="0" max="0" value="0" />
+              <span class="step-label" id="stepLabel">step 0</span>
+            </div>
+          </div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">The vectors in 3D</span></div>
+            <div class="scene-host" id="sceneHost">
+              <div class="scene-legend" id="sceneLegend"></div>
+              <div class="scene-hint">drag to orbit · scroll to zoom</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Calculus Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/three.min.js" defer></script>
+<script src="../../../assets/vendor/nerdamer.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<!-- In-page fallback only, for when a Worker cannot be created (file://). Normally the
+     worker owns its own copy and this one is never called. -->
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/calculus-symbolic.js" defer></script>
+<script src="../../../assets/js/calculus-3d.js" defer></script>
+<script src="../../../assets/js/cas-client.js" defer></script>
+<script src="../../../assets/js/vectors-in-space.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

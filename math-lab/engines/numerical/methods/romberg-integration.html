@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Romberg Integration — Numerical Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Numerical&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Integration</span>
+    <h1 class="h2" style="margin-top:14px;">Romberg Integration</h1>
+    <p class="method-summary">Applies Richardson extrapolation to a sequence of composite Trapezoidal-rule estimates at <span class="mono">h, h/2, h/4, …</span> — <span class="mono">R(i,j) = R(i,j−1) + [R(i,j−1) − R(i−1,j−1)] / (4^j − 1)</span> — cancelling the leading error term at each level so the diagonal converges far faster than plain Trapezoidal or Simpson's at the same base panel count.</p>
+  </div>
+</section>
+
+<section class="section--tight" x-data>
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="rombergForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="fxInput">f(x)</label>
+          <input type="text" id="fxInput" class="mono" value="e^x" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="fxPreview"></div>
+          <button type="button" class="keypad-toggle is-open" id="keypadToggle">
+            <span>Math Keypad</span><span class="chev">⌄</span>
+          </button>
+          <div class="math-keypad is-open" id="fxKeypad"></div>
+        </div>
+
+        <div class="field-row" style="margin-top:18px;">
+          <div class="field">
+            <label for="aInput">a (lower)</label>
+            <input type="number" id="aInput" value="0" step="any" />
+          </div>
+          <div class="field">
+            <label for="bInput">b (upper)</label>
+            <input type="number" id="bInput" value="1" step="any" />
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:18px;">
+          <label for="mInput">m (extrapolation levels)</label>
+          <input type="number" id="mInput" value="4" step="1" min="1" max="10" />
+        </div>
+        <div class="status-line" id="startStatus">
+          <span class="status-dot"></span><span id="startStatusText">Checking f(x), a, b, m…</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter a function, bounds and a number of extrapolation levels, then compute — the diagonal-convergence plot and the full triangular Romberg table will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">Estimate ≈</div>
+              <div class="value" id="statTotal">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Levels (m)</div>
+              <div class="value" id="statM">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Base panels (n at i=0)</div>
+              <div class="value" id="statBase">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Est. error</div>
+              <div class="value" id="statErr">—</div>
+            </div>
+          </div>
+
+          <span class="field-note">Richardson extrapolation recurrence</span>
+          <div class="formula-block formula-block--reference" id="formulaBlock"></div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">Convergence of R(i,i) vs. i</span></div>
+            <div id="convPlot" style="height:320px;"></div>
+          </div>
+
+          <div class="data-table-wrap">
+            <table class="data-table" id="rombergTable">
+              <thead>
+                <tr><th>i</th><th>n = 2^i</th><th>R(i,0)</th><th>R(i,1)</th><th>R(i,2)</th><th>R(i,3)</th><th>R(i,4)</th><th>R(i,5)</th><th>R(i,6)</th><th>R(i,7)</th><th>R(i,8)</th><th>R(i,9)</th><th>R(i,10)</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Numerical Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/algorithms.js" defer></script>
+<script src="../../../assets/js/romberg-integration.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

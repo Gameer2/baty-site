@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hermite Interpolation — Numerical Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Numerical&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Interpolation</span>
+    <h1 class="h2" style="margin-top:14px;">Hermite Interpolation</h1>
+    <p class="method-summary">Builds the unique degree ≤ <span class="mono">2n+1</span> polynomial through <span class="mono">n+1</span> nodes by matching both the value <span class="mono">f(xᵢ)</span> and the slope <span class="mono">f′(xᵢ)</span> at every node — smoother than Lagrange through the same points, and exact for any polynomial up to that degree.</p>
+  </div>
+</section>
+
+<section class="section--tight" x-data>
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="hermiteForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label>Data points</label>
+          <table class="points-table" id="pointsTable">
+            <thead><tr><th>x</th><th>f(x)</th><th>f′(x)</th><th></th></tr></thead>
+            <tbody id="pointsTableBody"></tbody>
+          </table>
+          <button type="button" class="btn btn--ghost btn--sm" id="addPointBtn"><span class="btn-text">+ Add Point</span></button>
+        </div>
+
+        <div class="field" style="margin-top:18px;">
+          <label for="queryInput">Evaluate at x =</label>
+          <input type="number" id="queryInput" value="0.5" step="any" />
+        </div>
+
+        <div class="field">
+          <label class="status-line" style="cursor:pointer;">
+            <input type="checkbox" id="compareToggle" style="width:auto;" />
+            <span>Overlay plain Lagrange interpolant (ignores derivatives)</span>
+          </label>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example (x³ through two points)</span></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Add at least two points with their function value and derivative, then compute — the Hermite curve, tangent markers at each node, the divided-difference table and a sample evaluation will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">H(x₀) ≈</div>
+              <div class="value" id="statValue">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Degree</div>
+              <div class="value" id="statDegree">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Nodes</div>
+              <div class="value" id="statNodes">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">H(midpoint)</div>
+              <div class="value" id="statMid">—</div>
+            </div>
+          </div>
+
+          <span class="field-note">Newton-form construction</span>
+          <div class="formula-block formula-block--reference" id="formulaBlock"></div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">Hermite H(x) &amp; tangent markers at each node</span></div>
+            <div id="curvePlot" style="height:360px;"></div>
+          </div>
+
+          <div class="data-table-wrap">
+            <table class="data-table" id="ddTable">
+              <thead id="ddTableHead"></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Numerical Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/algorithms.js" defer></script>
+<script src="../../../assets/js/hermite-interpolation.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

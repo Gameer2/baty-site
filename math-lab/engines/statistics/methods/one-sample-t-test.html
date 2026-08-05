@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>One-Sample t-Test — Statistics Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#c99a3c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Statistics&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Sampling & Inference</span>
+    <h1 class="h2" style="margin-top:14px;">One-Sample t-Test</h1>
+    <p class="method-summary">Tests whether a sample's mean differs significantly from a hypothesized value <span class="mono">μ₀</span> — the p-value comes from the exact Student-t distribution (regularized incomplete beta), not a table lookup.</p>
+  </div>
+</section>
+
+<section class="section--tight" x-data>
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="ttestForm" onsubmit="return false;">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="dataInput">Sample data</label>
+          <textarea id="dataInput" class="mono" rows="5" spellcheck="false"
+            style="width:100%;background:var(--core-black);border:1px solid rgba(255,255,255,.12);border-radius:var(--radius-sm);color:var(--off-white);padding:12px 14px;font-family:var(--font-mono);font-size:14px;resize:vertical;"
+          >78, 85, 92, 67, 74, 88, 95, 81, 73, 90, 84, 79</textarea>
+          <span class="field-note">Comma, space or newline separated</span>
+        </div>
+
+        <div class="field-row" style="margin-top:18px;">
+          <div class="field">
+            <label for="mu0Input">H₀: μ =</label>
+            <input type="number" id="mu0Input" value="75" step="any" />
+          </div>
+          <div class="field">
+            <label for="alphaInput">Significance α</label>
+            <input type="number" id="alphaInput" value="0.05" step="any" min="0.001" max="0.5" />
+          </div>
+        </div>
+
+        <div class="status-line" id="verdictLine" style="margin-top:14px;" aria-live="polite">
+          <span class="status-dot"></span><span id="verdictText">Enter at least two values, then compute.</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;" aria-live="polite">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Paste a sample and a hypothesized mean, then compute — the test statistic, two-tailed p-value, and a histogram with the sample mean against H₀ will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat">
+              <div class="label">n</div>
+              <div class="value" id="statN">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">x̄ (mean)</div>
+              <div class="value" id="statMean">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">s (sample sd)</div>
+              <div class="value" id="statSd">—</div>
+            </div>
+            <div class="result-stat accent">
+              <div class="label">t-statistic</div>
+              <div class="value" id="statT">—</div>
+            </div>
+          </div>
+
+          <span class="field-note">Test statistic</span>
+          <div class="formula-block formula-block--reference" id="formulaT"></div>
+          <span class="field-note">Two-tailed p-value, df = n − 1</span>
+          <div class="formula-block formula-block--result" id="formulaP"></div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">Sample distribution — x̄ vs H₀</span></div>
+            <div id="histPlot" style="height:320px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Statistics Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/proto/proto.js" defer></script>
+<script src="../../../assets/js/stats-algorithms.js" defer></script>
+<script src="../../../assets/js/one-sample-t-test.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

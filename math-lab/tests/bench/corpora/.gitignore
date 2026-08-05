@@ -1,0 +1,9 @@
+# Regenerate both with:  node tests/bench/import-rubi.js
+#
+# .rubi-src     21 MB — upstream checkout of RuleBasedIntegration/MaximaSyntaxTestSuite (MIT)
+# rubi-full     38 MB — all 72,039 parsed problems; the stretch measure
+#
+# rubi-syllabus.json (220 KB) IS committed: it is the corpus that defines "done"
+# (docs/kernel/02_TARGET_STATE.md), so it must be pinned and diffable.
+.rubi-src/
+rubi-full.json

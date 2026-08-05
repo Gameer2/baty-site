@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gram–Schmidt and QR — Linear Algebra Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#8570b3; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Linear&nbsp;Algebra&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Orthogonality</span>
+    <h1 class="h2" style="margin-top:14px;">Gram–Schmidt and QR</h1>
+    <p class="method-summary">Turns the columns of a matrix into an orthonormal set by subtracting projections one at a time, and assembles the factorization <span class="mono">A = QR</span>. Uses the modified Gram–Schmidt process, which stays orthogonal where the classical version drifts.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="laForm" onsubmit="return false;">
+        <span class="panel-title">Input</span>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="rowsInput">Rows m</label>
+            <input type="number" id="rowsInput" value="3" step="1" min="1" max="60" />
+          </div>
+          <div class="field">
+            <label for="colsInput">Columns n</label>
+            <input type="number" id="colsInput" value="3" step="1" min="1" max="60" />
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:14px;">
+          <label>Matrix A</label>
+          <div id="matrixGrid" style="margin-top:8px;"></div>
+          <span class="field-note" id="modeNote" style="display:none;"></span>
+        </div>
+
+
+        <div class="status-line" id="statusLine" style="margin-top:16px;" aria-live="polite">
+          <span class="status-dot"></span><span id="statusText">Enter a matrix, then compute.</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;" aria-live="polite">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter a matrix and press Compute.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip" id="statStrip"></div>
+          <div id="outputBlocks"></div>
+
+          <div class="panel crosshair-host" id="stepsPanel" style="display:none;margin-top:20px;">
+            <span class="panel-title">Row operations</span>
+            <div class="data-table-wrap" style="margin-top:12px;">
+              <table class="data-table">
+                <thead><tr><th>#</th><th>Operation</th><th>Result</th></tr></thead>
+                <tbody id="stepsBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="mono">Linear Algebra Engine — every result computed live in your browser.</p>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/vendor/three.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/algorithms.js" defer></script>
+<script src="../../../assets/js/linalg-algorithms.js" defer></script>
+<script src="../../../assets/js/matrix-ui.js" defer></script>
+<script src="../../../assets/js/calculus-3d.js" defer></script>
+<script src="../../../assets/js/linalg-viz.js" defer></script>
+<script src="../../../assets/js/linalg-page.js" defer></script>
+<script src="../../../assets/js/gram-schmidt.js" defer></script>
+<script defer>
+document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

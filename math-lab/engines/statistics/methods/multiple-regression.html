@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Multiple Linear Regression — Statistics Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#c99a3c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Statistics&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Regression</span>
+    <h1 class="h2" style="margin-top:14px;">Multiple Linear Regression</h1>
+    <p class="method-summary">Fits a plane or hyperplane <span class="mono">ŷ = β₀ + β₁x₁ + … + βₚxₚ</span> through <span class="mono">(x₁, …, xₚ, y)</span> data by ordinary least squares in matrix form <span class="mono">β̂ = (XᵀX)⁻¹Xᵀy</span> — reports each coefficient's standard error, t-statistic, and p-value, plus R² and adjusted R².</p>
+  </div>
+</section>
+
+<section class="section--tight" x-data>
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="regressionForm" onsubmit="return false;">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="dataInput">Data — one observation per line, columns <span class="mono">x1, x2, …, xp, y</span></label>
+          <textarea id="dataInput" class="mono" rows="8" spellcheck="false"
+            style="width:100%;background:var(--core-black);border:1px solid rgba(255,255,255,.12);border-radius:var(--radius-sm);color:var(--off-white);padding:12px 14px;font-family:var(--font-mono);font-size:14px;resize:vertical;"
+          >0, 0, 2
+1, 0, 5
+0, 1, 1
+1, 1, 4
+2, 1, 7
+3, 2, 9</textarea>
+          <span class="field-note">One observation per line, comma or space separated. The last column is the response y; all preceding columns are predictors x1…xp — detected automatically from the first row.</span>
+        </div>
+
+        <div class="status-line" id="statusLine" style="margin-top:14px;" aria-live="polite">
+          <span class="status-dot"></span><span id="statusText">Enter at least p + 2 observations, then compute.</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;" aria-live="polite">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="noisyBtn"><span class="btn-text">Noisy Example</span></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Paste observations (one per line, <span class="mono">x1, x2, …, xp, y</span>), then compute — the fitted hyperplane, coefficient t-tests, R², and a 3-D scatter with the fitted plane will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">R²</div>
+              <div class="value" id="statR2">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">adj R²</div>
+              <div class="value" id="statAdjR2">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Residual SE</div>
+              <div class="value" id="statS">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Predictors (p)</div>
+              <div class="value" id="statP">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">n</div>
+              <div class="value" id="statN">—</div>
+            </div>
+          </div>
+
+          <span class="field-note">Least-squares fit (df = n − p − 1 = <span id="dfNote">—</span>)</span>
+          <div class="formula-block formula-block--result" id="formulaRegression"></div>
+
+          <div class="panel crosshair-host" style="margin-top:18px;">
+            <span class="panel-title">Coefficients</span>
+            <table id="coefTable" style="width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:13px;margin-top:8px;">
+              <thead>
+                <tr style="text-align:left;color:var(--off-white);border-bottom:1px solid rgba(255,255,255,.12);">
+                  <th style="padding:6px 10px;">Term</th>
+                  <th style="padding:6px 10px;text-align:right;">β̂</th>
+                  <th style="padding:6px 10px;text-align:right;">SE</th>
+                  <th style="padding:6px 10px;text-align:right;">t</th>
+                  <th style="padding:6px 10px;text-align:right;">p</th>
+                </tr>
+              </thead>
+              <tbody id="coefBody"></tbody>
+            </table>
+          </div>
+
+          <div class="plot-wrap crosshair-host" style="margin-top:18px;">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;" id="plotTitle">Scatter &amp; fitted plane</span></div>
+            <div id="regressionPlot" style="height:380px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Statistics Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/vendor/three.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/proto/proto.js" defer></script>
+<script src="../../../assets/js/calculus-3d.js" defer></script>
+<script src="../../../assets/js/stats-algorithms.js" defer></script>
+<script src="../../../assets/js/multiple-regression.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Conformal &amp; Möbius Mappings — Complex Analysis Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#b45fd0; }
+.coeff-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:8px; }
+.coeff-grid .field{ margin:0; }
+.coeff-grid label{ font-size:11px; }
+.mobius-plots{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+@media (max-width:720px){ .mobius-plots{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Complex&nbsp;Analysis&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Mappings</span>
+    <h1 class="h2" style="margin-top:14px;">Conformal &amp; Möbius Mappings</h1>
+    <p class="method-summary">A Möbius (bilinear) transformation <span class="mono">w = (az+b)/(cz+d)</span> is the basic building block of conformal mapping — it carries circles and lines to circles and lines and preserves angles. Give the four complex coefficients and this page works out, in closed form, the fixed points, the finite pole (the point sent to ∞), the multiplier, and the geometric type — parabolic, elliptic, hyperbolic, or loxodromic — then draws an orthogonal grid in the z-plane against its image in the w-plane so you can watch the conformality directly. Pure arithmetic on the existing Complex module: no symbolic backend, no lazy-load. Every fixed point is re-checked by substitution before it's shown.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="mobiusForm">
+        <span class="panel-title">Coefficients — w = (a·z + b) / (c·z + d)</span>
+
+        <div class="katex-preview" id="wPreview" style="margin-top:6px;"></div>
+
+        <div class="coeff-grid">
+          <div class="field"><label>a · Re</label><input type="number" id="aRe" value="0" step="any" /></div>
+          <div class="field"><label>a · Im</label><input type="number" id="aIm" value="0" step="any" /></div>
+          <div class="field"><label>b · Re</label><input type="number" id="bRe" value="1" step="any" /></div>
+          <div class="field"><label>b · Im</label><input type="number" id="bIm" value="0" step="any" /></div>
+          <div class="field"><label>c · Re</label><input type="number" id="cRe" value="1" step="any" /></div>
+          <div class="field"><label>c · Im</label><input type="number" id="cIm" value="0" step="any" /></div>
+          <div class="field"><label>d · Re</label><input type="number" id="dRe" value="0" step="any" /></div>
+          <div class="field"><label>d · Im</label><input type="number" id="dIm" value="0" step="any" /></div>
+        </div>
+
+        <div class="status-line ok" id="startStatus" style="margin-top:18px;">
+          <span class="status-dot"></span><span id="startStatusText">Ready — press Solve.</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Solve</span></button>
+        </div>
+
+        <span class="field-note" style="margin-top:22px;">Worked examples — click to load</span>
+        <div class="chip-row" id="exampleChips">
+          <button type="button" class="chip" data-a="0,0" data-b="1,0" data-c="1,0" data-d="0,0">w = 1/z — inversion (elliptic, pole 0, fixed ±1)</button>
+          <button type="button" class="chip" data-a="2,0" data-b="1,0" data-c="1,0" data-d="3,0">w = (2z+1)/(z+3) — loxodromic, pole −3</button>
+          <button type="button" class="chip" data-a="2,0" data-b="0,0" data-c="0,0" data-d="1,0">w = 2z — scaling (hyperbolic)</button>
+          <button type="button" class="chip" data-a="0,1" data-b="0,0" data-c="0,0" data-d="1,0">w = iz — rotation by 90° (elliptic)</button>
+          <button type="button" class="chip" data-a="1,0" data-b="1,0" data-c="0,0" data-d="1,0">w = z+1 — translation (parabolic)</button>
+          <button type="button" class="chip" data-a="1,0" data-b="2,0" data-c="2,0" data-d="4,0">w = (z+2)/(2z+4) — degenerate (refuses)</button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter the four coefficients a, b, c, d, then solve — the classification, fixed points, pole, key images, and a before/after grid will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">Classification</div>
+              <div class="value" id="statKind">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Multiplier |k|</div>
+              <div class="value" id="statK">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Verified</div>
+              <div class="value" id="statVerified">—</div>
+            </div>
+          </div>
+
+          <span class="field-note" style="display:block; margin-top:16px;">Result</span>
+          <div class="formula-block formula-block--result" id="resultBlock"></div>
+
+          <div class="panel crosshair-host" id="geomPanel" style="margin-top:16px;">
+            <span class="panel-title">Geometry</span>
+            <div class="data-table-wrap"><table class="data-table" id="geomTable">
+              <thead><tr><th>quantity</th><th>value</th></tr></thead>
+              <tbody></tbody>
+            </table></div>
+          </div>
+
+          <div class="plot-wrap crosshair-host" style="margin-top:16px;">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">Conformal grid — z-plane (left) mapped to w-plane (right)</span></div>
+            <div class="mobius-plots">
+              <div id="domainPlot" style="height:380px;"></div>
+              <div id="imagePlot" style="height:380px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel crosshair-host" id="refusedPanel" style="display:none;">
+          <span class="panel-title">Can't confirm this one</span>
+          <p class="p1" id="refusedReason"></p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Complex Analysis Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/vendor/nerdamer.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/complex.js" defer></script>
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/mobius.js" defer></script>
+<script src="../../../assets/js/mobius-mapping.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Modular Arithmetic — Number Theory Engine</title>
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#a3623c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Number&nbsp;Theory&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Congruences</span>
+    <h1 class="h2" style="margin-top:14px;">Modular Arithmetic</h1>
+    <p class="method-summary">Work mod <span class="mono">n</span>: every result is folded back into the residue class <span class="mono">{0, 1, …, n−1}</span>. The addition and multiplication tables are the whole structure on a page — read a row, read a column, see which entries are zero (no inverse) and which wrap around. This is the substrate every later method (congruences, CRT, RSA) sits on.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="modForm">
+        <span class="panel-title">Input</span>
+        <div class="field">
+          <label for="nInput">modulus n</label>
+          <input type="text" id="nInput" class="mono" value="7" inputmode="numeric" autocomplete="off" spellcheck="false" />
+        </div>
+        <span class="field-note">A positive integer (keep it ≤ 30 so the tables stay readable). Watch the multiplication table: a row is invertible exactly when it never hits 0.</span>
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Build tables</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try 12</span></button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter a modulus — the addition and multiplication tables mod n will appear as heatmaps, plus the units (invertible elements).</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">φ(n) — units</div>
+              <div class="value" id="statUnits">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">zero divisors</div>
+              <div class="value" id="statZeroDiv">—</div>
+            </div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Multiplication table mod <span id="mulN">n</span></span>
+            <div class="nt-heatmap" id="mulHeatmap"></div>
+            <div class="nt-heatmap"><div class="hm-legend"><span>0</span><span class="bar" style="background:linear-gradient(90deg, rgba(237,109,64,.15), var(--electric-teal))"></span><span>largest residue</span></div></div>
+            <div class="field-note" style="margin-top:12px;" id="mulNote"></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Addition table mod <span id="addN">n</span></span>
+            <div class="nt-heatmap" id="addHeatmap"></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Units (invertible residues)</span>
+            <div class="nt-pipelist" id="unitList"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Number Theory Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/number-theory.js" defer></script>
+<script src="../../../assets/js/modular-arithmetic.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

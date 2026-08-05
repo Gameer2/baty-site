@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Riemann Sums — Calculus Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#4f9e82; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Calculus&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="taylor-series.html"><span>Taylor Series</span><span class="dup" aria-hidden="true">Taylor Series</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">The Definite Integral</span>
+    <h1 class="h2" style="margin-top:14px;">Riemann Sums</h1>
+    <p class="method-summary">The definite integral <span class="mono">∫ f(x) dx</span> is <em>defined</em> as the limit of a sum of rectangle areas as the rectangles get thinner — not approximated by one. Drag the rectangle count up and watch the sum close in on the exact area under the curve.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="riemannForm" onsubmit="return false;">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="fxInput">f(x) =</label>
+          <input type="text" id="fxInput" class="mono" value="sin(x) + 2" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="fxPreview"></div>
+          <button type="button" class="keypad-toggle is-open" id="keypadToggle">
+            <span>Math Keypad</span><span class="chev">⌄</span>
+          </button>
+          <div class="math-keypad is-open" id="fxKeypad"></div>
+        </div>
+
+        <div class="field" id="formError" style="display:none;" aria-live="polite">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="aInput">Interval a</label>
+            <input type="number" id="aInput" value="0" step="any" />
+          </div>
+          <div class="field">
+            <label for="bInput">Interval b</label>
+            <input type="number" id="bInput" value="6.2832" step="any" />
+          </div>
+        </div>
+        <div class="field" style="margin-top:18px;">
+          <label for="nSlider">Rectangles (midpoint rule) — <span id="nVal" class="mono">10</span></label>
+          <div class="slider-row">
+            <input type="range" id="nSlider" min="2" max="200" value="10" />
+          </div>
+        </div>
+
+        <span class="field-note" style="margin-top:22px;">Worked examples — click to load</span>
+        <div class="method-tags" id="presetRow">
+          <button type="button" class="tag" data-fx="sin(x)+2" data-a="0" data-b="6.2832" data-tex="\int_0^{2\pi} (\sin x + 2)\,dx"></button>
+          <button type="button" class="tag" data-fx="x^2" data-a="0" data-b="1" data-tex="\int_0^1 x^2\,dx"></button>
+          <button type="button" class="tag" data-fx="4/(1+x^2)" data-a="0" data-b="1" data-tex="\int_0^1 \frac{4}{1+x^2}\,dx"></button>
+          <button type="button" class="tag" data-fx="e^(-x^2)" data-a="-3" data-b="3" data-tex="\int_{-3}^3 e^{-x^2}\,dx"></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="result-strip">
+          <div class="result-stat accent">
+            <div class="label">∫ f(x) dx ≈</div>
+            <div class="value" id="statIntegral">—</div>
+          </div>
+          <div class="result-stat">
+            <div class="label">Rectangles</div>
+            <div class="value" id="statN">—</div>
+          </div>
+          <div class="result-stat">
+            <div class="label">Rectangle width</div>
+            <div class="value" id="statWidth">—</div>
+          </div>
+        </div>
+
+        <span class="field-note">f(x)</span>
+        <div class="formula-block formula-block--reference" id="formulaFx"></div>
+
+        <div class="plot-wrap crosshair-host">
+          <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">f(x) &amp; midpoint Riemann sum</span></div>
+          <div id="fxPlot" style="height:380px;"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Calculus Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/proto/proto.js" defer></script>
+<script src="../../../assets/js/algorithms.js" defer></script>
+<script src="../../../assets/js/riemann-sums.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Improper Integrals — Calculus Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#4f9e82; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Calculus&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="convergence-tests.html"><span>Convergence</span><span class="dup" aria-hidden="true">Convergence</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Techniques &amp; Applications of Integration</span>
+    <h1 class="h2" style="margin-top:14px;">Improper Integrals</h1>
+    <p class="method-summary">The definite integral extended past its definition — where a bound is <span class="mono">±∞</span>, or where the integrand has a vertical asymptote at a bound (or inside the interval). The move is always the same: replace the troublesome bound with a limit, and the integral converges iff every one-sided piece does. The engine runs two independent paths — a symbolic antiderivative with one-sided limits (π kept symbolic) and a numeric sequence of partial integrals whose truncation points march geometrically toward the improper end — and the verdict comes from their agreement. The two traps that defeat a naive implementation are both handled: the slow <span class="mono">ln</span> divergence of <span class="mono">∫₁^∞ 1/x</span> (caught by watching the increments between partial sums, not a fixed cutoff), and the Cauchy principal value of <span class="mono">∫₋₁¹ 1/x</span> (the interval is split at the asymptote, so a divergent integral is never reported as a convergent 0).</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="impForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="fxInput">f(x) =</label>
+          <input type="text" id="fxInput" class="mono" value="1/x^2" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="fxPreview"></div>
+          <button type="button" class="keypad-toggle is-open" id="keypadToggle">
+            <span>Math Keypad</span><span class="chev">⌄</span>
+          </button>
+          <div class="math-keypad is-open" id="fxKeypad"></div>
+        </div>
+
+        <div class="field" style="margin-top:18px;">
+          <label for="aInput">from a =</label>
+          <input type="text" id="aInput" class="mono" value="1" autocomplete="off" spellcheck="false" style="width:7rem;" />
+          <button type="button" class="tag" id="aInf" data-bound="a" data-val="-Infinity" style="margin-left:8px;">−∞</button>
+          <label for="bInput" style="margin-left:18px;">to b =</label>
+          <input type="text" id="bInput" class="mono" value="Infinity" autocomplete="off" spellcheck="false" style="width:7rem;" />
+          <button type="button" class="tag" id="bInf" data-bound="b" data-val="Infinity" style="margin-left:8px;">+∞</button>
+          <span class="field-note">Numbers, constants like <span class="mono">pi</span>, or <span class="mono">Infinity</span> / <span class="mono">-Infinity</span> (type them, or use the ∞ buttons).</span>
+        </div>
+
+        <div class="status-line" id="startStatus">
+          <span class="status-dot"></span><span id="startStatusText">Checking…</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Evaluate</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+
+        <span class="field-note" style="margin-top:22px;">Worked examples — click to load</span>
+        <div class="method-tags" id="presetRow">
+          <button type="button" class="tag" data-fx="1/x^2" data-a="1" data-b="Infinity" data-tex="\int_1^\infty \frac{1}{x^2}\,dx"></button>
+          <button type="button" class="tag" data-fx="1/sqrt(x)" data-a="0" data-b="1" data-tex="\int_0^1 \frac{1}{\sqrt{x}}\,dx"></button>
+          <button type="button" class="tag" data-fx="e^(-x)" data-a="0" data-b="Infinity" data-tex="\int_0^\infty e^{-x}\,dx"></button>
+          <button type="button" class="tag" data-fx="1/x" data-a="1" data-b="Infinity" data-tex="\int_1^\infty \frac{1}{x}\,dx"></button>
+          <button type="button" class="tag" data-fx="1/x" data-a="-1" data-b="1" data-tex="\int_{-1}^1 \frac{1}{x}\,dx"></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter an integrand and the two bounds (a bound may be ±∞), then evaluate — the converge/diverge verdict, the value when it converges, the one-sided pieces, the derivation, and a plot of the integrand with the asymptotes and bounds marked will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent" id="verdictStat">
+              <div class="label">Verdict</div>
+              <div class="value" id="statVerdict">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Value</div>
+              <div class="value" id="statValue">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Checked</div>
+              <div class="value" id="statVerified">—</div>
+            </div>
+          </div>
+
+          <span class="field-note">Result</span>
+          <div class="formula-block formula-block--result" id="formulaResult"></div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">The one-sided pieces</span>
+            <div class="data-table-wrap">
+              <table class="data-table" id="pieceTable">
+                <thead><tr><th>#</th><th>From</th><th>To</th><th>Improper at</th><th>This piece</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Derivation</span>
+            <div class="data-table-wrap">
+              <table class="data-table" id="stepTable">
+                <thead><tr><th>#</th><th>Rule</th><th>Expression</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <div class="slider-row" style="margin-top:16px;">
+              <input type="range" id="stepSlider" min="0" max="0" value="0" />
+              <span class="step-label" id="stepLabel">step 0</span>
+            </div>
+          </div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;" id="plotTitle">The integrand</span></div>
+            <div id="fxPlot" style="height:360px;"></div>
+          </div>
+        </div>
+
+        <div class="panel crosshair-host" id="refusedPanel" style="display:none;">
+          <span class="panel-title">Can't call this one</span>
+          <p class="p1" id="refusedReason"></p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Calculus Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/vendor/nerdamer.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/calculus-symbolic.js" defer></script>
+<script src="../../../assets/js/cas-client.js" defer></script>
+<script src="../../../assets/js/improper-integrals.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

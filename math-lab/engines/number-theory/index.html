@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Number Theory Engine — The Lab</title>
+<link rel="stylesheet" href="../../assets/css/engine.css" />
+<link rel="stylesheet" href="../../assets/proto/proto.css" />
+<style>:root{ --electric-teal:#a3623c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="methods.html" class="logo"><span class="dot"></span> Number&nbsp;Theory&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../numerical/methods.html"><span>Numerical</span><span class="dup" aria-hidden="true">Numerical</span></a></li>
+      <li><a href="../calculus/methods.html"><span>Calculus</span><span class="dup" aria-hidden="true">Calculus</span></a></li>
+      <li><a href="../linear-algebra/index.html"><span>Linear&nbsp;Algebra</span><span class="dup" aria-hidden="true">Linear&nbsp;Algebra</span></a></li>
+      <li><a href="../statistics/methods.html"><span>Statistics</span><span class="dup" aria-hidden="true">Statistics</span></a></li>
+      <li><a href="../ode/index.html"><span>ODE</span><span class="dup" aria-hidden="true">ODE</span></a></li>
+      <li><a href="methods.html"><span>Number&nbsp;Theory</span><span class="dup" aria-hidden="true">Number&nbsp;Theory</span></a></li>
+    </ul>
+    <a href="../../index.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Engines</span></a>
+  </div>
+</header>
+
+<section class="hero">
+  <canvas class="hero-canvas" id="heroCanvas"></canvas>
+  <div class="container hero-inner">
+    <span class="eyebrow">Integers, Exactly</span>
+    <h1 class="h1" style="margin-top:18px;">No Floating Point. No Approximation.</h1>
+    <p class="p1 hero-sub">Every other engine on the Lab fights numeric drift — a symbolic result quietly wrong by 1e-9, a rational approximation of π. This one doesn't have that problem. <span class="mono">gcd(48, 180) = 12</span> is exactly 12, forever, computed with <span class="mono">BigInt</span> from the ground up. Divisibility, primes, congruences and cryptography — worked step by step, the way Euclid, Fermat and Gauss actually did it.</p>
+    <div class="hero-actions">
+      <a href="methods.html" class="btn btn--primary"><span class="btn-text">Browse Methods ↓</span></a>
+      <a href="methods/euclidean-algorithm.html" class="btn btn--ghost"><span class="btn-text">Open Euclidean Algorithm →</span></a>
+    </div>
+    <span class="proto-badge" style="margin-top:28px;"><span class="status-dot"></span> 4 workspaces live — Phase 1 complete: Divisibility, Euclidean Algorithm, Extended Euclidean/Bézout, Linear Diophantine Equations. Primes, congruences, primitive roots and RSA are next.</span>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Number Theory Engine</span>
+    <a href="methods.html" class="p2">Methods →</a>
+  </div>
+</footer>
+
+<script src="../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../assets/js/engine-core.js" defer></script>
+<script src="../../assets/proto/proto.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => {
+    Engine.initChrome();
+    if (window.Proto && Proto.initRipple) Proto.initRipple(document.getElementById("heroCanvas"), 0xa3623c);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,643 @@
+[
+  {
+    "engineId": "calculus",
+    "engineName": "Calculus",
+    "accent": "#4f9e82",
+    "methods": [
+      {
+        "methodId": "limits",
+        "name": "Limits",
+        "categoryId": "limits-derivatives",
+        "categoryName": "Limits & Derivatives"
+      },
+      {
+        "methodId": "lhopital",
+        "name": "L'Hôpital's Rule",
+        "categoryId": "limits-derivatives",
+        "categoryName": "Limits & Derivatives"
+      },
+      {
+        "methodId": "curve-sketching",
+        "name": "Curve Sketching",
+        "categoryId": "limits-derivatives",
+        "categoryName": "Limits & Derivatives"
+      },
+      {
+        "methodId": "applied-optimization",
+        "name": "Applied Optimization",
+        "categoryId": "limits-derivatives",
+        "categoryName": "Limits & Derivatives"
+      },
+      {
+        "methodId": "related-rates",
+        "name": "Related Rates",
+        "categoryId": "limits-derivatives",
+        "categoryName": "Limits & Derivatives"
+      },
+      {
+        "methodId": "u-substitution",
+        "name": "u-Substitution",
+        "categoryId": "techniques-integration",
+        "categoryName": "Techniques of Integration"
+      },
+      {
+        "methodId": "integration-by-parts",
+        "name": "Integration by Parts",
+        "categoryId": "techniques-integration",
+        "categoryName": "Techniques of Integration"
+      },
+      {
+        "methodId": "partial-fractions",
+        "name": "Partial Fractions",
+        "categoryId": "techniques-integration",
+        "categoryName": "Techniques of Integration"
+      },
+      {
+        "methodId": "trigonometric-substitution",
+        "name": "Trigonometric Substitution",
+        "categoryId": "techniques-integration",
+        "categoryName": "Techniques of Integration"
+      },
+      {
+        "methodId": "algebraic-substitution",
+        "name": "Algebraic Substitution",
+        "categoryId": "techniques-integration",
+        "categoryName": "Techniques of Integration"
+      },
+      {
+        "methodId": "completing-the-square",
+        "name": "Completing the Square",
+        "categoryId": "techniques-integration",
+        "categoryName": "Techniques of Integration"
+      },
+      {
+        "methodId": "integral-calculator",
+        "name": "Integral Calculator",
+        "categoryId": "techniques-integration",
+        "categoryName": "Techniques of Integration"
+      },
+      {
+        "methodId": "riemann-sums",
+        "name": "Riemann Sums",
+        "categoryId": "applications-integration",
+        "categoryName": "Applications of Integration"
+      },
+      {
+        "methodId": "improper-integrals",
+        "name": "Improper Integrals",
+        "categoryId": "applications-integration",
+        "categoryName": "Applications of Integration"
+      },
+      {
+        "methodId": "volumes-of-revolution",
+        "name": "Volumes of Revolution — Disk, Washer & Shell",
+        "categoryId": "applications-integration",
+        "categoryName": "Applications of Integration"
+      },
+      {
+        "methodId": "arc-length-surface-area",
+        "name": "Arc Length & Surface Area",
+        "categoryId": "applications-integration",
+        "categoryName": "Applications of Integration"
+      },
+      {
+        "methodId": "parametric-and-polar",
+        "name": "Parametric & Polar Coordinates",
+        "categoryId": "applications-integration",
+        "categoryName": "Applications of Integration"
+      },
+      {
+        "methodId": "taylor-series",
+        "name": "Taylor & Maclaurin Series",
+        "categoryId": "series",
+        "categoryName": "Series"
+      },
+      {
+        "methodId": "convergence-tests",
+        "name": "Convergence Tests",
+        "categoryId": "series",
+        "categoryName": "Series"
+      },
+      {
+        "methodId": "power-series",
+        "name": "Power Series & Radius of Convergence",
+        "categoryId": "series",
+        "categoryName": "Series"
+      },
+      {
+        "methodId": "fourier-series",
+        "name": "Fourier Series",
+        "categoryId": "series",
+        "categoryName": "Series"
+      },
+      {
+        "methodId": "vectors-in-space",
+        "name": "Vectors in Space",
+        "categoryId": "multivariable-3d",
+        "categoryName": "Multivariable · 3D"
+      },
+      {
+        "methodId": "partial-derivatives",
+        "name": "Partial Derivatives, Gradient & Tangent Planes",
+        "categoryId": "multivariable-3d",
+        "categoryName": "Multivariable · 3D"
+      },
+      {
+        "methodId": "multiple-integrals",
+        "name": "Multiple Integrals",
+        "categoryId": "multivariable-3d",
+        "categoryName": "Multivariable · 3D"
+      },
+      {
+        "methodId": "lagrange-multipliers",
+        "name": "Lagrange Multipliers",
+        "categoryId": "multivariable-3d",
+        "categoryName": "Multivariable · 3D"
+      },
+      {
+        "methodId": "vector-calculus",
+        "name": "Vector Calculus",
+        "categoryId": "multivariable-3d",
+        "categoryName": "Multivariable · 3D"
+      }
+    ]
+  },
+  {
+    "engineId": "complex",
+    "engineName": "Complex Analysis",
+    "accent": "#b45fd0",
+    "methods": [
+      {
+        "methodId": "complex-arithmetic",
+        "name": "Complex Arithmetic & the Plane"
+      },
+      {
+        "methodId": "complex-functions",
+        "name": "Complex Functions & Domain Colouring"
+      },
+      {
+        "methodId": "cauchy-riemann",
+        "name": "Analyticity & the Cauchy-Riemann Equations"
+      },
+      {
+        "methodId": "harmonic-functions",
+        "name": "Harmonic Functions & Conjugates"
+      },
+      {
+        "methodId": "complex-exp-log-powers",
+        "name": "Complex Logarithms & Powers — Branch Cuts"
+      },
+      {
+        "methodId": "complex-trig-hyperbolic",
+        "name": "Complex Trigonometric & Hyperbolic Functions"
+      },
+      {
+        "methodId": "contour-integration",
+        "name": "Contour Integration & Residues"
+      },
+      {
+        "methodId": "cauchy-integral-formula",
+        "name": "Cauchy's Integral Formula"
+      },
+      {
+        "methodId": "laurent-singularities",
+        "name": "Laurent Series & Singularity Classification"
+      },
+      {
+        "methodId": "real-integrals-residues",
+        "name": "Real Integrals by Residues"
+      },
+      {
+        "methodId": "argument-rouche",
+        "name": "Argument Principle & Rouché's Theorem"
+      },
+      {
+        "methodId": "mobius-mapping",
+        "name": "Conformal & Möbius Mappings"
+      }
+    ]
+  },
+  {
+    "engineId": "linear-algebra",
+    "engineName": "Linear Algebra",
+    "accent": "#8570b3",
+    "methods": [
+      {
+        "methodId": "row-reduction",
+        "name": "Row Reduction (RREF)"
+      },
+      {
+        "methodId": "linear-systems",
+        "name": "Linear Systems — Ax = b"
+      },
+      {
+        "methodId": "four-subspaces",
+        "name": "Rank and the Fundamental Subspaces"
+      },
+      {
+        "methodId": "independence-basis",
+        "name": "Linear Independence and Basis"
+      },
+      {
+        "methodId": "matrix-inverse",
+        "name": "Matrix Inverse (Gauss–Jordan)"
+      },
+      {
+        "methodId": "determinant",
+        "name": "Determinant"
+      },
+      {
+        "methodId": "lu-decomposition",
+        "name": "LU Decomposition"
+      },
+      {
+        "methodId": "eigenvalues",
+        "name": "Eigenvalues and Eigenvectors"
+      },
+      {
+        "methodId": "diagonalization",
+        "name": "Diagonalization"
+      },
+      {
+        "methodId": "gram-schmidt",
+        "name": "Gram–Schmidt and QR"
+      },
+      {
+        "methodId": "iterative-solvers",
+        "name": "Jacobi and Gauss–Seidel"
+      },
+      {
+        "methodId": "conjugate-gradient",
+        "name": "Conjugate Gradient"
+      },
+      {
+        "methodId": "svd",
+        "name": "Singular Value Decomposition"
+      },
+      {
+        "methodId": "spectral-theorem",
+        "name": "The Spectral Theorem"
+      },
+      {
+        "methodId": "least-squares",
+        "name": "Least Squares"
+      },
+      {
+        "methodId": "cholesky",
+        "name": "Cholesky Decomposition"
+      },
+      {
+        "methodId": "markov-chains",
+        "name": "Markov Chains"
+      },
+      {
+        "methodId": "linear-transformations",
+        "name": "Linear Transformations (2×2)"
+      }
+    ]
+  },
+  {
+    "engineId": "number-theory",
+    "engineName": "Number Theory",
+    "accent": "#a3623c",
+    "methods": [
+      {
+        "methodId": "divisibility",
+        "name": "Divisibility & the Division Algorithm"
+      },
+      {
+        "methodId": "euclidean-algorithm",
+        "name": "Euclidean Algorithm"
+      },
+      {
+        "methodId": "extended-euclidean",
+        "name": "Extended Euclidean Algorithm & Bézout"
+      },
+      {
+        "methodId": "linear-diophantine",
+        "name": "Linear Diophantine Equations"
+      },
+      {
+        "methodId": "sieve-of-eratosthenes",
+        "name": "Sieve of Eratosthenes"
+      },
+      {
+        "methodId": "prime-factorisation",
+        "name": "Prime Factorisation"
+      },
+      {
+        "methodId": "primality-testing",
+        "name": "Primality Testing"
+      },
+      {
+        "methodId": "distribution-of-primes",
+        "name": "Distribution of Primes"
+      },
+      {
+        "methodId": "modular-arithmetic",
+        "name": "Modular Arithmetic"
+      },
+      {
+        "methodId": "linear-congruences",
+        "name": "Linear Congruences"
+      },
+      {
+        "methodId": "chinese-remainder-theorem",
+        "name": "Chinese Remainder Theorem"
+      },
+      {
+        "methodId": "fermat-euler-theorem",
+        "name": "Fermat's Little & Euler's Theorem"
+      },
+      {
+        "methodId": "wilsons-theorem",
+        "name": "Wilson's Theorem"
+      },
+      {
+        "methodId": "euler-totient",
+        "name": "Euler's Totient φ(n)"
+      },
+      {
+        "methodId": "divisor-functions",
+        "name": "Divisor Functions τ(n), σ(n)"
+      },
+      {
+        "methodId": "mobius-function",
+        "name": "Möbius Function & Inversion"
+      },
+      {
+        "methodId": "order-of-element",
+        "name": "Order of an Element"
+      },
+      {
+        "methodId": "primitive-roots",
+        "name": "Primitive Roots"
+      },
+      {
+        "methodId": "discrete-logarithm",
+        "name": "Discrete Logarithm"
+      },
+      {
+        "methodId": "quadratic-residues",
+        "name": "Quadratic Residues & the Legendre Symbol"
+      },
+      {
+        "methodId": "quadratic-reciprocity",
+        "name": "Law of Quadratic Reciprocity"
+      },
+      {
+        "methodId": "jacobi-symbol",
+        "name": "Jacobi Symbol"
+      },
+      {
+        "methodId": "modular-exponentiation",
+        "name": "Modular Exponentiation"
+      },
+      {
+        "methodId": "rsa",
+        "name": "RSA"
+      },
+      {
+        "methodId": "diffie-hellman",
+        "name": "Diffie–Hellman Key Exchange"
+      },
+      {
+        "methodId": "classical-ciphers",
+        "name": "Classical Ciphers — Affine & Hill"
+      },
+      {
+        "methodId": "continued-fractions",
+        "name": "Continued Fractions of √D"
+      },
+      {
+        "methodId": "pells-equation",
+        "name": "Pell's Equation"
+      },
+      {
+        "methodId": "frobenius-coin",
+        "name": "Frobenius Number — the Coin Problem"
+      }
+    ]
+  },
+  {
+    "engineId": "numerical",
+    "engineName": "Numerical",
+    "accent": "#5c939f",
+    "methods": [
+      {
+        "methodId": "bisection",
+        "name": "Bisection Method"
+      },
+      {
+        "methodId": "lagrange-interpolation",
+        "name": "Lagrange Interpolation & Cubic Spline"
+      },
+      {
+        "methodId": "fixed-point-iteration",
+        "name": "Fixed-Point Iteration"
+      },
+      {
+        "methodId": "newton-raphson",
+        "name": "Newton-Raphson Method"
+      },
+      {
+        "methodId": "secant",
+        "name": "Secant Method"
+      },
+      {
+        "methodId": "trapezoidal-rule",
+        "name": "Trapezoidal Rule"
+      },
+      {
+        "methodId": "simpsons-rule",
+        "name": "Simpson's Rule"
+      },
+      {
+        "methodId": "power-method",
+        "name": "Power Method"
+      },
+      {
+        "methodId": "inverse-power-method",
+        "name": "Inverse Power Method"
+      },
+      {
+        "methodId": "qr-algorithm",
+        "name": "QR Algorithm"
+      },
+      {
+        "methodId": "newton-nonlinear-systems",
+        "name": "Newton's Method for Nonlinear Systems"
+      },
+      {
+        "methodId": "broydens-method",
+        "name": "Broyden's Method"
+      },
+      {
+        "methodId": "hermite-interpolation",
+        "name": "Hermite Interpolation"
+      },
+      {
+        "methodId": "mullers-method",
+        "name": "Müller's Method"
+      },
+      {
+        "methodId": "romberg-integration",
+        "name": "Romberg Integration"
+      },
+      {
+        "methodId": "adaptive-quadrature",
+        "name": "Adaptive Quadrature"
+      },
+      {
+        "methodId": "gaussian-quadrature",
+        "name": "Gaussian Quadrature"
+      },
+      {
+        "methodId": "shooting-method",
+        "name": "Shooting Method"
+      },
+      {
+        "methodId": "finite-difference-bvp",
+        "name": "Finite-Difference BVP"
+      },
+      {
+        "methodId": "false-position",
+        "name": "Method of False Position"
+      },
+      {
+        "methodId": "newton-multiple-roots",
+        "name": "Newton's Method for Multiple Roots"
+      },
+      {
+        "methodId": "steffensen",
+        "name": "Steffensen's Method"
+      },
+      {
+        "methodId": "horner",
+        "name": "Horner's Method"
+      },
+      {
+        "methodId": "neville",
+        "name": "Neville's Method"
+      },
+      {
+        "methodId": "newton-dd",
+        "name": "Newton's Divided-Difference"
+      },
+      {
+        "methodId": "numerical-diff",
+        "name": "Numerical Differentiation"
+      },
+      {
+        "methodId": "richardson-diff",
+        "name": "Richardson Extrapolation"
+      },
+      {
+        "methodId": "least-squares",
+        "name": "Discrete Least Squares"
+      },
+      {
+        "methodId": "chebyshev-econ",
+        "name": "Chebyshev Economization"
+      }
+    ]
+  },
+  {
+    "engineId": "ode",
+    "engineName": "ODE / PDE",
+    "accent": "#4f8fc0",
+    "methods": [
+      {
+        "methodId": "ode-solver",
+        "name": "ODE Solver"
+      },
+      {
+        "methodId": "systems",
+        "name": "Systems of ODEs"
+      },
+      {
+        "methodId": "laplace-transform",
+        "name": "Laplace Transform"
+      },
+      {
+        "methodId": "series-solutions",
+        "name": "Series Solutions"
+      },
+      {
+        "methodId": "heat-equation",
+        "name": "Heat Equation"
+      },
+      {
+        "methodId": "wave-equation",
+        "name": "Wave Equation"
+      },
+      {
+        "methodId": "laplace-poisson",
+        "name": "Laplace & Poisson Equations"
+      },
+      {
+        "methodId": "fourier-series",
+        "name": "Fourier Series"
+      },
+      {
+        "methodId": "direction-fields",
+        "name": "Direction Field & Euler vs RK4"
+      }
+    ]
+  },
+  {
+    "engineId": "statistics",
+    "engineName": "Statistics",
+    "accent": "#c99a3c",
+    "methods": [
+      {
+        "methodId": "one-sample-t-test",
+        "name": "One-Sample t-Test"
+      },
+      {
+        "methodId": "linear-regression",
+        "name": "Simple Linear Regression"
+      },
+      {
+        "methodId": "descriptive-statistics",
+        "name": "Descriptive Statistics Explorer"
+      },
+      {
+        "methodId": "sampling-distributions-clt",
+        "name": "Sampling Distributions & the CLT"
+      },
+      {
+        "methodId": "confidence-intervals",
+        "name": "Confidence Intervals"
+      },
+      {
+        "methodId": "discrete-distributions",
+        "name": "Discrete Probability Distributions"
+      },
+      {
+        "methodId": "continuous-distributions",
+        "name": "Continuous Probability Distributions"
+      },
+      {
+        "methodId": "two-sample-paired-tests",
+        "name": "Two-Sample, Paired & z-Tests"
+      },
+      {
+        "methodId": "chi-square-tests",
+        "name": "Chi-Square Tests"
+      },
+      {
+        "methodId": "multiple-regression",
+        "name": "Multiple Linear Regression"
+      },
+      {
+        "methodId": "probability-combinatorics",
+        "name": "Probability & Combinatorics"
+      },
+      {
+        "methodId": "anova-f-test",
+        "name": "One-Way ANOVA (F-Test)"
+      }
+    ]
+  }
+]

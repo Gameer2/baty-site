@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ODE/PDE Solver — The Lab</title>
+<link rel="stylesheet" href="../../assets/css/engine.css" />
+<link rel="stylesheet" href="../../assets/proto/proto.css" />
+<style>:root{ --electric-teal:#4f8fc0; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="methods.html" class="logo"><span class="dot"></span> ODE&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../numerical/methods.html"><span>Numerical</span><span class="dup" aria-hidden="true">Numerical</span></a></li>
+      <li><a href="../calculus/methods.html"><span>Calculus</span><span class="dup" aria-hidden="true">Calculus</span></a></li>
+      <li><a href="../linear-algebra/methods.html"><span>Linear&nbsp;Algebra</span><span class="dup" aria-hidden="true">Linear&nbsp;Algebra</span></a></li>
+      <li><a href="../statistics/methods.html"><span>Statistics</span><span class="dup" aria-hidden="true">Statistics</span></a></li>
+      <li><a href="methods.html"><span>ODE</span><span class="dup" aria-hidden="true">ODE</span></a></li>
+    </ul>
+    <a href="../../index.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Engines</span></a>
+  </div>
+</header>
+
+<section class="hero">
+  <canvas class="hero-canvas" id="heroCanvas"></canvas>
+  <div class="container hero-inner">
+    <span class="eyebrow">Differential Equations</span>
+    <h1 class="h1" style="margin-top:18px;">Hand It Your Equation</h1>
+    <p class="p1 hero-sub">Type an ODE or a heat-equation PDE. The solver classifies what kind it is, picks the matching textbook method on its own, and shows the full worked solution — steps, general solution, and the particular solution if you give it an initial condition. Nothing symbolic matches? It drops to a numeric solution instead of failing outright.</p>
+    <div class="hero-actions">
+      <a href="methods.html" class="btn btn--primary"><span class="btn-text">Browse Methods ↓</span></a>
+      <a href="methods/ode-solver.html" class="btn btn--ghost"><span class="btn-text">Open Solver →</span></a>
+    </div>
+    <span class="proto-badge" style="margin-top:28px;"><span class="status-dot"></span> Solver: separable / linear / exact / homogeneous / Bernoulli first-order, constant-coefficient second-order (undetermined coefficients + variation of parameters), the heat equation. Numeric fallback (Euler/RK4) underneath everything.</span>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">ODE/PDE Engine</span>
+    <a href="methods.html" class="p2">Methods →</a>
+  </div>
+</footer>
+
+<script src="../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../assets/js/engine-core.js" defer></script>
+<script src="../../assets/proto/proto.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => {
+    Engine.initChrome();
+    Proto.initRipple(document.getElementById("heroCanvas"), 0x4f8fc0);
+  });
+</script>
+</body>
+</html>

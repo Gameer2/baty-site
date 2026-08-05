@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Methods — ODE/PDE Engine</title>
+<link rel="stylesheet" href="../../assets/css/engine.css" />
+<link rel="stylesheet" href="../../assets/proto/proto.css" />
+<style>:root{ --electric-teal:#4f8fc0; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="methods.html" class="logo"><span class="dot"></span> ODE&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../numerical/methods.html"><span>Numerical</span><span class="dup" aria-hidden="true">Numerical</span></a></li>
+      <li><a href="../calculus/methods.html"><span>Calculus</span><span class="dup" aria-hidden="true">Calculus</span></a></li>
+      <li><a href="../linear-algebra/methods.html"><span>Linear&nbsp;Algebra</span><span class="dup" aria-hidden="true">Linear&nbsp;Algebra</span></a></li>
+      <li><a href="../statistics/methods.html"><span>Statistics</span><span class="dup" aria-hidden="true">Statistics</span></a></li>
+      <li><a href="methods.html"><span>ODE</span><span class="dup" aria-hidden="true">ODE</span></a></li>
+    </ul>
+    <a href="../../index.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Engines</span></a>
+  </div>
+</header>
+
+<section class="hero">
+  <canvas class="hero-canvas" id="heroCanvas"></canvas>
+  <div class="container hero-inner">
+    <span class="eyebrow">Differential Equations</span>
+    <h1 class="h1" style="margin-top:18px;">Hand it the equation</h1>
+    <p class="p1 hero-sub">Each workspace classifies what kind of equation you typed, picks the matching textbook method on its own, and shows the full worked solution — steps, general solution, and the particular solution if you give an initial condition. Nothing symbolic matches? It drops to a numeric solution instead of failing.</p>
+    <div class="hero-actions">
+      <a href="methods/ode-solver.html" class="btn btn--primary"><span class="btn-text">Open ODE Solver →</span></a>
+      <a href="#methods" class="btn btn--ghost"><span class="btn-text">Browse Methods ↓</span></a>
+    </div>
+    <span class="proto-badge" style="margin-top:28px;"><span class="status-dot"></span> ODE Solver (any order, general symbolic solver), the Laplace transform (step/impulse forcing IVPs), the heat equation (PDE), Fourier series (full / sine / cosine — the prerequisite for every separation-of-variables PDE), and a direction-field / Euler / RK4 comparison. Verified numerically before every result is shown.</span>
+  </div>
+</section>
+
+<section class="section" id="methods">
+  <div class="container">
+    <div class="grid grid--2 engine-grid">
+
+      <a href="methods/ode-solver.html" class="card engine-card reveal crosshair-host" style="display:block;">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Ordinary Differential Equations</span>
+          <span class="engine-index">1 / 9</span>
+        </div>
+        <h3 class="h3">ODE Solver</h3>
+        <p>Any order, typed as <span class="mono">y'</span>, <span class="mono">y''</span>, etc. Classified and solved in closed form by a general symbolic solver, verified numerically before it's shown, with a numeric fallback when no closed form exists.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Any order</span>
+          <span class="tag">General symbolic solver</span>
+          <span class="tag">IC → particular</span>
+        </div>
+      </a>
+
+      <a href="methods/systems.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.08s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Systems of ODEs</span>
+          <span class="engine-index">2 / 9</span>
+        </div>
+        <h3 class="h3">Systems of ODEs</h3>
+        <p><span class="mono">x' = Ax + g(t)</span> for any n×n <span class="mono">A</span>, solved generally by SymPy and independently re-verified. At n=2, the equilibrium at the origin is classified — node, saddle, spiral, or center — by reusing the Linear Algebra Engine's own eigenvalue solver, alongside the phase portrait.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Any n×n</span>
+          <span class="tag">Eigenvalue classification</span>
+          <span class="tag">Phase portrait</span>
+        </div>
+      </a>
+
+      <a href="methods/laplace-transform.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.16s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">The Laplace Transform</span>
+          <span class="engine-index">3 / 9</span>
+        </div>
+        <h3 class="h3">Laplace Transform</h3>
+        <p>Compute <span class="mono">F(s) = L{f(x)}</span> or its inverse directly, solve an initial-value problem by the full transform → algebra → inverse-transform method (any order, including step (<span class="mono">Heaviside</span>) or impulsive (<span class="mono">DiracDelta</span>) forcing), or verify the convolution theorem. Every result is independently re-checked numerically before it's shown.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Forward + inverse transform</span>
+          <span class="tag">Staged IVP walkthrough</span>
+          <span class="tag">Convolution theorem</span>
+        </div>
+      </a>
+
+      <a href="methods/series-solutions.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.24s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Series Solutions</span>
+          <span class="engine-index">4 / 9</span>
+        </div>
+        <h3 class="h3">Series Solutions</h3>
+        <p>Homogeneous <span class="mono">p(x)y'' + q(x)y' + r(x)y = 0</span> with variable coefficients, expanded around an ordinary or regular singular point. The indicial equation's roots are checked first — repeated or integer-differing roots refuse rather than risk an incomplete answer, a real gap found and closed in SymPy's own series hint (confirmed against Bessel's equation, both orders 0 and 1).</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Ordinary points</span>
+          <span class="tag">Regular singular points</span>
+          <span class="tag">Indicial-root safety gate</span>
+        </div>
+      </a>
+
+      <a href="methods/heat-equation.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.32s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">PDE</span>
+          <span class="engine-index">5 / 9</span>
+        </div>
+        <h3 class="h3">Heat Equation</h3>
+        <p><span class="mono">u_t = k·u_xx</span> on <span class="mono">0 &lt; x &lt; L</span> with Dirichlet boundaries. Solved by separation of variables: the eigenvalue problem gives the sine modes, the Fourier coefficients come from the initial profile, and the temperature surface <span class="mono">u(x,t)</span> decays toward steady state.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Separation of variables</span>
+          <span class="tag">Fourier sine coefficients</span>
+          <span class="tag">u(x,t) heatmap + snapshots</span>
+        </div>
+      </a>
+
+      <a href="methods/wave-equation.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.36s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">PDE</span>
+          <span class="engine-index">6 / 9</span>
+        </div>
+        <h3 class="h3">Wave Equation</h3>
+        <p><span class="mono">u_tt = c&sup2;·u_xx</span> on <span class="mono">0 &lt; x &lt; L</span> with fixed ends, initial position <span class="mono">f(x)</span> and initial velocity <span class="mono">g(x)</span>. Solved two independent ways — the standing-wave (normal-mode) series from separation of variables, and d'Alembert's traveling-wave form — and shown only once they agree numerically.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Standing waves</span>
+          <span class="tag">d'Alembert form</span>
+          <span class="tag">Cross-verified</span>
+        </div>
+      </a>
+
+      <a href="methods/laplace-poisson.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.40s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">PDE</span>
+          <span class="engine-index">7 / 9</span>
+        </div>
+        <h3 class="h3">Laplace &amp; Poisson Equations</h3>
+        <p><span class="mono">u_xx + u_yy = 0</span> (Laplace) or <span class="mono">= f(x,y)</span> (Poisson) on a rectangle with Dirichlet data. Laplace is solved two independent ways — the sinh-series from separation of variables and numeric relaxation on the 5-point stencil — and shown only once they agree; Poisson is solved by relaxation and verified by substituting back into the discrete equation.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Sinh-series</span>
+          <span class="tag">Relaxation (Jacobi/Gauss-Seidel)</span>
+          <span class="tag">Cross-verified</span>
+        </div>
+      </a>
+
+      <a href="methods/fourier-series.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.24s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">PDE</span>
+          <span class="engine-index">8 / 9</span>
+        </div>
+        <h3 class="h3">Fourier Series</h3>
+        <p>Expand a function as a sum of sines and cosines — the full series on <span class="mono">[-L, L]</span>, or the half-range sine (odd) and cosine (even) series on <span class="mono">[0, L]</span> that the heat and wave equations need. Coefficients by Simpson's rule, with exact <span class="mono">π</span>-symbolic forms where the integral is elementary, and the <strong>Gibbs phenomenon</strong> visible at a jump.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Full / sine / cosine</span>
+          <span class="tag">Exact + numeric coefficients</span>
+          <span class="tag">Gibbs overshoot</span>
+        </div>
+      </a>
+
+      <a href="methods/direction-fields.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.40s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Numerical</span>
+          <span class="engine-index">9 / 9</span>
+        </div>
+        <h3 class="h3">Direction Field &amp; Euler vs RK4</h3>
+        <p>Steers <span class="mono">dy/dx = f(x,y)</span> from an initial point with Euler's method and RK4 side by side, overlaid on the slope field — and when <span class="mono">f</span> is linear in <span class="mono">x</span> and <span class="mono">y</span>, the exact closed form too, so the error of each method is on screen. The numeric fallback underneath every symbolic solver above.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Slope field</span>
+          <span class="tag">Euler + RK4 overlay</span>
+          <span class="tag">Exact-solution check</span>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container bar">
+      <span class="p2">ODE/PDE Engine</span>
+      <span class="p2">More methods added continuously</span>
+    </div>
+  </footer>
+</section>
+
+<script src="../../assets/vendor/three.min.js" defer></script>
+<script src="../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../assets/js/engine-core.js" defer></script>
+<script src="../../assets/proto/proto.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => {
+    Engine.initChrome();
+    Proto.initRipple(document.getElementById("heroCanvas"), 0x4f8fc0);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Series Solutions — ODE/PDE Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#4f8fc0; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> ODE&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="ode-solver.html"><span>ODE Solver</span><span class="dup" aria-hidden="true">ODE Solver</span></a></li>
+      <li><a href="laplace-transform.html"><span>Laplace</span><span class="dup" aria-hidden="true">Laplace</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Series Solutions</span>
+    <h1 class="h2" style="margin-top:14px;">Series Solutions</h1>
+    <p class="method-summary">Homogeneous <span class="mono">p(x)y'' + q(x)y' + r(x)y = 0</span> with variable coefficients, expanded as a power series around a point — <em>ordinary</em>, where <span class="mono">q/p</span> and <span class="mono">r/p</span> are both finite (a plain Taylor series, always safe), or <em>regular singular</em>, where the indicial equation's roots are computed first. If those roots are equal or differ by an integer, the second solution may need a logarithmic term SymPy's series hint is known to omit without warning — verified directly against Bessel's equation of both orders 0 and 1 — so this page refuses those cases rather than risk showing an incomplete general solution.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="solverForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="odeInput">Equation — p(x)y'' + q(x)y' + r(x)y = 0</label>
+          <input type="text" id="odeInput" class="mono" value="y'' - x*y' - y = 0" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="odePreview"></div>
+          <button type="button" class="keypad-toggle is-open" id="keypadToggle">
+            <span>Math Keypad</span><span class="chev">⌄</span>
+          </button>
+          <div class="math-keypad is-open" id="odeKeypad"></div>
+        </div>
+
+        <div class="field-row" style="margin-top:18px;">
+          <div class="field"><label for="pointInput">Expansion point x₀</label><input type="number" id="pointInput" value="0" step="any" /></div>
+          <div class="field"><label for="termsInput">Terms</label><input type="number" id="termsInput" value="6" step="1" min="4" max="12" /></div>
+        </div>
+
+        <div class="status-line ok" id="startStatus" style="margin-top:18px;">
+          <span class="status-dot"></span><span id="startStatusText">Ready — press Solve.</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Solve</span></button>
+        </div>
+
+        <span class="field-note" style="margin-top:22px;">Worked examples — click to load</span>
+        <div class="method-tags" id="exampleChips">
+          <button type="button" class="tag" data-eq="y'' - x*y' - y = 0" data-point="0">Ordinary point</button>
+          <button type="button" class="tag" data-eq="y'' - x*y = 0" data-point="0">Airy's equation</button>
+          <button type="button" class="tag" data-eq="(1-x^2)*y'' - 2*x*y' + 6*y = 0" data-point="0">Legendre (ℓ=2)</button>
+          <button type="button" class="tag" data-eq="2*x^2*y'' + 3*x*y' - (1+x^2)*y = 0" data-point="0">Regular singular point</button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Type a homogeneous equation, an expansion point, and a term count, then solve — the truncated series solution will appear here, or a clear refusal if the point needs a logarithmic second solution this page doesn't support.</p>
+        </div>
+        <div id="resultsArea" style="display:none;"></div>
+        <div class="panel crosshair-host" id="refusedPanel" style="display:none;">
+          <span class="panel-title">Can't confirm this one</span>
+          <p class="p1" id="refusedReason"></p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">ODE/PDE Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/nerdamer.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/ode-symbolic.js" defer></script>
+<script src="../../../assets/js/ode-render.js" defer></script>
+<script src="../../../assets/js/cas-client.js" defer></script>
+<script src="../../../assets/js/sympy-client.js" defer></script>
+<script src="../../../assets/js/ode-solver.js" defer></script>
+<script src="../../../assets/js/series-solution-fallback.js" defer></script>
+<script src="../../../assets/js/series-solutions.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

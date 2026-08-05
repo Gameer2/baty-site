@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Quadratic Residues &amp; Legendre Symbol — Number Theory Engine</title>
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#a3623c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Number&nbsp;Theory&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Quadratic residues</span>
+    <h1 class="h2" style="margin-top:14px;">Quadratic Residues &amp; the Legendre Symbol</h1>
+    <p class="method-summary">A quadratic residue mod <span class="mono">p</span> is a square: some <span class="mono">x²</span> lands on it. Exactly half the non-zero residues mod an odd prime are squares. The Legendre symbol <span class="mono">(a/p)</span> encodes the answer as +1 (square), −1 (non-square), 0 (<span class="mono">p | a</span>), and Euler's criterion computes it as <span class="mono">a^((p−1)/2) mod p</span> — no square root required.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="qrForm">
+        <span class="panel-title">Input</span>
+        <div class="field-row">
+          <div class="field"><label for="pInput">odd prime p</label><input type="text" id="pInput" class="mono" value="7" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+          <div class="field"><label for="aInput">test a</label><input type="text" id="aInput" class="mono" value="2" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+        </div>
+        <span class="field-note">Enter an odd prime p and any a. The page lists every QR mod p, checks a with the Legendre symbol, and shows the modular square root when one exists (Tonelli–Shanks).</span>
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try p=13, a=10</span></button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter an odd prime and a — the QR list, the Legendre symbol, the Euler-criterion check, and any square root will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent"><div class="label">(a / p)</div><div class="value" id="statLegendre">—</div></div>
+            <div class="result-stat"><div class="label"># QRs mod p</div><div class="value" id="statCount">—</div></div>
+            <div class="result-stat"><div class="label">√a mod p (if QR)</div><div class="value" id="statRoot">—</div></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Quadratic residues mod p</span>
+            <div class="nt-pipelist" id="qrList"></div>
+            <div class="field-note" id="qrNote" style="margin-top:10px;"></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">The test on a</span>
+            <div class="formula-block formula-block--result" id="qrBlock"></div>
+            <div class="field-note" id="qrANote" style="margin-top:10px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Number Theory Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/number-theory.js" defer></script>
+<script src="../../../assets/js/quadratic-residues.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

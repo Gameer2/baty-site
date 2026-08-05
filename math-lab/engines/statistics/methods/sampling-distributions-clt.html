@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sampling Distributions & the CLT — Statistics Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#c99a3c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Statistics&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Sampling & Inference</span>
+    <h1 class="h2" style="margin-top:14px;">Sampling Distributions &amp; the CLT</h1>
+    <p class="method-summary">Repeatedly draw samples of size <span class="mono">n</span> from a chosen population and watch the distribution of sample means tighten toward a bell curve centered on the population mean — however skewed the population itself is. That's the Central Limit Theorem, and the reason the site's one-sample t-test is valid at all.</p>
+  </div>
+</section>
+
+<section class="section--tight" x-data>
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="cltForm" onsubmit="return false;">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label>Population distribution</label>
+          <div class="chip-row" id="distRow">
+            <button type="button" class="chip is-active" data-dist="uniform">Uniform(0, 1)</button>
+            <button type="button" class="chip" data-dist="exponential">Exponential(rate = 1)</button>
+            <button type="button" class="chip" data-dist="normal">Normal(mean = 0, sd = 1)</button>
+          </div>
+          <span class="field-note">Three built-in presets — parameters fixed for this first build</span>
+        </div>
+
+        <div class="field-row" style="margin-top:18px;">
+          <div class="field">
+            <label for="nInput">Sample size n</label>
+            <input type="number" id="nInput" value="30" step="1" min="1" max="500" />
+          </div>
+          <div class="field">
+            <label for="numSamplesInput">Number of samples</label>
+            <input type="number" id="numSamplesInput" value="2000" step="1" min="10" max="5000" />
+          </div>
+        </div>
+
+        <div class="field-row" style="margin-top:18px;">
+          <div class="field">
+            <label for="seedInput">Seed</label>
+            <input type="number" id="seedInput" value="42" step="1" />
+          </div>
+          <div class="field" style="display:flex;align-items:flex-end;">
+            <button type="button" class="btn btn--ghost btn--sm" id="rerollBtn"><span class="btn-text">Re-roll seed</span></button>
+          </div>
+        </div>
+
+        <div class="status-line" id="statusLine" style="margin-top:14px;" aria-live="polite">
+          <span class="status-dot"></span><span id="statusText">Set parameters, then compute.</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;" aria-live="polite">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Pick a population, a sample size, and how many samples to draw, then compute — the distribution of sample means and one raw sample's histogram will appear here. Raise n or the sample count and watch the means histogram narrow and bell out.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent"><div class="label">Grand mean</div><div class="value" id="statGrandMean">—</div></div>
+            <div class="result-stat"><div class="label">Population mean</div><div class="value" id="statPopMean">—</div></div>
+            <div class="result-stat"><div class="label">Empirical SE</div><div class="value" id="statEmpSE">—</div></div>
+            <div class="result-stat"><div class="label">Theoretical SE</div><div class="value" id="statTheSE">—</div></div>
+          </div>
+
+          <span class="field-note">Standard error of the mean and the CLT limit</span>
+          <div class="formula-block formula-block--reference" id="formulaBlock"></div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">Distribution of sample means</span></div>
+            <div id="meansPlot" style="height:320px;"></div>
+          </div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">One example raw sample (n draws)</span></div>
+            <div id="rawSamplePlot" style="height:220px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Statistics Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/proto/proto.js" defer></script>
+<script src="../../../assets/js/stats-algorithms.js" defer></script>
+<script src="../../../assets/js/sampling-distributions.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

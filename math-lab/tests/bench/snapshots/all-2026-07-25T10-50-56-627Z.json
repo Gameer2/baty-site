@@ -1,0 +1,223 @@
+{
+  "timestamp": "2026-07-25T10:50:56.627Z",
+  "git": "89224d4",
+  "kind": "phase0-all",
+  "engines": [
+    {
+      "name": "integration",
+      "total": 875,
+      "counts": {
+        "CORRECT": 372,
+        "WRONG": 183,
+        "REFUSED": 0,
+        "UNVERIFIABLE": 32,
+        "TIMEOUT": 0,
+        "MISSING": 0
+      },
+      "byGroup": {},
+      "failures": []
+    },
+    {
+      "name": "ode",
+      "total": 51,
+      "counts": {
+        "CORRECT": 43,
+        "WRONG": 0,
+        "REFUSED": 0,
+        "UNVERIFIABLE": 1,
+        "MISSING": 7,
+        "TIMEOUT": 0
+      },
+      "byGroup": {
+        "separable": {
+          "total": 12,
+          "correct": 12
+        },
+        "linear": {
+          "total": 6,
+          "correct": 5
+        },
+        "exact": {
+          "total": 4,
+          "correct": 4
+        },
+        "homogeneous": {
+          "total": 4,
+          "correct": 4
+        },
+        "bernoulli": {
+          "total": 3,
+          "correct": 3
+        },
+        "2nd-order homogeneous": {
+          "total": 9,
+          "correct": 9
+        },
+        "2nd-order nonhomogeneous": {
+          "total": 6,
+          "correct": 6
+        },
+        "reduction of order": {
+          "total": 1,
+          "correct": 0
+        },
+        "Laplace transform": {
+          "total": 1,
+          "correct": 0
+        },
+        "systems / eigenvalue method": {
+          "total": 1,
+          "correct": 0
+        },
+        "series solution": {
+          "total": 1,
+          "correct": 0
+        },
+        "Euler-Cauchy": {
+          "total": 1,
+          "correct": 0
+        },
+        "step/impulse forcing": {
+          "total": 1,
+          "correct": 0
+        },
+        "autonomous / stability": {
+          "total": 1,
+          "correct": 0
+        }
+      },
+      "failures": []
+    },
+    {
+      "name": "pde",
+      "total": 22,
+      "counts": {
+        "CORRECT": 10,
+        "WRONG": 0,
+        "REFUSED": 0,
+        "UNVERIFIABLE": 0,
+        "MISSING": 12,
+        "TIMEOUT": 0
+      },
+      "byGroup": {
+        "heat": {
+          "total": 10,
+          "correct": 10
+        },
+        "wave": {
+          "total": 4,
+          "correct": 0
+        },
+        "laplace": {
+          "total": 3,
+          "correct": 0
+        },
+        "poisson": {
+          "total": 1,
+          "correct": 0
+        },
+        "heat-neumann": {
+          "total": 1,
+          "correct": 0
+        },
+        "heat-nonzero-bc": {
+          "total": 1,
+          "correct": 0
+        },
+        "numerical-pde": {
+          "total": 2,
+          "correct": 0
+        }
+      },
+      "failures": []
+    },
+    {
+      "name": "complex",
+      "total": 34,
+      "counts": {
+        "CORRECT": 14,
+        "WRONG": 0,
+        "REFUSED": 2,
+        "UNVERIFIABLE": 0,
+        "MISSING": 18,
+        "TIMEOUT": 0
+      },
+      "byGroup": {
+        "cauchyRiemann": {
+          "total": 10,
+          "correct": 9
+        },
+        "harmonicConjugate": {
+          "total": 6,
+          "correct": 5
+        },
+        "contour-integral": {
+          "total": 2,
+          "correct": 0
+        },
+        "cauchy-goursat": {
+          "total": 1,
+          "correct": 0
+        },
+        "cauchy-integral-formula": {
+          "total": 1,
+          "correct": 0
+        },
+        "laurent": {
+          "total": 2,
+          "correct": 0
+        },
+        "singularity-classification": {
+          "total": 1,
+          "correct": 0
+        },
+        "residue": {
+          "total": 2,
+          "correct": 0
+        },
+        "residue-theorem": {
+          "total": 1,
+          "correct": 0
+        },
+        "real-integral-by-residues": {
+          "total": 2,
+          "correct": 0
+        },
+        "argument-principle": {
+          "total": 1,
+          "correct": 0
+        },
+        "rouche": {
+          "total": 1,
+          "correct": 0
+        },
+        "branch-cut": {
+          "total": 2,
+          "correct": 0
+        },
+        "conformal-map": {
+          "total": 1,
+          "correct": 0
+        },
+        "mobius": {
+          "total": 1,
+          "correct": 0
+        }
+      },
+      "failures": [
+        {
+          "eq": "Re(z)",
+          "family": "cauchyRiemann",
+          "cls": "REFUSED",
+          "ref": "C&B 2.21"
+        },
+        {
+          "eq": "log(x^2+y^2)",
+          "family": "harmonicConjugate",
+          "cls": "REFUSED",
+          "ref": "C&B 2.27"
+        }
+      ]
+    }
+  ]
+}

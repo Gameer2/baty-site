@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Euler's Totient — Number Theory Engine</title>
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#a3623c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Number&nbsp;Theory&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Multiplicative functions</span>
+    <h1 class="h2" style="margin-top:14px;">Euler's Totient φ(n)</h1>
+    <p class="method-summary">φ(n) counts the integers up to n that are coprime to n — the size of the multiplicative group mod n, and the exponent in Euler's theorem. For a prime power <span class="mono">p^k</span>, φ = <span class="mono">p^k − p^(k−1)</span>; and φ is multiplicative, so for <span class="mono">n = ∏ pᵢ^eᵢ</span> the product formula folds it all together: <span class="mono">φ(n) = n · ∏(1 − 1/pᵢ)</span>.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="phiForm">
+        <span class="panel-title">Input</span>
+        <div class="field">
+          <label for="nInput">n</label>
+          <input type="text" id="nInput" class="mono" value="360" inputmode="numeric" autocomplete="off" spellcheck="false" />
+        </div>
+        <span class="field-note">Any integer ≥ 1. The factorisation drives the product formula; φ is built from the distinct primes, not by counting.</span>
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute φ</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try 1000</span></button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter n — the factorisation, the product-formula breakdown, and φ(n) will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent"><div class="label">φ(n)</div><div class="value" id="statPhi">—</div></div>
+            <div class="result-stat"><div class="label">distinct primes</div><div class="value" id="statOmega">—</div></div>
+            <div class="result-stat"><div class="label">n</div><div class="value" id="statN">—</div></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Factorisation</span>
+            <div id="factorList"></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Product formula</span>
+            <div class="formula-block formula-block--result" id="phiBlock"></div>
+            <div class="field-note" id="phiNote" style="margin-top:10px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Number Theory Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/number-theory.js" defer></script>
+<script src="../../../assets/js/euler-totient.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

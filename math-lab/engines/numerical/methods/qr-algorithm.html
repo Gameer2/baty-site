@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>QR Algorithm — Numerical Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Numerical&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Linear Algebra</span>
+    <h1 class="h2" style="margin-top:14px;">QR Algorithm</h1>
+    <p class="method-summary">Repeatedly factors A = QR and recombines as RQ — the matrix converges toward triangular form with every eigenvalue on the diagonal at once, unshifted: <span class="mono">A_{k+1} = R_k Q_k</span> where <span class="mono">A_k = Q_k R_k</span>.</p>
+  </div>
+</section>
+
+<section class="section--tight" x-data>
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="qrForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="sizeInput">Matrix size (n)</label>
+          <input type="number" id="sizeInput" value="2" step="1" min="2" max="6" />
+        </div>
+
+        <div class="field">
+          <label>Matrix A</label>
+          <table class="points-table matrix-table" id="matrixTable">
+            <tbody id="matrixBody"></tbody>
+          </table>
+        </div>
+        <div class="status-line" id="startStatus">
+          <span class="status-dot"></span><span id="startStatusText">Checking matrix…</span>
+        </div>
+
+        <div class="field-row" style="margin-top:18px;">
+          <div class="field">
+            <label for="tolInput">Tolerance</label>
+            <input type="number" id="tolInput" value="0.00000001" step="any" />
+          </div>
+          <div class="field">
+            <label for="maxIterInput">Max iterations</label>
+            <input type="number" id="maxIterInput" value="100" step="1" min="1" max="500" />
+          </div>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter a square matrix and compute — the eigenvalue estimates on the diagonal, an off-diagonal decay plot, the full iteration table and a step-through of the current matrix will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">Eigenvalues ≈</div>
+              <div class="value" id="statEigenvalues">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Iterations</div>
+              <div class="value" id="statIters">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Final off-diagonal norm</div>
+              <div class="value" id="statOffNorm">—</div>
+            </div>
+          </div>
+
+          <span class="field-note">Iteration formula</span>
+          <div class="formula-block formula-block--reference" id="formulaBlock"></div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">Off-diagonal norm vs. iteration</span></div>
+            <div id="decayPlot" style="height:260px;"></div>
+          </div>
+
+          <div class="data-table-wrap">
+            <table class="data-table" id="iterTable">
+              <thead>
+                <tr><th>k</th><th>diagonal (eigenvalue estimates)</th><th>off-diagonal norm</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">Current matrix A<sub>k</sub></span></div>
+            <pre class="mono" id="matrixDisplay" style="padding:14px; font-size:13px; line-height:1.5; white-space:pre;"></pre>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Step through</span>
+            <div class="slider-row">
+              <input type="range" id="stepSlider" min="0" max="0" value="0" />
+              <span class="step-label" id="stepLabel">step 0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Numerical Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/algorithms.js" defer></script>
+<script src="../../../assets/js/qr-algorithm.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

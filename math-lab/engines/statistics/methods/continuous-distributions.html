@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Continuous Probability Distributions — Statistics Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#c99a3c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Statistics&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Probability</span>
+    <h1 class="h2" style="margin-top:14px;">Continuous Probability Distributions</h1>
+    <p class="method-summary">Explores four fundamental continuous distributions — Normal, Exponential, Uniform, and Gamma — with PDF density curves and CDF visualizations. Adjust the parameters and highlight any x to read off the density, cumulative probability, mean, and variance.</p>
+  </div>
+</section>
+
+<section class="section--tight" x-data>
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="distForm" onsubmit="return false;">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label>Distribution</label>
+          <div class="hero-actions" id="distRow" role="tablist" aria-label="Distribution selector">
+            <button type="button" class="btn btn--ghost btn--sm chip active" data-dist="normal" role="tab" aria-selected="true">Normal</button>
+            <button type="button" class="btn btn--ghost btn--sm chip" data-dist="exponential" role="tab" aria-selected="false">Exponential</button>
+            <button type="button" class="btn btn--ghost btn--sm chip" data-dist="uniform" role="tab" aria-selected="false">Uniform</button>
+            <button type="button" class="btn btn--ghost btn--sm chip" data-dist="gamma" role="tab" aria-selected="false">Gamma</button>
+          </div>
+        </div>
+
+        <!-- Normal fields -->
+        <div class="field-row" id="normalFields">
+          <div class="field">
+            <label for="normMean">mean (μ)</label>
+            <input type="number" id="normMean" class="mono" step="0.1" value="0" />
+          </div>
+          <div class="field">
+            <label for="normSd">sd (σ)</label>
+            <input type="number" id="normSd" class="mono" step="any" min="0.01" value="1" />
+          </div>
+        </div>
+
+        <!-- Exponential fields -->
+        <div class="field-row" id="exponentialFields" style="display:none;">
+          <div class="field">
+            <label for="expRate">rate (λ)</label>
+            <input type="number" id="expRate" class="mono" step="any" min="0.01" value="2" />
+          </div>
+        </div>
+
+        <!-- Uniform fields -->
+        <div class="field-row" id="uniformFields" style="display:none;">
+          <div class="field">
+            <label for="unifA">a (lower)</label>
+            <input type="number" id="unifA" class="mono" step="0.1" value="0" />
+          </div>
+          <div class="field">
+            <label for="unifB">b (upper)</label>
+            <input type="number" id="unifB" class="mono" step="0.1" value="1" />
+          </div>
+        </div>
+
+        <!-- Gamma fields -->
+        <div class="field-row" id="gammaFields" style="display:none;">
+          <div class="field">
+            <label for="gammaShape">shape (k)</label>
+            <input type="number" id="gammaShape" class="mono" step="any" min="0.01" value="2" />
+          </div>
+          <div class="field">
+            <label for="gammaScale">scale (θ)</label>
+            <input type="number" id="gammaScale" class="mono" step="any" min="0.01" value="1" />
+          </div>
+        </div>
+
+        <div class="field-row" style="margin-top:12px;">
+          <div class="field">
+            <label for="highlightX">Highlight x</label>
+            <input type="number" id="highlightX" class="mono" step="0.1" value="1" />
+            <span class="field-note">Which x value to highlight in PDF/CDF</span>
+          </div>
+        </div>
+
+        <div class="status-line" id="statusLine" style="margin-top:14px;" aria-live="polite">
+          <span class="status-dot"></span><span id="statusText">Select a distribution and adjust parameters.</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;" aria-live="polite">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Select a distribution, adjust parameters, then compute — the PDF curve, CDF curve, and summary statistics will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent"><div class="label">mean</div><div class="value" id="statMean">—</div></div>
+            <div class="result-stat"><div class="label">variance</div><div class="value" id="statVar">—</div></div>
+            <div class="result-stat"><div class="label">f(x)</div><div class="value" id="statPDF">—</div></div>
+            <div class="result-stat"><div class="label">F(x)</div><div class="value" id="statCDF">—</div></div>
+          </div>
+
+          <span class="field-note">Reference — formulas shown below update with the selected distribution</span>
+          <div class="formula-block formula-block--reference" id="formulaBlock"></div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">PDF (Probability Density Function)</span></div>
+            <div id="pdfPlot" style="height:320px;"></div>
+          </div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">CDF (Cumulative Distribution Function)</span></div>
+            <div id="cdfPlot" style="height:220px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Statistics Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/proto/proto.js" defer></script>
+<script src="../../../assets/js/stats-algorithms.js" defer></script>
+<script src="../../../assets/js/continuous-distributions.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

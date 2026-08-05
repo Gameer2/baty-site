@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Descriptive Statistics Explorer — Statistics Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#c99a3c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Statistics&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Descriptive Statistics</span>
+    <h1 class="h2" style="margin-top:14px;">Descriptive Statistics Explorer</h1>
+    <p class="method-summary">Paste a dataset and get every summary statistic at once — mean, sample and population variance/sd, quartiles (linear interpolation between ranks), mode — plus a live histogram and box plot. No hypothesis, no model: the front door before you test anything.</p>
+  </div>
+</section>
+
+<section class="section--tight" x-data>
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="descForm" onsubmit="return false;">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="dataInput">Sample data</label>
+          <textarea id="dataInput" class="mono" rows="5" spellcheck="false"
+            style="width:100%;background:var(--core-black);border:1px solid rgba(255,255,255,.12);border-radius:var(--radius-sm);color:var(--off-white);padding:12px 14px;font-family:var(--font-mono);font-size:14px;resize:vertical;"
+          >78, 85, 92, 67, 74, 88, 95, 81, 73, 90, 84, 79</textarea>
+          <span class="field-note">Comma, space or newline separated</span>
+        </div>
+
+        <div class="status-line" id="statusLine" style="margin-top:14px;" aria-live="polite">
+          <span class="status-dot"></span><span id="statusText">Enter at least one numeric value, then compute.</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;" aria-live="polite">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Paste a dataset, then compute — the full summary table, a histogram with mean and median marked, and a box plot of the same data will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat"><div class="label">n</div><div class="value" id="statN">—</div></div>
+            <div class="result-stat accent"><div class="label">mean (x̄)</div><div class="value" id="statMean">—</div></div>
+            <div class="result-stat"><div class="label">sample sd (s)</div><div class="value" id="statSd">—</div></div>
+            <div class="result-stat"><div class="label">variance (s²)</div><div class="value" id="statVar">—</div></div>
+            <div class="result-stat"><div class="label">median</div><div class="value" id="statMedian">—</div></div>
+            <div class="result-stat"><div class="label">Q1</div><div class="value" id="statQ1">—</div></div>
+            <div class="result-stat"><div class="label">Q3</div><div class="value" id="statQ3">—</div></div>
+            <div class="result-stat"><div class="label">IQR</div><div class="value" id="statIqr">—</div></div>
+            <div class="result-stat"><div class="label">min</div><div class="value" id="statMin">—</div></div>
+            <div class="result-stat"><div class="label">max</div><div class="value" id="statMax">—</div></div>
+            <div class="result-stat"><div class="label">range</div><div class="value" id="statRange">—</div></div>
+            <div class="result-stat"><div class="label">mode</div><div class="value" id="statMode">—</div></div>
+          </div>
+
+          <span class="field-note">Reference — quartiles use linear interpolation between ranks; s² uses n−1, σ² uses n</span>
+          <div class="formula-block formula-block--reference" id="formulaBlock"></div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">Distribution</span></div>
+            <div id="histPlot" style="height:320px;"></div>
+          </div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">Box plot</span></div>
+            <div id="boxPlot" style="height:220px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Statistics Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/proto/proto.js" defer></script>
+<script src="../../../assets/js/stats-algorithms.js" defer></script>
+<script src="../../../assets/js/descriptive-statistics.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

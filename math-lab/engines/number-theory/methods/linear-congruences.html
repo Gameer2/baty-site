@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Linear Congruences — Number Theory Engine</title>
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#a3623c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Number&nbsp;Theory&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Congruences</span>
+    <h1 class="h2" style="margin-top:14px;">Linear Congruences</h1>
+    <p class="method-summary">Solve <span class="mono">ax ≡ b (mod n)</span>. Unlike an ordinary equation, one congruence can have *many* solutions — exactly <span class="mono">gcd(a, n)</span> of them, and only when that gcd divides <span class="mono">b</span>. The reduced solution class lives mod <span class="mono">n / gcd(a,n)</span>; the full set fans out from there.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="lcForm">
+        <span class="panel-title">Input — ax ≡ b (mod n)</span>
+        <div class="field-row">
+          <div class="field"><label for="aInput">a</label><input type="text" id="aInput" class="mono" value="4" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+          <div class="field"><label for="bInput">b</label><input type="text" id="bInput" class="mono" value="8" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+          <div class="field"><label for="nInput">n</label><input type="text" id="nInput" class="mono" value="12" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+        </div>
+        <span class="field-note">Try <span class="mono">4x ≡ 8 (mod 12)</span> → gcd(4,12)=4 divides 8, so four solutions: 2, 5, 8, 11.</span>
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Solve</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try 3x ≡ 1 mod 7</span></button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter a, b, n — the solvability test, the gcd, the reduced class, and the full solution set will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent" id="solvableStat">
+              <div class="label">solvable?</div>
+              <div class="value" id="statSolvable">—</div>
+            </div>
+            <div class="result-stat"><div class="label">gcd(a, n)</div><div class="value" id="statGcd">—</div></div>
+            <div class="result-stat"><div class="label"># solutions mod n</div><div class="value" id="statCount">—</div></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Solvability</span>
+            <div class="formula-block formula-block--result" id="solveBlock"></div>
+            <div class="field-note" id="solveNote" style="margin-top:10px;"></div>
+          </div>
+
+          <div class="panel crosshair-host" id="solutionsPanel">
+            <span class="panel-title">Solutions mod n</span>
+            <div class="nt-pipelist" id="solutionList"></div>
+            <div class="field-note" id="solNote" style="margin-top:10px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Number Theory Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/number-theory.js" defer></script>
+<script src="../../../assets/js/linear-congruences.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

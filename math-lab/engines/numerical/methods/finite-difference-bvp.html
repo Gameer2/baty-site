@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Finite-Difference BVP — Numerical Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Numerical&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Boundary Value Problems</span>
+    <h1 class="h2" style="margin-top:14px;">Finite-Difference BVP</h1>
+    <p class="method-summary">Discretizes the whole interval at once by replacing derivatives with central differences at each interior node — <span class="mono">-(1 + h/2·p_i)w_{i-1} + (2 + h²·q_i)w_i - (1 - h/2·p_i)w_{i+1} = -h²·r_i</span> — producing a tridiagonal linear system solved in one shot, no iteration.</p>
+  </div>
+</section>
+
+<section class="section--tight" x-data>
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="fdForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="pInput">p(x)</label>
+          <input type="text" id="pInput" class="mono" value="0" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="pPreview"></div>
+          <button type="button" class="keypad-toggle is-open" id="pKeypadToggle">
+            <span>Math Keypad</span><span class="chev">⌄</span>
+          </button>
+          <div class="math-keypad is-open" id="pKeypad"></div>
+        </div>
+
+        <div class="field" style="margin-top:18px;">
+          <label for="qInput">q(x)</label>
+          <input type="text" id="qInput" class="mono" value="-1" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="qPreview"></div>
+          <button type="button" class="keypad-toggle is-open" id="qKeypadToggle">
+            <span>Math Keypad</span><span class="chev">⌄</span>
+          </button>
+          <div class="math-keypad is-open" id="qKeypad"></div>
+        </div>
+
+        <div class="field" style="margin-top:18px;">
+          <label for="rInput">r(x)</label>
+          <input type="text" id="rInput" class="mono" value="0" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="rPreview"></div>
+          <button type="button" class="keypad-toggle is-open" id="rKeypadToggle">
+            <span>Math Keypad</span><span class="chev">⌄</span>
+          </button>
+          <div class="math-keypad is-open" id="rKeypad"></div>
+        </div>
+
+        <div class="field-row" style="margin-top:18px;">
+          <div class="field">
+            <label for="aInput">a (left endpoint)</label>
+            <input type="number" id="aInput" value="0" step="any" />
+          </div>
+          <div class="field">
+            <label for="bInput">b (right endpoint)</label>
+            <input type="number" id="bInput" value="1.5707963267948966" step="any" />
+          </div>
+        </div>
+
+        <div class="field-row" style="margin-top:18px;">
+          <div class="field">
+            <label for="alphaInput">α = y(a)</label>
+            <input type="number" id="alphaInput" value="0" step="any" />
+          </div>
+          <div class="field">
+            <label for="betaInput">β = y(b)</label>
+            <input type="number" id="betaInput" value="1" step="any" />
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:18px;">
+          <label for="nInput">n (subintervals)</label>
+          <input type="number" id="nInput" value="10" step="1" min="2" max="500" />
+        </div>
+
+        <div class="status-line" id="startStatus">
+          <span class="status-dot"></span><span id="startStatusText">Checking p(x), q(x), r(x)…</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter the ODE coefficients p(x), q(x), r(x), the interval [a, b], the boundary values α, β, and a subinterval count n — the FD solution grid, coefficient formulas and full node table will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">y at midpoint grid</div>
+              <div class="value" id="statMid">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Grid points (n+1)</div>
+              <div class="value" id="statGrid">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">h (step size)</div>
+              <div class="value" id="statH">—</div>
+            </div>
+          </div>
+
+          <span class="field-note">Tridiagonal coefficients (central-difference substitution)</span>
+          <div class="formula-block formula-block--reference" id="formulaBlock"></div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">FD solution over the grid</span></div>
+            <div id="fdPlot" style="height:340px;"></div>
+          </div>
+
+          <div class="data-table-wrap">
+            <table class="data-table" id="iterTable">
+              <thead>
+                <tr><th>i</th><th>x_i</th><th>w_i</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Step through nodes</span>
+            <div class="slider-row">
+              <input type="range" id="stepSlider" min="0" max="0" value="0" />
+              <span class="step-label" id="stepLabel">node i = 0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Numerical Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/algorithms.js" defer></script>
+<script src="../../../assets/js/finite-difference-bvp.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

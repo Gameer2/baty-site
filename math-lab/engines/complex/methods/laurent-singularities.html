@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Laurent Series &amp; Singularity Classification — Complex Analysis Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#b45fd0; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Complex&nbsp;Analysis&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Integration &amp; Residues</span>
+    <h1 class="h2" style="margin-top:14px;">Laurent Series &amp; Singularity Classification</h1>
+    <p class="method-summary">Give a function <span class="mono">f(z)</span> and a point <span class="mono">z₀</span>, and this page says exactly what kind of singularity lives there — removable, a pole of a specific order, an essential singularity, or a regular point — then writes the Laurent series about it. The verdict comes from the limit definitions (the honest test), not from eyeballing a series: SymPy's series expansion leaves an essential singularity like <span class="mono">e^(1/z)</span> unexpanded and refuses <span class="mono">sin(1/z)</span> outright, so a principal-part parse would misclassify both. Same answer-only discipline as the contour page: a verdict and a series, never a step-by-step derivation.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="laurentForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="fzInput">f(z) =</label>
+          <input type="text" id="fzInput" class="mono" value="exp(z)/z^3" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="fzPreview"></div>
+        </div>
+
+        <span class="field-note" style="margin-top:18px;">Expansion point z₀</span>
+        <div class="field-row">
+          <div class="field"><label for="pointReInput">Re(z₀)</label><input type="number" id="pointReInput" value="0" step="any" /></div>
+          <div class="field"><label for="pointImInput">Im(z₀)</label><input type="number" id="pointImInput" value="0" step="any" /></div>
+          <div class="field"><label for="orderInput">series order</label><input type="number" id="orderInput" value="6" step="1" min="2" max="20" /></div>
+        </div>
+
+        <div class="status-line ok" id="startStatus" style="margin-top:18px;">
+          <span class="status-dot"></span><span id="startStatusText">Ready — press Solve.</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Solve</span></button>
+        </div>
+
+        <span class="field-note" style="margin-top:22px;">Worked examples — click to load</span>
+        <div class="chip-row" id="exampleChips">
+          <button type="button" class="chip" data-fz="exp(z)/z^3" data-pre="0" data-pim="0" data-order="6">eᶻ/z³ at 0 — pole of order 3</button>
+          <button type="button" class="chip" data-fz="1/z^2" data-pre="0" data-pim="0" data-order="6">1/z² at 0 — pole of order 2, zero residue</button>
+          <button type="button" class="chip" data-fz="exp(1/z)" data-pre="0" data-pim="0" data-order="8">e^(1/z) at 0 — essential singularity</button>
+          <button type="button" class="chip" data-fz="sin(z)/z" data-pre="0" data-pim="0" data-order="6">sin(z)/z at 0 — removable</button>
+          <button type="button" class="chip" data-fz="1/(z^2+1)" data-pre="0" data-pim="1" data-order="6">1/(z²+1) at i — simple pole, residue −i/2</button>
+          <button type="button" class="chip" data-fz="z^2" data-pre="0" data-pim="0" data-order="6">z² at 0 — analytic (no singularity)</button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter f(z) and a point z₀, then solve — the singularity's classification, its residue (when it's a pole), and the Laurent series about z₀ will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">Classification</div>
+              <div class="value" id="statKind">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Residue at z₀</div>
+              <div class="value" id="statResidue">—</div>
+            </div>
+          </div>
+
+          <span class="field-note" style="display:block; margin-top:16px;">Verdict</span>
+          <div class="formula-block formula-block--result" id="verdictBlock"></div>
+
+          <span class="field-note" style="display:block; margin-top:16px;">Laurent series about z₀</span>
+          <div class="formula-block formula-block--result" id="seriesBlock"></div>
+        </div>
+
+        <div class="panel crosshair-host" id="refusedPanel" style="display:none;">
+          <span class="panel-title">Can't confirm this one</span>
+          <p class="p1" id="refusedReason"></p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Complex Analysis Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/nerdamer.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/complex.js" defer></script>
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/complex-symbolic.js" defer></script>
+<script src="../../../assets/js/cas-client.js" defer></script>
+<script src="../../../assets/js/sympy-client.js" defer></script>
+<script src="../../../assets/js/complex-residues.js" defer></script>
+<script src="../../../assets/js/laurent-singularities.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

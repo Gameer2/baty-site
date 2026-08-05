@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Confidence Intervals — Statistics Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#c99a3c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Statistics&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Sampling & Inference</span>
+    <h1 class="h2" style="margin-top:14px;">Confidence Intervals</h1>
+    <p class="method-summary">The counterpart to the t-test: instead of "is the mean equal to this value?", ask "what range plausibly contains the true mean, proportion, or variance?" Builds an interval for a mean, proportion, or variance — with the critical value solved by bisection on the reference distribution, not looked up from a table.</p>
+  </div>
+</section>
+
+<section class="section--tight" x-data>
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="ciForm" onsubmit="return false;">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label>Interval for</label>
+          <div class="chip-row" id="ciModeRow">
+            <button type="button" class="chip is-active" data-mode="mean">Mean</button>
+            <button type="button" class="chip" data-mode="proportion">Proportion</button>
+            <button type="button" class="chip" data-mode="variance">Variance</button>
+          </div>
+        </div>
+
+        <div id="meanFields">
+          <div class="field" style="margin-top:14px;">
+            <label for="ciDataInput">Sample data</label>
+            <textarea id="ciDataInput" class="mono" rows="5" spellcheck="false"
+              style="width:100%;background:var(--core-black);border:1px solid rgba(255,255,255,.12);border-radius:var(--radius-sm);color:var(--off-white);padding:12px 14px;font-family:var(--font-mono);font-size:14px;resize:vertical;"
+            >78, 85, 92, 67, 74, 88, 95, 81, 73, 90, 84, 79</textarea>
+            <span class="field-note">Comma, space or newline separated</span>
+          </div>
+        </div>
+
+        <div id="proportionFields" style="display:none;">
+          <div class="field-row" style="margin-top:14px;">
+            <div class="field">
+              <label for="successesInput">Successes</label>
+              <input type="number" id="successesInput" value="64" step="1" min="0" />
+            </div>
+            <div class="field">
+              <label for="nInput">Trials n</label>
+              <input type="number" id="nInput" value="200" step="1" min="1" />
+            </div>
+          </div>
+        </div>
+
+        <div id="varianceFields" style="display:none;">
+          <div class="field" style="margin-top:14px;">
+            <label for="ciVarDataInput">Sample data</label>
+            <textarea id="ciVarDataInput" class="mono" rows="5" spellcheck="false"
+              style="width:100%;background:var(--core-black);border:1px solid rgba(255,255,255,.12);border-radius:var(--radius-sm);color:var(--off-white);padding:12px 14px;font-family:var(--font-mono);font-size:14px;resize:vertical;"
+            >78, 85, 92, 67, 74, 88, 95, 81, 73, 90, 84, 79</textarea>
+            <span class="field-note">Comma, space or newline separated</span>
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:18px;">
+          <label>Confidence level</label>
+          <div class="chip-row" id="confRow">
+            <button type="button" class="chip" data-conf="0.90">90%</button>
+            <button type="button" class="chip is-active" data-conf="0.95">95%</button>
+            <button type="button" class="chip" data-conf="0.99">99%</button>
+          </div>
+        </div>
+
+        <div class="status-line" id="statusLine" style="margin-top:14px;" aria-live="polite">
+          <span class="status-dot"></span><span id="statusText">Enter valid inputs, then compute.</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;" aria-live="polite">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Choose what to interval, enter your data, and compute — the point estimate, margin of error, and bounds appear here, plotted on a number line with a repeated-interval simulation showing what the confidence level really means.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip" id="ciStrip"></div>
+
+          <span class="field-note" id="formulaNote">Interval formula</span>
+          <div class="formula-block formula-block--result" id="formulaBlock"></div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">Interval on a number line</span></div>
+            <div id="ciPlot" style="height:200px;"></div>
+          </div>
+
+          <div id="simCaption" style="display:none;" class="field-note" aria-live="polite"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Statistics Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/proto/proto.js" defer></script>
+<script src="../../../assets/js/stats-algorithms.js" defer></script>
+<script src="../../../assets/js/confidence-intervals.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

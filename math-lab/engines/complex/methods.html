@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Methods — Complex Analysis Engine</title>
+<link rel="stylesheet" href="../../assets/css/engine.css" />
+<link rel="stylesheet" href="../../assets/proto/proto.css" />
+<style>:root{ --electric-teal:#b45fd0; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="methods.html" class="logo"><span class="dot"></span> Complex&nbsp;Analysis&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../numerical/methods.html"><span>Numerical</span><span class="dup" aria-hidden="true">Numerical</span></a></li>
+      <li><a href="../calculus/methods.html"><span>Calculus</span><span class="dup" aria-hidden="true">Calculus</span></a></li>
+      <li><a href="../linear-algebra/index.html"><span>Linear&nbsp;Algebra</span><span class="dup" aria-hidden="true">Linear&nbsp;Algebra</span></a></li>
+      <li><a href="../statistics/methods.html"><span>Statistics</span><span class="dup" aria-hidden="true">Statistics</span></a></li>
+      <li><a href="../ode/index.html"><span>ODE</span><span class="dup" aria-hidden="true">ODE</span></a></li>
+      <li><a href="../number-theory/methods.html"><span>Number&nbsp;Theory</span><span class="dup" aria-hidden="true">Number&nbsp;Theory</span></a></li>
+      <li><a href="methods.html"><span>Complex</span><span class="dup" aria-hidden="true">Complex</span></a></li>
+    </ul>
+    <a href="../../index.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Engines</span></a>
+  </div>
+</header>
+
+<section class="hero">
+  <canvas class="hero-canvas" id="heroCanvas"></canvas>
+  <div class="container hero-inner">
+    <span class="eyebrow">f : ℂ → ℂ</span>
+    <h1 class="h1" style="margin-top:18px;">The Plane, Coloured</h1>
+    <p class="p1 hero-sub">From the arithmetic of the complex plane up through analyticity, contour integration, and the residue theorem. Built on the shared CAS core (calc-core.js) — the same verified symbolic engine and numeric verify gate the Calculus engine uses — plus a pure complex-arithmetic module reused from the Linear Algebra engine's root finder.</p>
+    <div class="hero-actions">
+      <a href="methods/complex-arithmetic.html" class="btn btn--primary"><span class="btn-text">Open Complex Arithmetic →</span></a>
+      <a href="#methods" class="btn btn--ghost"><span class="btn-text">Browse Methods ↓</span></a>
+    </div>
+    <span class="proto-badge" style="margin-top:28px;"><span class="status-dot"></span> 12 workspaces live. Verified by automated test suites — see tests/verify-complex.js, tests/verify-domain-coloring.js, tests/verify-complex-symbolic.js, tests/verify-complex-residues.js, tests/verify-contour-theorems.js, and tests/verify-cas-worker.js.</span>
+  </div>
+</section>
+
+<section class="section" id="methods">
+  <div class="container">
+    <div class="grid grid--2 engine-grid">
+
+      <a href="methods/complex-arithmetic.html" class="card engine-card reveal crosshair-host" style="display:block;">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">The Plane &amp; Analyticity</span>
+          <span class="engine-index">1 / 12</span>
+        </div>
+        <h3 class="h3">Complex Arithmetic &amp; the Plane</h3>
+        <p>Modulus, argument, conjugate and polar form for <span class="mono">z = a + bi</span>, plus De Moivre's theorem for powers and the <span class="mono">n</span> roots — drawn as a regular <span class="mono">n</span>-gon on the Argand plane. Try <span class="mono">z = 1</span> for the roots of unity.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Polar form</span>
+          <span class="tag">De Moivre</span>
+          <span class="tag">Roots on the plane</span>
+        </div>
+      </a>
+
+      <a href="methods/complex-functions.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.08s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">The Plane &amp; Analyticity</span>
+          <span class="engine-index">2 / 12</span>
+        </div>
+        <h3 class="h3">Complex Functions &amp; Domain Colouring</h3>
+        <p>The engine's flagship visual: paint the plane by <span class="mono">hue = arg f(z)</span>, <span class="mono">brightness = |f(z)|</span>. Zeros darken to black, poles brighten to white, and the order of each is literally the number of hue cycles. Click anywhere to read off <span class="mono">f(z)</span> exactly.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Domain colouring</span>
+          <span class="tag">Click-to-probe</span>
+          <span class="tag">3 colour modes</span>
+        </div>
+      </a>
+
+      <a href="methods/cauchy-riemann.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.16s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">The Plane &amp; Analyticity</span>
+          <span class="engine-index">3 / 12</span>
+        </div>
+        <h3 class="h3">Analyticity &amp; the Cauchy-Riemann Equations</h3>
+        <p>Split <span class="mono">f(z) = u(x,y) + i·v(x,y)</span> symbolically — by walking f(z)'s expression tree, not nerdamer's built-in (and, it turns out, buggy) real/imaginary-part extraction — then check <span class="mono">u_x = v_y</span> and <span class="mono">u_y = -v_x</span> exactly. Plotted plane-wide, so a function whose equations hold only at one isolated point doesn't get mistaken for analytic.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Symbolic u, v</span>
+          <span class="tag">Exact partials</span>
+          <span class="tag">Plane-wide verdict</span>
+        </div>
+      </a>
+
+      <a href="methods/harmonic-functions.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.24s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">The Plane &amp; Analyticity</span>
+          <span class="engine-index">4 / 12</span>
+        </div>
+        <h3 class="h3">Harmonic Functions &amp; Conjugates</h3>
+        <p>Every analytic function's real and imaginary parts satisfy Laplace's equation. Give this page a harmonic <span class="mono">u(x, y)</span> and it recovers the exact conjugate <span class="mono">v</span> by symbolic integration, verified independently, then plots both as level curves — which, by Cauchy-Riemann, always cross at right angles.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Laplace's equation</span>
+          <span class="tag">Symbolic integration</span>
+          <span class="tag">Orthogonal level curves</span>
+        </div>
+      </a>
+
+      <a href="methods/complex-exp-log-powers.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.32s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Elementary Functions</span>
+          <span class="engine-index">5 / 12</span>
+        </div>
+        <h3 class="h3">Complex Logarithms &amp; Powers — Branch Cuts</h3>
+        <p><span class="mono">log(z)</span> and <span class="mono">z^w</span> are multivalued — every nonzero <span class="mono">z</span> has infinitely many logarithms. This page never picks a branch silently: the principal branch is stated on screen, its cut shows up as a real seam in the domain colouring, and clicking any point lists every other branch there, cross-checked back against <span class="mono">e^(value) = z</span>.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Principal branch</span>
+          <span class="tag">Branch cut, visible</span>
+          <span class="tag">Every branch, listed</span>
+        </div>
+      </a>
+
+      <a href="methods/complex-trig-hyperbolic.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.40s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Elementary Functions</span>
+          <span class="engine-index">6 / 12</span>
+        </div>
+        <h3 class="h3">Complex Trigonometric &amp; Hyperbolic Functions</h3>
+        <p><span class="mono">sin x</span> never leaves <span class="mono">[-1, 1]</span> on the real line — but <span class="mono">sin(iy) = i·sinh(y)</span> grows exponentially off it. This page plots <span class="mono">|f|</span> along the real axis against <span class="mono">|f|</span> along the imaginary axis side by side, plus a live check that <span class="mono">sin²z + cos²z = 1</span> still holds everywhere in <span class="mono">ℂ</span>.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Unboundedness, visualized</span>
+          <span class="tag">Poles of tan, sec, csc, cot</span>
+          <span class="tag">Identities still hold</span>
+        </div>
+      </a>
+
+      <a href="methods/contour-integration.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.48s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Integration &amp; Residues</span>
+          <span class="engine-index">7 / 12</span>
+        </div>
+        <h3 class="h3">Contour Integration &amp; Residues</h3>
+        <p>Give <span class="mono">f(z)</span> and a circular contour <span class="mono">γ</span> and the residue theorem does the rest: <span class="mono">∮<sub>γ</sub> f(z)dz = 2πi·ΣRes</span> over every singularity inside. SymPy finds the poles and residues; the answer is independently re-checked by numerically walking the actual contour before it's ever shown — the same residue-theorem module the ODE Engine's Laplace-transform page will reuse.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Residue theorem</span>
+          <span class="tag">Numerically re-verified</span>
+          <span class="tag">Shared with ODE Laplace</span>
+        </div>
+      </a>
+
+      <a href="methods/cauchy-integral-formula.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.56s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Integration &amp; Residues</span>
+          <span class="engine-index">8 / 12</span>
+        </div>
+        <h3 class="h3">Cauchy's Integral Formula</h3>
+        <p>The value of an analytic function at a point — and every derivative there — is fixed by one loop around it: <span class="mono">f<sup>(n)</sup>(z₀) = n!/(2πi)·∮ f(z)/(z−z₀)<sup>n+1</sup> dz</span>. Give <span class="mono">f(z)</span>, <span class="mono">z₀</span> and a radius and the page evaluates it on a circle about <span class="mono">z₀</span>, then verifies the answer on a second, independent circle (and, for <span class="mono">n=0</span>, against a direct <span class="mono">f(z₀)</span>) — no symbolic backend, just two independent numeric integrations that must agree.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Evaluation formula</span>
+          <span class="tag">All derivatives</span>
+          <span class="tag">Two-contour verified</span>
+        </div>
+      </a>
+
+      <a href="methods/laurent-singularities.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.64s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Integration &amp; Residues</span>
+          <span class="engine-index">9 / 12</span>
+        </div>
+        <h3 class="h3">Laurent Series &amp; Singularity Classification</h3>
+        <p>Give <span class="mono">f(z)</span> and a point <span class="mono">z₀</span> and this page says exactly what lives there — removable, a pole of a specific order, an essential singularity, or a regular point — then writes the Laurent series about it. The verdict comes from the limit definitions, not a series parse: SymPy's <span class="mono">sp.series</span> leaves <span class="mono">e^(1/z)</span> unexpanded and errors on <span class="mono">sin(1/z)</span>, so a principal-part read would misclassify both.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Limit-based verdict</span>
+          <span class="tag">Pole order &amp; residue</span>
+          <span class="tag">Laurent expansion</span>
+        </div>
+      </a>
+
+      <a href="methods/real-integrals-residues.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.72s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Integration &amp; Residues</span>
+          <span class="engine-index">10 / 12</span>
+        </div>
+        <h3 class="h3">Real Integrals by Residues</h3>
+        <p>Integrals over the whole real line — or the half-line — that no elementary antiderivative touches, done by lifting <span class="mono">R(x)</span> to the plane and closing the contour with a large upper semicircle: <span class="mono">∫ R(x)dx = 2πi·ΣRes</span> over the poles above the real axis. Handles the bread-and-butter case (non-oscillatory, fast-decaying, no real-axis poles) and refuses the rest. The residue answer is re-checked by a direct numeric integration (tangent substitution) before it's shown.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Semicircle closure</span>
+          <span class="tag">Numerically re-verified</span>
+          <span class="tag">Whole &amp; half line</span>
+        </div>
+      </a>
+
+      <a href="methods/argument-rouche.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.80s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Integration &amp; Residues</span>
+          <span class="engine-index">11 / 12</span>
+        </div>
+        <h3 class="h3">Argument Principle &amp; Rouché's Theorem</h3>
+        <p>Count zeros and poles from a single loop. The argument principle: <span class="mono">(1/2πi)∮ f′/f dz = N − P</span>, the winding of <span class="mono">f(γ)</span> about the origin. Rouché: if <span class="mono">|f−g| &lt; |f|</span> on <span class="mono">γ</span>, then <span class="mono">f</span> and <span class="mono">g</span> have the same number of zeros inside. Both are checked two independent ways — winding number against the logarithmic-derivative integral — and the image curve <span class="mono">f(γ)</span> is drawn in the w-plane so the winding is visible.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">N − P, with sign</span>
+          <span class="tag">Rouché condition</span>
+          <span class="tag">w-plane image</span>
+        </div>
+      </a>
+
+      <a href="methods/mobius-mapping.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.88s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Mappings</span>
+          <span class="engine-index">12 / 12</span>
+        </div>
+        <h3 class="h3">Conformal &amp; Möbius Mappings</h3>
+        <p>The basic conformal map <span class="mono">w = (az+b)/(cz+d)</span> — circles-and-lines to circles-and-lines, angles preserved. Give the four coefficients and this page works out the fixed points, the pole sent to <span class="mono">∞</span>, the multiplier, and the type (parabolic / elliptic / hyperbolic / loxodromic), then draws an orthogonal grid in the z-plane next to its image in the w-plane. Pure arithmetic on the existing Complex module — no symbolic backend — with every fixed point re-checked by substitution.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Fixed points &amp; pole</span>
+          <span class="tag">Geometric type</span>
+          <span class="tag">Grid → image</span>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+  <section class="section" id="prototypes">
+    <div class="container">
+      <span class="eyebrow">Prototypes — live 3D explorations</span>
+      <h2 class="h2" style="margin:10px 0 6px;">The <span class="mono">f : ℂ → ℂ</span> mapping, as a wormhole</h2>
+      <p class="p1" style="max-width:62ch; color:var(--text-dim, #9aa3ab);">Standalone three.js workspaces that put two complex planes face to face and connect them through a fabric surface, so you can watch a function carry the domain into the codomain.</p>
+      <div class="grid grid--2 engine-grid" style="margin-top:24px;">
+
+        <a href="mapping-field-prototype.html" class="card engine-card reveal crosshair-host" style="display:block;">
+          <span class="engine-dot"></span>
+          <div class="engine-card-head">
+            <span class="eyebrow">Prototype · the original</span>
+            <span class="engine-index">P 1 / 3</span>
+          </div>
+          <h3 class="h3">Mapping Field — z ↦ w</h3>
+          <p>Two parallel planes joined by a homotopy surface <span class="mono">w_t = (1−t)z + t·f(z)</span>. Domain grid on the bottom, its bent image on top, fiber probe at any <span class="mono">z</span>.</p>
+          <div class="method-tags" style="margin-top:16px;">
+            <span class="tag">Homotopy surface</span>
+            <span class="tag">Fiber probe</span>
+            <span class="tag">2D lens mode</span>
+          </div>
+        </a>
+
+        <a href="mapping-wormhole-prototype.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.08s">
+          <span class="engine-dot"></span>
+          <div class="engine-card-head">
+            <span class="eyebrow">Prototype · white wormhole</span>
+            <span class="engine-index">P 2 / 3</span>
+          </div>
+          <h3 class="h3">Wormhole Fabric — z flows to f(z)</h3>
+          <p>The same mapping restyled as a spacetime-fabric wormhole: white fabric, starfield void, worldline pulses travelling start-to-end through <span class="mono">f</span>, poles as rings.</p>
+          <div class="method-tags" style="margin-top:16px;">
+            <span class="tag">Flowing worldlines</span>
+            <span class="tag">Starfield void</span>
+            <span class="tag">Pole rings</span>
+          </div>
+        </a>
+
+        <a href="cauchy-integral-prototype.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.16s">
+          <span class="engine-dot"></span>
+          <div class="engine-card-head">
+            <span class="eyebrow">Prototype · Cauchy's theorem</span>
+            <span class="engine-index">P 3 / 3</span>
+          </div>
+          <h3 class="h3">Cauchy Integral Theorem — Winding &amp; Residues</h3>
+          <p>Wrap an infrared contour <span class="mono">γ</span> around the domain and watch its image <span class="mono">f(γ)</span> wind around <span class="mono">w = 0</span> on the other mouth. <span class="mono">∮f dz = 0</span> when no poles sit inside; the winding equals zeros-minus-poles (argument principle). Ten presets with and without poles.</p>
+          <div class="method-tags" style="margin-top:16px;">
+            <span class="tag">Contour γ → f(γ)</span>
+            <span class="tag">Winding number</span>
+            <span class="tag">Residue theorem</span>
+          </div>
+        </a>
+
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="container bar">
+      <span class="p2">Complex Analysis Engine</span>
+      <span class="p2">More methods added continuously</span>
+    </div>
+  </footer>
+</section>
+
+<script src="../../assets/vendor/three.min.js" defer></script>
+<script src="../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../assets/js/engine-core.js" defer></script>
+<script src="../../assets/proto/proto.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => {
+    Engine.initChrome();
+    if (window.Proto && Proto.initRipple) Proto.initRipple(document.getElementById("heroCanvas"), 0xb45fd0);
+  });
+</script>
+</body>
+</html>

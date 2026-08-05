@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Jacobi Symbol — Number Theory Engine</title>
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#a3623c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Number&nbsp;Theory&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Quadratic residues</span>
+    <h1 class="h2" style="margin-top:14px;">Jacobi Symbol</h1>
+    <p class="method-summary">The Jacobi symbol <span class="mono">(a/n)</span> generalises the Legendre symbol to any odd positive <span class="mono">n</span>, defined as the product of Legendre symbols over the prime factors of <span class="mono">n</span>. It's computed by the same reciprocity-based algorithm — *without factoring n* — which makes it fast even for enormous n. One warning the page makes plain: when n is composite, <span class="mono">(a/n) = +1</span> does NOT mean a is a square mod n.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="jacForm">
+        <span class="panel-title">Input</span>
+        <div class="field-row">
+          <div class="field"><label for="aInput">a</label><input type="text" id="aInput" class="mono" value="2" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+          <div class="field"><label for="nInput">n (odd, positive)</label><input type="text" id="nInput" class="mono" value="15" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+        </div>
+        <span class="field-note">Try (2/15): the Jacobi symbol is +1, yet 2 is NOT a square mod 15 — the trap that comes from n being composite.</span>
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try (2/9)</span></button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter a and an odd n — the Jacobi symbol and the Legendre-symbol factorisation will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent"><div class="label">(a / n)</div><div class="value" id="statJac">—</div></div>
+            <div class="result-stat"><div class="label">n prime?</div><div class="value" id="statPrime">—</div></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Result</span>
+            <div class="formula-block formula-block--result" id="jacBlock"></div>
+            <div class="field-note" id="jacNote" style="margin-top:10px;"></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">As a product of Legendre symbols</span>
+            <div class="formula-block formula-block--reference" id="prodBlock"></div>
+            <div class="field-note" id="prodNote" style="margin-top:10px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Number Theory Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/number-theory.js" defer></script>
+<script src="../../../assets/js/jacobi-symbol.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

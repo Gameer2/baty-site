@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lagrange Multipliers — Calculus Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>
+  :root{ --electric-teal:#4f9e82; }
+  .scene-host{ height:400px; position:relative; border-radius:6px; overflow:hidden;
+    background:radial-gradient(circle at 50% 35%, rgba(79,158,130,0.06), transparent 70%); }
+  .scene-host canvas{ display:block; }
+  .scene-legend{ position:absolute; top:10px; left:12px; font-family:var(--font-mono);
+    font-size:12px; color:#cfd6cf; background:rgba(20,24,24,0.55); padding:6px 10px; border-radius:4px;
+    display:flex; gap:10px; align-items:center; flex-wrap:wrap; pointer-events:none; max-width:90%; }
+  .scene-legend .swatch{ display:inline-block; width:12px; height:12px; border-radius:2px; margin-right:4px; vertical-align:middle; }
+  .scene-hint{ position:absolute; bottom:8px; right:12px; font-family:var(--font-mono); font-size:11px;
+    color:#7d858c; pointer-events:none; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Calculus&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="vectors-in-space.html"><span>Vectors</span><span class="dup" aria-hidden="true">Vectors</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Multivariable · 3D</span>
+    <h1 class="h2" style="margin-top:14px;">Lagrange Multipliers — Constrained Optimization</h1>
+    <p class="method-summary">Maximize or minimize <span class="mono">f(x, y)</span> while confined to a constraint curve <span class="mono">g(x, y) = c</span>: at the optimum, the level curves of <span class="mono">f</span> and the constraint curve are tangent, which means <span class="mono">∇f = λ∇g</span> for some scalar <span class="mono">λ</span>. Solving that system exactly turned out to be untrustworthy — nerdamer's own system solver returns an inexact, incomplete answer even on the textbook circle example — so this method solves it with a multi-start numeric search instead, and verifies every candidate independently: the directional derivative of <span class="mono">f</span> along the constraint curve itself must vanish there.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="lagrangeForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field" style="margin-top:14px;">
+          <label for="fInput">f(x, y) =</label>
+          <input type="text" id="fInput" class="mono" value="x*y" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="fPreview"></div>
+          <button type="button" class="keypad-toggle is-open" id="keypadToggle">
+            <span>Math Keypad</span><span class="chev">⌄</span>
+          </button>
+          <div class="math-keypad is-open" id="fKeypad"></div>
+        </div>
+
+        <div class="field" style="margin-top:18px;">
+          <label for="gInput">g(x, y) =</label>
+          <input type="text" id="gInput" class="mono" value="x^2+y^2" autocomplete="off" spellcheck="false" />
+        </div>
+
+        <div class="field" style="margin-top:14px;">
+          <label for="cInput">subject to g(x, y) =</label>
+          <input type="text" id="cInput" class="mono" value="1" autocomplete="off" spellcheck="false" style="max-width:100px;" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="gPreview"></div>
+        </div>
+
+        <div class="status-line" id="startStatus">
+          <span class="status-dot"></span><span id="startStatusText">Checking…</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Evaluate</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+
+        <span class="field-note" style="margin-top:22px;">Worked examples — click to load</span>
+        <div class="method-tags" id="presetRow">
+          <button type="button" class="tag" data-f="x*y" data-g="x^2+y^2" data-c="1">xy on the unit circle</button>
+          <button type="button" class="tag" data-f="x+y" data-g="x*y" data-c="16">x+y on xy=16</button>
+          <button type="button" class="tag" data-f="x^2+y^2" data-g="x^2/4+y^2/9" data-c="1">distance² on an ellipse</button>
+          <button type="button" class="tag" data-f="x+2*y" data-g="x^2+y^2" data-c="5">x+2y on a radius-√5 circle</button>
+          <button type="button" class="tag" data-f="x^2*y" data-g="x^2+y^2" data-c="3">x²y on a circle</button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter an objective f(x, y), a constraint g(x, y) = c, then evaluate — every critical point ∇f = λ∇g satisfies on the constraint, which one is the max and which is the min, the derivation, and a 3D scene of the surface with the constraint curve carved onto it will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">Maximum at</div>
+              <div class="value" id="statMax">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Minimum at</div>
+              <div class="value" id="statMin">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Critical points found</div>
+              <div class="value" id="statCount">—</div>
+            </div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Critical points</span>
+            <div class="data-table-wrap">
+              <table class="data-table" id="pointsTable">
+                <thead><tr><th>(x, y)</th><th>λ</th><th>f</th><th>type</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel crosshair-host" style="margin-top:16px;">
+            <span class="panel-title">Derivation</span>
+            <div class="data-table-wrap">
+              <table class="data-table" id="stepTable">
+                <thead><tr><th>#</th><th>Rule</th><th>Expression</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <div class="slider-row" style="margin-top:16px;">
+              <input type="range" id="stepSlider" min="0" max="0" value="0" />
+              <span class="step-label" id="stepLabel">step 0</span>
+            </div>
+          </div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">The surface and the constraint curve</span></div>
+            <div class="scene-host" id="sceneHost">
+              <div class="scene-legend" id="sceneLegend"></div>
+              <div class="scene-hint">drag to orbit · scroll to zoom</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Calculus Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/three.min.js" defer></script>
+<script src="../../../assets/vendor/nerdamer.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/calculus-symbolic.js" defer></script>
+<script src="../../../assets/js/calculus-3d.js" defer></script>
+<script src="../../../assets/js/cas-client.js" defer></script>
+<script src="../../../assets/js/lagrange-multipliers.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

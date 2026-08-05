@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Methods — Statistics Engine</title>
+<link rel="stylesheet" href="../../assets/css/engine.css" />
+<link rel="stylesheet" href="../../assets/proto/proto.css" />
+<style>:root{ --electric-teal:#c99a3c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="methods.html" class="logo"><span class="dot"></span> Statistics&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../numerical/methods.html"><span>Numerical</span><span class="dup" aria-hidden="true">Numerical</span></a></li>
+      <li><a href="../calculus/methods.html"><span>Calculus</span><span class="dup" aria-hidden="true">Calculus</span></a></li>
+      <li><a href="../linear-algebra/methods.html"><span>Linear&nbsp;Algebra</span><span class="dup" aria-hidden="true">Linear&nbsp;Algebra</span></a></li>
+      <li><a href="methods.html"><span>Statistics</span><span class="dup" aria-hidden="true">Statistics</span></a></li>
+      <li><a href="../ode/index.html"><span>ODE</span><span class="dup" aria-hidden="true">ODE</span></a></li>
+    </ul>
+    <a href="../../index.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Engines</span></a>
+  </div>
+</header>
+
+<section class="hero">
+  <canvas class="hero-canvas" id="heroCanvas"></canvas>
+  <div class="container hero-inner">
+    <span class="eyebrow">Method library</span>
+    <h1 class="h1" style="margin-top:18px;">Pick a method</h1>
+    <p class="p1 hero-sub">Each workspace takes data the way the method actually needs it — a raw sample, a set of pairs, a proportion — and gives you the answer live, no stats package required.</p>
+    <div class="hero-actions">
+      <a href="#methods" class="btn btn--primary"><span class="btn-text">Browse Methods ↓</span></a>
+      <a href="../../index.html" class="btn btn--ghost"><span class="btn-text">All Engines</span></a>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="methods">
+  <div class="container">
+    <div class="grid grid--2 engine-grid">
+
+      <a href="methods/one-sample-t-test.html" class="card engine-card reveal crosshair-host" style="display:block;">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Sampling & Inference</span>
+          <span class="engine-index">1 / 12</span>
+        </div>
+        <h3 class="h3">One-Sample t-Test</h3>
+        <p>Tests whether a sample's mean differs significantly from a hypothesized value, using the exact Student-t p-value.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Sample data + H0</span>
+          <span class="tag">Histogram</span>
+          <span class="tag">Exact p-value</span>
+        </div>
+      </a>
+
+      <a href="methods/linear-regression.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.08s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Regression</span>
+          <span class="engine-index">2 / 12</span>
+        </div>
+        <h3 class="h3">Simple Linear Regression</h3>
+        <p>Fits a least-squares line through (x, y) pairs and reports the slope, intercept, and R^2.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">(x, y) pairs</span>
+          <span class="tag">Scatter + fit line</span>
+          <span class="tag">R^2</span>
+        </div>
+      </a>
+
+      <a href="methods/descriptive-statistics.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.16s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Descriptive Statistics</span>
+          <span class="engine-index">3 / 12</span>
+        </div>
+        <h3 class="h3">Descriptive Statistics Explorer</h3>
+        <p>Paste a dataset and get every summary statistic — mean, variance, quartiles, mode — plus a live histogram and box plot.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Raw data</span>
+          <span class="tag">Histogram + box plot</span>
+          <span class="tag">Full summary table</span>
+        </div>
+      </a>
+
+      <a href="methods/sampling-distributions-clt.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.24s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Sampling & Inference</span>
+          <span class="engine-index">4 / 12</span>
+        </div>
+        <h3 class="h3">Sampling Distributions &amp; the CLT</h3>
+        <p>Repeatedly samples from a chosen population and watches the distribution of sample means tighten toward normal, however skewed the population itself is.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Population + n + samples</span>
+          <span class="tag">Two histograms</span>
+          <span class="tag">Empirical vs. theoretical SE</span>
+        </div>
+      </a>
+
+      <a href="methods/confidence-intervals.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.32s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Sampling & Inference</span>
+          <span class="engine-index">5 / 12</span>
+        </div>
+        <h3 class="h3">Confidence Intervals</h3>
+        <p>Builds a confidence interval for a mean, proportion, or variance from sample data, with the critical value solved by bisection, not looked up.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Mean / proportion / variance</span>
+          <span class="tag">Number-line plot</span>
+          <span class="tag">Repeated-interval simulation</span>
+        </div>
+      </a>
+
+      <a href="methods/discrete-distributions.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.40s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Probability</span>
+          <span class="engine-index">6 / 12</span>
+        </div>
+        <h3 class="h3">Discrete Probability Distributions</h3>
+        <p>Explores Binomial, Poisson, Geometric, and Hypergeometric distributions — PMF bar charts and CDF visualization with draggable parameters.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">4 distributions</span>
+          <span class="tag">PMF + CDF plots</span>
+          <span class="tag">Exact formulas</span>
+        </div>
+      </a>
+
+      <a href="methods/continuous-distributions.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.48s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Probability</span>
+          <span class="engine-index">7 / 12</span>
+        </div>
+        <h3 class="h3">Continuous Probability Distributions</h3>
+        <p>Explores Normal, Exponential, Uniform, and Gamma distributions — PDF and CDF curves with adjustable parameters and a highlightable x marker.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">4 distributions</span>
+          <span class="tag">PDF + CDF plots</span>
+          <span class="tag">Closed-form + gammaP</span>
+        </div>
+      </a>
+
+      <a href="methods/two-sample-paired-tests.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.56s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Sampling & Inference</span>
+          <span class="engine-index">8 / 12</span>
+        </div>
+        <h3 class="h3">Two-Sample, Paired &amp; z-Tests</h3>
+        <p>Compares two samples (Welch's unequal-variance t-test), paired observations (one-sample t-test on differences), or a sample against a known-variance reference (z-test) — p-values from the exact t and normal CDFs.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">3 test modes</span>
+          <span class="tag">Welch's df</span>
+          <span class="tag">Known-sigma z-test</span>
+        </div>
+      </a>
+
+      <a href="methods/chi-square-tests.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.64s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Sampling & Inference</span>
+          <span class="engine-index">9 / 12</span>
+        </div>
+        <h3 class="h3">Chi-Square Tests</h3>
+        <p>Goodness-of-fit (are these categories in the hypothesized ratio?) and test of independence (are two categorical variables related?) — χ² statistics from observed/expected counts, p-values from the exact chi-square CDF.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">2 test modes</span>
+          <span class="tag">Contingency tables</span>
+          <span class="tag">Exact χ² CDF</span>
+        </div>
+      </a>
+
+      <a href="methods/multiple-regression.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.72s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Regression</span>
+          <span class="engine-index">10 / 12</span>
+        </div>
+        <h3 class="h3">Multiple Linear Regression</h3>
+        <p>Fits a plane or hyperplane β₀ + β₁x₁ + … + βₚxₚ through (x₁,…,xₚ, y) data by ordinary least squares in matrix form (XᵀX)⁻¹Xᵀy — reports each coefficient's standard error, t-statistic, and p-value, plus R² and adjusted R².</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Matrix OLS</span>
+          <span class="tag">Coefficient t-tests</span>
+          <span class="tag">R² &amp; adjusted R²</span>
+        </div>
+      </a>
+
+      <a href="methods/probability-combinatorics.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.80s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Probability</span>
+          <span class="engine-index">11 / 12</span>
+        </div>
+        <h3 class="h3">Probability &amp; Combinatorics</h3>
+        <p>Counting (factorials, permutations, combinations — C(52,5)=2,598,960 poker hands), the conditional-probability definition P(A|B)=P(A∩B)/P(B), and Bayes' theorem in both two-hypothesis (disease-testing) and general N-hypothesis (Monty Hall) forms.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">3 modes</span>
+          <span class="tag">Counting + Bayes</span>
+          <span class="tag">Posterior bar chart</span>
+        </div>
+      </a>
+
+      <a href="methods/anova-f-test.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.88s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Sampling & Inference</span>
+          <span class="engine-index">12 / 12</span>
+        </div>
+        <h3 class="h3">One-Way ANOVA (F-Test)</h3>
+        <p>Compares three or more group means at once — the right move instead of many pairwise t-tests. Variability splits into between-group and within-group; the F statistic is their ratio, and the p-value comes from the exact F-distribution CDF (regularized incomplete beta), not a table.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">k ≥ 2 groups</span>
+          <span class="tag">Exact F CDF</span>
+          <span class="tag">Means ± SD + F density</span>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container bar">
+      <span class="p2">Statistics Engine</span>
+      <span class="p2">More methods added continuously</span>
+    </div>
+  </footer>
+</section>
+
+<script src="../../assets/vendor/three.min.js" defer></script>
+<script src="../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../assets/js/engine-core.js" defer></script>
+<script src="../../assets/proto/proto.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => {
+    Engine.initChrome();
+    Proto.initRipple(document.getElementById("heroCanvas"), 0xc99a3c);
+  });
+</script>
+</body>
+</html>

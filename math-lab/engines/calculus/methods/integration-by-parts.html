@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Integration by Parts — Calculus Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#4f9e82; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Calculus&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Techniques of Integration</span>
+    <h1 class="h2" style="margin-top:14px;">Integration by Parts</h1>
+    <p class="method-summary">The product rule read backwards: <span class="mono">∫u&nbsp;dv = uv − ∫v&nbsp;du</span>. The engine splits the integrand into <span class="mono">u</span> and <span class="mono">dv</span> using the LIATE heuristic (Logarithmic, Inverse-trig, Algebraic, Trigonometric, Exponential), differentiates <span class="mono">u</span>, integrates <span class="mono">dv</span>, and carries the derivation out line by line — and refuses to answer when by parts is the wrong tool, naming the technique that failed.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="ibpForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="fxInput">∫ f(x) dx — enter the integrand</label>
+          <input type="text" id="fxInput" class="mono" value="x*e^x" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="fxPreview"></div>
+          <button type="button" class="keypad-toggle is-open" id="keypadToggle">
+            <span>Math Keypad</span><span class="chev">⌄</span>
+          </button>
+          <div class="math-keypad is-open" id="fxKeypad"></div>
+        </div>
+
+        <div class="status-line" id="startStatus">
+          <span class="status-dot"></span><span id="startStatusText">Checking the integrand…</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Derive</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+
+        <span class="field-note" style="margin-top:22px;">Worked examples — click to load</span>
+        <div class="method-tags" id="presetRow">
+          <button type="button" class="tag" data-fx="x*e^x" data-tex="\int xe^x\,dx"></button>
+          <button type="button" class="tag" data-fx="x^2*e^x" data-tex="\int x^2e^x\,dx"></button>
+          <button type="button" class="tag" data-fx="x*sin(x)" data-tex="\int x\sin x\,dx"></button>
+          <button type="button" class="tag" data-fx="log(x)" data-tex="\int \ln x\,dx"></button>
+          <button type="button" class="tag" data-fx="x*log(x)" data-tex="\int x\ln x\,dx"></button>
+          <button type="button" class="tag" data-fx="e^x*sin(x)" data-tex="\int e^x\sin x\,dx"></button>
+          <button type="button" class="tag" data-fx="x*sin(x^2)" data-tex="\int x\sin(x^2)\,dx"></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter an integrand and derive — the chosen u/dv split (with the LIATE rationale), the full step-by-step derivation, and a plot of the integrand against its antiderivative will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">u (LIATE winner)</div>
+              <div class="value" id="statU">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">dv</div>
+              <div class="value" id="statDv">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Checked</div>
+              <div class="value" id="statVerified">—</div>
+            </div>
+          </div>
+
+          <span class="field-note">Antiderivative</span>
+          <div class="formula-block formula-block--result" id="formulaResult"></div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Derivation</span>
+            <div class="data-table-wrap">
+              <table class="data-table" id="stepTable">
+                <thead>
+                  <tr><th>#</th><th>Rule</th><th>Expression</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <div class="slider-row" style="margin-top:16px;">
+              <input type="range" id="stepSlider" min="0" max="0" value="0" />
+              <span class="step-label" id="stepLabel">step 0</span>
+            </div>
+          </div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">Integrand f(x) &amp; antiderivative F(x)</span></div>
+            <div id="fxPlot" style="height:320px;"></div>
+          </div>
+        </div>
+
+        <!-- Shown when integration by parts is genuinely the wrong technique. Deliberately a
+             first-class result rather than an error state: "this is u-substitution's turf" is
+             the correct, useful answer for ∫x·sin(x²) dx, whose dv has no elementary
+             antiderivative. -->
+        <div class="panel crosshair-host" id="refusedPanel" style="display:none;">
+          <span class="panel-title">Not an integration-by-parts problem</span>
+          <p class="p1" id="refusedReason"></p>
+          <div class="data-table-wrap" style="margin-top:18px;">
+            <table class="data-table" id="refusedTable">
+              <thead><tr><th>candidate u</th><th>why it failed</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Calculus Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/vendor/nerdamer.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<!-- calculus-symbolic.js is loaded here only as the in-page fallback for when a Worker
+     cannot be created (opening this file over file://). In normal use the worker owns its
+     own copy and this one is never called. -->
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/calculus-symbolic.js" defer></script>
+<script src="../../../assets/js/cas-client.js" defer></script>
+<script src="../../../assets/js/sympy-client.js" defer></script>
+<script src="../../../assets/js/sympy-integrate-fallback.js" defer></script>
+<script src="../../../assets/js/integration-by-parts.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

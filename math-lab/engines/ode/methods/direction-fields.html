@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Direction Field &amp; Euler vs RK4 — ODE/PDE Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<link rel="stylesheet" href="../../../assets/proto/proto.css" />
+<style>:root{ --electric-teal:#4f8fc0; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> ODE&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="ode-solver.html"><span>ODE Solver</span><span class="dup" aria-hidden="true">ODE Solver</span></a></li>
+      <li><a href="laplace-transform.html"><span>Laplace</span><span class="dup" aria-hidden="true">Laplace</span></a></li>
+      <li><a href="series-solutions.html"><span>Series</span><span class="dup" aria-hidden="true">Series</span></a></li>
+      <li><a href="heat-equation.html"><span>Heat&nbsp;PDE</span><span class="dup" aria-hidden="true">Heat&nbsp;PDE</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Numerical Methods</span>
+    <h1 class="h2" style="margin-top:14px;">Direction Field &amp; Euler vs RK4</h1>
+    <p class="method-summary">The numeric machinery underneath every symbolic solver on this engine. Steer <span class="mono">dy/dx = f(x, y)</span> forward from an initial point with Euler's method and RK4 side by side, overlaid on the slope field. When <span class="mono">f</span> happens to be linear in <span class="mono">x</span> and <span class="mono">y</span>, the exact closed form is detected and plotted too — so the error of each method is right on the screen. This is the labelled fallback the ODE Solver hands off to when no symbolic method matches.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="odeForm" onsubmit="return false;">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="fxyInput">dy/dx = f(x, y) =</label>
+          <input type="text" id="fxyInput" class="mono" value="x - y" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="fxyPreview"></div>
+          <button type="button" class="keypad-toggle is-open" id="keypadToggle">
+            <span>Math Keypad</span><span class="chev">⌄</span>
+          </button>
+          <div class="math-keypad is-open" id="fxyKeypad"></div>
+        </div>
+
+        <div class="field-row" style="margin-top:18px;">
+          <div class="field"><label for="x0Input">x₀</label><input type="number" id="x0Input" value="0" step="any" /></div>
+          <div class="field"><label for="y0Input">y₀</label><input type="number" id="y0Input" value="1" step="any" /></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="hInput">Step h</label><input type="number" id="hInput" value="0.5" step="any" min="0.05" /></div>
+          <div class="field"><label for="stepsInput">Steps</label><input type="number" id="stepsInput" value="4" step="1" min="1" max="30" /></div>
+        </div>
+
+        <div class="field" id="formError" style="display:none;" aria-live="polite">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="result-strip">
+          <div class="result-stat">
+            <div class="label">Final x</div>
+            <div class="value" id="statXFinal">—</div>
+          </div>
+          <div class="result-stat accent">
+            <div class="label">Euler y (final)</div>
+            <div class="value" id="statYFinal">—</div>
+          </div>
+          <div class="result-stat">
+            <div class="label">RK4 y (final)</div>
+            <div class="value" id="statYFinalRK4">—</div>
+          </div>
+          <div class="result-stat">
+            <div class="label" id="errLabel">Euler error</div>
+            <div class="value" id="statError">—</div>
+          </div>
+          <div class="result-stat">
+            <div class="label" id="errLabelRK4">RK4 error</div>
+            <div class="value" id="statErrorRK4">—</div>
+          </div>
+        </div>
+
+        <span class="field-note" id="exactNote">Exact solution</span>
+        <div class="formula-block formula-block--reference" id="formulaExact"></div>
+
+        <div class="plot-wrap crosshair-host">
+          <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">Direction field, Euler, RK4 &amp; exact solution</span></div>
+          <div id="odePlot" style="height:380px;"></div>
+        </div>
+
+        <div class="data-table-wrap">
+          <table class="data-table" id="odeTable">
+            <thead><tr><th>step</th><th>x</th><th>y (Euler)</th><th>slope f(x,y)</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">ODE/PDE Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/proto/proto.js" defer></script>
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/ode-symbolic.js" defer></script>
+<script src="../../../assets/js/ode-direction-fields.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

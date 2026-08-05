@@ -1,0 +1,22 @@
+# Course reference material — copyrighted, kept local only
+reference/
+
+# Archived pre-redesign build + unrelated template (large binaries, superseded)
+archive/*
+!archive/docs/
+
+# ...but archived planning docs (small text, real git-history value) stay tracked
+
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+*.swp
+.superpowers/
+
+# Stray screenshots
+Screenshot from *.png
+
+# Python bytecode cache
+__pycache__/
+*.pyc

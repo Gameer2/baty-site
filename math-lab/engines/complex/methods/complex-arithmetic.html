@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Complex Arithmetic &amp; the Plane — Complex Analysis Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#b45fd0; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Complex&nbsp;Analysis&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">The Plane &amp; Analyticity</span>
+    <h1 class="h2" style="margin-top:14px;">Complex Arithmetic &amp; the Plane</h1>
+    <p class="method-summary">A complex number is a point in the plane, and multiplication is rotation-and-scaling. Enter <span class="mono">z = a + bi</span> to see its modulus and argument, its polar form <span class="mono">r·e<sup>iθ</sup></span>, and — via De Moivre's theorem — its powers and its <span class="mono">n</span> roots, drawn as a regular <span class="mono">n</span>-gon on the circle where they must lie.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="complexForm">
+        <span class="panel-title">Input — z = a + bi</span>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="reInput">a — real part</label>
+            <input type="text" id="reInput" class="mono" value="1" inputmode="decimal" autocomplete="off" spellcheck="false" />
+          </div>
+          <div class="field">
+            <label for="imInput">b — imaginary part</label>
+            <input type="text" id="imInput" class="mono" value="1" inputmode="decimal" autocomplete="off" spellcheck="false" />
+          </div>
+        </div>
+        <div class="field" style="margin-top:14px;">
+          <label for="nInput">n — power / number of roots</label>
+          <input type="text" id="nInput" class="mono" value="3" inputmode="numeric" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Draws the n-th roots of z on the Argand plane. Try z = 1 for the classic roots of unity.</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="unityBtn"><span class="btn-text">Roots of Unity</span></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter a complex number and an integer n, then compute — modulus, argument, polar form, powers, and the n-th roots on the plane will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">Modulus |z|</div>
+              <div class="value" id="statModulus">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Argument arg(z)</div>
+              <div class="value" id="statArg" style="font-size:18px;">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Conjugate z̄</div>
+              <div class="value" id="statConj" style="font-size:20px;">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label" id="powLabel">zⁿ</div>
+              <div class="value" id="statPow" style="font-size:20px;">—</div>
+            </div>
+          </div>
+
+          <span class="field-note">Polar form</span>
+          <div class="formula-block formula-block--reference" id="polarBlock"></div>
+
+          <span class="field-note">De Moivre's theorem</span>
+          <div class="formula-block formula-block--result" id="deMoivreBlock" style="margin-bottom:24px;"></div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">The Argand plane — z, its conjugate, and the n-th roots</span></div>
+            <div id="argandPlot" style="height:420px;"></div>
+          </div>
+
+          <div class="data-table-wrap">
+            <table class="data-table" id="rootsTable">
+              <thead>
+                <tr><th>k</th><th>root w<sub>k</sub></th><th>|w<sub>k</sub>|</th><th>arg (rad)</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Complex Analysis Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/complex.js" defer></script>
+<script src="../../../assets/js/complex-arithmetic.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

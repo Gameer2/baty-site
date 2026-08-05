@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Frobenius / Coin Problem — Number Theory Engine</title>
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#a3623c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Number&nbsp;Theory&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Recommended additions</span>
+    <h1 class="h2" style="margin-top:14px;">Frobenius Number — the Coin Problem</h1>
+    <p class="method-summary">Given two coin denominations <span class="mono">a, b</span> with <span class="mono">gcd(a, b) = 1</span>, what is the largest amount you <em>cannot</em> make with them? Sylvester answered it: <span class="mono">g(a, b) = ab − a − b</span>, and every amount larger than that is reachable. It's the cleanest Diophantine existence result there is — and a direct payoff of the extended Euclidean algorithm from Phase 1, since gcd = 1 is exactly what makes every sufficiently large number representable.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="frobForm">
+        <span class="panel-title">Input — two positive coin values</span>
+        <div class="field-row">
+          <div class="field"><label for="aInput">a</label><input type="text" id="aInput" class="mono" value="3" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+          <div class="field"><label for="bInput">b</label><input type="text" id="bInput" class="mono" value="5" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+          <div class="field"><label for="uptoInput">number line up to</label><input type="text" id="uptoInput" class="mono" value="20" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+        </div>
+        <span class="field-note">Coins 3 and 5: you can make 3, 5, 6, 8, 9, 10, … but not 1, 2, 4, 7. The Frobenius number is g(3,5) = 15 − 3 − 5 = 7 — the last unreachable amount.</span>
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try 5, 8</span></button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter two coprime coin values — the Frobenius number, the unreachable amounts, and the reachable/unreachable number line will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent"><div class="label">Frobenius number g(a,b)</div><div class="value" id="statG">—</div></div>
+            <div class="result-stat"><div class="label"># unreachable</div><div class="value" id="statCount">—</div></div>
+            <div class="result-stat"><div class="label">gcd(a,b)</div><div class="value" id="statGcd">—</div></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">The number line</span>
+            <div class="nt-coinline" id="coinLine"></div>
+            <div class="field-note" id="coinNote" style="margin-top:10px;"></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">The formula and the unreachable set</span>
+            <div class="formula-block formula-block--result" id="frobBlock"></div>
+            <div class="field-note" id="frobNote" style="margin-top:10px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Number Theory Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/number-theory.js" defer></script>
+<script src="../../../assets/js/frobenius-coin.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

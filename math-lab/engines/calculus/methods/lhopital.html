@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>L'Hôpital's Rule — Calculus Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#4f9e82; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Calculus&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="limits.html"><span>Limits</span><span class="dup" aria-hidden="true">Limits</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Limits &amp; Derivatives</span>
+    <h1 class="h2" style="margin-top:14px;">L'Hôpital's Rule</h1>
+    <p class="method-summary">For a quotient <span class="mono">f(x)/g(x)</span> that substitutes to the indeterminate form <span class="mono">0/0</span> or <span class="mono">∞/∞</span>, the limit equals <span class="mono">lim f′(x)/g′(x)</span> — differentiate top and bottom separately, not the quotient rule. This page's entire point is the check: a quotient that <em>isn't</em> indeterminate at the point is refused here, even when its limit is easy to find some other way, because applying the rule where it isn't needed is exactly the mistake this page exists to prevent.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="lhopitalForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="fxInput">f(x)/g(x) = </label>
+          <input type="text" id="fxInput" class="mono" value="sin(x)/x" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="fxPreview"></div>
+          <button type="button" class="keypad-toggle is-open" id="keypadToggle">
+            <span>Math Keypad</span><span class="chev">⌄</span>
+          </button>
+          <div class="math-keypad is-open" id="fxKeypad"></div>
+        </div>
+
+        <div class="field" style="margin-top:18px;">
+          <label for="atInput">as x → </label>
+          <input type="text" id="atInput" class="mono" value="0" autocomplete="off" spellcheck="false" />
+          <span class="field-note">A number, or <span class="mono">Infinity</span> / <span class="mono">-Infinity</span></span>
+        </div>
+
+        <div class="status-line" id="startStatus">
+          <span class="status-dot"></span><span id="startStatusText">Checking…</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Apply</span></button>
+        </div>
+
+        <span class="field-note" style="margin-top:22px;">Worked examples — click to load</span>
+        <div class="method-tags" id="presetRow">
+          <button type="button" class="tag" data-fx="sin(x)/x" data-at="0" data-tex="\frac{\sin x}{x}"></button>
+          <button type="button" class="tag" data-fx="(1-cos(x))/x^2" data-at="0" data-tex="\frac{1-\cos x}{x^2}"></button>
+          <button type="button" class="tag" data-fx="(x^2-1)/(x-1)" data-at="1" data-tex="\frac{x^2-1}{x-1}"></button>
+          <button type="button" class="tag" data-fx="(x^2+1)/(2*x^2-3)" data-at="Infinity" data-tex="\frac{x^2+1}{2x^2-3}"></button>
+          <button type="button" class="tag" data-fx="log(x)/x" data-at="Infinity" data-tex="\frac{\ln x}{x}"></button>
+          <button type="button" class="tag" data-fx="x^2+3*x" data-at="2" data-tex="x^2+3x"></button>
+          <button type="button" class="tag" data-fx="x/(x+1)" data-at="1" data-tex="\frac{x}{x+1}"></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter a quotient and a point, then apply — the indeterminate form being detected, each differentiation pass, and the resulting limit will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">Limit</div>
+              <div class="value" id="statValue">—</div>
+            </div>
+          </div>
+
+          <span class="field-note">Result</span>
+          <div class="formula-block formula-block--result" id="formulaResult"></div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Derivation</span>
+            <div class="data-table-wrap">
+              <table class="data-table" id="stepTable">
+                <thead><tr><th>#</th><th>Rule</th><th>Expression</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <div class="slider-row" style="margin-top:16px;">
+              <input type="range" id="stepSlider" min="0" max="0" value="0" />
+              <span class="step-label" id="stepLabel">step 0</span>
+            </div>
+          </div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">f(x)/g(x) near the point</span></div>
+            <div id="fxPlot" style="height:340px;"></div>
+          </div>
+        </div>
+
+        <!-- A first-class result, not an error: the point of this page is the check, and
+             "this isn't 0/0 or ∞/∞" is the correct answer for a continuous quotient. -->
+        <div class="panel crosshair-host" id="refusedPanel" style="display:none;">
+          <span class="panel-title">Not an indeterminate form</span>
+          <p class="p1" id="refusedReason"></p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Calculus Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/vendor/nerdamer.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<!-- calculus-symbolic.js is loaded here only as the in-page fallback for when a Worker
+     cannot be created (opening this file over file://). In normal use the worker owns its
+     own copy and this one is never called. -->
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/calculus-symbolic.js" defer></script>
+<script src="../../../assets/js/cas-client.js" defer></script>
+<script src="../../../assets/js/sympy-client.js" defer></script>
+<script src="../../../assets/js/sympy-integrate-fallback.js" defer></script>
+<script src="../../../assets/js/lhopital.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

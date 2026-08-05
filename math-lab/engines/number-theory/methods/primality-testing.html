@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Primality Testing — Number Theory Engine</title>
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#a3623c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Number&nbsp;Theory&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Primes &amp; factorisation</span>
+    <h1 class="h2" style="margin-top:14px;">Primality Testing</h1>
+    <p class="method-summary">Is <span class="mono">n</span> prime? The obvious test — does <span class="mono">a^(n−1) ≡ 1 (mod n)</span> for some base <span class="mono">a</span> — is Fermat's test, and it is <em>wrong</em>: the Carmichael numbers (561, 1105, 1729) pass it for every coprime base yet are composite. Miller-Rabin fixes this by watching the squaring chain, and its *witnesses* are the certificate. This page shows both, side by side, with the witness spelled out.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="primeForm">
+        <span class="panel-title">Input</span>
+        <div class="field">
+          <label for="nInput">n</label>
+          <input type="text" id="nInput" class="mono" value="561" inputmode="numeric" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="field">
+          <label for="baseInput">Fermat base a</label>
+          <input type="text" id="baseInput" class="mono" value="2" inputmode="numeric" autocomplete="off" spellcheck="false" />
+        </div>
+        <span class="field-note">Try <span class="mono">561</span> (the smallest Carmichael number) with base 2 — Fermat says prime, Miller-Rabin says composite. That gap is the whole lesson.</span>
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Test</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try 1105</span></button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter n and a base — Fermat's test, the Miller-Rabin witnesses, and the Carmichael verdict will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">Miller-Rabin verdict</div>
+              <div class="value" id="statMR">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Fermat base a</div>
+              <div class="value" id="statBase">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Carmichael?</div>
+              <div class="value" id="statCarmichael">—</div>
+            </div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Fermat's little test (single base)</span>
+            <div class="formula-block formula-block--result" id="fermatBlock"></div>
+            <div class="field-note" id="fermatNote" style="margin-top:10px;"></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Miller-Rabin witnesses</span>
+            <div class="data-table-wrap">
+              <table class="data-table" id="mrTable">
+                <thead><tr><th>base</th><th>verdict</th><th>residue chain (a^d, a^2d, …)</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <div class="field-note" id="mrNote" style="margin-top:10px;"></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Why Fermat alone is not enough</span>
+            <p class="p1" id="carmichaelNote"></p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Number Theory Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/number-theory.js" defer></script>
+<script src="../../../assets/js/primality-testing.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

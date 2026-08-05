@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Argument Principle &amp; Rouché — Complex Analysis Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#b45fd0; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Complex&nbsp;Analysis&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Integration &amp; Residues</span>
+    <h1 class="h2" style="margin-top:14px;">Argument Principle &amp; Rouché's Theorem</h1>
+    <p class="method-summary">Two theorems that count zeros and poles from a single loop. The <strong>argument principle</strong>: <span class="mono">(1/2πi) ∮<sub>γ</sub> f′(z)/f(z) dz = N − P</span>, the number of zeros minus poles inside <span class="mono">γ</span> — equivalently the winding number of <span class="mono">f(γ)</span> about the origin. <strong>Rouché's theorem</strong>: if <span class="mono">|f − g| &lt; |f|</span> everywhere on <span class="mono">γ</span>, then <span class="mono">f</span> and <span class="mono">g</span> have the same number of zeros inside. Both are computed two independent ways — the argument principle is checked by agreeing the winding number (geometric angle-tracking) against the logarithmic-derivative integral (analytic quadrature); Rouché by confirming the two winding numbers actually agree once the condition holds. The image curve <span class="mono">f(γ)</span> is drawn in the w-plane so you can see the winding directly.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="arForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="modeInput">mode</label>
+          <select id="modeInput">
+            <option value="argument" selected>Argument principle — count N − P for one function</option>
+            <option value="rouche">Rouché — compare zero counts of f and g</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="fzInput">f(z) =</label>
+          <input type="text" id="fzInput" class="mono" value="z^2-1" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="fzPreview"></div>
+        </div>
+
+        <div class="field" id="gzField" style="display:none;">
+          <label for="gzInput">g(z) =</label>
+          <input type="text" id="gzInput" class="mono" value="z^2" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="gzPreview"></div>
+        </div>
+
+        <span class="field-note" style="margin-top:18px;">Contour γ — circle</span>
+        <div class="field-row">
+          <div class="field"><label for="centerReInput">center Re</label><input type="number" id="centerReInput" value="0" step="any" /></div>
+          <div class="field"><label for="centerImInput">center Im</label><input type="number" id="centerImInput" value="0" step="any" /></div>
+          <div class="field"><label for="radiusInput">radius</label><input type="number" id="radiusInput" value="2" step="any" min="0.01" /></div>
+        </div>
+
+        <div class="status-line ok" id="startStatus" style="margin-top:18px;">
+          <span class="status-dot"></span><span id="startStatusText">Ready — press Solve.</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Solve</span></button>
+        </div>
+
+        <span class="field-note" style="margin-top:22px;">Worked examples — click to load</span>
+        <div class="chip-row" id="argChips">
+          <button type="button" class="chip" data-fz="z^2-1" data-cre="0" data-cim="0" data-radius="2">z²−1, |z|=2 → N−P = 2 (zeros ±1)</button>
+          <button type="button" class="chip" data-fz="1/z^2" data-cre="0" data-cim="0" data-radius="1">1/z², |z|=1 → N−P = −2 (double pole)</button>
+          <button type="button" class="chip" data-fz="z/(z-2)" data-cre="0" data-cim="0" data-radius="1">z/(z−2), |z|=1 → N−P = 1 (zero in, pole out)</button>
+          <button type="button" class="chip" data-fz="z^5" data-cre="0" data-cim="0" data-radius="2">z⁵, |z|=2 → N−P = 5</button>
+        </div>
+        <div class="chip-row" id="roucheChips" style="display:none; margin-top:8px;">
+          <button type="button" class="chip" data-fz="z^5" data-gz="z^5-1" data-cre="0" data-cim="0" data-radius="2">z⁵ vs z⁵−1, |z|=2 → both 5 zeros</button>
+          <button type="button" class="chip" data-fz="z^2+1" data-gz="z^2" data-cre="0" data-cim="0" data-radius="2">z²+1 vs z², |z|=2 → both 2 zeros</button>
+          <button type="button" class="chip" data-fz="z" data-gz="z-1" data-cre="0" data-cim="0" data-radius="2">z vs z−1, |z|=2 → both 1 zero</button>
+          <button type="button" class="chip" data-fz="z^2" data-gz="z^2-4" data-cre="0" data-cim="0" data-radius="2">z² vs z²−4, |z|=2 → condition fails</button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Pick a mode, enter f(z) (and g(z) for Rouché) and a circular contour, then solve — the zero/pole count, its verification, and the image curve f(γ) in the w-plane will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label" id="statLabel">N − P</div>
+              <div class="value" id="statValue">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Verified</div>
+              <div class="value" id="statVerified">—</div>
+            </div>
+          </div>
+
+          <span class="field-note" style="display:block; margin-top:16px;">Result</span>
+          <div class="formula-block formula-block--result" id="formulaResult"></div>
+
+          <div class="panel crosshair-host" id="checksPanel" style="margin-top:16px;">
+            <span class="panel-title" id="checksTitle">Independent checks</span>
+            <div class="data-table-wrap"><table class="data-table" id="checksTable">
+              <thead><tr><th>check</th><th>method</th><th>value</th></tr></thead>
+              <tbody></tbody>
+            </table></div>
+          </div>
+
+          <div class="plot-wrap crosshair-host" style="margin-top:16px;">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;" id="plotTitle">The image curve f(γ) in the w-plane</span></div>
+            <div id="imagePlot" style="height:400px;"></div>
+          </div>
+        </div>
+
+        <div class="panel crosshair-host" id="refusedPanel" style="display:none;">
+          <span class="panel-title">Can't confirm this one</span>
+          <p class="p1" id="refusedReason"></p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Complex Analysis Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/vendor/nerdamer.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/complex.js" defer></script>
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/complex-symbolic.js" defer></script>
+<script src="../../../assets/js/complex-residues.js" defer></script>
+<script src="../../../assets/js/complex-contour-theorems.js" defer></script>
+<script src="../../../assets/js/complex-argument-rouche.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

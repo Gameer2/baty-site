@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Methods — Number Theory Engine</title>
+<link rel="stylesheet" href="../../assets/css/engine.css" />
+<link rel="stylesheet" href="../../assets/proto/proto.css" />
+<style>:root{ --electric-teal:#a3623c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="methods.html" class="logo"><span class="dot"></span> Number&nbsp;Theory&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../numerical/methods.html"><span>Numerical</span><span class="dup" aria-hidden="true">Numerical</span></a></li>
+      <li><a href="../calculus/methods.html"><span>Calculus</span><span class="dup" aria-hidden="true">Calculus</span></a></li>
+      <li><a href="../linear-algebra/index.html"><span>Linear&nbsp;Algebra</span><span class="dup" aria-hidden="true">Linear&nbsp;Algebra</span></a></li>
+      <li><a href="../statistics/methods.html"><span>Statistics</span><span class="dup" aria-hidden="true">Statistics</span></a></li>
+      <li><a href="../ode/index.html"><span>ODE</span><span class="dup" aria-hidden="true">ODE</span></a></li>
+      <li><a href="methods.html"><span>Number&nbsp;Theory</span><span class="dup" aria-hidden="true">Number&nbsp;Theory</span></a></li>
+    </ul>
+    <a href="../../index.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Engines</span></a>
+  </div>
+</header>
+
+<section class="hero">
+  <canvas class="hero-canvas" id="heroCanvas"></canvas>
+  <div class="container hero-inner">
+    <span class="eyebrow">Integers, Exactly</span>
+    <h1 class="h1" style="margin-top:18px;">Divisibility to Cryptography</h1>
+    <p class="p1 hero-sub">Every method here is exact integer (<span class="mono">BigInt</span>) arithmetic — no tolerance parameter, no numeric drift. Rosen-level undergraduate number theory, walked from the division algorithm through primes, congruences, primitive roots, quadratic residues, and RSA as the payoff — with continued fractions, Pell's equation, and the Frobenius problem as the Diophantine capstone.</p>
+    <div class="hero-actions">
+      <a href="methods/euclidean-algorithm.html" class="btn btn--primary"><span class="btn-text">Open Euclidean Algorithm →</span></a>
+      <a href="#methods" class="btn btn--ghost"><span class="btn-text">Browse Methods ↓</span></a>
+    </div>
+    <span class="proto-badge" style="margin-top:28px;"><span class="status-dot"></span> 29 workspaces live — all seven phases complete, from divisibility to RSA. Every algorithm is exact <span class="mono">BigInt</span> with explicit operation budgets and honest <span class="mono">{ok:false}</span> reporting. Verified by an automated test suite — see tests/verify-number-theory.js (194 passed, 0 failed).</span>
+  </div>
+</section>
+
+<section class="section" id="methods">
+  <div class="container">
+
+    <h2 class="h2" style="margin-bottom:8px;">Phase 1 — Divisibility &amp; the Euclidean Algorithm</h2>
+    <p class="p2" style="margin-bottom:24px; color:var(--pulse-ash);">The basic object of the whole engine: <span class="mono">a = bq + r</span>, the Euclidean algorithm, Bézout's identity, and the linear Diophantine equation that ties them together.</p>
+    <div class="grid grid--2 engine-grid">
+
+      <a href="methods/divisibility.html" class="card engine-card reveal crosshair-host" style="display:block;">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Divisibility</span><span class="engine-index">1 / 29</span></div>
+        <h3 class="h3">Divisibility &amp; the Division Algorithm</h3>
+        <p>The basic object of the whole engine: <span class="mono">a = bq + r</span>, unique quotient and remainder, and what it means for <span class="mono">b</span> to divide <span class="mono">a</span> exactly.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">Quotient &amp; remainder</span><span class="tag">Exact BigInt</span></div>
+      </a>
+
+      <a href="methods/euclidean-algorithm.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.08s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Divisibility</span><span class="engine-index">2 / 29</span></div>
+        <h3 class="h3">Euclidean Algorithm</h3>
+        <p>Type any two whole numbers — arbitrarily large. Watch <span class="mono">a = bq + r</span> repeat, step by step, exact BigInt arithmetic throughout, until the remainder hits zero and <span class="mono">gcd(a, b)</span> falls out.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">Division-step table</span><span class="tag">Exact BigInt</span><span class="tag">Step through</span></div>
+      </a>
+
+      <a href="methods/extended-euclidean.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.16s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Divisibility</span><span class="engine-index">3 / 29</span></div>
+        <h3 class="h3">Extended Euclidean Algorithm &amp; Bézout</h3>
+        <p>Tracks two coefficients alongside the Euclidean algorithm so <span class="mono">gcd(a,b) = ax + by</span> falls out directly — the workhorse behind modular inverses, linear congruences, CRT, and RSA key generation.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">Bézout's identity</span><span class="tag">Coefficient table</span><span class="tag">Step through</span></div>
+      </a>
+
+      <a href="methods/linear-diophantine.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.24s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Divisibility</span><span class="engine-index">4 / 29</span></div>
+        <h3 class="h3">Linear Diophantine Equations</h3>
+        <p><span class="mono">ax + by = c</span> — solvable exactly when <span class="mono">gcd(a,b) | c</span>, and when it is, an entire infinite family of integer solutions, generated from one particular solution and stepped through by hand.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">Solvability test</span><span class="tag">Solution family</span><span class="tag">Step through</span></div>
+      </a>
+
+    </div>
+
+    <h2 class="h2" style="margin:48px 0 8px;">Phase 2 — Primes</h2>
+    <p class="p2" style="margin-bottom:24px; color:var(--pulse-ash);">What primes are, how to find them, how to prove a number is one, and how they're scattered — the Sieve, trial/Fermat/Pollard factorization, Miller-Rabin witnesses, Carmichael numbers, and the distribution π(x).</p>
+    <div class="grid grid--2 engine-grid">
+
+      <a href="methods/sieve-of-eratosthenes.html" class="card engine-card reveal crosshair-host" style="display:block;">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Primes</span><span class="engine-index">5 / 29</span></div>
+        <h3 class="h3">Sieve of Eratosthenes</h3>
+        <p>The classic strike-multiples algorithm as a grid you watch deplete, with a step slider that sweeps the strike-wave of each prime across the survivors.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">Grid visual</span><span class="tag">Strike-wave</span><span class="tag">Step slider</span></div>
+      </a>
+
+      <a href="methods/prime-factorisation.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.08s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Primes</span><span class="engine-index">6 / 29</span></div>
+        <h3 class="h3">Prime Factorisation</h3>
+        <p>Trial division, Fermat's method, and Pollard's rho run side by side on the <em>same</em> semiprime — the operation count is the lesson in why factoring is hard, the seed of RSA's security.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">Trial vs Fermat vs ρ</span><span class="tag">Operation budget</span><span class="tag">Honest partials</span></div>
+      </a>
+
+      <a href="methods/primality-testing.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.16s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Primes</span><span class="engine-index">7 / 29</span></div>
+        <h3 class="h3">Primality Testing</h3>
+        <p>Fermat's single-base test, Miller-Rabin with its <em>witnesses shown</em>, and Carmichael numbers that fool Fermat but not Miller-Rabin — why combining checks matters.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">Fermat test</span><span class="tag">Miller-Rabin witnesses</span><span class="tag">Carmichael</span></div>
+      </a>
+
+      <a href="methods/distribution-of-primes.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.24s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Primes</span><span class="engine-index">8 / 29</span></div>
+        <h3 class="h3">Distribution of Primes</h3>
+        <p>Exact <span class="mono">π(x)</span> against <span class="mono">x/ln x</span>, a prime-gaps bar chart, and the Ulam spiral canvas — primes thin out, but never predictably.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">π(x) exact</span><span class="tag">Gaps chart</span><span class="tag">Ulam spiral</span></div>
+      </a>
+
+    </div>
+
+    <h2 class="h2" style="margin:48px 0 8px;">Phase 3 — Congruences</h2>
+    <p class="p2" style="margin-bottom:24px; color:var(--pulse-ash);">Arithmetic mod n as a closed system: the additive and multiplicative tables, the linear congruence, the Chinese Remainder Theorem, and the Fermat/Euler/Wilson power theorems that drive exponentiation.</p>
+    <div class="grid grid--2 engine-grid">
+
+      <a href="methods/modular-arithmetic.html" class="card engine-card reveal crosshair-host" style="display:block;">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Congruences</span><span class="engine-index">9 / 29</span></div>
+        <h3 class="h3">Modular Arithmetic</h3>
+        <p>Arithmetic mod <span class="mono">n</span> as addition and multiplication heatmaps — every cell a BigInt result, the structure of <span class="mono">ℤ/nℤ</span> laid bare, units highlighted.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">Add/mul heatmaps</span><span class="tag">Units list</span><span class="tag">Exact</span></div>
+      </a>
+
+      <a href="methods/linear-congruences.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.08s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Congruences</span><span class="engine-index">10 / 29</span></div>
+        <h3 class="h3">Linear Congruences</h3>
+        <p><span class="mono">ax ≡ b (mod n)</span>: solvable iff <span class="mono">gcd(a,n) | b</span>, and when it is there are exactly that many solutions mod n — the full set laid out.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">Solvability</span><span class="tag">Full solution set</span><span class="tag">gcd-driven count</span></div>
+      </a>
+
+      <a href="methods/chinese-remainder-theorem.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.16s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Congruences</span><span class="engine-index">11 / 29</span></div>
+        <h3 class="h3">Chinese Remainder Theorem</h3>
+        <p>Solve simultaneous congruences constructively — and report <span class="mono">{ok:false, reason}</span> honestly when the moduli aren't coprime, instead of faking an answer.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">Constructive</span><span class="tag">Non-coprime honesty</span><span class="tag">BigInt</span></div>
+      </a>
+
+      <a href="methods/fermat-euler-theorem.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.24s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Congruences</span><span class="engine-index">12 / 29</span></div>
+        <h3 class="h3">Fermat's Little &amp; Euler's Theorem</h3>
+        <p><span class="mono">a^φ(n) ≡ 1</span> and its prime special case — verified by direct modular exponentiation, with <span class="mono">φ(n)</span> computed from the factorization. The engine RSA and primality rest on.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">Fermat</span><span class="tag">Euler</span><span class="tag">φ(n)</span></div>
+      </a>
+
+      <a href="methods/wilsons-theorem.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.32s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Congruences</span><span class="engine-index">13 / 29</span></div>
+        <h3 class="h3">Wilson's Theorem</h3>
+        <p><span class="mono">n</span> is prime iff <span class="mono">(n−1)! ≡ −1 (mod n)</span> — the exact factorial mod n, computed without ever forming the full factorial.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">Primality iff</span><span class="tag">(n−1)! mod n</span><span class="tag">Exact</span></div>
+      </a>
+
+    </div>
+
+    <h2 class="h2" style="margin:48px 0 8px;">Phase 4 — Multiplicative Functions</h2>
+    <p class="p2" style="margin-bottom:24px; color:var(--pulse-ash);">Functions of n built from its prime factorization: Euler's totient, the divisor functions τ and σ (and the perfect/deficient/abundant classes), and the Möbius function with its inversion partners.</p>
+    <div class="grid grid--2 engine-grid">
+
+      <a href="methods/euler-totient.html" class="card engine-card reveal crosshair-host" style="display:block;">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Multiplicative</span><span class="engine-index">14 / 29</span></div>
+        <h3 class="h3">Euler's Totient φ(n)</h3>
+        <p>The count of integers up to n coprime to n, via the product formula <span class="mono">φ(n) = n·∏(1 − 1/pᵢ)</span> over the prime factorization — and the multiplicativity that makes it tick.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">Product formula</span><span class="tag">Factorization</span><span class="tag">Multiplicative</span></div>
+      </a>
+
+      <a href="methods/divisor-functions.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.08s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Multiplicative</span><span class="engine-index">15 / 29</span></div>
+        <h3 class="h3">Divisor Functions τ(n), σ(n)</h3>
+        <p>Count and sum of divisors, the aliquot sum, and the perfect / deficient / abundant classification — 28 is perfect, watch the sum land exactly on n.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">τ, σ</span><span class="tag">Aliquot class</span><span class="tag">Perfect/abundant</span></div>
+      </a>
+
+      <a href="methods/mobius-function.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.16s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Multiplicative</span><span class="engine-index">16 / 29</span></div>
+        <h3 class="h3">Möbius Function &amp; Inversion</h3>
+        <p><span class="mono">μ(n)</span> beside its companions <span class="mono">ω</span> (distinct), <span class="mono">Ω</span> (with multiplicity), and Liouville's <span class="mono">λ</span> — the parity signal Möbius inversion inverts sums over.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">μ, ω, Ω, λ</span><span class="tag">Side by side</span><span class="tag">Inversion</span></div>
+      </a>
+
+    </div>
+
+    <h2 class="h2" style="margin:48px 0 8px;">Phase 5 — Primitive Roots</h2>
+    <p class="p2" style="margin-bottom:24px; color:var(--pulse-ash);">The multiplicative order, which moduli admit primitive roots, the modular rosette that visualizes a generator cycling through the units, and the discrete logarithm that's the one-way function Diffie–Hellman stands on.</p>
+    <div class="grid grid--2 engine-grid">
+
+      <a href="methods/order-of-element.html" class="card engine-card reveal crosshair-host" style="display:block;">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Primitive roots</span><span class="engine-index">17 / 29</span></div>
+        <h3 class="h3">Order of an Element</h3>
+        <p>The multiplicative order of <span class="mono">a mod n</span> — how many powers until it returns to 1 — and the theorem that the order always divides <span class="mono">φ(n)</span>.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">Multiplicative order</span><span class="tag">Power table</span><span class="tag">order | φ(n)</span></div>
+      </a>
+
+      <a href="methods/primitive-roots.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.08s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Primitive roots</span><span class="engine-index">18 / 29</span></div>
+        <h3 class="h3">Primitive Roots</h3>
+        <p>Existence conditions, one generator, all roots as its coprime powers, and the <strong>modular rosette</strong> — a canvas linking <span class="mono">g^k → g^(k+1)</span> around the unit circle.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">Rosette canvas</span><span class="tag">Generator</span><span class="tag">All roots</span></div>
+      </a>
+
+      <a href="methods/discrete-logarithm.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.16s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Primitive roots</span><span class="engine-index">19 / 29</span></div>
+        <h3 class="h3">Discrete Logarithm</h3>
+        <p>Find <span class="mono">k</span> with <span class="mono">g^k ≡ h (mod n)</span> by baby-step giant-step — ~√n work, the asymmetry that makes it a one-way function and Diffie–Hellman secure.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">Baby-step giant-step</span><span class="tag">√n complexity</span><span class="tag">Step budget</span></div>
+      </a>
+
+    </div>
+
+    <h2 class="h2" style="margin:48px 0 8px;">Phase 6 — Quadratic Residues</h2>
+    <p class="p2" style="margin-bottom:24px; color:var(--pulse-ash);">Which numbers are squares mod p: the quadratic residues, the Legendre symbol by Euler's criterion, Tonelli–Shanks for the actual root, the law of quadratic reciprocity Gauss called his golden theorem, and the Jacobi symbol that generalizes it to composite n.</p>
+    <div class="grid grid--2 engine-grid">
+
+      <a href="methods/quadratic-residues.html" class="card engine-card reveal crosshair-host" style="display:block;">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Quadratic residues</span><span class="engine-index">20 / 29</span></div>
+        <h3 class="h3">Quadratic Residues &amp; the Legendre Symbol</h3>
+        <p>Which residues are squares mod p, the Legendre symbol <span class="mono">(a/p)</span> by Euler's criterion, and the modular square root via Tonelli–Shanks when a is a residue.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">QR list</span><span class="tag">Legendre</span><span class="tag">Tonelli–Shanks</span></div>
+      </a>
+
+      <a href="methods/quadratic-reciprocity.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.08s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Quadratic residues</span><span class="engine-index">21 / 29</span></div>
+        <h3 class="h3">Law of Quadratic Reciprocity</h3>
+        <p>For odd primes <span class="mono">p, q</span>, the symbols <span class="mono">(p/q)</span> and <span class="mono">(q/p)</span> flip together or apart by <span class="mono">(−1)^(((p−1)(q−1))/4)</span> — demonstrated, not proved.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">Reciprocity</span><span class="tag">Euler criterion</span><span class="tag">Demonstration</span></div>
+      </a>
+
+      <a href="methods/jacobi-symbol.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.16s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Quadratic residues</span><span class="engine-index">22 / 29</span></div>
+        <h3 class="h3">Jacobi Symbol</h3>
+        <p><span class="mono">(a/n)</span> for any odd <span class="mono">n</span> by the reciprocity algorithm — no factoring — cross-checked as a product of Legendre symbols, with the composite-<span class="mono">n</span> trap made plain.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">No factoring</span><span class="tag">Legendre product</span><span class="tag">+1 trap</span></div>
+      </a>
+
+    </div>
+
+    <h2 class="h2" style="margin:48px 0 8px;">Phase 7 — Cryptography</h2>
+    <p class="p2" style="margin-bottom:24px; color:var(--pulse-ash);">The application that justifies the course: fast modular exponentiation, RSA (with the link back to why factoring is hard), Diffie–Hellman key exchange, and the classical ciphers that fell to frequency analysis.</p>
+    <div class="grid grid--2 engine-grid">
+
+      <a href="methods/modular-exponentiation.html" class="card engine-card reveal crosshair-host" style="display:block;">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Cryptography</span><span class="engine-index">23 / 29</span></div>
+        <h3 class="h3">Modular Exponentiation</h3>
+        <p><span class="mono">base^exp mod m</span> by square-and-multiply — the bit table shows exactly which steps multiply, and why the cost is O(bits), not O(value). The base of every page below.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">Square-and-multiply</span><span class="tag">Bit table</span><span class="tag">O(log exp)</span></div>
+      </a>
+
+      <a href="methods/rsa.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.08s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Cryptography</span><span class="engine-index">24 / 29</span></div>
+        <h3 class="h3">RSA</h3>
+        <p>Keygen from two primes, encrypt/decrypt, and the Euler-theorem proof it round-trips — with a "generate big primes" button whose modulus trial division can't touch, the Phase 2 #6 payoff.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">Keygen</span><span class="tag">Round-trip</span><span class="tag">Factoring = RSA</span></div>
+      </a>
+
+      <a href="methods/diffie-hellman.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.16s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Cryptography</span><span class="engine-index">25 / 29</span></div>
+        <h3 class="h3">Diffie–Hellman Key Exchange</h3>
+        <p>Two parties agree on a shared secret over a public channel — both compute <span class="mono">g^(ab) mod p</span> without ever sending the privates, because exponentiation commutes in the exponent.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">Shared secret</span><span class="tag">Discrete log</span><span class="tag">Public channel</span></div>
+      </a>
+
+      <a href="methods/classical-ciphers.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.24s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Cryptography</span><span class="engine-index">26 / 29</span></div>
+        <h3 class="h3">Classical Ciphers — Affine &amp; Hill</h3>
+        <p><span class="mono">E(x) = ax + b mod 26</span> and the 2×2 Hill cipher — invertible only when the key is coprime to 26, and both broken by frequency analysis. The lesson, not the tool.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">Affine</span><span class="tag">Hill 2×2</span><span class="tag">Frequency break</span></div>
+      </a>
+
+    </div>
+
+    <h2 class="h2" style="margin:48px 0 8px;">Recommended Additions — Diophantine Capstone</h2>
+    <p class="p2" style="margin-bottom:24px; color:var(--pulse-ash);">Three topics beyond Rosen's core that pay off the engine's exact-arithmetic discipline: the periodic continued fractions of √D, Pell's equation solved through them, and the Frobenius coin problem with Sylvester's closed form.</p>
+    <div class="grid grid--2 engine-grid">
+
+      <a href="methods/continued-fractions.html" class="card engine-card reveal crosshair-host" style="display:block;">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Additions</span><span class="engine-index">27 / 29</span></div>
+        <h3 class="h3">Continued Fractions of √D</h3>
+        <p>The periodic expansion <span class="mono">[a₀; a₁, …, 2a₀]</span> and the convergents <span class="mono">pₙ/qₙ</span> that best approximate √D — with the exact Pell residual <span class="mono">|p² − Dq²|</span> per row.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">Periodic CF</span><span class="tag">Convergents</span><span class="tag">Pell residual</span></div>
+      </a>
+
+      <a href="methods/pells-equation.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.08s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Additions</span><span class="engine-index">28 / 29</span></div>
+        <h3 class="h3">Pell's Equation</h3>
+        <p><span class="mono">x² − D·y² = 1</span> via the continued fraction of √D — the fundamental solution (D=61 gives x = 1,766,319,049) found in a handful of convergents, not a billion trials.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">Fundamental solution</span><span class="tag">Convergent path</span><span class="tag">Exact verify</span></div>
+      </a>
+
+      <a href="methods/frobenius-coin.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.16s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head"><span class="eyebrow">Additions</span><span class="engine-index">29 / 29</span></div>
+        <h3 class="h3">Frobenius Number — the Coin Problem</h3>
+        <p>The largest amount unmakeable from coprime coins <span class="mono">a, b</span> is <span class="mono">ab − a − b</span> — with a reachable/unreachable number line and the coprimality condition that's Bézout's from Phase 1.</p>
+        <div class="method-tags" style="margin-top:16px;"><span class="tag">Sylvester's g(a,b)</span><span class="tag">Number line</span><span class="tag">Coprime = Bézout</span></div>
+      </a>
+
+    </div>
+
+  </div>
+
+  <footer class="site-footer">
+    <div class="container bar">
+      <span class="p2">Number Theory Engine</span>
+      <span class="p2">29 methods · 7 phases complete · exact BigInt throughout</span>
+    </div>
+  </footer>
+</section>
+
+<script src="../../assets/vendor/three.min.js" defer></script>
+<script src="../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../assets/js/engine-core.js" defer></script>
+<script src="../../assets/proto/proto.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => {
+    Engine.initChrome();
+    if (window.Proto && Proto.initRipple) Proto.initRipple(document.getElementById("heroCanvas"), 0xa3623c);
+  });
+</script>
+</body>
+</html>

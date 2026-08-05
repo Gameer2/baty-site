@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Wilson's Theorem — Number Theory Engine</title>
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#a3623c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Number&nbsp;Theory&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Congruences</span>
+    <h1 class="h2" style="margin-top:14px;">Wilson's Theorem</h1>
+    <p class="method-summary">A primality test written entirely in factorials: <span class="mono">(n−1)! ≡ −1 (mod n)</span> if and only if <span class="mono">n</span> is prime. Beautiful, exact, and a *terrible* way to test primality — the factorial explodes long before the work pays off. Here it's a chance to watch an exact equality hold for primes and collapse for composites, computed in BigInt so even (n−1)! for n in the hundreds is exact.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="wilsonForm">
+        <span class="panel-title">Input</span>
+        <div class="field">
+          <label for="nInput">n</label>
+          <input type="text" id="nInput" class="mono" value="7" inputmode="numeric" autocomplete="off" spellcheck="false" />
+        </div>
+        <span class="field-note">Any integer ≥ 2. The factorial is reduced mod n as it's built, so it stays exact and fast even for large n.</span>
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Test</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try 9</span></button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter n — (n−1)! reduced mod n, the comparison with −1, and the primality verdict will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent"><div class="label">primality</div><div class="value" id="statPrime">—</div></div>
+            <div class="result-stat"><div class="label">(n−1)! mod n</div><div class="value" id="statFactorial">—</div></div>
+            <div class="result-stat"><div class="label">−1 mod n</div><div class="value" id="statMinusOne">—</div></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">The check</span>
+            <div class="formula-block formula-block--result" id="wilsonBlock"></div>
+            <div class="field-note" id="wilsonNote" style="margin-top:10px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Number Theory Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/number-theory.js" defer></script>
+<script src="../../../assets/js/wilsons-theorem.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

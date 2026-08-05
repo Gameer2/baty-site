@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Systems of ODEs — ODE/PDE Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#4f8fc0; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> ODE&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="ode-solver.html"><span>ODE Solver</span><span class="dup" aria-hidden="true">ODE Solver</span></a></li>
+      <li><a href="laplace-transform.html"><span>Laplace</span><span class="dup" aria-hidden="true">Laplace</span></a></li>
+      <li><a href="series-solutions.html"><span>Series</span><span class="dup" aria-hidden="true">Series</span></a></li>
+      <li><a href="heat-equation.html"><span>Heat&nbsp;PDE</span><span class="dup" aria-hidden="true">Heat&nbsp;PDE</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Systems of ODEs</span>
+    <h1 class="h2" style="margin-top:14px;">Systems of ODEs</h1>
+    <p class="method-summary">Solve <span class="mono">x' = Ax + g(t)</span> for any n×n <span class="mono">A</span> — closed form by SymPy, verified numerically before it's shown. At n=2, the equilibrium at the origin is classified (node, saddle, spiral, or center) from <span class="mono">A</span>'s eigenvalues, alongside the phase portrait.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="systemsForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="matrixInput">Matrix A (one row per line)</label>
+          <textarea id="matrixInput" class="mono" rows="3" spellcheck="false">0, 1
+-1, 0</textarea>
+        </div>
+
+        <div class="field">
+          <label for="gInput">Forcing g(t) (comma-separated, one per row — leave as 0 for homogeneous)</label>
+          <input type="text" id="gInput" class="mono" value="0, 0" autocomplete="off" spellcheck="false" />
+        </div>
+
+        <span class="field-note" style="margin-top:18px;">Worked examples — click to load</span>
+        <div class="method-tags" id="exampleChips">
+          <button type="button" class="tag" data-a="0, 1&#10;-1, 0" data-g="0, 0">Center</button>
+          <button type="button" class="tag" data-a="-1, 0&#10;0, -2" data-g="0, 0">Stable node</button>
+          <button type="button" class="tag" data-a="1, 0&#10;0, -1" data-g="0, 0">Saddle</button>
+          <button type="button" class="tag" data-a="-0.5, 1&#10;-1, -0.5" data-g="0, 0">Spiral</button>
+          <button type="button" class="tag" data-a="0, 1&#10;-1, 0" data-g="0, sin(t)">Forced</button>
+        </div>
+
+        <label class="status-line" style="cursor:pointer; margin-top:18px;">
+          <input type="checkbox" id="icToggle" style="width:auto;" />
+          <span>Include an initial condition x(0)</span>
+        </label>
+
+        <div id="icFields" style="display:none; margin-top:12px;"></div>
+
+        <div class="status-line ok" id="startStatus">
+          <span class="status-dot"></span><span id="startStatusText">Ready — press Solve.</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Solve</span></button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter a square matrix and hit Solve — the solution, equilibrium classification (n=2), and phase portrait will appear here.</p>
+        </div>
+        <div id="resultsArea" style="display:none;"></div>
+        <div id="portraitWrap" class="plot-wrap crosshair-host" style="display:none;">
+          <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">Phase portrait</span></div>
+          <div id="portraitPlot" style="height:420px;"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">ODE/PDE Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/ode-symbolic.js" defer></script>
+<script src="../../../assets/js/ode-render.js" defer></script>
+<script src="../../../assets/js/sympy-client.js" defer></script>
+<script src="../../../assets/js/algorithms.js" defer></script>
+<script src="../../../assets/js/linalg-algorithms.js" defer></script>
+<script src="../../../assets/js/ode-solver.js" defer></script>
+<script src="../../../assets/js/ode-systems.js" defer></script>
+<script src="../../../assets/js/ode-systems-page.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

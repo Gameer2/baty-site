@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Contour Integration &amp; Residues — Complex Analysis Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#b45fd0; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Complex&nbsp;Analysis&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Integration &amp; Residues</span>
+    <h1 class="h2" style="margin-top:14px;">Contour Integration &amp; Residues</h1>
+    <p class="method-summary">Give a function <span class="mono">f(z)</span> and a closed circular contour <span class="mono">γ</span> (center + radius), and the residue theorem does the rest: <span class="mono">∮<sub>γ</sub> f(z)dz = 2πi · Σ Res</span>, summed over every singularity of <span class="mono">f</span> that lies inside γ. SymPy finds the singularities and their residues; the answer is never shown on that alone — it's independently checked by numerically walking the actual contour and comparing. This is the same residue-theorem machinery the ODE Engine's Laplace-transform inversion will reuse.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="contourForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="fzInput">f(z) =</label>
+          <input type="text" id="fzInput" class="mono" value="exp(z)/(z^2*(z-2))" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="fzPreview"></div>
+        </div>
+
+        <span class="field-note" style="margin-top:18px;">Contour γ — circle</span>
+        <div class="field-row">
+          <div class="field"><label for="centerReInput">center Re</label><input type="number" id="centerReInput" value="0" step="any" /></div>
+          <div class="field"><label for="centerImInput">center Im</label><input type="number" id="centerImInput" value="0" step="any" /></div>
+          <div class="field"><label for="radiusInput">radius</label><input type="number" id="radiusInput" value="1" step="any" min="0.01" /></div>
+        </div>
+
+        <div class="status-line ok" id="startStatus" style="margin-top:18px;">
+          <span class="status-dot"></span><span id="startStatusText">Ready — press Solve.</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Solve</span></button>
+        </div>
+
+        <span class="field-note" style="margin-top:22px;">Worked examples — click to load</span>
+        <div class="chip-row" id="exampleChips">
+          <button type="button" class="chip" data-fz="exp(z)/(z^2*(z-2))" data-cre="0" data-cim="0" data-radius="1">eᶻ/(z²(z−2)), |z|=1 — one double pole inside</button>
+          <button type="button" class="chip" data-fz="1/(z^2+1)" data-cre="0" data-cim="0" data-radius="2">1/(z²+1), |z|=2 — both poles inside, sums to 0</button>
+          <button type="button" class="chip" data-fz="1/(z^2+1)" data-cre="0" data-cim="1" data-radius="0.5">1/(z²+1), |z−i|=0.5 — only z=i inside</button>
+          <button type="button" class="chip" data-fz="z/(z^4+1)" data-cre="0" data-cim="0" data-radius="2">z/(z⁴+1), |z|=2 — four simple poles</button>
+          <button type="button" class="chip" data-fz="1/z" data-cre="0" data-cim="0" data-radius="1">1/z, |z|=1 — the textbook 2πi</button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter f(z) and a circular contour, then solve — the residues found inside, the integral's value, and a picture of the contour and its poles will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">Poles inside γ</div>
+              <div class="value" id="statCount">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Verified</div>
+              <div class="value" id="statVerified">—</div>
+            </div>
+          </div>
+
+          <span class="field-note" style="display:block; margin-top:16px;">Result</span>
+          <div class="formula-block formula-block--result" id="integralResult"></div>
+
+          <div class="panel crosshair-host" id="singPanel" style="margin-top:16px;">
+            <span class="panel-title">Singularities inside γ</span>
+            <div class="data-table-wrap"><table class="data-table" id="singTable">
+              <thead><tr><th>location (exact)</th><th>location (numeric)</th><th>residue (exact)</th><th>residue (numeric)</th></tr></thead>
+              <tbody></tbody>
+            </table></div>
+          </div>
+
+          <div class="plot-wrap crosshair-host" style="margin-top:16px;">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">The contour and f(z)'s poles</span></div>
+            <div id="contourPlot" style="height:400px;"></div>
+          </div>
+        </div>
+
+        <div class="panel crosshair-host" id="refusedPanel" style="display:none;">
+          <span class="panel-title">Can't confirm this one</span>
+          <p class="p1" id="refusedReason"></p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Complex Analysis Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/vendor/nerdamer.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/complex.js" defer></script>
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/complex-symbolic.js" defer></script>
+<script src="../../../assets/js/cas-client.js" defer></script>
+<script src="../../../assets/js/sympy-client.js" defer></script>
+<script src="../../../assets/js/complex-residues.js" defer></script>
+<script src="../../../assets/js/complex-contour-integration.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

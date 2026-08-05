@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gaussian Quadrature — Numerical Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Numerical&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Integration</span>
+    <h1 class="h2" style="margin-top:14px;">Gaussian Quadrature</h1>
+    <p class="method-summary">Picks node positions instead of spacing them evenly — a 2- or 3-point Gauss-Legendre rule exact for polynomials up to degree <span class="mono">2k−1</span>, mapped onto <span class="mono">[a,b]</span> as <span class="mono">∫[a,b] f(x) dx ≈ (b−a)/2 · Σ wᵢ f( (b−a)/2·tᵢ + (a+b)/2 )</span>.</p>
+  </div>
+</section>
+
+<section class="section--tight" x-data>
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="gqForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="fxInput">f(x)</label>
+          <input type="text" id="fxInput" class="mono" value="x^3" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="fxPreview"></div>
+          <button type="button" class="keypad-toggle is-open" id="keypadToggle">
+            <span>Math Keypad</span><span class="chev">⌄</span>
+          </button>
+          <div class="math-keypad is-open" id="fxKeypad"></div>
+        </div>
+
+        <div class="field-row" style="margin-top:18px;">
+          <div class="field">
+            <label for="aInput">a (lower)</label>
+            <input type="number" id="aInput" value="0" step="any" />
+          </div>
+          <div class="field">
+            <label for="bInput">b (upper)</label>
+            <input type="number" id="bInput" value="1" step="any" />
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:18px;">
+          <label>Order</label>
+          <div class="chip-row" id="modeRow">
+            <button type="button" class="chip is-active" data-order="2">2-point (exact ≤ deg 3)</button>
+            <button type="button" class="chip" data-order="3">3-point (exact ≤ deg 5)</button>
+          </div>
+        </div>
+
+        <div class="status-line" id="startStatus">
+          <span class="status-dot"></span><span id="startStatusText">Checking f(x), a, b…</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter a function, bounds and an order, then compute — the weighted-node plot, the mapped-sum formula and a node table will appear here. Gauss nodes are not evenly spaced; marker size scales with each node's weight.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">Estimate ≈</div>
+              <div class="value" id="statTotal">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Order</div>
+              <div class="value" id="statOrder">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Exact up to degree</div>
+              <div class="value" id="statDegree">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Nodes</div>
+              <div class="value" id="statNodes">—</div>
+            </div>
+          </div>
+
+          <span class="field-note">Gauss-Legendre mapped-sum formula</span>
+          <div class="formula-block formula-block--reference" id="formulaBlock"></div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">f(x) with Gauss nodes (marker size ∝ weight)</span></div>
+            <div id="fxPlot" style="height:340px;"></div>
+          </div>
+
+          <div class="data-table-wrap">
+            <table class="data-table" id="nodeTable">
+              <thead>
+                <tr><th>i</th><th>tᵢ (on [−1,1])</th><th>mapped xᵢ</th><th>wᵢ</th><th>f(xᵢ)</th><th>contribution</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Numerical Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/algorithms.js" defer></script>
+<script src="../../../assets/js/gaussian-quadrature.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

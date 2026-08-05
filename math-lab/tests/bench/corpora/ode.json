@@ -1,0 +1,510 @@
+{
+ "source": "Authored from Boyce & DiPrima, Elementary Differential Equations (Ch. 1-4), in the engine's own input notation",
+ "note": "No importable ODE corpus matches this engine's textbook input format ('y\\' = ...'), so this is authored rather than parsed. Entries marked implemented:false are syllabus topics the engine does not yet handle - they are included deliberately so the corpus measures COVERAGE, not just correctness of what exists.",
+ "problems": [
+  {
+   "eq": "y' = y",
+   "family": "separable",
+   "order": 1,
+   "ref": "B&D 2.2",
+   "implemented": true,
+   "f": "y",
+   "x0": 1,
+   "y0": 1
+  },
+  {
+   "eq": "y' = x",
+   "family": "separable",
+   "order": 1,
+   "ref": "B&D 2.2",
+   "implemented": true,
+   "f": "x",
+   "x0": 1,
+   "y0": 1
+  },
+  {
+   "eq": "y' = 2*y",
+   "family": "separable",
+   "order": 1,
+   "ref": "B&D 2.2",
+   "implemented": true,
+   "f": "2*y",
+   "x0": 1,
+   "y0": 1
+  },
+  {
+   "eq": "y' = x*y",
+   "family": "separable",
+   "order": 1,
+   "ref": "B&D 2.2",
+   "implemented": true,
+   "f": "x*y",
+   "x0": 1,
+   "y0": 1
+  },
+  {
+   "eq": "y' = y/x",
+   "family": "separable",
+   "order": 1,
+   "ref": "B&D 2.2",
+   "implemented": true,
+   "f": "y/x",
+   "x0": 1,
+   "y0": 1
+  },
+  {
+   "eq": "y' = x/y",
+   "family": "separable",
+   "order": 1,
+   "ref": "B&D 2.2",
+   "implemented": true,
+   "f": "x/y",
+   "x0": 1,
+   "y0": 1
+  },
+  {
+   "eq": "y' = y^2",
+   "family": "separable",
+   "order": 1,
+   "ref": "B&D 2.2",
+   "implemented": true,
+   "f": "y^2",
+   "x0": 0,
+   "y0": 0.5
+  },
+  {
+   "eq": "y' = x^2*y",
+   "family": "separable",
+   "order": 1,
+   "ref": "B&D 2.2",
+   "implemented": true,
+   "f": "x^2*y",
+   "x0": 0.5,
+   "y0": 1
+  },
+  {
+   "eq": "y' = cos(x)*y",
+   "family": "separable",
+   "order": 1,
+   "ref": "B&D 2.2",
+   "implemented": true,
+   "f": "cos(x)*y",
+   "x0": 0.3,
+   "y0": 1
+  },
+  {
+   "eq": "y' = e^x*y",
+   "family": "separable",
+   "order": 1,
+   "ref": "B&D 2.2",
+   "implemented": true,
+   "f": "e^x*y",
+   "x0": 0.2,
+   "y0": 1
+  },
+  {
+   "eq": "y' = 1+y^2",
+   "family": "separable",
+   "order": 1,
+   "ref": "B&D 2.2",
+   "implemented": true,
+   "f": "1+y^2",
+   "x0": 0.1,
+   "y0": 0.2
+  },
+  {
+   "eq": "y' = y*(1-y)",
+   "family": "separable",
+   "order": 1,
+   "ref": "B&D 2.2",
+   "implemented": true,
+   "f": "y*(1-y)",
+   "x0": 0.5,
+   "y0": 0.4
+  },
+  {
+   "eq": "y' = -y + x",
+   "family": "linear",
+   "order": 1,
+   "ref": "B&D 2.1",
+   "implemented": true,
+   "f": "-y+x",
+   "x0": 0.5,
+   "y0": 1
+  },
+  {
+   "eq": "y' = -2*y+1",
+   "family": "linear",
+   "order": 1,
+   "ref": "B&D 2.1",
+   "implemented": true,
+   "f": "-2*y+1",
+   "x0": 0.3,
+   "y0": 0.5
+  },
+  {
+   "eq": "y' = y + e^x",
+   "family": "linear",
+   "order": 1,
+   "ref": "B&D 2.1",
+   "implemented": true,
+   "f": "y+e^x",
+   "x0": 0.3,
+   "y0": 1
+  },
+  {
+   "eq": "y' = -3*y+6",
+   "family": "linear",
+   "order": 1,
+   "ref": "B&D 2.1",
+   "implemented": true,
+   "f": "-3*y+6",
+   "x0": 0.4,
+   "y0": 1
+  },
+  {
+   "eq": "y' = 2*y + x^2",
+   "family": "linear",
+   "order": 1,
+   "ref": "B&D 2.1",
+   "implemented": true,
+   "f": "2*y+x^2",
+   "x0": 0.4,
+   "y0": 1
+  },
+  {
+   "eq": "y' = y/x + x",
+   "family": "linear",
+   "order": 1,
+   "ref": "B&D 2.1",
+   "implemented": true,
+   "f": "y/x+x",
+   "x0": 1,
+   "y0": 1
+  },
+  {
+   "eq": "(2*x*y+3) dx + (x^2-1) dy = 0",
+   "family": "exact",
+   "order": 1,
+   "ref": "B&D 2.6",
+   "implemented": true,
+   "f": "-(2*x*y+3)/(x^2-1)",
+   "x0": 2,
+   "y0": 1
+  },
+  {
+   "eq": "(2*x+y) dx + (x+2*y) dy = 0",
+   "family": "exact",
+   "order": 1,
+   "ref": "B&D 2.6",
+   "implemented": true,
+   "f": "-(2*x+y)/(x+2*y)",
+   "x0": 1,
+   "y0": 1
+  },
+  {
+   "eq": "(y*cos(x)+2*x) dx + (sin(x)+2*y) dy = 0",
+   "family": "exact",
+   "order": 1,
+   "ref": "B&D 2.6",
+   "implemented": true,
+   "f": "-(y*cos(x)+2*x)/(sin(x)+2*y)",
+   "x0": 0.5,
+   "y0": 1
+  },
+  {
+   "eq": "(3*x^2*y+2) dx + (x^3+1) dy = 0",
+   "family": "exact",
+   "order": 1,
+   "ref": "B&D 2.6",
+   "implemented": true,
+   "f": "-(3*x^2*y+2)/(x^3+1)",
+   "x0": 1,
+   "y0": 1
+  },
+  {
+   "eq": "y' = (x^2+y^2)/(x*y)",
+   "family": "homogeneous",
+   "order": 1,
+   "ref": "B&D 2.2 subs",
+   "implemented": true,
+   "f": "(x^2+y^2)/(x*y)",
+   "x0": 1,
+   "y0": 1
+  },
+  {
+   "eq": "y' = (x+y)/x",
+   "family": "homogeneous",
+   "order": 1,
+   "ref": "B&D 2.2 subs",
+   "implemented": true,
+   "f": "(x+y)/x",
+   "x0": 1,
+   "y0": 1
+  },
+  {
+   "eq": "y' = (y-x)/(y+x)",
+   "family": "homogeneous",
+   "order": 1,
+   "ref": "B&D 2.2 subs",
+   "implemented": true,
+   "f": "(y-x)/(y+x)",
+   "x0": 1,
+   "y0": 2
+  },
+  {
+   "eq": "y' = y/x + 1",
+   "family": "homogeneous",
+   "order": 1,
+   "ref": "B&D 2.2 subs",
+   "implemented": true,
+   "f": "y/x+1",
+   "x0": 1,
+   "y0": 1
+  },
+  {
+   "eq": "y' = y + y^2",
+   "family": "bernoulli",
+   "order": 1,
+   "ref": "B&D 2.4",
+   "implemented": true,
+   "f": "y+y^2",
+   "x0": 0.2,
+   "y0": 0.3
+  },
+  {
+   "eq": "y' = y - y^3",
+   "family": "bernoulli",
+   "order": 1,
+   "ref": "B&D 2.4",
+   "implemented": true,
+   "f": "y-y^3",
+   "x0": 0.3,
+   "y0": 0.5
+  },
+  {
+   "eq": "y' = y/x + x*y^2",
+   "family": "bernoulli",
+   "order": 1,
+   "ref": "B&D 2.4",
+   "implemented": true,
+   "f": "y/x+x*y^2",
+   "x0": 1,
+   "y0": 0.3
+  },
+  {
+   "eq": "y'' - 3y' + 2y = 0",
+   "family": "2nd-order homogeneous",
+   "order": 2,
+   "ref": "B&D 3.1-3.4",
+   "implemented": true,
+   "a": 1,
+   "b": -3,
+   "c": 2,
+   "rhs": "0"
+  },
+  {
+   "eq": "y'' - 4y' + 4y = 0",
+   "family": "2nd-order homogeneous",
+   "order": 2,
+   "ref": "B&D 3.1-3.4",
+   "implemented": true,
+   "a": 1,
+   "b": -4,
+   "c": 4,
+   "rhs": "0"
+  },
+  {
+   "eq": "y'' + y = 0",
+   "family": "2nd-order homogeneous",
+   "order": 2,
+   "ref": "B&D 3.1-3.4",
+   "implemented": true,
+   "a": 1,
+   "b": 0,
+   "c": 1,
+   "rhs": "0"
+  },
+  {
+   "eq": "y'' + 4y = 0",
+   "family": "2nd-order homogeneous",
+   "order": 2,
+   "ref": "B&D 3.1-3.4",
+   "implemented": true,
+   "a": 1,
+   "b": 0,
+   "c": 4,
+   "rhs": "0"
+  },
+  {
+   "eq": "y'' - y = 0",
+   "family": "2nd-order homogeneous",
+   "order": 2,
+   "ref": "B&D 3.1-3.4",
+   "implemented": true,
+   "a": 1,
+   "b": 0,
+   "c": -1,
+   "rhs": "0"
+  },
+  {
+   "eq": "y'' + 2y' + 5y = 0",
+   "family": "2nd-order homogeneous",
+   "order": 2,
+   "ref": "B&D 3.1-3.4",
+   "implemented": true,
+   "a": 1,
+   "b": 2,
+   "c": 5,
+   "rhs": "0"
+  },
+  {
+   "eq": "y'' - 5y' + 6y = 0",
+   "family": "2nd-order homogeneous",
+   "order": 2,
+   "ref": "B&D 3.1-3.4",
+   "implemented": true,
+   "a": 1,
+   "b": -5,
+   "c": 6,
+   "rhs": "0"
+  },
+  {
+   "eq": "y'' + 6y' + 9y = 0",
+   "family": "2nd-order homogeneous",
+   "order": 2,
+   "ref": "B&D 3.1-3.4",
+   "implemented": true,
+   "a": 1,
+   "b": 6,
+   "c": 9,
+   "rhs": "0"
+  },
+  {
+   "eq": "y'' + 2y' + y = 0",
+   "family": "2nd-order homogeneous",
+   "order": 2,
+   "ref": "B&D 3.1-3.4",
+   "implemented": true,
+   "a": 1,
+   "b": 2,
+   "c": 1,
+   "rhs": "0"
+  },
+  {
+   "eq": "y'' + y = x",
+   "family": "2nd-order nonhomogeneous",
+   "order": 2,
+   "ref": "B&D 3.5-3.6",
+   "implemented": true,
+   "a": 1,
+   "b": 0,
+   "c": 1,
+   "rhs": "x"
+  },
+  {
+   "eq": "y'' - y = x^2",
+   "family": "2nd-order nonhomogeneous",
+   "order": 2,
+   "ref": "B&D 3.5-3.6",
+   "implemented": true,
+   "a": 1,
+   "b": 0,
+   "c": -1,
+   "rhs": "x^2"
+  },
+  {
+   "eq": "y'' - 3y' + 2y = e^x",
+   "family": "2nd-order nonhomogeneous",
+   "order": 2,
+   "ref": "B&D 3.5-3.6",
+   "implemented": true,
+   "a": 1,
+   "b": -3,
+   "c": 2,
+   "rhs": "e^x"
+  },
+  {
+   "eq": "y'' + 4y = sin(x)",
+   "family": "2nd-order nonhomogeneous",
+   "order": 2,
+   "ref": "B&D 3.5-3.6",
+   "implemented": true,
+   "a": 1,
+   "b": 0,
+   "c": 4,
+   "rhs": "sin(x)"
+  },
+  {
+   "eq": "y'' - 2y' + y = e^x",
+   "family": "2nd-order nonhomogeneous",
+   "order": 2,
+   "ref": "B&D 3.5-3.6",
+   "implemented": true,
+   "a": 1,
+   "b": -2,
+   "c": 1,
+   "rhs": "e^x"
+  },
+  {
+   "eq": "y'' + y = cos(2*x)",
+   "family": "2nd-order nonhomogeneous",
+   "order": 2,
+   "ref": "B&D 3.5-3.6",
+   "implemented": true,
+   "a": 1,
+   "b": 0,
+   "c": 1,
+   "rhs": "cos(2*x)"
+  },
+  {
+   "eq": "y'' - 2y'/x + 2y/x^2 = 0",
+   "family": "reduction of order",
+   "order": 1,
+   "ref": "B&D 3.4",
+   "implemented": false
+  },
+  {
+   "eq": "y'' + y = 0 via Laplace",
+   "family": "Laplace transform",
+   "order": 1,
+   "ref": "B&D 6.2",
+   "implemented": false
+  },
+  {
+   "eq": "x' = A x (2x2 system)",
+   "family": "systems / eigenvalue method",
+   "order": 1,
+   "ref": "B&D 7.5",
+   "implemented": false
+  },
+  {
+   "eq": "y'' + x*y' + y = 0 (series)",
+   "family": "series solution",
+   "order": 1,
+   "ref": "B&D 5.2",
+   "implemented": false
+  },
+  {
+   "eq": "2x^2 y'' + 3x y' - y = 0",
+   "family": "Euler-Cauchy",
+   "order": 1,
+   "ref": "B&D 5.4",
+   "implemented": false
+  },
+  {
+   "eq": "y'' + y = u_c(t) (step forcing)",
+   "family": "step/impulse forcing",
+   "order": 1,
+   "ref": "B&D 6.3",
+   "implemented": false
+  },
+  {
+   "eq": "y' = y^2 - x, autonomous phase line",
+   "family": "autonomous / stability",
+   "order": 1,
+   "ref": "B&D 2.5",
+   "implemented": false
+  }
+ ]
+}

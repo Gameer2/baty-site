@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Chi-Square Tests — Statistics Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#c99a3c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Statistics&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Sampling & Inference</span>
+    <h1 class="h2" style="margin-top:14px;">Chi-Square Tests</h1>
+    <p class="method-summary">Goodness-of-fit (are these categories in the hypothesized ratio?) and test of independence (are two categorical variables related?) — χ² statistics from observed and expected counts, p-values from the exact chi-square CDF, not table lookups.</p>
+  </div>
+</section>
+
+<section class="section--tight" x-data>
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="testForm" onsubmit="return false;">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label>Test type</label>
+          <div class="chip-row" id="modeRow">
+            <button type="button" class="chip is-active" data-mode="gof">Goodness-of-Fit</button>
+            <button type="button" class="chip" data-mode="indep">Test of Independence</button>
+          </div>
+        </div>
+
+        <!-- Goodness-of-Fit fields -->
+        <div id="gofFields">
+          <div class="field" style="margin-top:14px;">
+            <label for="gofObservedInput">Observed counts — one per category</label>
+            <textarea id="gofObservedInput" class="mono" rows="3" spellcheck="false"
+              style="width:100%;background:var(--core-black);border:1px solid rgba(255,255,255,.12);border-radius:var(--radius-sm);color:var(--off-white);padding:12px 14px;font-family:var(--font-mono);font-size:14px;resize:vertical;"
+            >315, 108, 101, 32</textarea>
+            <span class="field-note">Comma, space or newline separated</span>
+          </div>
+          <div class="field" style="margin-top:10px;">
+            <label for="gofExpectedInput">Expected counts — same order</label>
+            <textarea id="gofExpectedInput" class="mono" rows="3" spellcheck="false"
+              style="width:100%;background:var(--core-black);border:1px solid rgba(255,255,255,.12);border-radius:var(--radius-sm);color:var(--off-white);padding:12px 14px;font-family:var(--font-mono);font-size:14px;resize:vertical;"
+            >312.75, 104.25, 104.25, 34.75</textarea>
+            <span class="field-note">May be fractional. Order must match observed.</span>
+          </div>
+          <div class="field-row" style="margin-top:10px;">
+            <div class="field">
+              <label for="dfAdjustInput">df adjust (params estimated)</label>
+              <input type="number" id="dfAdjustInput" value="0" step="1" min="0" />
+            </div>
+            <div class="field">
+              <label for="alphaInputG">Significance α</label>
+              <input type="number" id="alphaInputG" value="0.05" step="any" min="0.001" max="0.5" />
+            </div>
+          </div>
+          <span class="field-note">df = (categories − 1) − df adjust. Set 1 if the expected distribution's parameters were fitted from the same sample.</span>
+        </div>
+
+        <!-- Independence fields -->
+        <div id="indepFields" style="display:none;">
+          <div class="field" style="margin-top:14px;">
+            <label for="indepMatrixInput">Contingency table — one row per line, columns comma-separated</label>
+            <textarea id="indepMatrixInput" class="mono" rows="4" spellcheck="false"
+              style="width:100%;background:var(--core-black);border:1px solid rgba(255,255,255,.12);border-radius:var(--radius-sm);color:var(--off-white);padding:12px 14px;font-family:var(--font-mono);font-size:14px;resize:vertical;"
+            >20, 30
+30, 20</textarea>
+            <span class="field-note">Example 2×3: <span class="mono">10,20,30\n15,25,40</span></span>
+          </div>
+          <div class="field" style="margin-top:10px;">
+            <label for="alphaInputI">Significance α</label>
+            <input type="number" id="alphaInputI" value="0.05" step="any" min="0.001" max="0.5" />
+          </div>
+        </div>
+
+        <div class="status-line" id="verdictLine" style="margin-top:14px;" aria-live="polite">
+          <span class="status-dot"></span><span id="verdictText">Enter valid inputs, then compute.</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;" aria-live="polite">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Pick a test type, enter your counts, and compute — the χ² statistic, p-value, and a visualization appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip" id="resultStrip"></div>
+
+          <span class="field-note" id="formulaNote">Test statistic</span>
+          <div class="formula-block formula-block--reference" id="formulaStat"></div>
+          <span class="field-note">Upper-tail p-value</span>
+          <div class="formula-block formula-block--result" id="formulaP"></div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;" id="barPlotTitle">Observed vs Expected</span></div>
+            <div id="barPlot" style="height:300px;"></div>
+          </div>
+
+          <div class="plot-wrap crosshair-host" style="margin-top:14px;">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">χ² distribution with observed statistic</span></div>
+            <div id="distPlot" style="height:260px;"></div>
+          </div>
+
+          <div class="panel crosshair-host" id="expectedPanel" style="margin-top:14px;">
+            <span class="panel-title">Expected counts</span>
+            <div id="expectedTable"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Statistics Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/proto/proto.js" defer></script>
+<script src="../../../assets/js/stats-algorithms.js" defer></script>
+<script src="../../../assets/js/chi-square-tests.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

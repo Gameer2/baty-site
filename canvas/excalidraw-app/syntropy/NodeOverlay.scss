@@ -1,0 +1,15 @@
+// Covers the viewport; individual node cards are positioned within it via
+// computeNodeScreenRect's viewport-relative left/top (see nodeGeometry.ts — offsetLeft/offsetTop
+// come from Excalidraw's own excalidrawContainer.getBoundingClientRect(), which is
+// viewport-relative, so `position: fixed` here needs no extra offset math to line up).
+.NodeOverlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.NodeOverlay__node {
+  position: absolute;
+  transform-origin: center center;
+}

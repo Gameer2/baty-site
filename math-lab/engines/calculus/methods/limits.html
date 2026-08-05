@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Limits — Calculus Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#4f9e82; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Calculus&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="u-substitution.html"><span>u-Substitution</span><span class="dup" aria-hidden="true">u-Substitution</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Limits &amp; Continuity</span>
+    <h1 class="h2" style="margin-top:14px;">Limits</h1>
+    <p class="method-summary">The first idea in the subject: what <span class="mono">f(x)</span> approaches as <span class="mono">x</span> closes in on a point — which is not the same as what <span class="mono">f</span> is <em>at</em> that point, and need not exist at all. Solved exactly, with the derivation shown: direct substitution where the function is continuous, L'Hôpital's Rule for <span class="mono">0/0</span> and <span class="mono">∞/∞</span>, and both sides checked before any answer is reported.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="limitForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="fxInput">f(x) =</label>
+          <input type="text" id="fxInput" class="mono" value="sin(x)/x" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="fxPreview"></div>
+          <button type="button" class="keypad-toggle is-open" id="keypadToggle">
+            <span>Math Keypad</span><span class="chev">⌄</span>
+          </button>
+          <div class="math-keypad is-open" id="fxKeypad"></div>
+        </div>
+
+        <div class="field" style="margin-top:18px;">
+          <label for="atInput">as x → </label>
+          <input type="text" id="atInput" class="mono" value="0" autocomplete="off" spellcheck="false" />
+          <span class="field-note">A number, or <span class="mono">Infinity</span> / <span class="mono">-Infinity</span></span>
+        </div>
+
+        <div class="status-line" id="startStatus">
+          <span class="status-dot"></span><span id="startStatusText">Checking…</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Evaluate</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+
+        <span class="field-note" style="margin-top:22px;">Worked examples — click to load</span>
+        <div class="method-tags" id="presetRow">
+          <button type="button" class="tag" data-fx="sin(x)/x" data-at="0" data-tex="\frac{\sin x}{x}"></button>
+          <button type="button" class="tag" data-fx="(1-cos(x))/x^2" data-at="0" data-tex="\frac{1-\cos x}{x^2}"></button>
+          <button type="button" class="tag" data-fx="(x^2-1)/(x-1)" data-at="1" data-tex="\frac{x^2-1}{x-1}"></button>
+          <button type="button" class="tag" data-fx="(1+1/x)^x" data-at="Infinity" data-tex="\left(1+\tfrac{1}{x}\right)^{x}"></button>
+          <button type="button" class="tag" data-fx="log(x)/x" data-at="Infinity" data-tex="\frac{\ln x}{x}"></button>
+          <button type="button" class="tag" data-fx="1/x" data-at="0" data-tex="\frac{1}{x}"></button>
+          <button type="button" class="tag" data-fx="abs(x)/x" data-at="0" data-tex="\frac{|x|}{x}"></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter a function and a point, then evaluate — the limit, the table of values closing in from both sides, the full derivation and a plot will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">Limit</div>
+              <div class="value" id="statValue">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">From the left</div>
+              <div class="value" id="statLeft">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">From the right</div>
+              <div class="value" id="statRight">—</div>
+            </div>
+          </div>
+
+          <span class="field-note">Result</span>
+          <div class="formula-block formula-block--result" id="formulaResult"></div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Derivation</span>
+            <div class="data-table-wrap">
+              <table class="data-table" id="stepTable">
+                <thead><tr><th>#</th><th>Rule</th><th>Expression</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <div class="slider-row" style="margin-top:16px;">
+              <input type="range" id="stepSlider" min="0" max="0" value="0" />
+              <span class="step-label" id="stepLabel">step 0</span>
+            </div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Closing in on the point</span>
+            <div class="data-table-wrap">
+              <table class="data-table" id="approachTable">
+                <thead><tr id="approachHead"></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">f(x) near the point</span></div>
+            <div id="fxPlot" style="height:340px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Calculus Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/vendor/nerdamer.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<!-- In-page fallback only, for when a Worker cannot be created (file://). Normally the
+     worker owns its own copy and this one is never called. -->
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/calculus-symbolic.js" defer></script>
+<script src="../../../assets/js/cas-client.js" defer></script>
+<script src="../../../assets/js/limits.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

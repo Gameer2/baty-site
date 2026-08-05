@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Distribution of Primes — Number Theory Engine</title>
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#a3623c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Number&nbsp;Theory&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Primes &amp; factorisation</span>
+    <h1 class="h2" style="margin-top:14px;">Distribution of Primes</h1>
+    <p class="method-summary">Primes thin out, but slowly: the prime-counting function <span class="mono">π(x)</span> grows like <span class="mono">x / ln x</span> (the prime number theorem). Here that's not a claim to prove but a thing to *see* — count exact primes against the smooth approximation, watch the gaps fluctuate, and turn the integers into an Ulam spiral where the primes stubbornly line up on diagonals.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="distForm">
+        <span class="panel-title">Input</span>
+        <div class="field">
+          <label for="nInput">bound x</label>
+          <input type="text" id="nInput" class="mono" value="10000" inputmode="numeric" autocomplete="off" spellcheck="false" />
+        </div>
+        <span class="field-note">Count and plot primes up to x (sieve is exact; ≤ 10⁶ keeps the page snappy). The Ulam spiral below uses a separate, smaller spiral size.</span>
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Count</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try 100000</span></button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter a bound — the exact prime count, its approximation by x/ln x, the largest gaps, and the Ulam spiral will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">π(x) — exact</div>
+              <div class="value" id="statPi">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">x / ln x — PNT approx</div>
+              <div class="value" id="statApprox">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">relative error</div>
+              <div class="value" id="statErr">—</div>
+            </div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Prime gaps up to x</span>
+            <div class="field-note" id="gapsNote"></div>
+            <div id="barTrack" style="margin-top:8px;"></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Ulam spiral (first <span id="ulamCount">0</span> integers)</span>
+            <div class="nt-ulam-wrap"><canvas id="ulamCanvas" width="600" height="600"></canvas></div>
+            <div class="nt-sieve-legend">
+              <span><span class="swatch" style="background:var(--electric-teal)"></span>prime</span>
+              <span><span class="swatch" style="background:rgba(255,255,255,.06)"></span>composite</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Number Theory Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/number-theory.js" defer></script>
+<script src="../../../assets/js/distribution-of-primes.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

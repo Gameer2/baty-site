@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Modular Exponentiation — Number Theory Engine</title>
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#a3623c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Number&nbsp;Theory&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Cryptography</span>
+    <h1 class="h2" style="margin-top:14px;">Modular Exponentiation</h1>
+    <p class="method-summary">The single operation that all of public-key cryptography rests on: compute <span class="mono">base^exp mod m</span> without ever holding the astronomically large <span class="mono">base^exp</span>. Binary (square-and-multiply) exponentiation reads the exponent bit by bit — square the base every step, multiply into the accumulator only when the bit is 1 — so the cost grows with the *number of bits* of the exponent, not its size. This is the page RSA, Diffie–Hellman, and every primality test below are built on.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="meForm">
+        <span class="panel-title">Input</span>
+        <div class="field-row">
+          <div class="field"><label for="baseInput">base</label><input type="text" id="baseInput" class="mono" value="3" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+          <div class="field"><label for="expInput">exponent</label><input type="text" id="expInput" class="mono" value="13" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+          <div class="field"><label for="modInput">modulus</label><input type="text" id="modInput" class="mono" value="7" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+        </div>
+        <span class="field-note">3^13 mod 7 = 3, done in 4 squarings — 3^13 itself is 1,594,323, never formed. The bit table below shows exactly which steps multiply.</span>
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try 7^256 mod 13</span></button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter base, exponent, modulus — the result and the per-bit square-and-multiply trace will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent"><div class="label">base^exp mod m</div><div class="value" id="statResult">—</div></div>
+            <div class="result-stat"><div class="label">exponent bits</div><div class="value" id="statBits">—</div></div>
+            <div class="result-stat"><div class="label">multiplications</div><div class="value" id="statMults">—</div></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Exponent in binary</span>
+            <div class="nt-modexp" id="bitRow"></div>
+            <div class="field-note" id="bitNote" style="margin-top:10px;"></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Square-and-multiply trace</span>
+            <div class="nt-cmp-table" id="traceTable"></div>
+            <div class="field-note" id="traceNote" style="margin-top:10px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Number Theory Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/number-theory.js" defer></script>
+<script src="../../../assets/js/modular-exponentiation.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

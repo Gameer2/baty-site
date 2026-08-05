@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Prime Factorisation — Number Theory Engine</title>
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#a3623c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Number&nbsp;Theory&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Primes &amp; factorisation</span>
+    <h1 class="h2" style="margin-top:14px;">Prime Factorisation</h1>
+    <p class="method-summary">Every integer &gt; 1 splits into primes in exactly one way — but *finding* that split is the whole game. Three methods, run on the same number side by side: trial division (plodding, but catches small factors first), Fermat's method (fast when the factors are close), and Pollard's rho (probabilistic, fast when factors are far apart). The operation count is the lesson: the same answer, vastly different work.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="factorForm">
+        <span class="panel-title">Input</span>
+        <div class="field">
+          <label for="nInput">n</label>
+          <input type="text" id="nInput" class="mono" value="8051" inputmode="numeric" autocomplete="off" spellcheck="false" />
+        </div>
+        <span class="field-note">Any integer ≥ 2. Semiprimes (two large primes) are the interesting case — the comparison is sharpest there. Operation budget is enforced; a factor that resists is reported, not hidden.</span>
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Factorise</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try a 12-digit semiprime</span></button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter an integer and factorise — three methods, their work counts, and the prime factorisation will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">factorisation</div>
+              <div class="value" id="statFactor">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">digits in n</div>
+              <div class="value" id="statDigits">—</div>
+            </div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Method comparison</span>
+            <table class="nt-cmp-table" id="cmpTable">
+              <thead><tr><th>method</th><th>verdict</th><th>work</th><th>notes</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Prime factorisation (full)</span>
+            <div class="field-note" id="fullNote"></div>
+            <div id="factorList"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Number Theory Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/number-theory.js" defer></script>
+<script src="../../../assets/js/prime-factorisation.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

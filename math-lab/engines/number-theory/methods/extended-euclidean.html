@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Extended Euclidean Algorithm &amp; Bézout — Number Theory Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#a3623c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Number&nbsp;Theory&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Divisibility &amp; the Euclidean Algorithm</span>
+    <h1 class="h2" style="margin-top:14px;">Extended Euclidean Algorithm &amp; Bézout's Identity</h1>
+    <p class="method-summary">Runs the Euclidean algorithm forward while tracking two coefficients <span class="mono">s</span>, <span class="mono">t</span> at every step, so that <span class="mono">r = as + bt</span> holds throughout. When the remainder hits <span class="mono">gcd(a, b)</span>, those coefficients are exactly Bézout's <span class="mono">x</span>, <span class="mono">y</span> — the workhorse behind modular inverses, linear congruences, and RSA key generation.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="extEuclidForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="aInput">a</label>
+            <input type="text" id="aInput" class="mono" value="240" inputmode="numeric" autocomplete="off" spellcheck="false" />
+          </div>
+          <div class="field">
+            <label for="bInput">b</label>
+            <input type="text" id="bInput" class="mono" value="46" inputmode="numeric" autocomplete="off" spellcheck="false" />
+          </div>
+        </div>
+        <span class="field-note">Positive whole numbers — arbitrarily large. Exact BigInt arithmetic throughout.</span>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter two positive integers and compute — the coefficient-tracking step table and Bézout's identity will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">gcd(a, b) =</div>
+              <div class="value" id="statGcd">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">x (coeff. of a)</div>
+              <div class="value" id="statX">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">y (coeff. of b)</div>
+              <div class="value" id="statY">—</div>
+            </div>
+          </div>
+
+          <span class="field-note">The invariant every row of the table satisfies</span>
+          <div class="formula-block formula-block--reference" id="formulaBlock"></div>
+
+          <span class="field-note">Bézout's Identity</span>
+          <div class="formula-block formula-block--result" id="bezoutEquation" style="margin-bottom:24px;"></div>
+
+          <div class="data-table-wrap">
+            <table class="data-table" id="iterTable">
+              <thead>
+                <tr><th>n</th><th>r</th><th>q</th><th>s</th><th>t</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Step through</span>
+            <div class="formula-block formula-block--result" id="stepEquation" style="margin-top:14px;"></div>
+            <div class="slider-row" style="margin-top:18px;">
+              <input type="range" id="stepSlider" min="0" max="0" value="0" />
+              <span class="step-label" id="stepLabel">step 0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Number Theory Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/number-theory.js" defer></script>
+<script src="../../../assets/js/extended-euclidean.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

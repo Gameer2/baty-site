@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Applications of Integration — Calculus Engine</title>
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#4f9e82; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Calculus&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Categories</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <a href="../methods.html" class="ring-back">← All categories</a>
+    <span class="eyebrow">Method Category</span>
+    <h1 class="h2" style="margin-top:14px;">Applications of Integration</h1>
+    <p class="method-summary">5 methods. Click a card to preview it, then open it to work through the method.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="method-ring" data-accent="green">
+      <div class="ring-inner">
+
+        <div class="ring-card"
+             data-eyebrow="The Definite Integral"
+             data-title="Riemann Sums"
+             data-desc="Watch rectangles under a curve converge to the exact area as their count grows."
+             data-tags="Midpoint rule|Live rectangle plot|2 to 200 rectangles"
+             data-href="riemann-sums.html">
+          <div class="ring-face front"><span class="ring-card-title">Riemann Sums</span></div>
+        </div>
+
+        <div class="ring-card"
+             data-eyebrow="Techniques &amp; Applications of Integration"
+             data-title="Improper Integrals"
+             data-desc="Handles infinite bounds and vertical asymptotes, and knows when an integral truly diverges."
+             data-tags="±∞ &amp; singular bounds|Converge / diverge|Principal-value-safe"
+             data-href="improper-integrals.html">
+          <div class="ring-face front"><span class="ring-card-title">Improper Integrals</span></div>
+        </div>
+
+        <div class="ring-card"
+             data-eyebrow="Applications of Integration · 3D"
+             data-title="Volumes of Revolution — Disk, Washer &amp; Shell"
+             data-desc="Spins a curve around an axis and builds the solid, live, in 3D."
+             data-tags="π-symbolic volume|Simpson check|Solid in 3D"
+             data-href="volumes-of-revolution.html">
+          <div class="ring-face front"><span class="ring-card-title">Volumes of Revolution</span></div>
+        </div>
+
+        <div class="ring-card"
+             data-eyebrow="Applications of Integration"
+             data-title="Arc Length &amp; Surface Area"
+             data-desc="Measures a curve's length and the surface it sweeps when revolved."
+             data-tags="π-symbolic bounds|Simpson check|Refuses elliptic lengths"
+             data-href="arc-length-surface-area.html">
+          <div class="ring-face front"><span class="ring-card-title">Arc Length &amp; Surface Area</span></div>
+        </div>
+
+        <div class="ring-card"
+             data-eyebrow="Applications of Integration"
+             data-title="Parametric &amp; Polar Coordinates"
+             data-desc="Slope, arc length, and area for curves traced by a parameter or by r(θ)."
+             data-tags="Parametric &amp; polar|Per-quantity refusal|Curve in the plane"
+             data-href="parametric-and-polar.html">
+          <div class="ring-face front"><span class="ring-card-title">Parametric &amp; Polar</span></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container bar">
+      <span class="p2">Calculus Engine</span>
+      <a href="../methods.html" class="p2">← All categories</a>
+    </div>
+  </footer>
+</section>
+
+<div class="method-detail" id="methodDetail" data-accent="green" hidden>
+  <div class="method-detail-backdrop"></div>
+  <div class="method-detail-panel">
+    <button class="detail-close" id="detailClose" aria-label="Close" type="button">×</button>
+    <div class="detail-body" id="detailBody"></div>
+  </div>
+</div>
+
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/method-ring.js" defer></script>
+<script defer>
+document.addEventListener("DOMContentLoaded", () => { Engine.initChrome(); });
+</script>
+</body>
+</html>

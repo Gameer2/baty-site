@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Linear Transformations (2×2) — Linear Algebra Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<link rel="stylesheet" href="../../../assets/proto/proto.css" />
+<style>:root{ --electric-teal:#8570b3; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Linear&nbsp;Algebra&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Geometry</span>
+    <h1 class="h2" style="margin-top:14px;">Linear Transformations (2×2)</h1>
+    <p class="method-summary">A matrix is an instruction for reshaping space. Change the four entries and watch the plane stretch, rotate and shear — with the determinant as the area scale factor, and the eigenvalues as the directions that only stretch.</p>
+  </div>
+</section>
+
+<section class="section--tight" id="workspace">
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="matForm" onsubmit="return false;">
+        <span class="panel-title">Input</span>
+
+        
+
+        <div>
+          <div class="field">
+            <label>Presets</label>
+            <div class="chip-row" id="presetRow">
+              <button type="button" class="chip" data-m="1,0,0,1">Identity</button>
+              <button type="button" class="chip" data-m="0.7071,-0.7071,0.7071,0.7071">Rotate 45°</button>
+              <button type="button" class="chip" data-m="1,1,0,1">Shear</button>
+              <button type="button" class="chip" data-m="2,0,0,0.5">Scale</button>
+              <button type="button" class="chip" data-m="1,0,0,-1">Reflect</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Matrix M</label>
+            <div class="matrix-grid-wrap">
+              <span class="matrix-bracket">[</span>
+              <div class="matrix-grid" style="grid-template-columns: repeat(2, 1fr);">
+                <input type="number" id="m00" class="mono" value="2" step="any" />
+                <input type="number" id="m01" class="mono" value="1" step="any" />
+                <input type="number" id="m10" class="mono" value="1" step="any" />
+                <input type="number" id="m11" class="mono" value="2" step="any" />
+              </div>
+              <span class="matrix-bracket">]</span>
+            </div>
+            <span class="field-note">Preview</span>
+            <div class="katex-preview" id="matPreview"></div>
+          </div>
+        </div>
+
+        
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+
+        <div>
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">det(M)</div>
+              <div class="value" id="statDet">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">trace(M)</div>
+              <div class="value" id="statTrace">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">rank(M)</div>
+              <div class="value" id="statRank">—</div>
+            </div>
+          </div>
+
+          <span class="field-note">Eigenvalues — roots of λ² − trace·λ + det = 0</span>
+          <div class="formula-block formula-block--result" id="formulaEigen"></div>
+
+          <div class="status-line" id="singularNote" style="display:none;" aria-live="polite">
+            <span class="status-dot"></span><span>Singular matrix (det ≈ 0) — the transform collapses the plane onto a line or a point.</span>
+          </div>
+
+          <div class="scene-wrap crosshair-host">
+            <span class="scene-label">Grid under M, oscillating identity ↔ M</span>
+            <canvas id="matrixCanvas" aria-hidden="true"></canvas>
+            <div class="scene-legend">
+              <span><i style="background:#e7e7e7"></i> i, j (identity)</span>
+              <span><i style="background:#ed6d40"></i> Mi, Mj (transformed)</span>
+            </div>
+          </div>
+        </div>
+
+        
+
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="mono">Linear Algebra Engine — every result computed live in your browser.</p>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/three.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/proto/proto.js" defer></script>
+<script src="../../../assets/js/algorithms.js" defer></script>
+<script src="../../../assets/js/linalg-algorithms.js" defer></script>
+<script src="../../../assets/js/linear-transformations.js" defer></script>
+<script defer>
+document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

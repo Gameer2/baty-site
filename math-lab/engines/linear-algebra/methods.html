@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Methods — Linear Algebra Engine</title>
+<link rel="stylesheet" href="../../assets/css/engine.css" />
+<link rel="stylesheet" href="../../assets/proto/proto.css" />
+<style>:root{ --electric-teal:#8570b3; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="methods.html" class="logo"><span class="dot"></span> Linear&nbsp;Algebra&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../numerical/methods.html"><span>Numerical</span><span class="dup" aria-hidden="true">Numerical</span></a></li>
+      <li><a href="../calculus/methods.html"><span>Calculus</span><span class="dup" aria-hidden="true">Calculus</span></a></li>
+      <li><a href="../linear-algebra/methods.html"><span>Linear&nbsp;Algebra</span><span class="dup" aria-hidden="true">Linear&nbsp;Algebra</span></a></li>
+      <li><a href="../statistics/methods.html"><span>Statistics</span><span class="dup" aria-hidden="true">Statistics</span></a></li>
+      <li><a href="../ode/index.html"><span>ODE</span><span class="dup" aria-hidden="true">ODE</span></a></li>
+    </ul>
+    <a href="../../index.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Engines</span></a>
+  </div>
+</header>
+
+<section class="hero">
+  <canvas class="hero-canvas" id="heroCanvas"></canvas>
+  <div class="container hero-inner">
+    <span class="eyebrow">Method library</span>
+    <h1 class="h1" style="margin-top:18px;">Pick a method</h1>
+    <p class="p1 hero-sub">Every page takes a matrix you type in and shows the whole computation — the row operations, not just the answer.</p>
+    <div class="hero-actions">
+      <a href="index.html" class="btn btn--primary"><span class="btn-text">Hand It Your Matrix →</span></a>
+      <a href="#methods" class="btn btn--ghost"><span class="btn-text">Browse Methods ↓</span></a>
+    </div>
+    <span class="proto-badge" style="margin-top:28px;"><span class="status-dot"></span> 18 methods, all computed live in your browser — verified by 197 automated tests.</span>
+  </div>
+</section>
+
+<section class="section" id="methods">
+  <div class="container">
+    <div class="grid grid--2 engine-grid">
+
+      <a href="methods/row-reduction.html" class="card engine-card reveal crosshair-host" style="display:block;">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Elimination</span>
+          <span class="engine-index">1 / 18</span>
+        </div>
+        <h3 class="h3">Row Reduction (RREF)</h3>
+        <p>Reduces any matrix to reduced row echelon form with partial pivoting, and steps through every row operation. The foundation every other page here is built on.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Any m×n matrix</span>
+          <span class="tag">Step-by-step</span>
+          <span class="tag">Pivot & free columns</span>
+        </div>
+      </a>
+
+      <a href="methods/linear-systems.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.08s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Elimination</span>
+          <span class="engine-index">2 / 18</span>
+        </div>
+        <h3 class="h3">Linear Systems — Ax = b</h3>
+        <p>Solves Ax = b in all three cases: one solution, none, or infinitely many — with the full parametric solution set, not just the invertible case.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Matrix + vector</span>
+          <span class="tag">All three cases</span>
+          <span class="tag">Parametric form</span>
+        </div>
+      </a>
+
+      <a href="methods/four-subspaces.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.16s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Vector Spaces</span>
+          <span class="engine-index">3 / 18</span>
+        </div>
+        <h3 class="h3">Rank and the Fundamental Subspaces</h3>
+        <p>Rank, nullity, and bases for the null space, column space and row space — with rank + nullity = columns verified live.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Any m×n matrix</span>
+          <span class="tag">Three bases</span>
+          <span class="tag">Rank–nullity</span>
+        </div>
+      </a>
+
+      <a href="methods/independence-basis.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.24s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Vector Spaces</span>
+          <span class="engine-index">4 / 18</span>
+        </div>
+        <h3 class="h3">Linear Independence and Basis</h3>
+        <p>Tests whether vectors are independent, shows an explicit dependency relation when they are not, and extracts a basis for their span.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Vectors as columns</span>
+          <span class="tag">Dependency relation</span>
+          <span class="tag">Basis extraction</span>
+        </div>
+      </a>
+
+      <a href="methods/matrix-inverse.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.32s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Elimination</span>
+          <span class="engine-index">5 / 18</span>
+        </div>
+        <h3 class="h3">Matrix Inverse (Gauss–Jordan)</h3>
+        <p>Inverts by row-reducing [A | I] to [I | A⁻¹], showing every step — and says specifically why a singular matrix has none.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Square matrix</span>
+          <span class="tag">Step-by-step</span>
+          <span class="tag">AA⁻¹ = I check</span>
+        </div>
+      </a>
+
+      <a href="methods/determinant.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.40s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Determinants</span>
+          <span class="engine-index">6 / 18</span>
+        </div>
+        <h3 class="h3">Determinant</h3>
+        <p>Computes the determinant by elimination and by cofactor expansion, then shows the two agree.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Square matrix</span>
+          <span class="tag">Two methods</span>
+          <span class="tag">Cross-checked</span>
+        </div>
+      </a>
+
+      <a href="methods/lu-decomposition.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.48s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Factorization</span>
+          <span class="engine-index">7 / 18</span>
+        </div>
+        <h3 class="h3">LU Decomposition</h3>
+        <p>Factors a square matrix as PA = LU with partial pivoting — L, U and the permutation recording each row swap.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Square matrix</span>
+          <span class="tag">PA = LU</span>
+          <span class="tag">Determinant from U</span>
+        </div>
+      </a>
+
+      <a href="methods/eigenvalues.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.56s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Eigenvalues</span>
+          <span class="engine-index">8 / 18</span>
+        </div>
+        <h3 class="h3">Eigenvalues and Eigenvectors</h3>
+        <p>Builds det(A − λI), finds every root including complex pairs, and computes each eigenspace as a null space.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Square matrix</span>
+          <span class="tag">Characteristic polynomial</span>
+          <span class="tag">Complex-aware</span>
+        </div>
+      </a>
+
+      <a href="methods/diagonalization.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.64s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Eigenvalues</span>
+          <span class="engine-index">9 / 18</span>
+        </div>
+        <h3 class="h3">Diagonalization</h3>
+        <p>Decides whether A = PDP⁻¹ is possible, and says exactly why not — comparing algebraic and geometric multiplicity.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Square matrix</span>
+          <span class="tag">P, D, P⁻¹</span>
+          <span class="tag">Multiplicity table</span>
+        </div>
+      </a>
+
+      <a href="methods/gram-schmidt.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.72s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Orthogonality</span>
+          <span class="engine-index">10 / 18</span>
+        </div>
+        <h3 class="h3">Gram–Schmidt and QR</h3>
+        <p>Orthonormalizes the columns one projection at a time and assembles A = QR, using the numerically stable modified process.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Vectors as columns</span>
+          <span class="tag">Step-by-step</span>
+          <span class="tag">QᵀQ = I check</span>
+        </div>
+      </a>
+
+      <a href="methods/iterative-solvers.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.80s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Iterative Solvers</span>
+          <span class="engine-index">11 / 18</span>
+        </div>
+        <h3 class="h3">Jacobi and Gauss–Seidel</h3>
+        <p>Solves Ax = b by repeated sweeps instead of elimination — both methods side by side, with the diagonal-dominance condition that decides whether either converges.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Square system</span>
+          <span class="tag">Two methods compared</span>
+          <span class="tag">Convergence table</span>
+        </div>
+      </a>
+
+      <a href="methods/conjugate-gradient.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.88s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Iterative Solvers</span>
+          <span class="engine-index">12 / 18</span>
+        </div>
+        <h3 class="h3">Conjugate Gradient</h3>
+        <p>Solves a symmetric positive-definite system along A-orthogonal directions, so it lands on the exact answer in at most n steps rather than converging asymptotically.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">SPD system</span>
+          <span class="tag">≤ n steps</span>
+          <span class="tag">Compared to the sweeps</span>
+        </div>
+      </a>
+
+      <a href="methods/svd.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.96s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Factorization</span>
+          <span class="engine-index">13 / 18</span>
+        </div>
+        <h3 class="h3">Singular Value Decomposition</h3>
+        <p>Factors any matrix as A = UΣVᵀ using one-sided Jacobi, not AᵀA — so small singular values survive. With the unit-circle picture and best rank-k approximation.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Any m×n matrix</span>
+          <span class="tag">Circle → ellipse</span>
+          <span class="tag">Eckart–Young</span>
+        </div>
+      </a>
+
+      <a href="methods/spectral-theorem.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.104s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Eigenvalues</span>
+          <span class="engine-index">14 / 18</span>
+        </div>
+        <h3 class="h3">The Spectral Theorem</h3>
+        <p>Every symmetric matrix is A = QDQᵀ with orthogonal Q and real D — computed by Jacobi rotations, exact even when an eigenvalue repeats.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Symmetric matrix</span>
+          <span class="tag">Orthonormal Q</span>
+          <span class="tag">Perpendicular eigenvectors</span>
+        </div>
+      </a>
+
+      <a href="methods/least-squares.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.112s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Approximation</span>
+          <span class="engine-index">15 / 18</span>
+        </div>
+        <h3 class="h3">Least Squares</h3>
+        <p>Finds the closest thing to a solution when none exists — both via stable QR and via the textbook normal equations, with the residual's orthogonality checked.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Overdetermined system</span>
+          <span class="tag">QR vs normal equations</span>
+          <span class="tag">Fitted line</span>
+        </div>
+      </a>
+
+      <a href="methods/cholesky.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.120s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Factorization</span>
+          <span class="engine-index">16 / 18</span>
+        </div>
+        <h3 class="h3">Cholesky Decomposition</h3>
+        <p>Factors a symmetric positive-definite matrix as A = LLᵀ in half the work of LU — and completing it is the proof that the matrix is positive definite.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Symmetric matrix</span>
+          <span class="tag">A = LLᵀ</span>
+          <span class="tag">Definiteness test</span>
+        </div>
+      </a>
+
+      <a href="methods/markov-chains.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.128s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Applications</span>
+          <span class="engine-index">17 / 18</span>
+        </div>
+        <h3 class="h3">Markov Chains</h3>
+        <p>Finds a chain's steady state exactly, as the eigenvector for eigenvalue 1 — then evolves a distribution forward to confirm it. The mathematics behind PageRank.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Transition matrix</span>
+          <span class="tag">Exact steady state</span>
+          <span class="tag">Convergence plot</span>
+        </div>
+      </a>
+
+      <a href="methods/linear-transformations.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.136s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Geometry</span>
+          <span class="engine-index">18 / 18</span>
+        </div>
+        <h3 class="h3">Linear Transformations (2×2)</h3>
+        <p>Change a 2×2 matrix and watch the plane stretch, rotate and shear in real time — the geometric meaning behind the numbers on every other page.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">2×2 matrix</span>
+          <span class="tag">Live 3-D scene</span>
+          <span class="tag">Determinant as area</span>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="mono">Linear Algebra Engine — part of The Lab.</p>
+  </div>
+</footer>
+
+<script src="../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../assets/vendor/three.min.js" defer></script>
+<script src="../../assets/js/engine-core.js" defer></script>
+<script src="../../assets/proto/proto.js" defer></script>
+<script defer>
+document.addEventListener("DOMContentLoaded", () => {
+  Engine.initChrome();
+  if (window.Proto && Proto.initRipple) Proto.initRipple(document.getElementById("heroCanvas"), 0x8570b3);
+});
+</script>
+</body>
+</html>

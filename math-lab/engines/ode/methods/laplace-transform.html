@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Laplace Transform — ODE/PDE Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#4f8fc0; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> ODE&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="ode-solver.html"><span>ODE Solver</span><span class="dup" aria-hidden="true">ODE Solver</span></a></li>
+      <li><a href="systems.html"><span>Systems</span><span class="dup" aria-hidden="true">Systems</span></a></li>
+      <li><a href="series-solutions.html"><span>Series</span><span class="dup" aria-hidden="true">Series</span></a></li>
+      <li><a href="heat-equation.html"><span>Heat&nbsp;PDE</span><span class="dup" aria-hidden="true">Heat&nbsp;PDE</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">The Laplace Transform</span>
+    <h1 class="h2" style="margin-top:14px;">Laplace Transform</h1>
+    <p class="method-summary">A real transform engine: compute <span class="mono">F(s) = L{f(x)}</span> or its inverse directly, solve an initial-value problem by the full transform → algebra → inverse-transform method (any order, including discontinuous or impulsive forcing), or verify the convolution theorem. Every result is independently re-checked numerically before it's shown.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="method-tags" id="sectionTabs" style="margin-bottom:24px;">
+      <button type="button" class="tag is-active" data-section="calc">Transform Calculator</button>
+      <button type="button" class="tag" data-section="ivp">Solve an IVP</button>
+      <button type="button" class="tag" data-section="conv">Convolution</button>
+    </div>
+
+    <div id="calcSection" class="workspace">
+      <form class="panel crosshair-host" id="calcForm">
+        <span class="panel-title">Input</span>
+        <label class="status-line" style="cursor:pointer;">
+          <input type="radio" name="calcDir" id="dirForward" value="forward" checked style="width:auto;" />
+          <span>Forward: f(x) &rarr; F(s)</span>
+        </label>
+        <label class="status-line" style="cursor:pointer; margin-top:8px;">
+          <input type="radio" name="calcDir" id="dirInverse" value="inverse" style="width:auto;" />
+          <span>Inverse: F(s) &rarr; f(x)</span>
+        </label>
+        <div class="field" style="margin-top:16px;">
+          <label for="calcInput" id="calcInputLabel">f(x)</label>
+          <input type="text" id="calcInput" class="mono" value="exp(-2*x)" autocomplete="off" spellcheck="false" />
+        </div>
+        <span class="field-note" style="margin-top:18px;">Worked examples — click to load</span>
+        <div class="method-tags" id="calcChips">
+          <button type="button" class="tag" data-dir="forward" data-v="x^2">x&sup2;</button>
+          <button type="button" class="tag" data-dir="forward" data-v="exp(-2*x)">e&#8315;&sup2;&#7503;</button>
+          <button type="button" class="tag" data-dir="forward" data-v="sin(3*x)">sin(3x)</button>
+          <button type="button" class="tag" data-dir="forward" data-v="Heaviside(x-2)">Step at x=2</button>
+          <button type="button" class="tag" data-dir="forward" data-v="DiracDelta(x-1)">Impulse at x=1</button>
+          <button type="button" class="tag" data-dir="inverse" data-v="1/(s+2)">1/(s+2)</button>
+          <button type="button" class="tag" data-dir="inverse" data-v="exp(-2*s)/s">e&#8315;&sup2;&#8347;/s</button>
+        </div>
+        <div class="status-line ok" id="calcStatus" style="margin-top:18px;"><span class="status-dot"></span><span id="calcStatusText">Ready — press Compute.</span></div>
+        <div class="field" id="calcError" style="display:none;"><div class="status-line bad"><span class="status-dot"></span><span id="calcErrorText"></span></div></div>
+        <div class="hero-actions" style="margin-top:6px;"><button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button></div>
+      </form>
+      <div id="calcOutput">
+        <div class="panel crosshair-host" id="calcPlaceholder"><span class="panel-title">Output</span><p class="p1">Type an expression and hit Compute.</p></div>
+        <div id="calcResultsArea" style="display:none;"></div>
+      </div>
+    </div>
+
+    <div id="ivpSection" class="workspace" style="display:none;">
+      <form class="panel crosshair-host" id="ivpForm">
+        <span class="panel-title">Input</span>
+        <div class="field">
+          <label for="ivpInput">Equation</label>
+          <input type="text" id="ivpInput" class="mono" value="y'' + 4*y = Heaviside(x-1)" autocomplete="off" spellcheck="false" />
+        </div>
+        <div id="ivpIcFields" style="margin-top:12px;"></div>
+        <span class="field-note" style="margin-top:18px;">Worked examples — click to load</span>
+        <div class="method-tags" id="ivpChips">
+          <button type="button" class="tag" data-eq="y'' + 3*y' + 2*y = 0" data-ics="1,0">Homogeneous, 2nd order</button>
+          <button type="button" class="tag" data-eq="y'' + y = Heaviside(x-3)" data-ics="0,0">Step forcing</button>
+          <button type="button" class="tag" data-eq="y'' + 4*y = DiracDelta(x-2)" data-ics="0,0">Impulse forcing</button>
+          <button type="button" class="tag" data-eq="y''' - y = 0" data-ics="1,0,0">3rd order</button>
+        </div>
+        <div class="status-line ok" id="ivpStatus" style="margin-top:18px;"><span class="status-dot"></span><span id="ivpStatusText">Ready — press Solve.</span></div>
+        <div class="field" id="ivpError" style="display:none;"><div class="status-line bad"><span class="status-dot"></span><span id="ivpErrorText"></span></div></div>
+        <div class="hero-actions" style="margin-top:6px;"><button type="submit" class="btn btn--primary"><span class="btn-text">Solve</span></button></div>
+      </form>
+      <div id="ivpOutput">
+        <div class="panel crosshair-host" id="ivpPlaceholder"><span class="panel-title">Output</span><p class="p1">Enter an equation and initial conditions, then hit Solve — all three stages (transform, algebra, inverse) will appear here.</p></div>
+        <div id="ivpResultsArea" style="display:none;"></div>
+      </div>
+    </div>
+
+    <div id="convSection" class="workspace" style="display:none;">
+      <form class="panel crosshair-host" id="convForm">
+        <span class="panel-title">Input</span>
+        <div class="field"><label for="convF">f(x)</label><input type="text" id="convF" class="mono" value="exp(-x)" autocomplete="off" spellcheck="false" /></div>
+        <div class="field" style="margin-top:12px;"><label for="convG">g(x)</label><input type="text" id="convG" class="mono" value="sin(x)" autocomplete="off" spellcheck="false" /></div>
+        <div class="status-line ok" id="convStatus" style="margin-top:18px;"><span class="status-dot"></span><span id="convStatusText">Ready — press Compute.</span></div>
+        <div class="field" id="convError" style="display:none;"><div class="status-line bad"><span class="status-dot"></span><span id="convErrorText"></span></div></div>
+        <div class="hero-actions" style="margin-top:6px;"><button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button></div>
+      </form>
+      <div id="convOutput">
+        <div class="panel crosshair-host" id="convPlaceholder"><span class="panel-title">Output</span><p class="p1">Enter f(x) and g(x), then hit Compute — F(s)&middot;G(s) and the convolution (f&lowast;g)(x) will appear here, verified against the direct convolution integral.</p></div>
+        <div id="convResultsArea" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">ODE/PDE Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/ode-symbolic.js" defer></script>
+<script src="../../../assets/js/ode-render.js" defer></script>
+<script src="../../../assets/js/sympy-client.js" defer></script>
+<script src="../../../assets/js/algorithms.js" defer></script>
+<script src="../../../assets/js/ode-solver.js" defer></script>
+<script src="../../../assets/js/laplace-engine.js" defer></script>
+<script src="../../../assets/js/laplace-transform.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

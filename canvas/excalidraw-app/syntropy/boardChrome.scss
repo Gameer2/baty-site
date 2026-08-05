@@ -1,0 +1,153 @@
+// Board chrome: the parts of stock Excalidraw's own UI that read as "someone else's app" when
+// held next to the approved v6 mockup. Scoped overrides only — no component markup is changed
+// here, and every tool the toolbar had, it still has.
+
+.excalidraw {
+  // Mockup .toolbar5 — a compact pill, not a wide rounded-rect island.
+  .App-toolbar {
+    border-radius: 999px;
+    padding: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+
+    // Excalidraw parks a permanent instruction line under the toolbar ("To move canvas, hold
+    // Scroll wheel or Space while dragging…"). It's onboarding copy for first-time visitors to
+    // excalidraw.com, and it sits exactly where the mockup has empty board.
+    .HintViewer {
+      display: none;
+    }
+
+    // The numbered shortcut badges under every tool are the loudest stock-Excalidraw signal in
+    // the frame, and the mockup's pill has none. The shortcuts themselves still work — this
+    // hides the badge, not the binding.
+    .ToolIcon__keybinding {
+      display: none;
+    }
+
+    // A pill has no corners to tick. Islands that are still rectangles — panels, dialogs —
+    // keep their crosshairs.
+    .Island__crosshair {
+      display: none;
+    }
+  }
+
+  // Island draws 4 corner crosshairs unconditionally, including on the Islands used purely as
+  // transparent layout wrappers (padding 0, no background, no shadow). On those there's no
+  // surface for a corner tick to belong to, so they render as 4 "+" glyphs floating in space.
+  .compact-shape-actions .Island__crosshair {
+    display: none;
+  }
+
+  // Main menu (hamburger, .main-menu-trigger) — move ONLY the menu to the top-right (note-taker:
+  // "move this to the right side"). The menu trigger lives in .excalidraw-ui-top-left, which is the
+  // first child of .App-menu_top__left; floating just that wrapper right leaves the
+  // selected-shape-actions panel (the second child) in the left column where it belongs. An earlier
+  // attempt moved the whole .App-menu_top__left column and dragged the shape-actions panel off with
+  // it — "this one cant be seen, you made it much worse".
+  .excalidraw-ui-top-left {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 20;
+  }
+
+  // Syntropy nodes carry a syntropy:// link only so validateEmbeddable accepts them; the native
+  // link popup must never show — the node's own premium "Open ↗" button is the portal (note-taker:
+  // "the portal link should not appear like that at all").
+  .excalidraw-hyperlinkContainer {
+    display: none !important;
+  }
+
+  // The main-menu trigger uses the stock `filledButtonOnCanvas` mixin, which fills it with a light
+  // surface — on the dark lab canvas that reads as a bad white square in the upper-right (note-taker:
+  // "there still a bad white square on the upper right corner"). Restyle it to the lab's dark pill:
+  // #111 surface, hairline white ring, accent ring on hover.
+  .main-menu-trigger {
+    background-color: #111111;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+    transition: box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+    &:hover {
+      box-shadow: 0 0 0 1px var(--color-primary);
+    }
+  }
+
+  // The main menu used to sit at the top of this column; now that it's fixed to the top-right
+  // (see .excalidraw-ui-top-left above), the selected-shape-actions panel would rise to the very
+  // top of the left column and collide with the Library toggle chip (also top-left, position: fixed
+  // at top:16px / ~36px tall). Push it down past the toggle (note-taker: "it should be a little
+  // down so it isnt overlap with anything").
+  .App-menu_top > .App-menu_top__left {
+    padding-top: 60px;
+  }
+
+  // Excalidraw's whole chrome layer (.layer-ui__wrapper — the toolbar, main menu, shape-actions
+  // panel, and bottom bar) defaults to z-index 4 (var --zIndex-layerUI). NodeOverlay is a sibling
+  // position: fixed; z-index:5 layer, so a Syntropy node dragged over any of those bars/panels
+  // covered them. Lift the chrome layer above the node cards so the panels and bars stay on top of
+  // everything (note-taker: "the panels and bars should be on the top of everything even if i put
+  // something on it"). 10 clears NodeOverlay (5); dialogs/modals live inside this layer's own
+  // stacking context at z-index 60–1001, so they remain above the chrome too.
+  --zIndex-layerUI: 10;
+}
+
+// The library toggle — a fixed chip on the LEFT edge, next to the panel it toggles, glowing in
+// the current toolbar accent when the panel is open (note-taker: "should be on the other side in
+// the left and also should be glowing"). Rendered directly by LibraryToggle.tsx (no portal).
+.LibraryToggle {
+  all: unset;
+  box-sizing: border-box;
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--lg-button-size, 2.25rem);
+  padding: 0 14px;
+  border-radius: 999px;
+  background: #111111;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-family: var(--ui-font);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7d858c;
+  cursor: pointer;
+  transition: color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    color: #e7e7e7;
+    border-color: rgba(255, 255, 255, 0.24);
+  }
+
+  // Open is the resting state, so the lit dot marks it. The chip also slides right by the panel
+  // width so it never overlaps the open panel, and picks up a soft accent glow. Keep 300px in sync
+  // with LIBRARY_PANEL_WIDTH in App.tsx.
+  &--open {
+    left: calc(300px + 16px);
+    color: #e7e7e7;
+    border-color: color-mix(in srgb, var(--color-primary) 60%, transparent);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--color-primary) 45%, transparent);
+
+    &::before {
+      background: var(--color-primary);
+    }
+
+    &:hover {
+      box-shadow: 0 0 28px color-mix(in srgb, var(--color-primary) 65%, transparent);
+    }
+  }
+}

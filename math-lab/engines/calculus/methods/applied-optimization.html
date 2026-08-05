@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Applied Optimization — Calculus Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#4f9e82; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Calculus&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="curve-sketching.html"><span>Curve Sketching</span><span class="dup" aria-hidden="true">Curve Sketching</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Limits &amp; Derivatives</span>
+    <h1 class="h2" style="margin-top:14px;">Applied Optimization</h1>
+    <p class="method-summary">The classic "minimize the material" / "maximize the enclosed area" word problem, reduced to its Calc-1 mechanics: on a closed interval, the Extreme Value Theorem guarantees the maximum or minimum sits at a critical point (<span class="mono">f′ = 0</span>) or at one of the two endpoints — so every candidate is evaluated and the best one wins. This is the single-variable, closed-form treatment — the general n-variable numerical case (gradient descent, simplex) lives elsewhere.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="optimForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="fxInput">Objective f(x) =</label>
+          <input type="text" id="fxInput" class="mono" value="x*(20-2*x)^2" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="fxPreview"></div>
+          <button type="button" class="keypad-toggle is-open" id="keypadToggle">
+            <span>Math Keypad</span><span class="chev">⌄</span>
+          </button>
+          <div class="math-keypad is-open" id="fxKeypad"></div>
+        </div>
+
+        <div class="field-row" style="margin-top:18px;">
+          <div class="field">
+            <label for="aInput">Domain a</label>
+            <input type="number" id="aInput" value="0" step="any" />
+          </div>
+          <div class="field">
+            <label for="bInput">Domain b</label>
+            <input type="number" id="bInput" value="10" step="any" />
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:18px;">
+          <label>Goal</label>
+          <div class="chip-row" id="goalRow">
+            <button type="button" class="chip is-active" data-goal="max">Maximize</button>
+            <button type="button" class="chip" data-goal="min">Minimize</button>
+          </div>
+        </div>
+
+        <div class="status-line" id="startStatus" style="margin-top:18px;">
+          <span class="status-dot"></span><span id="startStatusText">Checking…</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Optimize</span></button>
+        </div>
+
+        <span class="field-note" style="margin-top:22px;">Worked scenarios — click to load</span>
+        <div class="method-tags" id="presetRow">
+          <button type="button" class="tag" data-fx="x*(20-2*x)^2" data-a="0" data-b="10" data-goal="max" data-tex="x(20-2x)^2"></button>
+          <button type="button" class="tag" data-fx="x*(200-2*x)" data-a="0" data-b="100" data-goal="max" data-tex="x(200-2x)"></button>
+          <button type="button" class="tag" data-fx="x^2+80/x" data-a="0.5" data-b="10" data-goal="min" data-tex="x^2+\frac{80}{x}"></button>
+          <button type="button" class="tag" data-fx="x^2" data-a="0" data-b="5" data-goal="max" data-tex="x^2"></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter an objective function, a domain, and a goal, then optimize — every candidate (critical points and endpoints) will be evaluated and the winner marked.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">Optimal x</div>
+              <div class="value" id="statX">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">f(x) at optimum</div>
+              <div class="value" id="statValue">—</div>
+            </div>
+          </div>
+
+          <span class="field-note">Derivative</span>
+          <div class="formula-block formula-block--result" id="formulaFp"></div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">f(x) over the domain, optimum marked</span></div>
+            <div id="fxPlot" style="height:320px;"></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Explore the domain</span>
+            <span class="field-note">x = <span id="xSliderVal" class="mono">—</span></span>
+            <div class="slider-row"><input type="range" id="xSlider" min="0" max="10" step="0.02" value="0" /></div>
+            <div class="result-strip" style="margin-top:16px;">
+              <div class="result-stat">
+                <div class="label">f(x) here</div>
+                <div class="value" id="sliderFVal">—</div>
+              </div>
+              <div class="result-stat">
+                <div class="label">f′(x) here</div>
+                <div class="value" id="sliderFpVal">—</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Candidates (critical points &amp; endpoints)</span>
+            <div class="data-table-wrap">
+              <table class="data-table" id="candidateTable">
+                <thead><tr><th>x</th><th>type</th><th>f(x)</th><th></th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Derivation</span>
+            <div class="data-table-wrap">
+              <table class="data-table" id="stepTable">
+                <thead><tr><th>#</th><th>Rule</th><th>Expression</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Calculus Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/vendor/nerdamer.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/proto/proto.js" defer></script>
+<!-- calculus-symbolic.js is loaded here only as the in-page fallback for when a Worker
+     cannot be created (opening this file over file://). In normal use the worker owns its
+     own copy and this one is never called. -->
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/calculus-symbolic.js" defer></script>
+<script src="../../../assets/js/cas-client.js" defer></script>
+<script src="../../../assets/js/applied-optimization.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

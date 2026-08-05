@@ -1,0 +1,218 @@
+.SyntropyNodeCard {
+  --node-accent: #ffffff;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  background: #111111; // lab --rich-carbon
+  border: 1px solid rgba(255, 255, 255, 0.08); // lab .card border — hairline white, no shadow
+  border-radius: 20px; // lab --radius-lg (cards/panels)
+  font-family: var(--ui-font);
+  color: #e7e7e7;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  isolation: isolate;
+  // Lab cards are FLAT — no drop shadow (see math-lab .card / .engine-card). Depth comes from the
+  // 1px hairline border + the accent radial glow below.
+  // Card background/border are pass-through so a mousedown here reaches Excalidraw's canvas
+  // underneath and drag-to-move / click-to-select on the real (transparent) embeddable element
+  // keeps working. Every interactive child below re-enables pointer-events itself.
+  pointer-events: none;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: -35%;
+    left: -15%;
+    width: 75%;
+    height: 75%;
+    background: radial-gradient(circle, var(--node-accent) 0%, transparent 72%);
+    opacity: 0.14;
+    filter: blur(6px);
+    pointer-events: none;
+    z-index: -1;
+  }
+}
+
+.SyntropyNodeCard__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.SyntropyNodeCard__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--node-accent);
+  flex-shrink: 0;
+}
+
+.SyntropyNodeCard__title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Premium portal button — the lab's .btn--ghost fill-sweep in the node's own accent, plus a soft
+// accent glow. Replaces the old gray "Open ↗" text (note-taker: "should have a button in it that
+// look premium and consistent with the design of the lab").
+.SyntropyNodeCard__portal {
+  all: unset;
+  pointer-events: auto;
+  cursor: pointer;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--ui-font);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--node-accent) 75%, #e7e7e7);
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--node-accent) 45%, transparent);
+  background: color-mix(in srgb, var(--node-accent) 10%, transparent);
+  overflow: hidden;
+  transition: color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+  // Lab fill-sweep: an accent fill scales in from the left on hover, text flips to near-black.
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--node-accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  &:hover {
+    color: #090909;
+    border-color: var(--node-accent);
+    box-shadow: 0 0 18px color-mix(in srgb, var(--node-accent) 55%, transparent);
+  }
+  &:hover::before {
+    transform: scaleX(1);
+  }
+}
+
+.SyntropyNodeCard__body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  flex: 1;
+}
+
+.SyntropyNodeCard__scrub {
+  position: relative;
+  box-sizing: border-box;
+  border-radius: 8px;
+  background: #090909;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  flex-shrink: 0;
+  pointer-events: auto;
+}
+
+.SyntropyNodeCard__scrubRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  padding: 0 10px;
+  gap: 8px;
+}
+
+.SyntropyNodeCard__scrubLabel {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #7d858c;
+  font-size: 9.5px;
+  flex-shrink: 0;
+}
+
+.SyntropyNodeCard__scrubValue {
+  all: unset;
+  box-sizing: border-box;
+  width: 100%;
+  text-align: right;
+  font-size: 15px;
+  font-family: inherit;
+  color: #e7e7e7;
+  font-weight: 600;
+  pointer-events: auto;
+  cursor: text;
+}
+
+.SyntropyNodeCard__error {
+  font-size: 11px;
+  color: #ed6d40;
+  margin: 0;
+}
+
+.SyntropyNodeCard__plot {
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #090909;
+  padding: 6px;
+}
+
+.RiemannPlot {
+  display: block;
+  width: 100%;
+  height: 100px;
+}
+
+.RiemannPlot__empty {
+  margin: 0;
+  padding: 12px;
+  font-size: 11px;
+  color: #7d858c;
+  text-align: center;
+}
+
+.SyntropyNodeCard__output {
+  margin-top: 2px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.1);
+  display: grid;
+  gap: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.SyntropyNodeCard__outRow {
+  box-sizing: border-box;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #111111;
+  padding: 7px 10px;
+  font-family: var(--ui-font);
+  font-size: 11px;
+}
+
+.SyntropyNodeCard__outKey {
+  color: #7d858c;
+}
+
+.SyntropyNodeCard__outVal {
+  color: var(--node-accent);
+}

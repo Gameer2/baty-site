@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Limits &amp; Derivatives — Calculus Engine</title>
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#4f9e82; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Calculus&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Categories</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <a href="../methods.html" class="ring-back">← All categories</a>
+    <span class="eyebrow">Method Category</span>
+    <h1 class="h2" style="margin-top:14px;">Limits &amp; Derivatives</h1>
+    <p class="method-summary">5 methods. Click a card to preview it, then open it to work through the method.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="method-ring" data-accent="teal">
+      <div class="ring-inner">
+
+        <div class="ring-card"
+             data-eyebrow="Limits &amp; Continuity"
+             data-title="Limits"
+             data-desc="Evaluates limits exactly, shows both sides, and calls out when one truly doesn't exist."
+             data-tags="Exact values|L'Hôpital|One-sided table|Detects DNE"
+             data-href="limits.html">
+          <div class="ring-face front"><span class="ring-card-title">Limits</span></div>
+        </div>
+
+        <div class="ring-card"
+             data-eyebrow="Limits &amp; Derivatives"
+             data-title="L'Hôpital's Rule"
+             data-desc="Multi-pass L'Hôpital on 0/0 and ∞/∞ — refuses to apply where it doesn't belong."
+             data-tags="Detects 0/0 &amp; ∞/∞|Multi-pass|Refuses non-indeterminate forms"
+             data-href="lhopital.html">
+          <div class="ring-face front"><span class="ring-card-title">L'Hôpital's Rule</span></div>
+        </div>
+
+        <div class="ring-card"
+             data-eyebrow="Limits &amp; Derivatives"
+             data-title="Curve Sketching"
+             data-desc="f, f′, and f″ plotted together, every max, min, and inflection point marked."
+             data-tags="f, f′, f″ linked|Max/min/inflection|Exact where trustworthy"
+             data-href="curve-sketching.html">
+          <div class="ring-face front"><span class="ring-card-title">Curve Sketching</span></div>
+        </div>
+
+        <div class="ring-card"
+             data-eyebrow="Limits &amp; Derivatives"
+             data-title="Applied Optimization"
+             data-desc="Turns word problems into optimization — a live slider finds the best answer as you drag."
+             data-tags="Candidates + endpoints|Live slider|Worked scenarios"
+             data-href="applied-optimization.html">
+          <div class="ring-face front"><span class="ring-card-title">Applied Optimization</span></div>
+        </div>
+
+        <div class="ring-card"
+             data-eyebrow="Limits &amp; Derivatives"
+             data-title="Related Rates"
+             data-desc="Differentiates implicit relationships in time and solves for the unknown rate, verified numerically."
+             data-tags="Hand-built chain rule|π kept symbolic|Total-derivative check"
+             data-href="related-rates.html">
+          <div class="ring-face front"><span class="ring-card-title">Related Rates</span></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container bar">
+      <span class="p2">Calculus Engine</span>
+      <a href="../methods.html" class="p2">← All categories</a>
+    </div>
+  </footer>
+</section>
+
+<div class="method-detail" id="methodDetail" data-accent="teal" hidden>
+  <div class="method-detail-backdrop"></div>
+  <div class="method-detail-panel">
+    <button class="detail-close" id="detailClose" aria-label="Close" type="button">×</button>
+    <div class="detail-body" id="detailBody"></div>
+  </div>
+</div>
+
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/method-ring.js" defer></script>
+<script defer>
+document.addEventListener("DOMContentLoaded", () => { Engine.initChrome(); });
+</script>
+</body>
+</html>

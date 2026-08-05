@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Möbius Function &amp; Inversion — Number Theory Engine</title>
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#a3623c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Number&nbsp;Theory&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Multiplicative functions</span>
+    <h1 class="h2" style="margin-top:14px;">Möbius Function &amp; Inversion</h1>
+    <p class="method-summary">μ(n) is +1 if n is square-free with an even number of prime factors, −1 if square-free with an odd number, and 0 the moment any prime repeats. Alongside it sit the counting functions that often get confused: ω(n) (distinct primes), Ω(n) (primes with multiplicity), and Liouville's λ(n) = (−1)^Ω. The difference between "with" and "without multiplicity" is exactly where students slip on τ and σ — here they're laid out side by side.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="mobForm">
+        <span class="panel-title">Input</span>
+        <div class="field">
+          <label for="nInput">n</label>
+          <input type="text" id="nInput" class="mono" value="30" inputmode="numeric" autocomplete="off" spellcheck="false" />
+        </div>
+        <span class="field-note">Any integer ≥ 1. All four functions reuse the same factorisation. Try 12 (= 2²·3, not square-free → μ = 0) versus 30 (= 2·3·5, square-free, 3 primes → μ = −1).</span>
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try 12</span></button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter n — μ(n), ω(n), Ω(n), λ(n), the factorisation, and the square-free verdict will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent"><div class="label">μ(n)</div><div class="value" id="statMu">—</div></div>
+            <div class="result-stat"><div class="label">ω(n) — distinct</div><div class="value" id="statOmega">—</div></div>
+            <div class="result-stat"><div class="label">Ω(n) — with mult.</div><div class="value" id="statOmegaTotal">—</div></div>
+            <div class="result-stat"><div class="label">λ(n) — Liouville</div><div class="value" id="statLambda">—</div></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Factorisation</span>
+            <div id="factorList"></div>
+            <div class="field-note" id="squareFreeNote" style="margin-top:10px;"></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Reading the functions</span>
+            <div class="formula-block formula-block--result" id="mobBlock"></div>
+            <div class="field-note" id="mobNote" style="margin-top:10px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Number Theory Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/number-theory.js" defer></script>
+<script src="../../../assets/js/mobius-function.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

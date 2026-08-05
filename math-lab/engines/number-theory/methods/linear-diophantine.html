@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Linear Diophantine Equations — Number Theory Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#a3623c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Number&nbsp;Theory&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Divisibility &amp; the Euclidean Algorithm</span>
+    <h1 class="h2" style="margin-top:14px;">Linear Diophantine Equations</h1>
+    <p class="method-summary"><span class="mono">ax + by = c</span> has an integer solution if and only if <span class="mono">gcd(a, b)</span> divides <span class="mono">c</span> — and when it does, there isn't just one solution but an entire infinite family, generated from one particular solution found by the Extended Euclidean Algorithm.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="diophForm">
+        <span class="panel-title">Input — a·x + b·y = c</span>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="aInput">a</label>
+            <input type="text" id="aInput" class="mono" value="6" inputmode="numeric" autocomplete="off" spellcheck="false" />
+          </div>
+          <div class="field">
+            <label for="bInput">b</label>
+            <input type="text" id="bInput" class="mono" value="15" inputmode="numeric" autocomplete="off" spellcheck="false" />
+          </div>
+        </div>
+        <div class="field" style="margin-top:14px;">
+          <label for="cInput">c</label>
+          <input type="text" id="cInput" class="mono" value="9" inputmode="numeric" autocomplete="off" spellcheck="false" />
+        </div>
+        <span class="field-note">Any whole numbers — arbitrarily large. a and b cannot both be zero.</span>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter a, b, c and compute — solvability, one particular solution, and the full solution family will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+
+          <div id="unsolvableArea" class="panel crosshair-host" style="display:none;">
+            <span class="panel-title">No solution</span>
+            <div class="status-line bad"><span class="status-dot"></span><span id="unsolvableText"></span></div>
+          </div>
+
+          <div id="solvableArea" style="display:none;">
+            <div class="result-strip">
+              <div class="result-stat accent">
+                <div class="label">gcd(a, b) =</div>
+                <div class="value" id="statGcd">—</div>
+              </div>
+              <div class="result-stat">
+                <div class="label">Particular x₀</div>
+                <div class="value" id="statX0">—</div>
+              </div>
+              <div class="result-stat">
+                <div class="label">Particular y₀</div>
+                <div class="value" id="statY0">—</div>
+              </div>
+            </div>
+
+            <span class="field-note">The full solution family</span>
+            <div class="formula-block formula-block--reference" id="formulaBlock"></div>
+
+            <span class="field-note">Substituted for this a, b, c</span>
+            <div class="formula-block formula-block--result" id="generalSolutionEquation" style="margin-bottom:24px;"></div>
+
+            <div class="data-table-wrap">
+              <table class="data-table" id="iterTable">
+                <thead>
+                  <tr><th>t</th><th>x</th><th>y</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+
+            <div class="panel crosshair-host">
+              <span class="panel-title">Step through the family</span>
+              <div class="formula-block formula-block--result" id="stepEquation" style="margin-top:14px;"></div>
+              <div class="slider-row" style="margin-top:18px;">
+                <input type="range" id="stepSlider" min="0" max="0" value="0" />
+                <span class="step-label" id="stepLabel">t = 0</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Number Theory Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/number-theory.js" defer></script>
+<script src="../../../assets/js/linear-diophantine.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

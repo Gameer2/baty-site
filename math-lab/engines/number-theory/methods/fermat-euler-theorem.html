@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Fermat's Little &amp; Euler's Theorem — Number Theory Engine</title>
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#a3623c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Number&nbsp;Theory&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Congruences</span>
+    <h1 class="h2" style="margin-top:14px;">Fermat's Little &amp; Euler's Theorem</h1>
+    <p class="method-summary">Two theorems, one engine. Fermat: if <span class="mono">p</span> is prime and <span class="mono">p ∤ a</span>, then <span class="mono">a^(p−1) ≡ 1 (mod p)</span>. Euler generalises it: if <span class="mono">gcd(a, n) = 1</span>, then <span class="mono">a^φ(n) ≡ 1 (mod n)</span>. These are the engines of exponentiation — the reason RSA and primality testing work at all. Here you watch them hold (and see exactly where they don't apply).</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="feForm">
+        <span class="panel-title">Input</span>
+        <div class="field-row">
+          <div class="field"><label for="aInput">base a</label><input type="text" id="aInput" class="mono" value="3" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+          <div class="field"><label for="nInput">modulus n</label><input type="text" id="nInput" class="mono" value="7" inputmode="numeric" autocomplete="off" spellcheck="false" /></div>
+        </div>
+        <span class="field-note">If n is prime, Fermat applies: a^(n−1) ≡ 1. For any n with gcd(a,n)=1, Euler applies: a^φ(n) ≡ 1. Enter a composite n (e.g. 9) and a coprime base to see Euler where Fermat's prime-only form does not.</span>
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Check</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try 3, 9</span></button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter a base and modulus — the φ(n) computation and both theorem checks will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent"><div class="label">φ(n)</div><div class="value" id="statPhi">—</div></div>
+            <div class="result-stat"><div class="label">n prime?</div><div class="value" id="statPrime">—</div></div>
+            <div class="result-stat"><div class="label">gcd(a, n)</div><div class="value" id="statGcd">—</div></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Fermat's little theorem</span>
+            <div class="formula-block formula-block--result" id="fermatBlock"></div>
+            <div class="field-note" id="fermatNote" style="margin-top:10px;"></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Euler's theorem</span>
+            <div class="formula-block formula-block--result" id="eulerBlock"></div>
+            <div class="field-note" id="eulerNote" style="margin-top:10px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Number Theory Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/number-theory.js" defer></script>
+<script src="../../../assets/js/fermat-euler-theorem.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

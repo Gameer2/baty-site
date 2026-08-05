@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Related Rates — Calculus Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#4f9e82; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Calculus&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Limits &amp; Derivatives</span>
+    <h1 class="h2" style="margin-top:14px;">Related Rates</h1>
+    <p class="method-summary">Differentiate an implicit relationship between quantities that depend on time, substitute the known values and rates, and solve for the unknown rate — the ladder-down-a-wall, expanding-balloon, melting-snowball chapter. The engine builds the chain rule by hand (<span class="mono">d/dt[f] = Σ ∂f/∂v · dv/dt</span>, since a CAS treats every other symbol as a constant), recovers the rate without trusting <span class="mono">solve()</span> (which quietly turns <span class="mono">π</span> into a rational), and verifies the answer against an independent numeric total-derivative residual that must vanish at the instant.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="rrForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="eqInput">The relationship — one equation with one '='</label>
+          <input type="text" id="eqInput" class="mono" value="x^2+y^2=25" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="eqPreview"></div>
+          <button type="button" class="keypad-toggle is-open" id="keypadToggle">
+            <span>Math Keypad</span><span class="chev">⌄</span>
+          </button>
+          <div class="math-keypad is-open" id="eqKeypad"></div>
+        </div>
+
+        <div class="field">
+          <label for="varsInput">Quantities that depend on time (comma-separated)</label>
+          <input type="text" id="varsInput" class="mono" value="x, y" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Every letter here gets a d(var)/dt term in the chain rule. Constants (a fixed length, a fixed radius) are left out.</span>
+        </div>
+
+        <div class="field">
+          <label for="valuesInput">Values at the instant</label>
+          <input type="text" id="valuesInput" class="mono" value="x = 3, y = 4" autocomplete="off" spellcheck="false" />
+          <span class="field-note">name = value, for every letter in the relationship (variables and constants alike)</span>
+        </div>
+
+        <div class="field">
+          <label for="ratesInput">Known rates</label>
+          <input type="text" id="ratesInput" class="mono" value="dx/dt = 2" autocomplete="off" spellcheck="false" />
+          <span class="field-note">d(var)/dt = value, for every quantity except the one you're solving for</span>
+        </div>
+
+        <div class="field">
+          <label for="unknownInput">Find the rate of</label>
+          <input type="text" id="unknownInput" class="mono" value="y" autocomplete="off" spellcheck="false" />
+          <span class="field-note">one of the time-dependent quantities (leave blank to auto-pick the one without a given rate)</span>
+        </div>
+
+        <div class="status-line" id="startStatus">
+          <span class="status-dot"></span><span id="startStatusText">Checking the relationship…</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Solve</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+
+        <span class="field-note" style="margin-top:22px;">Worked scenarios — click to load</span>
+        <div class="method-tags" id="presetRow">
+          <button type="button" class="tag" data-eq="x^2+y^2=25" data-vars="x, y" data-values="x = 3, y = 4" data-rates="dx/dt = 2" data-unknown="y">Ladder down a wall</button>
+          <button type="button" class="tag" data-eq="V=(4/3)*pi*r^3" data-vars="V, r" data-values="V = 4188.790204786391, r = 10" data-rates="dV/dt = 100" data-unknown="r">Expanding balloon</button>
+          <button type="button" class="tag" data-eq="V=(1/3)*pi*r^2*h" data-vars="V, h" data-values="V = 56.548667764616276, r = 3, h = 6" data-rates="dV/dt = 2" data-unknown="h">Cone filling (fixed r)</button>
+          <button type="button" class="tag" data-eq="A=4*pi*r^2" data-vars="A, r" data-values="A = 113.09733552923255, r = 3" data-rates="dr/dt = -1" data-unknown="A">Melting snowball</button>
+          <button type="button" class="tag" data-eq="x^2+y^2=L^2" data-vars="x, y" data-values="x = 0.8, y = 0.6, L = 1" data-rates="dx/dt = 0.5" data-unknown="y">Unit rod (fixed L)</button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter a relationship and the givens, then solve — the differentiated equation, the solved rate, the step-by-step derivation, and a picture of the constraint with the instant point and its velocity arrow will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">The unknown rate</div>
+              <div class="value" id="statRate">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Checked</div>
+              <div class="value" id="statVerified">—</div>
+            </div>
+          </div>
+
+          <span class="field-note">Result</span>
+          <div class="formula-block formula-block--result" id="formulaResult"></div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Derivation</span>
+            <div class="data-table-wrap">
+              <table class="data-table" id="stepTable">
+                <thead>
+                  <tr><th>#</th><th>Rule</th><th>Expression</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <div class="slider-row" style="margin-top:16px;">
+              <input type="range" id="stepSlider" min="0" max="0" value="0" />
+              <span class="step-label" id="stepLabel">step 0</span>
+            </div>
+          </div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">The constraint, the instant point &amp; its velocity</span></div>
+            <div id="fxPlot" style="height:340px;"></div>
+            <div class="slider-row" style="margin-top:12px;">
+              <input type="range" id="timeSlider" min="-0.5" max="0.5" step="0.01" value="0" />
+              <span class="step-label" id="timeLabel">t = 0 (the instant)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shown when the givens are inconsistent or the relationship can't be solved this
+             way. A first-class result: "the values don't satisfy the relationship" is the
+             correct, useful answer for x=3,y=5 against x²+y²=25. -->
+        <div class="panel crosshair-host" id="refusedPanel" style="display:none;">
+          <span class="panel-title">Can't determine the rate</span>
+          <p class="p1" id="refusedReason"></p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Calculus Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/vendor/nerdamer.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<!-- calculus-symbolic.js is loaded here only as the in-page fallback for when a Worker
+     cannot be created (opening this file over file://). In normal use the worker owns its
+     own copy and this one is never called. -->
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/calculus-symbolic.js" defer></script>
+<script src="../../../assets/js/cas-client.js" defer></script>
+<script src="../../../assets/js/related-rates.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

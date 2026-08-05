@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Divisibility &amp; the Division Algorithm — Number Theory Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#a3623c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Number&nbsp;Theory&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Divisibility &amp; the Euclidean Algorithm</span>
+    <h1 class="h2" style="margin-top:14px;">Divisibility &amp; the Division Algorithm</h1>
+    <p class="method-summary">Every integer statement in this engine builds on one fact: for any integer <span class="mono">a</span> and nonzero integer <span class="mono">b</span>, there exist unique integers <span class="mono">q</span> and <span class="mono">r</span> with <span class="mono">a = bq + r</span> and <span class="mono">0 ≤ r &lt; |b|</span>. When <span class="mono">r = 0</span>, we say <span class="mono">b</span> divides <span class="mono">a</span>, written <span class="mono">b | a</span>.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="divForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="aInput">a — dividend</label>
+            <input type="text" id="aInput" class="mono" value="17" inputmode="numeric" autocomplete="off" spellcheck="false" />
+          </div>
+          <div class="field">
+            <label for="bInput">b — divisor</label>
+            <input type="text" id="bInput" class="mono" value="5" inputmode="numeric" autocomplete="off" spellcheck="false" />
+          </div>
+        </div>
+        <span class="field-note">Any whole numbers — arbitrarily large, exact BigInt arithmetic. b must be nonzero.</span>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter a dividend and divisor, then compute — the quotient, remainder, and whether b divides a will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat">
+              <div class="label">Quotient q</div>
+              <div class="value" id="statQ">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Remainder r</div>
+              <div class="value" id="statR">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Does b divide a?</div>
+              <div class="value" id="statDivides" style="font-size:20px;">—</div>
+            </div>
+          </div>
+
+          <span class="field-note">The Division Algorithm</span>
+          <div class="formula-block formula-block--reference" id="formulaBlock"></div>
+
+          <span class="field-note">Substituted</span>
+          <div class="formula-block formula-block--result" id="resultEquation"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Number Theory Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/number-theory.js" defer></script>
+<script src="../../../assets/js/divisibility.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

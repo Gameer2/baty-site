@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Multiple Integrals — Calculus Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>
+  :root{ --electric-teal:#4f9e82; }
+  .scene-host{ height:400px; position:relative; border-radius:6px; overflow:hidden;
+    background:radial-gradient(circle at 50% 35%, rgba(79,158,130,0.06), transparent 70%); }
+  .scene-host canvas{ display:block; }
+  .scene-legend{ position:absolute; top:10px; left:12px; font-family:var(--font-mono);
+    font-size:12px; color:#cfd6cf; background:rgba(20,24,24,0.55); padding:6px 10px; border-radius:4px;
+    display:flex; gap:10px; align-items:center; flex-wrap:wrap; pointer-events:none; max-width:90%; }
+  .scene-legend .swatch{ display:inline-block; width:12px; height:12px; border-radius:2px; margin-right:4px; vertical-align:middle; }
+  .scene-hint{ position:absolute; bottom:8px; right:12px; font-family:var(--font-mono); font-size:11px;
+    color:#7d858c; pointer-events:none; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Calculus&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="vectors-in-space.html"><span>Vectors</span><span class="dup" aria-hidden="true">Vectors</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Multivariable · 3D</span>
+    <h1 class="h2" style="margin-top:14px;">Multiple Integrals — Double Integrals over a Region</h1>
+    <p class="method-summary">A double integral over a planar region <span class="mono">R</span> is two ordinary integrals, nested: integrate first across the region at a fixed outer value, then integrate that result across the outer range. Works over a Type I Cartesian region (<span class="mono">y</span> between two curves of <span class="mono">x</span>) or a polar region (<span class="mono">r</span> between two curves of <span class="mono">θ</span>, with the extra factor of <span class="mono">r</span> in the area element applied automatically). Every bound is evaluated by substitution — never nerdamer's unreliable <span class="mono">defint</span> — and the exact result is checked against an independent nested-Simpson numeric double integration before it's shown.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="miForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field" style="margin-top:14px;">
+          <label for="modeSelect">Region</label>
+          <select id="modeSelect" class="mono">
+            <option value="cartesian">cartesian — y between two curves of x</option>
+            <option value="polar">polar — r between two curves of θ</option>
+          </select>
+        </div>
+
+        <div class="field" style="margin-top:14px;">
+          <label for="fInput" id="fLabel">f(x, y) =</label>
+          <input type="text" id="fInput" class="mono" value="x*y" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="fPreview"></div>
+          <button type="button" class="keypad-toggle is-open" id="keypadToggle">
+            <span>Math Keypad</span><span class="chev">⌄</span>
+          </button>
+          <div class="math-keypad is-open" id="fKeypad"></div>
+        </div>
+
+        <div class="field" style="margin-top:18px;">
+          <label for="aInput" id="outerLabel">x ∈ [</label>
+          <input type="text" id="aInput" class="mono" value="0" autocomplete="off" spellcheck="false" style="max-width:90px;" />
+          <span class="field-note">,</span>
+          <input type="text" id="bInput" class="mono" value="1" autocomplete="off" spellcheck="false" style="max-width:90px;" />
+          <span class="field-note">]</span>
+        </div>
+
+        <div class="field" style="margin-top:14px;">
+          <label for="lowerInput" id="innerLabel">y ∈ [lower(x), upper(x)] = [</label>
+          <input type="text" id="lowerInput" class="mono" value="0" autocomplete="off" spellcheck="false" style="max-width:110px;" />
+          <span class="field-note">,</span>
+          <input type="text" id="upperInput" class="mono" value="x" autocomplete="off" spellcheck="false" style="max-width:110px;" />
+          <span class="field-note">]</span>
+        </div>
+
+        <div class="status-line" id="startStatus">
+          <span class="status-dot"></span><span id="startStatusText">Checking…</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Evaluate</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+
+        <span class="field-note" style="margin-top:22px;">Worked examples — click to load</span>
+        <div class="method-tags" id="presetRow">
+          <button type="button" class="tag" data-mode="cartesian" data-f="x*y" data-a="0" data-b="1" data-lower="0" data-upper="x">triangle: xy, y≤x, x∈[0,1]</button>
+          <button type="button" class="tag" data-mode="cartesian" data-f="1" data-a="0" data-b="2" data-lower="0" data-upper="x">area of a triangle</button>
+          <button type="button" class="tag" data-mode="cartesian" data-f="e^y" data-a="0" data-b="1" data-lower="0" data-upper="x">e^y over a triangle</button>
+          <button type="button" class="tag" data-mode="cartesian" data-f="sin(x+y)" data-a="0" data-b="pi" data-lower="0" data-upper="pi/2">sin(x+y), rectangle</button>
+          <button type="button" class="tag" data-mode="polar" data-f="1" data-a="0" data-b="2*pi" data-lower="0" data-upper="2">area of a radius-2 disk</button>
+          <button type="button" class="tag" data-mode="polar" data-f="1" data-a="0" data-b="pi" data-lower="0" data-upper="1">area of a radius-1 half-disk</button>
+          <button type="button" class="tag" data-mode="polar" data-f="r" data-a="0" data-b="2*pi" data-lower="0" data-upper="1">r over the unit disk</button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter the integrand, choose cartesian or polar, set the outer and inner bounds, then evaluate — the exact value, its numeric approximation, the derivation, and a 3D scene of the surface over the region will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">Value (exact)</div>
+              <div class="value" id="statValue">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">≈ numeric</div>
+              <div class="value" id="statNumeric">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Region</div>
+              <div class="value" id="statMode">—</div>
+            </div>
+          </div>
+
+          <span class="field-note">Iterated integral</span>
+          <div class="formula-block formula-block--result" id="formulaResult"></div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Derivation</span>
+            <div class="data-table-wrap">
+              <table class="data-table" id="stepTable">
+                <thead><tr><th>#</th><th>Rule</th><th>Expression</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <div class="slider-row" style="margin-top:16px;">
+              <input type="range" id="stepSlider" min="0" max="0" value="0" />
+              <span class="step-label" id="stepLabel">step 0</span>
+            </div>
+          </div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">The surface over the region</span></div>
+            <div class="scene-host" id="sceneHost">
+              <div class="scene-legend" id="sceneLegend"></div>
+              <div class="scene-hint">drag to orbit · scroll to zoom</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Calculus Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/three.min.js" defer></script>
+<script src="../../../assets/vendor/nerdamer.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/calculus-symbolic.js" defer></script>
+<script src="../../../assets/js/calculus-3d.js" defer></script>
+<script src="../../../assets/js/cas-client.js" defer></script>
+<script src="../../../assets/js/multiple-integrals.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Chinese Remainder Theorem — Number Theory Engine</title>
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#a3623c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Number&nbsp;Theory&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Congruences</span>
+    <h1 class="h2" style="margin-top:14px;">Chinese Remainder Theorem</h1>
+    <p class="method-summary">Solve a system <span class="mono">x ≡ r₁ (mod m₁)</span>, <span class="mono">x ≡ r₂ (mod m₂)</span>, … simultaneously. When the moduli are pairwise coprime there is a unique solution mod the product — the CRT glues residue classes into one integer. This page also tells you the truth Mathematica hides: when the moduli are *not* coprime, it checks consistency and reports "no solution" with a reason instead of returning a wrong residue.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="crtForm">
+        <span class="panel-title">Input — residues and moduli (comma-separated, same length)</span>
+        <div class="field">
+          <label for="rInput">residues r₁, r₂, …</label>
+          <input type="text" id="rInput" class="mono" value="2, 3, 2" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="field">
+          <label for="mInput">moduli m₁, m₂, …</label>
+          <input type="text" id="mInput" class="mono" value="3, 5, 7" autocomplete="off" spellcheck="false" />
+        </div>
+        <span class="field-note">Classic: x ≡ 2 (mod 3), x ≡ 3 (mod 5), x ≡ 2 (mod 7) → x = 23 (mod 105). Try inconsistent moduli 1,2 with 2,4 to see the honest error.</span>
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Solve</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try non-coprime (3,1; 6,4)</span></button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter residues and moduli — the unique solution (or a consistency error) will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent"><div class="label">x mod M</div><div class="value" id="statX">—</div></div>
+            <div class="result-stat"><div class="label">modulus M</div><div class="value" id="statM">—</div></div>
+            <div class="result-stat"><div class="label">pairwise coprime?</div><div class="value" id="statCoprime">—</div></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Result</span>
+            <div class="formula-block formula-block--result" id="crtBlock"></div>
+            <div class="field-note" id="crtNote" style="margin-top:10px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Number Theory Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/number-theory.js" defer></script>
+<script src="../../../assets/js/chinese-remainder-theorem.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

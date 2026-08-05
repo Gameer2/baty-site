@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Complex Functions &amp; Domain Colouring — Complex Analysis Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>
+  :root{ --electric-teal:#b45fd0; }
+  .dc-canvas-wrap { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; }
+  #domainCanvas { border-radius: var(--radius-md); border: 1px solid rgba(255,255,255,0.1); cursor: crosshair; image-rendering: pixelated; }
+  .dc-legend-col { display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 120px; }
+  #legendCanvas { border-radius: 100%; border: 1px solid rgba(255,255,255,0.15); }
+  .dc-legend-labels { position: relative; width: 120px; height: 120px; margin-top: -132px; pointer-events: none; font-family: var(--font-mono); font-size: 11px; color: var(--pulse-ash); }
+  .dc-legend-labels span { position: absolute; }
+  .mode-row { display: flex; gap: 18px; margin-top: 10px; flex-wrap: wrap; }
+  .mode-row label { display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 13px; color: var(--neural-fog); cursor: pointer; }
+  .probe-box { margin-top: 18px; }
+  .preview-invalid { font-family: var(--font-mono); font-size: 13px; font-style: italic; color: var(--pulse-ash); }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Complex&nbsp;Analysis&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">The Plane &amp; Analyticity</span>
+    <h1 class="h2" style="margin-top:14px;">Complex Functions &amp; Domain Colouring</h1>
+    <p class="method-summary"><span class="mono">f: ℂ → ℂ</span> needs two dimensions in and two out — a graph no curve or surface can show. Domain colouring paints the input plane instead: hue = <span class="mono">arg f(z)</span>, brightness = <span class="mono">|f(z)|</span>. A zero darkens to black and the hue wheel winds around it once per order; a pole brightens to white the same way. Click anywhere on the plane to read off <span class="mono">z</span> and <span class="mono">f(z)</span> exactly.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="domainColorForm">
+        <span class="panel-title">Input — f(z)</span>
+
+        <div class="field">
+          <label for="fzInput">f(z) =</label>
+          <input type="text" id="fzInput" class="mono" value="z^2" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="fzPreview"></div>
+        </div>
+
+        <div class="chip-row" id="exampleChips" style="margin-top:14px;">
+          <button type="button" class="chip" data-fz="z^2" data-range="2">z² — zero of order 2</button>
+          <button type="button" class="chip" data-fz="1/z" data-range="2">1/z — simple pole</button>
+          <button type="button" class="chip" data-fz="z^3-1" data-range="2">z³−1 — 3 zeros (cube roots of 1)</button>
+          <button type="button" class="chip" data-fz="(z^2-1)/(z^2+1)" data-range="3">(z²−1)/(z²+1) — 2 zeros, 2 poles</button>
+          <button type="button" class="chip" data-fz="sin(z)" data-range="6">sin(z) — unbounded off the real axis</button>
+          <button type="button" class="chip" data-fz="exp(z)" data-range="6">exp(z) — an essential-looking pattern at ∞</button>
+        </div>
+
+        <div class="field" style="margin-top:18px;">
+          <label for="rangeInput">View range — |Re|, |Im| ≤</label>
+          <input type="number" id="rangeInput" value="2" step="any" min="0.1" max="20" />
+        </div>
+
+        <span class="field-note">Colour mode</span>
+        <div class="mode-row">
+          <label><input type="radio" name="mode" value="modulus" checked /> Hue + brightness (default)</label>
+          <label><input type="radio" name="mode" value="phase" /> Phase only</label>
+          <label><input type="radio" name="mode" value="rings" /> Modulus contour rings</label>
+        </div>
+
+        <div class="field" id="formError" style="display:none; margin-top:16px;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Render</span></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter f(z), pick a colour mode, and render — the coloured plane, a legend, and a click-to-probe readout will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="panel crosshair-host">
+            <span class="panel-title">The domain-coloured plane</span>
+            <div class="dc-canvas-wrap" style="margin-top:14px;">
+              <canvas id="domainCanvas" width="460" height="460"></canvas>
+              <div class="dc-legend-col">
+                <span class="field-note" style="margin:0;">Hue = arg(w)</span>
+                <canvas id="legendCanvas" width="120" height="120"></canvas>
+                <span class="p2" style="color:var(--pulse-ash); font-size:11px;">red = 0, then counter-clockwise through 2π</span>
+              </div>
+            </div>
+            <p class="p2" id="renderTime" style="margin-top:10px; color:var(--pulse-ash);"></p>
+
+            <div class="probe-box" id="probeBox" style="display:none;">
+              <span class="field-note">Click probe — last point clicked</span>
+              <div class="result-strip" style="margin-top:8px;">
+                <div class="result-stat">
+                  <div class="label">z</div>
+                  <div class="value" id="probeZ" style="font-size:18px;">—</div>
+                </div>
+                <div class="result-stat accent">
+                  <div class="label">f(z)</div>
+                  <div class="value" id="probeFz" style="font-size:18px;">—</div>
+                </div>
+                <div class="result-stat">
+                  <div class="label">|f(z)|</div>
+                  <div class="value" id="probeAbs">—</div>
+                </div>
+                <div class="result-stat">
+                  <div class="label">arg f(z)</div>
+                  <div class="value" id="probeArg" style="font-size:16px;">—</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Complex Analysis Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/complex.js" defer></script>
+<script src="../../../assets/js/domain-coloring.js" defer></script>
+<script src="../../../assets/js/complex-functions.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

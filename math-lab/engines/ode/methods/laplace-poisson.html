@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Laplace's &amp; Poisson's Equations — ODE/PDE Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#4f8fc0; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> ODE&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="ode-solver.html"><span>ODE Solver</span><span class="dup" aria-hidden="true">ODE Solver</span></a></li>
+      <li><a href="laplace-transform.html"><span>Laplace</span><span class="dup" aria-hidden="true">Laplace</span></a></li>
+      <li><a href="series-solutions.html"><span>Series</span><span class="dup" aria-hidden="true">Series</span></a></li>
+      <li><a href="heat-equation.html"><span>Heat&nbsp;PDE</span><span class="dup" aria-hidden="true">Heat&nbsp;PDE</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Partial Differential Equations</span>
+    <h1 class="h2" style="margin-top:14px;">Laplace's and Poisson's Equations</h1>
+    <p class="method-summary">Laplace's equation <span class="mono">u_xx + u_yy = 0</span> on a rectangle with Dirichlet data on up to four edges, solved two independent ways — the sinh-series from separation of variables and numeric relaxation (Jacobi/Gauss-Seidel on the 5-point stencil) — and shown only once they agree. Poisson's equation <span class="mono">u_xx + u_yy = f(x,y)</span> with zero Dirichlet data is solved by relaxation and verified by substituting back into the discrete equation.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="method-tags" id="sectionTabs" style="margin-bottom:24px;">
+      <button type="button" class="tag is-active" data-section="laplace">Laplace's Equation</button>
+      <button type="button" class="tag" data-section="poisson">Poisson's Equation</button>
+    </div>
+
+    <div id="laplaceSection" class="workspace">
+      <form class="panel crosshair-host" id="laplaceForm">
+        <span class="panel-title">Input</span>
+        <p class="p2" style="margin:0 0 18px;">u<sub>xx</sub> + u<sub>yy</sub> = 0 on 0 &lt; x &lt; a, 0 &lt; y &lt; b, with Dirichlet data on each edge. Leave an edge as <span class="mono">0</span> for a fixed (zero) side.</p>
+        <div class="field-row">
+          <div class="field"><label for="laplaceA">Width a</label><input type="number" id="laplaceA" value="1" step="any" min="0.1" /></div>
+          <div class="field"><label for="laplaceB">Height b</label><input type="number" id="laplaceB" value="1" step="any" min="0.1" /></div>
+          <div class="field"><label for="laplaceN">Terms N</label><input type="number" id="laplaceN" value="20" step="1" min="1" max="60" /></div>
+        </div>
+        <div class="field" style="margin-top:14px;">
+          <label for="bottomExpr">Bottom edge &nbsp;u(x, 0) =</label>
+          <input type="text" id="bottomExpr" class="mono" value="0" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="field" style="margin-top:12px;">
+          <label for="topExpr">Top edge &nbsp;u(x, b) =</label>
+          <input type="text" id="topExpr" class="mono" value="x*(1-x)" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="field" style="margin-top:12px;">
+          <label for="leftExpr">Left edge &nbsp;u(0, y) =</label>
+          <input type="text" id="leftExpr" class="mono" value="0" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="field" style="margin-top:12px;">
+          <label for="rightExpr">Right edge &nbsp;u(a, y) =</label>
+          <input type="text" id="rightExpr" class="mono" value="0" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="status-line ok" id="laplaceStatus" style="margin-top:18px;"><span class="status-dot"></span><span id="laplaceStatusText">Ready — press Solve.</span></div>
+        <div class="field" id="laplaceError" style="display:none;"><div class="status-line bad"><span class="status-dot"></span><span id="laplaceErrorText"></span></div></div>
+        <div class="hero-actions" style="margin-top:6px;"><button type="submit" class="btn btn--primary"><span class="btn-text">Solve</span></button></div>
+      </form>
+      <div id="laplaceOutput">
+        <div class="panel crosshair-host" id="laplacePlaceholder"><span class="panel-title">Output</span><p class="p1">Set the rectangle and the Dirichlet data on each edge, then solve — the sinh-series (cross-checked against relaxation) and the solution heatmap will appear here.</p></div>
+        <div id="laplaceResultsArea" style="display:none;"></div>
+        <div class="plot-wrap crosshair-host" id="laplacePlotWrap" style="display:none;">
+          <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">u(x,y) — solution over the rectangle</span></div>
+          <div id="laplacePlot" style="height:360px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="poissonSection" class="workspace" style="display:none;">
+      <form class="panel crosshair-host" id="poissonForm">
+        <span class="panel-title">Input</span>
+        <p class="p2" style="margin:0 0 18px;">u<sub>xx</sub> + u<sub>yy</sub> = f(x,y) on 0 &lt; x &lt; a, 0 &lt; y &lt; b, with zero Dirichlet data (all four edges fixed at 0).</p>
+        <div class="field-row">
+          <div class="field"><label for="poissonA">Width a</label><input type="number" id="poissonA" value="1" step="any" min="0.1" /></div>
+          <div class="field"><label for="poissonB">Height b</label><input type="number" id="poissonB" value="1" step="any" min="0.1" /></div>
+        </div>
+        <div class="field" style="margin-top:14px;">
+          <label for="sourceExpr">Source f(x, y) =</label>
+          <input type="text" id="sourceExpr" class="mono" value="-2*pi^2*sin(pi*x)*sin(pi*y)" autocomplete="off" spellcheck="false" />
+          <span class="field-note">The default is the forcing whose exact solution is sin(&pi;x)sin(&pi;y) — a single symmetric bump.</span>
+        </div>
+        <div class="status-line ok" id="poissonStatus" style="margin-top:18px;"><span class="status-dot"></span><span id="poissonStatusText">Ready — press Solve.</span></div>
+        <div class="field" id="poissonError" style="display:none;"><div class="status-line bad"><span class="status-dot"></span><span id="poissonErrorText"></span></div></div>
+        <div class="hero-actions" style="margin-top:6px;"><button type="submit" class="btn btn--primary"><span class="btn-text">Solve</span></button></div>
+      </form>
+      <div id="poissonOutput">
+        <div class="panel crosshair-host" id="poissonPlaceholder"><span class="panel-title">Output</span><p class="p1">Set the rectangle and the source f(x,y), then solve — the relaxation solution (verified against the discrete equation) and the heatmap will appear here.</p></div>
+        <div id="poissonResultsArea" style="display:none;"></div>
+        <div class="plot-wrap crosshair-host" id="poissonPlotWrap" style="display:none;">
+          <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">u(x,y) — solution over the rectangle</span></div>
+          <div id="poissonPlot" style="height:360px;"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">ODE/PDE Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/ode-render.js" defer></script>
+<script src="../../../assets/js/algorithms.js" defer></script>
+<script src="../../../assets/js/linalg-algorithms.js" defer></script>
+<script src="../../../assets/js/ode-poisson.js" defer></script>
+<script src="../../../assets/js/laplace-poisson-page.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

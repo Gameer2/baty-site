@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Complex Trigonometric &amp; Hyperbolic Functions — Complex Analysis Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>
+  :root{ --electric-teal:#b45fd0; }
+  .dc-canvas-wrap { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; }
+  #domainCanvas { border-radius: var(--radius-md); border: 1px solid rgba(255,255,255,0.1); cursor: crosshair; image-rendering: pixelated; }
+  .dc-legend-col { display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 120px; }
+  #legendCanvas { border-radius: 100%; border: 1px solid rgba(255,255,255,0.15); }
+  .probe-box { margin-top: 18px; }
+  .growth-plot { width: 100%; height: 360px; }
+  select.mono { width: 100%; background: var(--core-black); color: var(--off-white); border: 1px solid rgba(255,255,255,0.14); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Complex&nbsp;Analysis&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Elementary Functions</span>
+    <h1 class="h2" style="margin-top:14px;">Complex Trigonometric &amp; Hyperbolic Functions</h1>
+    <p class="method-summary">On the real line, <span class="mono">sin x</span> and <span class="mono">cos x</span> never leave <span class="mono">[-1, 1]</span> — that boundedness is so familiar it feels like part of their definition. It isn't. Extended to <span class="mono">ℂ</span> via <span class="mono">sin(x+iy) = sin(x)cosh(y) + i·cos(x)sinh(y)</span>, the same function is <em>unbounded</em> off the real axis — <span class="mono">sin(iy) = i·sinh(y)</span> grows exponentially. This page plots that growth directly, alongside the domain-coloured plane and the algebraic identities (<span class="mono">sin²z + cos²z = 1</span>, <span class="mono">cosh²z − sinh²z = 1</span>) that still hold, unchanged, everywhere in <span class="mono">ℂ</span>.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="trigForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="fnSelect">f(z) =</label>
+          <select id="fnSelect" class="mono">
+            <option value="sin" selected>sin(z)</option>
+            <option value="cos">cos(z)</option>
+            <option value="tan">tan(z) — has poles</option>
+            <option value="sec">sec(z) — has poles</option>
+            <option value="csc">csc(z) — has poles</option>
+            <option value="cot">cot(z) — has poles</option>
+            <option value="sinh">sinh(z)</option>
+            <option value="cosh">cosh(z)</option>
+            <option value="tanh">tanh(z) — has poles</option>
+            <option value="sech">sech(z) — has poles</option>
+            <option value="csch">csch(z) — has poles</option>
+            <option value="coth">coth(z) — has poles</option>
+          </select>
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="fzPreview"></div>
+        </div>
+
+        <div class="field" style="margin-top:18px;">
+          <label for="rangeInput">View range — |Re|, |Im| ≤</label>
+          <input type="number" id="rangeInput" value="4" step="any" min="0.5" max="20" />
+        </div>
+
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Render</span></button>
+        </div>
+
+        <span class="field-note" style="margin-top:22px;">What to notice</span>
+        <div class="method-tags" style="margin-top:10px;">
+          <span class="tag">sin, cos — entire, unbounded off ℝ</span>
+          <span class="tag">tan, sec, csc, cot — poles</span>
+          <span class="tag">sinh/cosh are cos/sin rotated 90°</span>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Pick a function and render — the domain-coloured plane, the real-axis-vs-imaginary-axis growth comparison, and a live identity check will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="panel crosshair-host">
+            <span class="panel-title">The domain-coloured plane</span>
+            <div class="dc-canvas-wrap" style="margin-top:14px;">
+              <canvas id="domainCanvas" width="380" height="380"></canvas>
+              <div class="dc-legend-col">
+                <span class="field-note" style="margin:0;">Hue = arg(w)</span>
+                <canvas id="legendCanvas" width="120" height="120"></canvas>
+                <span class="p2" style="color:var(--pulse-ash); font-size:11px;">poles brighten to white, zeros darken to black</span>
+              </div>
+            </div>
+            <p class="p2" id="renderTime" style="margin-top:10px; color:var(--pulse-ash);"></p>
+
+            <div class="probe-box" id="probeBox" style="display:none;">
+              <span class="field-note">Click probe — last point clicked</span>
+              <div class="result-strip" style="margin-top:8px;">
+                <div class="result-stat"><div class="label">z</div><div class="value" id="probeZ" style="font-size:18px;">—</div></div>
+                <div class="result-stat accent"><div class="label">f(z)</div><div class="value" id="probeFz" style="font-size:18px;">—</div></div>
+                <div class="result-stat"><div class="label">|f(z)|</div><div class="value" id="probeAbs">—</div></div>
+                <div class="result-stat"><div class="label">sin²z + cos²z</div><div class="value" id="probeIdentity1">—</div></div>
+                <div class="result-stat"><div class="label">cosh²z − sinh²z</div><div class="value" id="probeIdentity2">—</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="plot-wrap crosshair-host" style="margin-top:16px;">
+            <div class="plot-wrap-head">
+              <span class="panel-title" style="margin:0;">Bounded on ℝ, unbounded off it</span>
+              <div class="legend-swatches" style="display:flex; gap:16px; font-family:var(--font-mono); font-size:11px; color:var(--neural-fog);">
+                <span><span style="display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:5px;background:#5c939f;"></span>|f(x)|, x real</span>
+                <span><span style="display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:5px;background:#ed6d40;"></span>|f(iy)|, iy imaginary</span>
+              </div>
+            </div>
+            <div id="growthPlot" class="growth-plot"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Complex Analysis Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/complex.js" defer></script>
+<script src="../../../assets/js/domain-coloring.js" defer></script>
+<script src="../../../assets/js/complex-trig-hyperbolic.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Lab — Applied Mathematics, Computed Live</title>
+<link rel="stylesheet" href="assets/css/engine.css" />
+<link rel="stylesheet" href="assets/proto/proto.css" />
+<style>
+  /* intro-only initial states — scoped to this page, GSAP animates these to rest.
+     If JS never runs, .no-js-fallback below (a short CSS animation) still reveals them. */
+  .site-header, .hero-eyebrow, .hero-line, .hero-sub, .hero-actions .btn { opacity: 0; }
+  .site-header { transform: translateY(-14px); }
+  .hero-eyebrow { transform: translateY(8px); }
+  .hero-line { transform: translateY(26px); }
+  .hero-sub { transform: translateY(14px); }
+  .hero-actions .btn { transform: translateY(10px); }
+  .hero-canvas { opacity: 0; }
+  @media (prefers-reduced-motion: reduce) {
+    .site-header, .hero-eyebrow, .hero-line, .hero-sub, .hero-actions .btn, .hero-canvas { opacity: 1 !important; transform: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="index.html" class="logo"><span class="dot"></span> The&nbsp;Lab</a>
+    <ul class="nav-links">
+      <li><a href="engines/numerical/index.html"><span>Numerical</span><span class="dup" aria-hidden="true">Numerical</span></a></li>
+      <li><a href="engines/calculus/methods.html"><span>Calculus</span><span class="dup" aria-hidden="true">Calculus</span></a></li>
+      <li><a href="engines/linear-algebra/index.html"><span>Linear&nbsp;Algebra</span><span class="dup" aria-hidden="true">Linear&nbsp;Algebra</span></a></li>
+      <li><a href="engines/statistics/methods.html"><span>Statistics</span><span class="dup" aria-hidden="true">Statistics</span></a></li>
+      <li><a href="engines/ode/index.html"><span>ODE</span><span class="dup" aria-hidden="true">ODE</span></a></li>
+      <li><a href="engines/number-theory/methods.html"><span>Number&nbsp;Theory</span><span class="dup" aria-hidden="true">Number&nbsp;Theory</span></a></li>
+      <li><a href="engines/complex/methods.html"><span>Complex</span><span class="dup" aria-hidden="true">Complex</span></a></li>
+    </ul>
+    <a href="engines/numerical/index.html" class="btn btn--ghost btn--sm"><span class="btn-text">Open Flagship</span></a>
+  </div>
+</header>
+
+<section class="hero">
+  <canvas class="hero-canvas" id="heroCanvas"></canvas>
+  <div class="container hero-inner">
+    <span class="eyebrow hero-eyebrow">Seven engines · one lab · no server round-trip</span>
+    <h1 class="h1 hero-title" style="margin-top:18px;">
+      <span class="line hero-line">Applied Mathematics,</span>
+      <span class="line right hero-line">Computed&nbsp;Live.</span>
+    </h1>
+    <p class="p1 hero-sub">
+      Numerical Engine is the first of a growing family. Each one is its own lab —
+      matrices, statistics, calculus, differential equations, complex analysis —
+      built on the exact same shell, one accent color apart.
+    </p>
+    <div class="hero-actions">
+      <a href="#engines" class="btn btn--primary"><span class="btn-text">See All Engines</span></a>
+      <a href="engines/numerical/index.html" class="btn btn--ghost"><span class="btn-text">Open Numerical Engine →</span></a>
+    </div>
+  </div>
+</section>
+
+<section class="section--tight" id="resumeSection" style="display:none;">
+  <div class="container">
+    <span class="eyebrow">Welcome back</span>
+    <h2 class="h2" style="margin-top:10px;">Continue where you left off.</h2>
+    <div class="grid grid--3" id="resumeGrid" style="margin-top:28px;"></div>
+  </div>
+</section>
+
+<section class="section" id="engines">
+  <div class="container">
+    <span class="eyebrow">The lab</span>
+    <h2 class="h2 reveal" style="margin-top:14px;">Pick an engine.</h2>
+    <p class="method-summary reveal">One is live today. Six are prototypes — the shape of what's coming, built to show how they'll look and feel before the compute cores are wired in. Same shell, same panels, same rules — one accent per subject.</p>
+
+    <div class="grid grid--2 engine-grid" style="margin-top:32px;">
+
+      <a href="engines/numerical/index.html" class="card engine-card crosshair-host reveal" style="--electric-teal:#5c939f;">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Root Finding · Interpolation</span>
+          <span class="engine-index">1 / 7</span>
+        </div>
+        <h3 class="h3">Numerical Engine</h3>
+        <p>Bisection, Lagrange interpolation and more — typed, computed and plotted in the browser, no server round-trip.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Live</span>
+          <span class="tag">Iteration tables</span>
+          <span class="tag">Live plots</span>
+        </div>
+      </a>
+
+      <a href="engines/calculus/methods.html" class="card engine-card crosshair-host reveal" style="--electric-teal:#4f9e82; transition-delay:.05s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Derivatives · Integrals · Series</span>
+          <span class="engine-index">2 / 7</span>
+        </div>
+        <h3 class="h3">Calculus Engine</h3>
+        <p>Its derivative and Riemann-sum integral build in real time — or switch modes and watch a Taylor polynomial converge onto the curve.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Preview</span>
+          <span class="tag">Symbolic derivative</span>
+          <span class="tag">Taylor series</span>
+        </div>
+      </a>
+
+      <a href="engines/linear-algebra/index.html" class="card engine-card crosshair-host reveal" style="--electric-teal:#8570b3; transition-delay:.1s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Matrices · Eigenvectors · Transforms</span>
+          <span class="engine-index">3 / 7</span>
+        </div>
+        <h3 class="h3">Linear Algebra Engine</h3>
+        <p>Watch a matrix reshape a grid in real time, or switch modes and step through Gaussian elimination on a real 3×3 system.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Preview</span>
+          <span class="tag">3D transform</span>
+          <span class="tag">Gaussian elimination</span>
+        </div>
+      </a>
+
+      <a href="engines/statistics/methods.html" class="card engine-card crosshair-host reveal" style="--electric-teal:#c99a3c; transition-delay:.15s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Distributions · Hypothesis Testing</span>
+          <span class="engine-index">4 / 7</span>
+        </div>
+        <h3 class="h3">Statistics Engine</h3>
+        <p>Paste a sample for a hypothesis test, or paste (x, y) pairs and watch a least-squares line fit itself to the data.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Preview</span>
+          <span class="tag">Hypothesis tests</span>
+          <span class="tag">Linear regression</span>
+        </div>
+      </a>
+
+      <a href="engines/ode/index.html" class="card engine-card crosshair-host reveal" style="--electric-teal:#4f8fc0; transition-delay:.2s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Differential Equations</span>
+          <span class="engine-index">5 / 7</span>
+        </div>
+        <h3 class="h3">ODE Engine</h3>
+        <p>Direction fields, exact solutions, Euler and RK4 — all overlaid on the same plot, so you can see exactly how much more accurate RK4 is.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Preview</span>
+          <span class="tag">Euler vs RK4</span>
+          <span class="tag">Direction fields</span>
+        </div>
+      </a>
+
+      <a href="engines/number-theory/methods.html" class="card engine-card crosshair-host reveal" style="--electric-teal:#a3623c; transition-delay:.35s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Primes · Congruences · Cryptography</span>
+          <span class="engine-index">6 / 7</span>
+        </div>
+        <h3 class="h3">Number Theory Engine</h3>
+        <p>The one engine with no floating point at all — exact BigInt arithmetic throughout. Walk from the Euclidean algorithm through primes, congruences, primitive roots, and quadratic residues to RSA as the payoff — 29 methods across seven phases, every search budgeted and reported honestly.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">29 methods</span>
+          <span class="tag">Exact BigInt</span>
+          <span class="tag">Divisibility → RSA</span>
+        </div>
+      </a>
+
+      <a href="engines/complex/methods.html" class="card engine-card crosshair-host reveal" style="--electric-teal:#b45fd0; transition-delay:.4s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Analytic Functions · Residues · Conformal Maps</span>
+          <span class="engine-index">7 / 7</span>
+        </div>
+        <h3 class="h3">Complex Analysis Engine</h3>
+        <p>Functions of a complex variable have a 4-dimensional graph you can't draw as a curve. This engine solves it with domain colouring, the Cauchy integral formula, the argument principle &amp; Rouché, and conformal maps — 12 verified workspaces, no server round-trip.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Live</span>
+          <span class="tag">Domain colouring</span>
+          <span class="tag">Argument principle</span>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<section class="section" id="workspace">
+  <div class="container">
+    <a href="../canvas/dist/index.html" class="card engine-card crosshair-host reveal" style="--electric-teal:#e7e7e7;">
+      <span class="engine-dot"></span>
+      <div class="engine-card-head">
+        <span class="eyebrow">The workspace</span>
+      </div>
+      <h3 class="h3">Bring it all onto one canvas.</h3>
+      <p>An infinite canvas where you sketch and drop in live nodes from any of the 7 engines above — wire them together and watch the math react, all in the browser, no install, no server round-trip.</p>
+      <div class="method-tags" style="margin-top:16px;">
+        <span class="tag">Infinite canvas</span>
+        <span class="tag">Live nodes</span>
+        <span class="tag">No install</span>
+      </div>
+    </a>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">The Lab</span>
+    <span class="p2">Client-side computation</span>
+  </div>
+</footer>
+
+<script src="assets/vendor/three.min.js" defer></script>
+<script src="assets/vendor/gsap.min.js" defer></script>
+<script src="assets/js/engine-core.js" defer></script>
+<script src="assets/proto/proto.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => {
+    Engine.initChrome();
+    Proto.initRipple(document.getElementById("heroCanvas"), 0x5c939f);
+
+    /* ---------------- resume section — the one thing only this page can show:
+       what you were actually working on, read straight from each engine's
+       own saved state. Hidden entirely if there's nothing to resume. ---------------- */
+    (function buildResumeSection() {
+      const ENGINES = [
+        { key: ["engine-lab:calculus-taylor-series", "engine-lab:calculus-riemann-sums"], name: "Calculus Engine", href: "engines/calculus/methods.html",
+          summarize: (s) => s.degree !== undefined ? `Taylor series of ${s.fx || "f(x)"} around a = ${s.center}` : `Riemann sum of f(x) = ${s.fx || "—"}` },
+        { key: "engine-lab:linear-algebra", name: "Linear Algebra Engine", href: "engines/linear-algebra/methods.html",
+          summarize: (s) => s.mode === "solve" ? "Solving a 3×3 system with Gaussian elimination" : "A 2×2 matrix transform" },
+        { key: "engine-lab:statistics", name: "Statistics Engine", href: "engines/statistics/methods.html",
+          summarize: (s) => s.mode === "regression" ? "Fitting a regression line to your data" : `A hypothesis test against H₀: μ = ${s.mu0}` },
+        { key: "engine-lab:ode", name: "ODE Engine", href: "engines/ode/index.html",
+          summarize: (s) => `dy/dx = ${s.fxy || "—"}` },
+      ];
+
+      function esc(v) {
+        return String(v).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+      }
+
+      const items = ENGINES.map((e) => {
+        const keys = Array.isArray(e.key) ? e.key : [e.key];
+        let s = null;
+        for (const k of keys) { s = Proto.loadState(k); if (s) break; }
+        if (!s) return null;
+        let summary;
+        try { summary = e.summarize(s); } catch { return null; }
+        return { ...e, summary };
+      }).filter(Boolean);
+
+      if (!items.length) return;
+
+      document.getElementById("resumeGrid").innerHTML = items.map((item) => `
+        <a href="${item.href}" class="card crosshair-host">
+          <span class="eyebrow">${esc(item.name)}</span>
+          <p style="margin-top:12px; color: var(--off-white); font-size:15px;">${esc(item.summary)}</p>
+        </a>
+      `).join("");
+      document.getElementById("resumeSection").style.display = "";
+      Engine.initChrome(); // wire crosshairs into the freshly-injected cards
+    })();
+
+    const introTargets = ".site-header, .hero-eyebrow, .hero-line, .hero-sub, .hero-actions .btn, .hero-canvas";
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    function revealInstantly() {
+      document.querySelectorAll(introTargets).forEach((el) => {
+        el.style.opacity = "1";
+        el.style.transform = "none";
+      });
+    }
+
+    if (reduceMotion || typeof gsap === "undefined") {
+      revealInstantly();
+      return;
+    }
+
+    gsap.timeline({ defaults: { ease: "power3.out" } })
+      .to(".site-header", { opacity: 1, y: 0, duration: .6 }, 0)
+      .to(".hero-canvas", { opacity: .8, duration: 1.3 }, .1)
+      .to(".hero-eyebrow", { opacity: 1, y: 0, duration: .5 }, .25)
+      .to(".hero-line", { opacity: 1, y: 0, duration: .8, stagger: .12 }, .4)
+      .to(".hero-sub", { opacity: 1, y: 0, duration: .6 }, .75)
+      .to(".hero-actions .btn", { opacity: 1, y: 0, duration: .5, stagger: .1 }, .9);
+  });
+</script>
+</body>
+</html>

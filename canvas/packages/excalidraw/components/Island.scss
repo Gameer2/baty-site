@@ -1,0 +1,68 @@
+.excalidraw {
+  .Island {
+    --padding: 0;
+    box-sizing: border-box;
+    background-color: var(--island-bg-color);
+    box-shadow: var(--shadow-island);
+    border-radius: var(--border-radius-lg);
+    padding: calc(var(--padding) * var(--space-factor));
+    position: relative;
+
+    &.zen-mode {
+      box-shadow: none;
+
+      .Island__crosshair {
+        display: none;
+      }
+    }
+  }
+
+  .Island__crosshair {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    opacity: 0.35;
+    pointer-events: none;
+
+    &::before,
+    &::after {
+      content: "";
+      position: absolute;
+      background: var(--color-on-surface);
+    }
+
+    &::before {
+      width: 9px;
+      height: 1px;
+      top: 4px;
+      left: 0;
+    }
+
+    &::after {
+      width: 1px;
+      height: 9px;
+      left: 4px;
+      top: 0;
+    }
+
+    &--tl {
+      top: 6px;
+      left: 6px;
+    }
+
+    &--tr {
+      top: 6px;
+      right: 6px;
+    }
+
+    &--bl {
+      bottom: 6px;
+      left: 6px;
+    }
+
+    &--br {
+      bottom: 6px;
+      right: 6px;
+    }
+  }
+}

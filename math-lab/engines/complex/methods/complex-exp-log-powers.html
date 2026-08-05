@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Complex Logarithms &amp; Powers — Branch Cuts — Complex Analysis Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>
+  :root{ --electric-teal:#b45fd0; }
+  .dc-canvas-wrap { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; }
+  #domainCanvas { border-radius: var(--radius-md); border: 1px solid rgba(255,255,255,0.1); cursor: crosshair; image-rendering: pixelated; }
+  .dc-legend-col { display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 120px; }
+  #legendCanvas { border-radius: 100%; border: 1px solid rgba(255,255,255,0.15); }
+  .mode-row { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+  .mode-row label { display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 13px; color: var(--neural-fog); cursor: pointer; }
+  .mode-fields { display: flex; gap: 10px; align-items: center; margin-left: 26px; margin-top: 4px; }
+  .mode-fields input { max-width: 70px; }
+  .branch-banner { border: 1px solid rgba(180,95,208,0.4); background: rgba(180,95,208,0.08); border-radius: var(--radius-md); padding: 14px 16px; margin-bottom: 16px; font-family: var(--font-mono); font-size: 13px; color: var(--off-white); line-height: 1.6; }
+  .branch-banner .k0 { color: var(--electric-teal); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Complex&nbsp;Analysis&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Elementary Functions</span>
+    <h1 class="h2" style="margin-top:14px;">Complex Logarithms &amp; Powers — Branches and the Branch Cut</h1>
+    <p class="method-summary"><span class="mono">log(z)</span> and <span class="mono">z^w</span> for non-integer <span class="mono">w</span> are not functions on <span class="mono">ℂ</span> in the usual sense — they're <em>multivalued</em>: every nonzero <span class="mono">z</span> has infinitely many logarithms, differing by <span class="mono">2πik</span>. To use them as ordinary functions, one value has to be chosen by convention — the <em>principal branch</em>, using <span class="mono">Arg(z) ∈ (−π, π]</span> — and that choice forces a discontinuity somewhere. Here it's the negative real axis: cross it and the value jumps by a full turn. This page never hides which branch it's using, and the jump shows up directly as a seam in the domain colouring, not as an error.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="branchForm">
+        <span class="panel-title">Input</span>
+
+        <span class="field-note">Operation</span>
+        <div class="mode-row" id="modeRow">
+          <label><input type="radio" name="mode" value="log" checked /> Log(z) — principal logarithm</label>
+          <label><input type="radio" name="mode" value="rational" /> z^(p/q) — rational power / root</label>
+          <div class="mode-fields" id="rationalFields" style="display:none;">
+            <span class="field-note" style="margin:0;">p</span>
+            <input type="number" id="pInput" class="mono" value="1" step="1" />
+            <span class="field-note" style="margin:0;">/ q</span>
+            <input type="number" id="qInput" class="mono" value="2" step="1" min="1" max="12" />
+          </div>
+          <label><input type="radio" name="mode" value="complex" /> z^w — general complex power</label>
+          <div class="mode-fields" id="complexFields" style="display:none;">
+            <span class="field-note" style="margin:0;">w =</span>
+            <input type="number" id="wReInput" class="mono" value="0.5" step="any" />
+            <span class="field-note" style="margin:0;">+</span>
+            <input type="number" id="wImInput" class="mono" value="0" step="any" />
+            <span class="field-note" style="margin:0;">i</span>
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:18px;">
+          <label for="rangeInput">View range — |Re|, |Im| ≤</label>
+          <input type="number" id="rangeInput" value="2.5" step="any" min="0.5" max="20" />
+        </div>
+
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Render</span></button>
+        </div>
+
+        <span class="field-note" style="margin-top:22px;">Examples — click to load</span>
+        <div class="chip-row" id="exampleChips">
+          <button type="button" class="chip" data-mode="log">Log(z) — the branch cut itself</button>
+          <button type="button" class="chip" data-mode="rational" data-p="1" data-q="2">√z — 2 branches</button>
+          <button type="button" class="chip" data-mode="rational" data-p="1" data-q="3">∛z — 3 branches</button>
+          <button type="button" class="chip" data-mode="rational" data-p="2" data-q="3">z^(2/3) — 3 branches, p≠1</button>
+          <button type="button" class="chip" data-mode="complex" data-wre="0" data-wim="1">z^i — infinitely many branches</button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Pick an operation and render — the domain-coloured plane (with its branch cut visible as a seam), the explicit branch statement, and a click-to-probe table of alternate branches will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="branch-banner" id="branchBanner"></div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">The domain-coloured plane</span>
+            <div class="dc-canvas-wrap" style="margin-top:14px;">
+              <canvas id="domainCanvas" width="380" height="380"></canvas>
+              <div class="dc-legend-col">
+                <span class="field-note" style="margin:0;">Hue = arg(w)</span>
+                <canvas id="legendCanvas" width="120" height="120"></canvas>
+                <span class="p2" style="color:var(--pulse-ash); font-size:11px;">the seam on the left is the branch cut, not a bug</span>
+              </div>
+            </div>
+            <p class="p2" id="renderTime" style="margin-top:10px; color:var(--pulse-ash);"></p>
+          </div>
+
+          <div class="panel crosshair-host" style="margin-top:16px;">
+            <span class="panel-title">Click the plane to probe a point — every branch at that z</span>
+            <p class="p2" id="branchCount" style="margin-top:6px; color:var(--pulse-ash);"></p>
+            <div class="data-table-wrap" style="margin-top:10px;">
+              <table class="data-table" id="branchTable">
+                <thead><tr><th>k</th><th>value</th><th>check</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Complex Analysis Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/complex.js" defer></script>
+<script src="../../../assets/js/domain-coloring.js" defer></script>
+<script src="../../../assets/js/complex-exp-log-powers.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

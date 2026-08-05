@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Power Series &amp; Radius of Convergence — Calculus Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#4f9e82; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Calculus&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="taylor-series.html"><span>Taylor Series</span><span class="dup" aria-hidden="true">Taylor Series</span></a></li>
+      <li><a href="convergence-tests.html"><span>Convergence Tests</span><span class="dup" aria-hidden="true">Convergence Tests</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Sequences &amp; Series</span>
+    <h1 class="h2" style="margin-top:14px;">Power Series &amp; Radius of Convergence</h1>
+    <p class="method-summary">For <span class="mono">∑ cₙ(x−a)ⁿ</span>, finds the radius of convergence <span class="mono">R</span> from the coefficients (ratio test, root test fallback), classifies both endpoints <span class="mono">x = a ± R</span> by reusing the convergence decision tree, and assembles the interval — including <span class="mono">R = ∞</span> (converges everywhere) and <span class="mono">R = 0</span> (converges only at the centre). Checked against the partial sums inside and outside the radius before it is shown.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="psForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="coeffsInput">cₙ = the coefficient formula (in n)</label>
+          <input type="text" id="coeffsInput" class="mono" value="1/n" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="coeffsPreview"></div>
+          <button type="button" class="keypad-toggle is-open" id="keypadToggle">
+            <span>Math Keypad</span><span class="chev">⌄</span>
+          </button>
+          <div class="math-keypad is-open" id="coeffsKeypad"></div>
+        </div>
+
+        <div class="field-row" style="margin-top:18px;">
+          <div class="field">
+            <label for="centerInput">Center a</label>
+            <input type="number" id="centerInput" value="0" step="any" />
+          </div>
+          <div class="field">
+            <span class="field-note">Series variable</span>
+            <div class="mono" style="padding:9px 0;">x (standard)</div>
+          </div>
+        </div>
+
+        <div class="status-line" id="startStatus" style="margin-top:18px;">
+          <span class="status-dot"></span><span id="startStatusText">Checking the coefficients…</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Find Radius</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+
+        <span class="field-note" style="margin-top:22px;">Worked examples — click to load</span>
+        <div class="method-tags" id="presetRow">
+          <button type="button" class="tag" data-coeffs="1" data-center="0">cₙ=1 (R=1, open)</button>
+          <button type="button" class="tag" data-coeffs="1/n" data-center="0">cₙ=1/n (R=1, [−1,1))</button>
+          <button type="button" class="tag" data-coeffs="1/n^2" data-center="0">cₙ=1/n² (R=1, [−1,1])</button>
+          <button type="button" class="tag" data-coeffs="n" data-center="0">cₙ=n (R=1, open)</button>
+          <button type="button" class="tag" data-coeffs="n!" data-center="0">cₙ=n! (R=0)</button>
+          <button type="button" class="tag" data-coeffs="1/n!" data-center="0">cₙ=1/n! (R=∞)</button>
+          <button type="button" class="tag" data-coeffs="1" data-center="2">cₙ=1, a=2 ((1,3))</button>
+          <button type="button" class="tag" data-coeffs="x*n" data-center="0">cₙ=x·n — refused (depends on x)</button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter the coefficient formula cₙ and a center, then find the radius — the radius R, the interval of convergence, the endpoint verdicts, the step-by-step derivation, and a number-line plot of the interval will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">Radius R</div>
+              <div class="value" id="statRadius">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Interval</div>
+              <div class="value" id="statInterval">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Checked</div>
+              <div class="value" id="statVerified">—</div>
+            </div>
+          </div>
+
+          <span class="field-note">Radius &amp; interval of convergence</span>
+          <div class="formula-block formula-block--result" id="formulaResult"></div>
+
+          <div class="panel crosshair-host" style="margin-top:18px;">
+            <span class="panel-title">Endpoints</span>
+            <div class="data-table-wrap">
+              <table class="data-table" id="endpointTable">
+                <thead><tr><th>endpoint x</th><th>verdict</th><th>test</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel crosshair-host" style="margin-top:18px;">
+            <span class="panel-title">Derivation</span>
+            <div class="data-table-wrap">
+              <table class="data-table" id="stepTable">
+                <thead>
+                  <tr><th>#</th><th>Rule</th><th>Expression</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <div class="slider-row" style="margin-top:16px;">
+              <input type="range" id="stepSlider" min="0" max="0" value="0" />
+              <span class="step-label" id="stepLabel">step 0</span>
+            </div>
+          </div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">Interval of convergence on the line</span></div>
+            <div id="fxPlot" style="height:260px;"></div>
+          </div>
+        </div>
+
+        <!-- Shown when the coefficients depend on the series variable x rather than the index
+             n, or do not parse. First-class, not an error. -->
+        <div class="panel crosshair-host" id="refusedPanel" style="display:none;">
+          <span class="panel-title">Not a power-series problem</span>
+          <p class="p1" id="refusedReason"></p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Calculus Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/vendor/nerdamer.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/proto/proto.js" defer></script>
+<!-- calculus-symbolic.js is loaded here only as the in-page fallback for when a Worker
+     cannot be created (opening this file over file://). In normal use the worker owns its
+     own copy and this one is never called. -->
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/calculus-symbolic.js" defer></script>
+<script src="../../../assets/js/cas-client.js" defer></script>
+<script src="../../../assets/js/power-series.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Real Integrals by Residues — Complex Analysis Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#b45fd0; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Complex&nbsp;Analysis&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Integration &amp; Residues</span>
+    <h1 class="h2" style="margin-top:14px;">Real Integrals by Residues</h1>
+    <p class="method-summary">Integrals over the whole real line — or the half-line — that no elementary antiderivative touches, done by lifting the real integral to the complex plane and closing the contour with a large semicircle in the upper half-plane: <span class="mono">∫ R(x)dx = 2πi·Σ Res</span> over the poles above the real axis. This page handles the bread-and-butter case — a non-oscillatory rational <span class="mono">R(x)</span> that decays fast enough and has no real-axis poles — and refuses the rest (real-axis poles need an indented contour; oscillatory integrands need Jordan's lemma) rather than guess. The residue answer is never shown on SymPy's say-so alone: it is independently re-checked by a direct numeric integration (tangent substitution, so Simpson converges fast) before it appears.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="realForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="fxInput">R(x) =</label>
+          <input type="text" id="fxInput" class="mono" value="1/(x^2+1)" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="fxPreview"></div>
+        </div>
+
+        <span class="field-note" style="margin-top:18px;">Integration domain</span>
+        <div class="chip-row" id="modeChips">
+          <button type="button" class="chip is-active" data-mode="whole">−∞ to ∞ (whole real line)</button>
+          <button type="button" class="chip" data-mode="half">0 to ∞ (even integrand only)</button>
+        </div>
+
+        <div class="status-line ok" id="startStatus" style="margin-top:18px;">
+          <span class="status-dot"></span><span id="startStatusText">Ready — press Solve.</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Solve</span></button>
+        </div>
+
+        <span class="field-note" style="margin-top:22px;">Worked examples — click to load</span>
+        <div class="chip-row" id="exampleChips">
+          <button type="button" class="chip" data-fx="1/(x^2+1)" data-mode="whole">1/(x²+1) over ℝ = π</button>
+          <button type="button" class="chip" data-fx="1/(x^4+1)" data-mode="whole">1/(x⁴+1) over ℝ = π/√2</button>
+          <button type="button" class="chip" data-fx="1/((x^2+1)*(x^2+4))" data-mode="whole">1/((x²+1)(x²+4)) over ℝ = π/6</button>
+          <button type="button" class="chip" data-fx="1/(x^2+1)" data-mode="half">1/(x²+1) over [0,∞) = π/2</button>
+          <button type="button" class="chip" data-fx="1/(x^4+1)" data-mode="half">1/(x⁴+1) over [0,∞) = π/(2√2)</button>
+          <button type="button" class="chip" data-fx="x/(x^2+1)" data-mode="whole">x/(x²+1) — decays too slowly (refuses)</button>
+          <button type="button" class="chip" data-fx="1/(x^2-1)" data-mode="whole">1/(x²−1) — real-axis poles (refuses)</button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter a rational R(x) and pick a domain, then solve — the integral's exact value, the upper-half-plane poles that produced it, and the independent numeric check will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">Integral value</div>
+              <div class="value" id="statValue">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Poles used (upper half-plane)</div>
+              <div class="value" id="statCount">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Verified</div>
+              <div class="value" id="statVerified">—</div>
+            </div>
+          </div>
+
+          <span class="field-note" style="display:block; margin-top:16px;">Result</span>
+          <div class="formula-block formula-block--result" id="integralResult"></div>
+
+          <div class="panel crosshair-host" id="polePanel" style="margin-top:16px;">
+            <span class="panel-title">Poles closed inside the upper semicircle</span>
+            <div class="data-table-wrap"><table class="data-table" id="poleTable">
+              <thead><tr><th>pole (exact)</th><th>pole (numeric)</th><th>residue (exact)</th></tr></thead>
+              <tbody></tbody>
+            </table></div>
+          </div>
+
+          <p class="p2" style="margin-top:14px; color:var(--text-dim,#9aa3ab);">Contour closed in the upper half-plane with a large semicircle; its arc contributes zero because <span class="mono">deg(denom) ≥ deg(numer)+2</span>. The numeric check integrates <span class="mono">R(x)</span> directly via the substitution <span class="mono">x = tan θ</span>, which maps the infinite domain to a finite interval so Simpson's rule converges fast.</p>
+        </div>
+
+        <div class="panel crosshair-host" id="refusedPanel" style="display:none;">
+          <span class="panel-title">Can't confirm this one</span>
+          <p class="p1" id="refusedReason"></p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Complex Analysis Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/nerdamer.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/complex.js" defer></script>
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/complex-symbolic.js" defer></script>
+<script src="../../../assets/js/cas-client.js" defer></script>
+<script src="../../../assets/js/sympy-client.js" defer></script>
+<script src="../../../assets/js/complex-residues.js" defer></script>
+<script src="../../../assets/js/real-integrals-residues.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

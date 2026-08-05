@@ -1,0 +1,284 @@
+{
+ "source": "Authored from Churchill & Brown, Complex Variables and Applications (one-semester scope)",
+ "note": "Entries marked implemented:false are Churchill & Brown topics the engine does not yet cover (contour integration, Laurent, residues, conformal maps). Included deliberately so the corpus reports COVERAGE of the course, not just correctness of the built subset.",
+ "problems": [
+  {
+   "op": "cauchyRiemann",
+   "ref": "C&B 2.21",
+   "implemented": true,
+   "f": "z^2",
+   "analytic": true,
+   "point": [
+    1,
+    1
+   ]
+  },
+  {
+   "op": "cauchyRiemann",
+   "ref": "C&B 2.21",
+   "implemented": true,
+   "f": "z^3",
+   "analytic": true,
+   "point": [
+    0.7,
+    1.2
+   ]
+  },
+  {
+   "op": "cauchyRiemann",
+   "ref": "C&B 2.21",
+   "implemented": true,
+   "f": "exp(z)",
+   "analytic": true,
+   "point": [
+    0.4,
+    -0.7
+   ]
+  },
+  {
+   "op": "cauchyRiemann",
+   "ref": "C&B 2.21",
+   "implemented": true,
+   "f": "conj(z)",
+   "analytic": false,
+   "point": [
+    1,
+    1
+   ]
+  },
+  {
+   "op": "cauchyRiemann",
+   "ref": "C&B 2.21",
+   "implemented": true,
+   "f": "abs(z)^2",
+   "analytic": false,
+   "point": [
+    1,
+    1
+   ]
+  },
+  {
+   "op": "cauchyRiemann",
+   "ref": "C&B 2.21",
+   "implemented": true,
+   "f": "z",
+   "analytic": true,
+   "point": [
+    0.5,
+    0.5
+   ]
+  },
+  {
+   "op": "cauchyRiemann",
+   "ref": "C&B 2.21",
+   "implemented": true,
+   "f": "1/z",
+   "analytic": true,
+   "point": [
+    1.3,
+    0.6
+   ]
+  },
+  {
+   "op": "cauchyRiemann",
+   "ref": "C&B 2.21",
+   "implemented": true,
+   "f": "sin(z)",
+   "analytic": true,
+   "point": [
+    0.2,
+    0.9
+   ]
+  },
+  {
+   "op": "cauchyRiemann",
+   "ref": "C&B 2.21",
+   "implemented": true,
+   "f": "z*conj(z)",
+   "analytic": false,
+   "point": [
+    0.8,
+    1.1
+   ]
+  },
+  {
+   "op": "cauchyRiemann",
+   "ref": "C&B 2.21",
+   "implemented": true,
+   "f": "Re(z)",
+   "analytic": false,
+   "point": [
+    1,
+    1
+   ]
+  },
+  {
+   "op": "harmonicConjugate",
+   "ref": "C&B 2.27",
+   "implemented": true,
+   "u": "x^2-y^2",
+   "point": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "op": "harmonicConjugate",
+   "ref": "C&B 2.27",
+   "implemented": true,
+   "u": "x^3-3*x*y^2",
+   "point": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "op": "harmonicConjugate",
+   "ref": "C&B 2.27",
+   "implemented": true,
+   "u": "e^x*cos(y)",
+   "point": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "op": "harmonicConjugate",
+   "ref": "C&B 2.27",
+   "implemented": true,
+   "u": "x",
+   "point": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "op": "harmonicConjugate",
+   "ref": "C&B 2.27",
+   "implemented": true,
+   "u": "2*x*y",
+   "point": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "op": "harmonicConjugate",
+   "ref": "C&B 2.27",
+   "implemented": true,
+   "u": "log(x^2+y^2)",
+   "point": [
+    1.0,
+    0.0
+   ]
+  },
+  {
+   "op": "contour-integral",
+   "ref": "C&B 4.42",
+   "implemented": false,
+   "desc": "\u222e dz/z over |z|=1 = 2*pi*i"
+  },
+  {
+   "op": "contour-integral",
+   "ref": "C&B 4.42",
+   "implemented": false,
+   "desc": "\u222b z^2 dz along a parametrised path"
+  },
+  {
+   "op": "cauchy-goursat",
+   "ref": "C&B 4.46",
+   "implemented": false,
+   "desc": "\u222e f dz = 0 for f analytic inside C"
+  },
+  {
+   "op": "cauchy-integral-formula",
+   "ref": "C&B 4.50",
+   "implemented": false,
+   "desc": "f(z0) = (1/2*pi*i) \u222e f(z)/(z-z0) dz"
+  },
+  {
+   "op": "laurent",
+   "ref": "C&B 5.60",
+   "implemented": false,
+   "desc": "Laurent series of 1/(z*(z-1)) in 0<|z|<1"
+  },
+  {
+   "op": "laurent",
+   "ref": "C&B 5.60",
+   "implemented": false,
+   "desc": "principal part and annulus of convergence"
+  },
+  {
+   "op": "singularity-classification",
+   "ref": "C&B 6.69",
+   "implemented": false,
+   "desc": "removable / pole of order n / essential"
+  },
+  {
+   "op": "residue",
+   "ref": "C&B 6.71",
+   "implemented": false,
+   "desc": "Res of 1/(z^2+1) at z=i"
+  },
+  {
+   "op": "residue",
+   "ref": "C&B 6.71",
+   "implemented": false,
+   "desc": "Res at a pole of order 2"
+  },
+  {
+   "op": "residue-theorem",
+   "ref": "C&B 6.76",
+   "implemented": false,
+   "desc": "\u222e f dz = 2*pi*i * sum of residues"
+  },
+  {
+   "op": "real-integral-by-residues",
+   "ref": "C&B 7.85",
+   "implemented": false,
+   "desc": "\u222b_0^inf dx/(1+x^2) = pi/2"
+  },
+  {
+   "op": "real-integral-by-residues",
+   "ref": "C&B 7.86",
+   "implemented": false,
+   "desc": "\u222b_0^{2pi} dtheta/(a+b cos theta)"
+  },
+  {
+   "op": "argument-principle",
+   "ref": "C&B 7.93",
+   "implemented": false,
+   "desc": "number of zeros minus poles"
+  },
+  {
+   "op": "rouche",
+   "ref": "C&B 7.94",
+   "implemented": false,
+   "desc": "zero counting by Rouche's theorem"
+  },
+  {
+   "op": "branch-cut",
+   "ref": "C&B 2.32",
+   "implemented": false,
+   "desc": "log z branch cut: jump of 2*pi*i across the cut"
+  },
+  {
+   "op": "branch-cut",
+   "ref": "C&B 2.33",
+   "implemented": false,
+   "desc": "z^(1/2) principal branch"
+  },
+  {
+   "op": "conformal-map",
+   "ref": "C&B 8.100",
+   "implemented": false,
+   "desc": "conformality where f'(z) != 0"
+  },
+  {
+   "op": "mobius",
+   "ref": "C&B 8.104",
+   "implemented": false,
+   "desc": "Mobius map of three points"
+  }
+ ]
+}

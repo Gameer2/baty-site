@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Two-Sample, Paired &amp; z-Tests — Statistics Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#c99a3c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Statistics&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Sampling & Inference</span>
+    <h1 class="h2" style="margin-top:14px;">Two-Sample, Paired &amp; z-Tests</h1>
+    <p class="method-summary">Compares two samples (Welch's unequal-variance t-test), paired observations (a one-sample t-test on the per-subject differences), or a sample against a known-variance reference (the z-test) — p-values from the exact Student-t and normal CDFs, not table lookups.</p>
+  </div>
+</section>
+
+<section class="section--tight" x-data>
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="testForm" onsubmit="return false;">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label>Test type</label>
+          <div class="chip-row" id="modeRow">
+            <button type="button" class="chip is-active" data-mode="two-sample">Two-Sample</button>
+            <button type="button" class="chip" data-mode="paired">Paired</button>
+            <button type="button" class="chip" data-mode="ztest">z-Test</button>
+          </div>
+        </div>
+
+        <!-- Two-Sample fields -->
+        <div id="twoSampleFields">
+          <div class="field" style="margin-top:14px;">
+            <label for="data1Input">Sample 1</label>
+            <textarea id="data1Input" class="mono" rows="4" spellcheck="false"
+              style="width:100%;background:var(--core-black);border:1px solid rgba(255,255,255,.12);border-radius:var(--radius-sm);color:var(--off-white);padding:12px 14px;font-family:var(--font-mono);font-size:14px;resize:vertical;"
+            >22, 24, 25, 26, 28, 27, 30, 31, 24, 28</textarea>
+            <span class="field-note">Comma, space or newline separated</span>
+          </div>
+          <div class="field" style="margin-top:10px;">
+            <label for="data2Input">Sample 2</label>
+            <textarea id="data2Input" class="mono" rows="4" spellcheck="false"
+              style="width:100%;background:var(--core-black);border:1px solid rgba(255,255,255,.12);border-radius:var(--radius-sm);color:var(--off-white);padding:12px 14px;font-family:var(--font-mono);font-size:14px;resize:vertical;"
+            >18, 20, 22, 17, 15, 21, 19, 16</textarea>
+            <span class="field-note">Comma, space or newline separated</span>
+          </div>
+          <div class="field-row" style="margin-top:10px;">
+            <div class="field">
+              <label for="d0Input">H₀: μ₁ − μ₂ =</label>
+              <input type="number" id="d0Input" value="0" step="any" />
+            </div>
+            <div class="field">
+              <label for="alphaInput">Significance α</label>
+              <input type="number" id="alphaInput" value="0.05" step="any" min="0.001" max="0.5" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Paired fields -->
+        <div id="pairedFields" style="display:none;">
+          <div class="field" style="margin-top:14px;">
+            <label for="pairedInput">Paired data — one <span class="mono">[before, after]</span> pair per line</label>
+            <textarea id="pairedInput" class="mono" rows="6" spellcheck="false"
+              style="width:100%;background:var(--core-black);border:1px solid rgba(255,255,255,.12);border-radius:var(--radius-sm);color:var(--off-white);padding:12px 14px;font-family:var(--font-mono);font-size:14px;resize:vertical;"
+            >10, 12
+14, 15
+15, 18
+12, 14
+9, 11</textarea>
+            <span class="field-note">Differences are computed as (after − before)</span>
+          </div>
+          <div class="field" style="margin-top:10px;">
+            <label for="alphaInputP">Significance α</label>
+            <input type="number" id="alphaInputP" value="0.05" step="any" min="0.001" max="0.5" />
+          </div>
+        </div>
+
+        <!-- z-Test fields -->
+        <div id="ztestFields" style="display:none;">
+          <div class="field" style="margin-top:14px;">
+            <label for="zDataInput">Sample data</label>
+            <textarea id="zDataInput" class="mono" rows="4" spellcheck="false"
+              style="width:100%;background:var(--core-black);border:1px solid rgba(255,255,255,.12);border-radius:var(--radius-sm);color:var(--off-white);padding:12px 14px;font-family:var(--font-mono);font-size:14px;resize:vertical;"
+            >42, 46, 44, 43, 45, 44, 46, 42, 43, 45, 44, 44, 43, 45, 44, 44</textarea>
+            <span class="field-note">Comma, space or newline separated</span>
+          </div>
+          <div class="field-row" style="margin-top:10px;">
+            <div class="field">
+              <label for="mu0Input">H₀: μ =</label>
+              <input type="number" id="mu0Input" value="40" step="any" />
+            </div>
+            <div class="field">
+              <label for="sigmaInput">Known σ</label>
+              <input type="number" id="sigmaInput" value="8" step="any" min="0.0001" />
+            </div>
+            <div class="field">
+              <label for="alphaInputZ">Significance α</label>
+              <input type="number" id="alphaInputZ" value="0.05" step="any" min="0.001" max="0.5" />
+            </div>
+          </div>
+        </div>
+
+        <div class="status-line" id="verdictLine" style="margin-top:14px;" aria-live="polite">
+          <span class="status-dot"></span><span id="verdictText">Enter valid inputs, then compute.</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;" aria-live="polite">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Pick a test type, enter your data, and compute — the test statistic, two-tailed p-value, and a visualization appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip" id="resultStrip"></div>
+
+          <span class="field-note" id="formulaNote">Test statistic</span>
+          <div class="formula-block formula-block--reference" id="formulaStat"></div>
+          <span class="field-note">Two-tailed p-value</span>
+          <div class="formula-block formula-block--result" id="formulaP"></div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;" id="plotTitle">Visualization</span></div>
+            <div id="testPlot" style="height:320px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Statistics Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/proto/proto.js" defer></script>
+<script src="../../../assets/js/stats-algorithms.js" defer></script>
+<script src="../../../assets/js/two-sample-paired-tests.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

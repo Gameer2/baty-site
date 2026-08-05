@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Heat Equation — ODE/PDE Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#4f8fc0; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> ODE&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="ode-solver.html"><span>ODE Solver</span><span class="dup" aria-hidden="true">ODE Solver</span></a></li>
+      <li><a href="laplace-transform.html"><span>Laplace</span><span class="dup" aria-hidden="true">Laplace</span></a></li>
+      <li><a href="series-solutions.html"><span>Series</span><span class="dup" aria-hidden="true">Series</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Partial Differential Equations</span>
+    <h1 class="h2" style="margin-top:14px;">Heat Equation</h1>
+    <p class="method-summary">The diffusion equation <span class="mono">u_t = k·u_xx</span> on <span class="mono">0 &lt; x &lt; L</span>, with the ends held at zero (<span class="mono">u(0,t) = u(L,t) = 0</span>, Dirichlet) and an initial temperature profile <span class="mono">u(x,0) = f(x)</span>. Separation of variables turns the PDE into an eigenvalue problem in <span class="mono">x</span> (whose sine modes satisfy the boundary conditions) and a decay ODE in <span class="mono">t</span>; the initial profile is then matched by its Fourier sine coefficients, computed here by Simpson's rule. The temperature surface <span class="mono">u(x,t)</span> relaxes toward the steady state.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="pdeForm">
+        <span class="panel-title">Input</span>
+        <p class="p2" style="margin:0 0 18px;">u<sub>t</sub> = k·u<sub>xx</sub> on 0 &lt; x &lt; L, with u(0,t) = u(L,t) = 0 (Dirichlet) and u(x,0) = f(x).</p>
+
+        <div class="field-row">
+          <div class="field"><label for="pdeL">Length L</label><input type="number" id="pdeL" value="2" step="any" min="0.1" /></div>
+          <div class="field"><label for="pdeK">Diffusivity k</label><input type="number" id="pdeK" value="1" step="any" min="0.0001" /></div>
+        </div>
+        <div class="field">
+          <label for="pdeFx">Initial condition f(x)</label>
+          <input type="text" id="pdeFx" class="mono" value="1" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="fxPreview"></div>
+          <button type="button" class="keypad-toggle is-open" id="keypadToggle">
+            <span>Math Keypad</span><span class="chev">⌄</span>
+          </button>
+          <div class="math-keypad is-open" id="fxKeypad"></div>
+        </div>
+        <span class="field-note" style="margin-top:14px;">Initial profiles — click to load</span>
+        <div class="method-tags" id="presetRow">
+          <button type="button" class="tag" data-fx="1">Constant 1</button>
+          <button type="button" class="tag" data-fx="sin(pi*x/2)">sin(πx/L)</button>
+          <button type="button" class="tag" data-fx="x*(2-x)">x(L−x)</button>
+        </div>
+        <div class="field-row" style="margin-top:14px;">
+          <div class="field"><label for="pdeN">Fourier terms N</label><input type="number" id="pdeN" value="10" step="1" min="1" max="40" /></div>
+          <div class="field"><label for="pdeT">Max time T</label><input type="number" id="pdeT" value="1" step="any" min="0.01" /></div>
+        </div>
+
+        <div class="status-line ok" id="startStatus">
+          <span class="status-dot"></span><span id="startStatusText">Ready — press Solve.</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Solve</span></button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Set the length, diffusivity and initial temperature profile, then solve — the series solution and the temperature surface over time will appear here.</p>
+        </div>
+        <div id="resultsArea" style="display:none;"></div>
+        <div id="plotsWrap" style="display:none;">
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">u(x,t) — temperature over space and time</span></div>
+            <div id="heatPlot" style="height:360px;"></div>
+          </div>
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">Snapshots at fixed t</span></div>
+            <div id="snapshotsPlot" style="height:280px;"></div>
+          </div>
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">Numerical schemes vs. the analytic solution</span></div>
+            <div class="field-row" style="margin-bottom:14px;">
+              <div class="field"><label for="schemeSelect">Scheme</label>
+                <select id="schemeSelect" class="mono">
+                  <option value="explicit">Explicit (FTCS)</option>
+                  <option value="implicit">Implicit (BTCS)</option>
+                  <option value="crank-nicolson">Crank-Nicolson</option>
+                </select>
+              </div>
+              <div class="field"><label for="schemeR">CFL ratio r = kΔt/Δx&sup2;</label><input type="number" id="schemeR" value="0.4" step="any" min="0.01" /></div>
+              <div class="field"><label for="schemeSteps">Steps</label><input type="number" id="schemeSteps" value="30" step="1" min="1" max="500" /></div>
+            </div>
+            <button type="button" class="btn btn--ghost btn--sm" id="runSchemeBtn"><span class="btn-text">Run scheme</span></button>
+            <div class="status-line ok" id="schemeStatus" style="margin-top:12px;"><span class="status-dot"></span><span id="schemeStatusText">Pick a scheme and press Run.</span></div>
+            <div id="schemePlot" style="height:280px; margin-top:12px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">ODE/PDE Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/algorithms.js" defer></script>
+<script src="../../../assets/js/linalg-algorithms.js" defer></script>
+<script src="../../../assets/js/ode-symbolic.js" defer></script>
+<script src="../../../assets/js/ode-render.js" defer></script>
+<script src="../../../assets/js/cas-client.js" defer></script>
+<script src="../../../assets/js/ode-heat.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cauchy Integral Formula — Complex Analysis Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#b45fd0; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Complex&nbsp;Analysis&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Integration &amp; Residues</span>
+    <h1 class="h2" style="margin-top:14px;">Cauchy's Integral Formula</h1>
+    <p class="method-summary">The crown jewel of complex analysis: the value of an analytic function at a point — and every one of its derivatives there — is determined entirely by a single loop around it. Give <span class="mono">f(z)</span>, a point <span class="mono">z₀</span> and a radius <span class="mono">r</span>, and this page evaluates <span class="mono">f<sup>(n)</sup>(z₀) = n!/(2πi) · ∮<sub>|z−z₀|=r</sub> f(z)/(z−z₀)<sup>n+1</sup> dz</span>. The contour is a circle centred at <span class="mono">z₀</span>, the standard CIF setup. No symbolic backend is needed — but the answer is still never shown on one method's say-so: it is computed on two independent circles (radii <span class="mono">r</span> and <span class="mono">r/2</span>) and, for <span class="mono">n = 0</span>, also checked against a direct evaluation of <span class="mono">f(z₀)</span>. The formula's answer is contour-independent for an analytic <span class="mono">f</span>, so two independent numeric integrations agreeing is the verification.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="cifForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="fzInput">f(z) =</label>
+          <input type="text" id="fzInput" class="mono" value="exp(z)" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="fzPreview"></div>
+        </div>
+
+        <div class="field-row">
+          <div class="field"><label for="z0ReInput">z₀ Re</label><input type="number" id="z0ReInput" value="0" step="any" /></div>
+          <div class="field"><label for="z0ImInput">z₀ Im</label><input type="number" id="z0ImInput" value="0" step="any" /></div>
+          <div class="field"><label for="radiusInput">radius r</label><input type="number" id="radiusInput" value="1" step="any" min="0.05" /></div>
+          <div class="field">
+            <label for="orderInput">derivative order n</label>
+            <select id="orderInput">
+              <option value="0" selected>0 — f(z₀)</option>
+              <option value="1">1 — f′(z₀)</option>
+              <option value="2">2 — f″(z₀)</option>
+              <option value="3">3 — f‴(z₀)</option>
+              <option value="4">4 — f⁽⁴⁾(z₀)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="status-line ok" id="startStatus" style="margin-top:18px;">
+          <span class="status-dot"></span><span id="startStatusText">Ready — press Evaluate.</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Evaluate</span></button>
+        </div>
+
+        <span class="field-note" style="margin-top:22px;">Worked examples — click to load</span>
+        <div class="chip-row" id="exampleChips">
+          <button type="button" class="chip" data-fz="exp(z)" data-re="0" data-im="0" data-r="1" data-n="0">eᶻ, z₀=0, n=0 → f(0)=1</button>
+          <button type="button" class="chip" data-fz="exp(z)" data-re="0" data-im="0" data-r="1" data-n="1">eᶻ, z₀=0, n=1 → f′(0)=1</button>
+          <button type="button" class="chip" data-fz="sin(z)" data-re="0" data-im="0" data-r="1" data-n="1">sin z, z₀=0, n=1 → cos 0 = 1</button>
+          <button type="button" class="chip" data-fz="cos(z)" data-re="0" data-im="0" data-r="1" data-n="2">cos z, z₀=0, n=2 → −cos 0 = −1</button>
+          <button type="button" class="chip" data-fz="z^3" data-re="1" data-im="0" data-r="0.5" data-n="2">z³, z₀=1, n=2 → f″(1)=6</button>
+          <button type="button" class="chip" data-fz="z^2+1" data-re="0" data-im="1" data-r="0.5" data-n="0">z²+1, z₀=i, n=0 → f(i)=0</button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter f(z), a point z₀ and a radius, then evaluate — the value of f (or its nth derivative) at z₀, its verification, and a picture of the contour will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">f<sup>(n)</sup>(z₀)</div>
+              <div class="value" id="statValue">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Verified</div>
+              <div class="value" id="statVerified">—</div>
+            </div>
+          </div>
+
+          <span class="field-note" style="display:block; margin-top:16px;">Result</span>
+          <div class="formula-block formula-block--result" id="formulaResult"></div>
+
+          <div class="panel crosshair-host" id="checksPanel" style="margin-top:16px;">
+            <span class="panel-title">Independent checks</span>
+            <div class="data-table-wrap"><table class="data-table" id="checksTable">
+              <thead><tr><th>check</th><th>method</th><th>value</th></tr></thead>
+              <tbody></tbody>
+            </table></div>
+          </div>
+
+          <div class="plot-wrap crosshair-host" style="margin-top:16px;">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">The contour — a circle about z₀</span></div>
+            <div id="contourPlot" style="height:380px;"></div>
+          </div>
+        </div>
+
+        <div class="panel crosshair-host" id="refusedPanel" style="display:none;">
+          <span class="panel-title">Can't confirm this one</span>
+          <p class="p1" id="refusedReason"></p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Complex Analysis Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/vendor/nerdamer.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/complex.js" defer></script>
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/complex-symbolic.js" defer></script>
+<script src="../../../assets/js/complex-residues.js" defer></script>
+<script src="../../../assets/js/complex-contour-theorems.js" defer></script>
+<script src="../../../assets/js/complex-cauchy-integral-formula.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Methods — Numerical Engine</title>
+<link rel="stylesheet" href="../../assets/css/engine.css" />
+<link rel="stylesheet" href="../../assets/proto/proto.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="methods.html" class="logo"><span class="dot"></span> Numerical&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../numerical/methods.html"><span>Numerical</span><span class="dup" aria-hidden="true">Numerical</span></a></li>
+      <li><a href="../calculus/methods.html"><span>Calculus</span><span class="dup" aria-hidden="true">Calculus</span></a></li>
+      <li><a href="../linear-algebra/methods.html"><span>Linear&nbsp;Algebra</span><span class="dup" aria-hidden="true">Linear&nbsp;Algebra</span></a></li>
+      <li><a href="../statistics/methods.html"><span>Statistics</span><span class="dup" aria-hidden="true">Statistics</span></a></li>
+      <li><a href="../ode/index.html"><span>ODE</span><span class="dup" aria-hidden="true">ODE</span></a></li>
+    </ul>
+    <a href="../../index.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Engines</span></a>
+  </div>
+</header>
+
+<section class="hero">
+  <canvas class="hero-canvas" id="heroCanvas"></canvas>
+  <div class="container hero-inner">
+    <span class="eyebrow">Method library</span>
+    <h1 class="h1" style="margin-top:18px;">Pick a method</h1>
+    <p class="p1 hero-sub">Each workspace is built around how that method actually takes input — a function, a point set, a matrix.</p>
+    <div class="hero-actions">
+      <a href="index.html" class="btn btn--primary"><span class="btn-text">Find A Root →</span></a>
+      <a href="#methods" class="btn btn--ghost"><span class="btn-text">Browse Methods ↓</span></a>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="methods">
+  <div class="container">
+    <div class="grid grid--2 engine-grid">
+
+      <a href="methods/bisection.html" class="card engine-card reveal crosshair-host" style="display:block;">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Root Finding</span>
+          <span class="engine-index">1 / 29</span>
+        </div>
+        <h3 class="h3">Bisection Method</h3>
+        <p>Brackets a root inside <span class="mono">[a, b]</span> and halves the interval until it converges.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">f(x) + interval</span>
+          <span class="tag">Iteration table</span>
+          <span class="tag">Live plot</span>
+        </div>
+      </a>
+
+      <a href="methods/lagrange-interpolation.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.08s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Interpolation</span>
+          <span class="engine-index">2 / 29</span>
+        </div>
+        <h3 class="h3">Lagrange Interpolation &amp; Cubic Spline</h3>
+        <p>Builds the unique polynomial through a set of data points — or toggle to a natural cubic spline and watch Runge's phenomenon disappear.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Data-point table</span>
+          <span class="tag">Symbolic polynomial</span>
+          <span class="tag">Runge's-phenomenon toggle</span>
+        </div>
+      </a>
+
+      <a href="methods/fixed-point-iteration.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.16s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Root Finding</span>
+          <span class="engine-index">3 / 29</span>
+        </div>
+        <h3 class="h3">Fixed-Point Iteration</h3>
+        <p>Rewrites f(x) = 0 as x = g(x) and iterates — converges or flies apart, shown live on a cobweb diagram.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">g(x) + x₀</span>
+          <span class="tag">Cobweb diagram</span>
+          <span class="tag">Convergence check</span>
+        </div>
+      </a>
+
+      <a href="methods/newton-raphson.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.24s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Root Finding</span>
+          <span class="engine-index">4 / 29</span>
+        </div>
+        <h3 class="h3">Newton-Raphson Method</h3>
+        <p>Follows the tangent line at each iterate to the axis — quadratic convergence near a simple root.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">f(x) + x₀</span>
+          <span class="tag">Tangent-line trace</span>
+          <span class="tag">Error decay plot</span>
+        </div>
+      </a>
+
+      <a href="methods/secant.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.32s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Root Finding</span>
+          <span class="engine-index">5 / 29</span>
+        </div>
+        <h3 class="h3">Secant Method</h3>
+        <p>Newton's method without the derivative — a secant line through the last two iterates, superlinear convergence.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">f(x) + x₀, x₁</span>
+          <span class="tag">Secant-line trace</span>
+          <span class="tag">Error decay plot</span>
+        </div>
+      </a>
+
+      <a href="methods/trapezoidal-rule.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.40s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Integration</span>
+          <span class="engine-index">6 / 29</span>
+        </div>
+        <h3 class="h3">Trapezoidal Rule</h3>
+        <p>Approximates a definite integral by summing trapezoid areas across n subintervals — simple, always convergent, the base case for Romberg integration.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">f(x) + [a,b] + n</span>
+          <span class="tag">Shaded panel plot</span>
+          <span class="tag">Running-total table</span>
+        </div>
+      </a>
+
+      <a href="methods/simpsons-rule.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.48s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Integration</span>
+          <span class="engine-index">7 / 29</span>
+        </div>
+        <h3 class="h3">Simpson's Rule</h3>
+        <p>Fits a parabola (1/3 rule) or cubic (3/8 rule) through each group of nodes instead of a straight line — exact for cubics, converges far faster than the Trapezoidal Rule.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">f(x) + [a,b] + n</span>
+          <span class="tag">1/3 &amp; 3/8 toggle</span>
+          <span class="tag">Parabolic-fit plot</span>
+        </div>
+      </a>
+
+      <a href="methods/power-method.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.56s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Linear Algebra</span>
+          <span class="engine-index">8 / 29</span>
+        </div>
+        <h3 class="h3">Power Method</h3>
+        <p>Finds a matrix's dominant eigenvalue and eigenvector by repeated multiplication and rescaling — the seed idea behind Google's original PageRank.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Matrix + x₀</span>
+          <span class="tag">Eigenvalue convergence plot</span>
+          <span class="tag">Iteration table</span>
+        </div>
+      </a>
+
+      <a href="methods/inverse-power-method.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.64s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Linear Algebra</span>
+          <span class="engine-index">9 / 29</span>
+        </div>
+        <h3 class="h3">Inverse Power Method</h3>
+        <p>Runs the power method on A⁻¹ — via solving a linear system each step, never inverting A directly — to find the smallest-magnitude eigenvalue instead of the largest.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Matrix + x₀</span>
+          <span class="tag">Linear solve per step</span>
+          <span class="tag">Smallest eigenvalue</span>
+        </div>
+      </a>
+
+      <a href="methods/qr-algorithm.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.72s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Linear Algebra</span>
+          <span class="engine-index">10 / 29</span>
+        </div>
+        <h3 class="h3">QR Algorithm</h3>
+        <p>Repeatedly factors A = QR and recombines as RQ — the matrix converges toward triangular form with every eigenvalue on the diagonal at once, unshifted.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Matrix input</span>
+          <span class="tag">All eigenvalues at once</span>
+          <span class="tag">Off-diagonal decay plot</span>
+        </div>
+      </a>
+
+      <a href="methods/newton-nonlinear-systems.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.80s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Nonlinear Systems</span>
+          <span class="engine-index">11 / 29</span>
+        </div>
+        <h3 class="h3">Newton's Method for Nonlinear Systems</h3>
+        <p>Generalizes Newton-Raphson to n equations in n unknowns — each step solves a linear system built from a numerically approximated Jacobian.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">n equations + x₀</span>
+          <span class="tag">Finite-difference Jacobian</span>
+          <span class="tag">Step-size decay plot</span>
+        </div>
+      </a>
+
+      <a href="methods/broydens-method.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.88s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Nonlinear Systems</span>
+          <span class="engine-index">12 / 29</span>
+        </div>
+        <h3 class="h3">Broyden's Method</h3>
+        <p>Quasi-Newton: computes the Jacobian once, then cheaply updates it with a rank-1 correction each step instead of recomputing it — more steps, less work per step.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">n equations + x₀</span>
+          <span class="tag">Rank-1 Jacobian update</span>
+          <span class="tag">Cross-check vs. Newton system</span>
+        </div>
+      </a>
+
+      <a href="methods/hermite-interpolation.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:.96s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Interpolation</span>
+          <span class="engine-index">13 / 29</span>
+        </div>
+        <h3 class="h3">Hermite Interpolation</h3>
+        <p>Matches both value and slope at every node — a degree-(2n+1) polynomial that's exact for anything up to that degree, smoother than Lagrange through the same points.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">(x, f, f′) table</span>
+          <span class="tag">Tangent markers</span>
+          <span class="tag">Lagrange overlay</span>
+        </div>
+      </a>
+
+      <a href="methods/mullers-method.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:1.04s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Root Finding</span>
+          <span class="engine-index">14 / 29</span>
+        </div>
+        <h3 class="h3">Müller's Method</h3>
+        <p>Fits a parabola through the last three iterates instead of a line — faster than Secant, and (in principle) able to find complex roots.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">f(x) + x₀, x₁, x₂</span>
+          <span class="tag">Quadratic-fit trace</span>
+          <span class="tag">Error decay plot</span>
+        </div>
+      </a>
+
+      <a href="methods/romberg-integration.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:1.12s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Integration</span>
+          <span class="engine-index">15 / 29</span>
+        </div>
+        <h3 class="h3">Romberg Integration</h3>
+        <p>Richardson-extrapolates a sequence of Trapezoidal-rule estimates into far higher accuracy — watch the diagonal converge in just a few rows.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">f(x) + [a,b] + levels</span>
+          <span class="tag">Triangular table</span>
+          <span class="tag">Fast convergence plot</span>
+        </div>
+      </a>
+
+      <a href="methods/adaptive-quadrature.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:1.20s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Integration</span>
+          <span class="engine-index">16 / 29</span>
+        </div>
+        <h3 class="h3">Adaptive Quadrature</h3>
+        <p>Refines only where the function actually needs it — recursive Simpson's rule with automatic error control, instead of a fixed panel count everywhere.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">f(x) + [a,b] + tol</span>
+          <span class="tag">Refinement-depth plot</span>
+          <span class="tag">Leaf-interval table</span>
+        </div>
+      </a>
+
+      <a href="methods/gaussian-quadrature.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:1.28s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Integration</span>
+          <span class="engine-index">17 / 29</span>
+        </div>
+        <h3 class="h3">Gaussian Quadrature</h3>
+        <p>Chooses node positions instead of spacing them evenly — a 2- or 3-point rule that's exact for surprisingly high-degree polynomials.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">f(x) + [a,b]</span>
+          <span class="tag">2-pt / 3-pt toggle</span>
+          <span class="tag">Weighted-node plot</span>
+        </div>
+      </a>
+
+      <a href="methods/shooting-method.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:1.36s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Boundary Value Problems</span>
+          <span class="engine-index">18 / 29</span>
+        </div>
+        <h3 class="h3">Shooting Method</h3>
+        <p>Turns a boundary value problem into two initial value problems, integrated with RK4 and combined linearly to hit the far boundary exactly.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">p(x), q(x), r(x) + BCs</span>
+          <span class="tag">Dual-IVP plot</span>
+          <span class="tag">RK4 step table</span>
+        </div>
+      </a>
+
+      <a href="methods/finite-difference-bvp.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:1.44s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Boundary Value Problems</span>
+          <span class="engine-index">19 / 29</span>
+        </div>
+        <h3 class="h3">Finite-Difference BVP</h3>
+        <p>Discretizes the whole interval at once into a tridiagonal linear system, instead of shooting an IVP across it — solve once, no iteration.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">p(x), q(x), r(x) + BCs</span>
+          <span class="tag">Tridiagonal solve</span>
+          <span class="tag">Grid-solution plot</span>
+        </div>
+      </a>
+
+      <a href="methods/false-position.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:1.52s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Root Finding</span>
+          <span class="engine-index">20 / 29</span>
+        </div>
+        <h3 class="h3">Method of False Position</h3>
+        <p>Brackets a root like Bisection, but replaces the midpoint with the secant line's x-intercept — usually fewer iterations, but the bracket doesn't always shrink evenly.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">f(x) + interval</span>
+          <span class="tag">Bracket visualization</span>
+          <span class="tag">Iteration table</span>
+        </div>
+      </a>
+
+      <a href="methods/newton-multiple-roots.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:1.60s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Root Finding</span>
+          <span class="engine-index">21 / 29</span>
+        </div>
+        <h3 class="h3">Newton's Method for Multiple Roots</h3>
+        <p>Modified Newton iteration that converges quadratically at multiple roots using both f′ and f″.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">f(x) + f′(x) + f″(x)</span>
+          <span class="tag">Multiple roots</span>
+          <span class="tag">Iteration table</span>
+        </div>
+      </a>
+
+      <a href="methods/steffensen.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:1.68s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Root Finding</span>
+          <span class="engine-index">22 / 29</span>
+        </div>
+        <h3 class="h3">Steffensen's Method</h3>
+        <p>Aitken's Δ² acceleration applied to fixed-point iteration — quadratic convergence without derivatives.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">g(x)</span>
+          <span class="tag">Aitken acceleration</span>
+          <span class="tag">Derivative-free</span>
+        </div>
+      </a>
+
+      <a href="methods/horner.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:1.76s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Polynomial Evaluation</span>
+          <span class="engine-index">23 / 29</span>
+        </div>
+        <h3 class="h3">Horner's Method</h3>
+        <p>Efficient polynomial evaluation via nested multiplication, plus deflation for finding remaining roots.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Coefficients</span>
+          <span class="tag">Deflation</span>
+          <span class="tag">Nested multiplication</span>
+        </div>
+      </a>
+
+      <a href="methods/neville.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:1.84s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Interpolation</span>
+          <span class="engine-index">24 / 29</span>
+        </div>
+        <h3 class="h3">Neville's Method</h3>
+        <p>Recursive polynomial interpolation building a table of successively higher-degree interpolants.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Data points</span>
+          <span class="tag">Recursive table</span>
+          <span class="tag">Polynomial</span>
+        </div>
+      </a>
+
+      <a href="methods/newton-dd.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:1.92s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Interpolation</span>
+          <span class="engine-index">25 / 29</span>
+        </div>
+        <h3 class="h3">Newton's Divided-Difference</h3>
+        <p>Interpolating polynomial via divided differences in Newton form.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Data points</span>
+          <span class="tag">Divided differences</span>
+          <span class="tag">Newton form</span>
+        </div>
+      </a>
+
+      <a href="methods/numerical-diff.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:2.00s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Differentiation</span>
+          <span class="engine-index">26 / 29</span>
+        </div>
+        <h3 class="h3">Numerical Differentiation</h3>
+        <p>Forward and central difference approximations for f′(x) — O(h) and O(h²) accurate.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">f(x)</span>
+          <span class="tag">Forward difference</span>
+          <span class="tag">Central difference</span>
+        </div>
+      </a>
+
+      <a href="methods/richardson-diff.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:2.08s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Differentiation</span>
+          <span class="engine-index">27 / 29</span>
+        </div>
+        <h3 class="h3">Richardson Extrapolation</h3>
+        <p>Combines two central-difference estimates to achieve O(h⁴) accuracy from O(h²) inputs.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">f(x)</span>
+          <span class="tag">Extrapolation</span>
+          <span class="tag">O(h⁴)</span>
+        </div>
+      </a>
+
+      <a href="methods/least-squares.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:2.16s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Approximation</span>
+          <span class="engine-index">28 / 29</span>
+        </div>
+        <h3 class="h3">Discrete Least Squares</h3>
+        <p>Fits a degree-d polynomial to data by solving the normal equations VᵀVc = Vᵀy.</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Data points</span>
+          <span class="tag">Polynomial fit</span>
+          <span class="tag">Normal equations</span>
+        </div>
+      </a>
+
+      <a href="methods/chebyshev-econ.html" class="card engine-card reveal crosshair-host" style="display:block; transition-delay:2.24s">
+        <span class="engine-dot"></span>
+        <div class="engine-card-head">
+          <span class="eyebrow">Approximation</span>
+          <span class="engine-index">29 / 29</span>
+        </div>
+        <h3 class="h3">Chebyshev Economization</h3>
+        <p>Reduces polynomial degree by truncating the Chebyshev series — minimax approximation on [−1, 1].</p>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Coefficients</span>
+          <span class="tag">Degree reduction</span>
+          <span class="tag">Chebyshev</span>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container bar">
+      <span class="p2">Numerical Engine</span>
+      <span class="p2">More methods added continuously</span>
+    </div>
+  </footer>
+</section>
+
+<script src="../../assets/vendor/three.min.js" defer></script>
+<script src="../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../assets/js/engine-core.js" defer></script>
+<script src="../../assets/proto/proto.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => {
+    Engine.initChrome();
+    Proto.initRipple(document.getElementById("heroCanvas"), 0x5c939f);
+  });
+</script>
+</body>
+</html>

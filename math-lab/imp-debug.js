@@ -1,0 +1,10 @@
+const path = require("path");
+const math = require(path.join(__dirname, "assets", "vendor", "math.min.js"));
+const loadNerdamer = require(path.join(__dirname, "tests", "lib", "load-cas.js"));
+const nerdamer = loadNerdamer();
+const CS = require(path.join(__dirname, "assets", "js", "calculus-symbolic.js"));
+CS.configure({ nerdamer, math });
+const F = nerdamer("integrate(sin(x),x)").toString();
+console.log("F =", F);
+console.log("limit(-cos(x),x,Infinity) =", nerdamer("limit("+F+",x,Infinity)").toString());
+console.log("limit(cos(x),x,Infinity) =", nerdamer("limit(cos(x),x,Infinity)").toString());

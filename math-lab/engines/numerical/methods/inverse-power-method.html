@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Inverse Power Method — Numerical Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Numerical&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Linear Algebra</span>
+    <h1 class="h2" style="margin-top:14px;">Inverse Power Method</h1>
+    <p class="method-summary">Runs the power method on <span class="mono">A⁻¹</span> — via solving <span class="mono">A·y = x</span> each step, never inverting A directly — so the largest eigenvalue of <span class="mono">A⁻¹</span> reveals the smallest-magnitude eigenvalue of <span class="mono">A</span>: <span class="mono">λ_min = 1/μ_n</span>.</p>
+  </div>
+</section>
+
+<section class="section--tight" x-data>
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="inversePowerForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="sizeInput">Matrix size (n)</label>
+          <input type="number" id="sizeInput" value="2" step="1" min="2" max="6" />
+          <span class="field-note">A is n × n. Cap at 6 to keep the grid usable.</span>
+        </div>
+
+        <div class="field" style="margin-top:18px;">
+          <label>Matrix A</label>
+          <table class="points-table matrix-table" id="matrixTable">
+            <tbody id="matrixTableBody"></tbody>
+          </table>
+          <span class="field-note">A singular matrix has no inverse — the linear solve will throw and surface the error here.</span>
+        </div>
+
+        <div class="field" style="margin-top:18px;">
+          <label>Starting vector x₀</label>
+          <div class="field-row" id="x0Row"></div>
+        </div>
+
+        <div class="status-line" id="startStatus">
+          <span class="status-dot"></span><span id="startStatusText">Enter a matrix and starting vector…</span>
+        </div>
+
+        <div class="field-row" style="margin-top:18px;">
+          <div class="field">
+            <label for="tolInput">Tolerance</label>
+            <input type="number" id="tolInput" value="0.000001" step="any" />
+          </div>
+          <div class="field">
+            <label for="maxIterInput">Max iterations</label>
+            <input type="number" id="maxIterInput" value="100" step="1" min="1" max="500" />
+          </div>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter a nonsingular matrix and a nonzero starting vector, then compute — the μ-per-iteration convergence plot, full iteration table, and smallest-eigenvalue estimate will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">Smallest eigenvalue ≈</div>
+              <div class="value" id="statLambdaMin">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Iterations</div>
+              <div class="value" id="statIters">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Eigenvector</div>
+              <div class="value" id="statEigenvector">—</div>
+            </div>
+          </div>
+
+          <span class="field-note">Iteration formula</span>
+          <div class="formula-block formula-block--reference" id="formulaBlock"></div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">1/λ estimate (μ) vs. iteration — μ converges to 1/λ_min</span></div>
+            <div id="muPlot" style="height:320px;"></div>
+          </div>
+
+          <div class="data-table-wrap">
+            <table class="data-table" id="iterTable">
+              <thead>
+                <tr><th>n</th><th>x</th><th>y (solve of Ay=x)</th><th>μ</th><th>λ_min = 1/μ</th><th>error</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Step through</span>
+            <div class="slider-row">
+              <input type="range" id="stepSlider" min="0" max="0" value="0" />
+              <span class="step-label" id="stepLabel">step 0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Numerical Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/algorithms.js" defer></script>
+<script src="../../../assets/js/inverse-power-method.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

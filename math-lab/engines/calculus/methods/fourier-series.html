@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Fourier Series — Calculus Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#4f9e82; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Calculus&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="taylor-series.html"><span>Taylor Series</span><span class="dup" aria-hidden="true">Taylor Series</span></a></li>
+      <li><a href="power-series.html"><span>Power Series</span><span class="dup" aria-hidden="true">Power Series</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Sequences &amp; Series</span>
+    <h1 class="h2" style="margin-top:14px;">Fourier Series</h1>
+    <p class="method-summary">Give a function <span class="mono">f(x)</span> on an interval and the engine writes its Fourier series — full <span class="mono">[−L, L]</span>, half-range sine, or half-range cosine — computing every coefficient by Simpson's rule and keeping the exact <span class="mono">π</span>-symbolic form wherever the integral is elementary. The <span class="mono">N</span>-term partial sum is then plotted against <span class="mono">f</span> so the convergence (and the Gibbs overshoot at a jump) is plain to see.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="fourierForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label for="fInput">f(x) — the function to expand</label>
+          <input type="text" id="fInput" class="mono" value="x" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="fPreview"></div>
+          <button type="button" class="keypad-toggle is-open" id="keypadToggle">
+            <span>Math Keypad</span><span class="chev">⌄</span>
+          </button>
+          <div class="math-keypad is-open" id="fKeypad"></div>
+        </div>
+
+        <div class="field" style="margin-top:14px;">
+          <label for="lInput">Half-period L (the interval is [−L, L] for full, [0, L] for half-range)</label>
+          <input type="text" id="lInput" class="mono" value="pi" autocomplete="off" spellcheck="false" style="max-width:160px;" />
+        </div>
+
+        <div class="field" style="margin-top:14px;">
+          <label>Mode</label>
+          <div class="chip-row" id="modeChips">
+            <button type="button" class="chip is-active" data-mode="full">Full (sine + cosine)</button>
+            <button type="button" class="chip" data-mode="sine">Half-range sine</button>
+            <button type="button" class="chip" data-mode="cosine">Half-range cosine</button>
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:14px;">
+          <label for="nInput">Number of terms N (1–40)</label>
+          <input type="number" id="nInput" class="mono" value="8" min="1" max="40" step="1" style="max-width:120px;" />
+        </div>
+
+        <div class="status-line" id="startStatus">
+          <span class="status-dot"></span><span id="startStatusText">Checking f(x)…</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Expand</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+
+        <span class="field-note" style="margin-top:22px;">Worked examples — click to load</span>
+        <div class="method-tags" id="presetRow">
+          <button type="button" class="tag" data-f="x" data-l="pi" data-mode="full" data-n="6">f=x on [−π,π] full (bₙ=2(−1)ⁿ⁺¹/n)</button>
+          <button type="button" class="tag" data-f="sign(x)" data-l="pi" data-mode="full" data-n="9">square wave sign(x) full</button>
+          <button type="button" class="tag" data-f="abs(x)" data-l="pi" data-mode="full" data-n="8">f=|x| full (cosine only)</button>
+          <button type="button" class="tag" data-f="x" data-l="pi" data-mode="sine" data-n="8">f=x half-range sine</button>
+          <button type="button" class="tag" data-f="1" data-l="2" data-mode="cosine" data-n="4">f=1 cosine (a₀=2)</button>
+          <button type="button" class="tag" data-f="x^2" data-l="pi" data-mode="full" data-n="8">f=x² on [−π,π] full</button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter f(x), the half-period L, a mode, and a term count, then expand — the Fourier series, its coefficients, and a plot of the partial sum S_N against f will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">Mode</div>
+              <div class="value" id="statMode">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Terms</div>
+              <div class="value" id="statTerms">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Checked</div>
+              <div class="value" id="statVerified">—</div>
+            </div>
+          </div>
+
+          <span class="field-note">Series</span>
+          <div class="formula-block formula-block--result" id="seriesBlock"></div>
+
+          <span class="field-note" style="display:block; margin-top:16px;">Partial sum S_N(x)</span>
+          <div class="formula-block" id="partialBlock"></div>
+
+          <div class="panel crosshair-host" style="margin-top:16px;">
+            <span class="panel-title">Coefficients</span>
+            <div class="data-table-wrap">
+              <table class="data-table" id="coefTable">
+                <thead>
+                  <tr><th>n</th><th>aₙ (exact)</th><th>aₙ (numeric)</th><th>bₙ (exact)</th><th>bₙ (numeric)</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="plot-wrap crosshair-host" style="margin-top:16px;">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;">f(x) vs the N-term partial sum S_N(x)</span></div>
+            <div id="seriesPlot" style="height:360px;"></div>
+          </div>
+        </div>
+
+        <!-- Shown when L is non-positive / unparseable or the mode is unknown. First-class
+             refusal, not an error. -->
+        <div class="panel crosshair-host" id="refusedPanel" style="display:none;">
+          <span class="panel-title">Can't expand this one</span>
+          <p class="p1" id="refusedReason"></p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Calculus Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/vendor/nerdamer.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/proto/proto.js" defer></script>
+<!-- calculus-symbolic.js is loaded here only as the in-page fallback for when a Worker
+     cannot be created (opening this file over file://). In normal use the worker owns its
+     own copy and this one is never called. fourierSeriesValue is also pure and main-thread. -->
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/calculus-symbolic.js" defer></script>
+<script src="../../../assets/js/cas-client.js" defer></script>
+<script src="../../../assets/js/fourier-series.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

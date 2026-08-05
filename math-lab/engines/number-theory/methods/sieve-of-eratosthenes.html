@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sieve of Eratosthenes — Number Theory Engine</title>
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#a3623c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Number&nbsp;Theory&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Primes &amp; factorisation</span>
+    <h1 class="h2" style="margin-top:14px;">Sieve of Eratosthenes</h1>
+    <p class="method-summary">The oldest algorithm that finds every prime up to <span class="mono">n</span> in one pass. Start at 2; mark it prime, strike every multiple; move to the next unmarked number — that's prime too — and strike its multiples. What's left standing is exactly the primes below <span class="mono">n</span>. The animation is the lesson: composites die in coloured waves, one prime at a time.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="sieveForm">
+        <span class="panel-title">Input</span>
+        <div class="field">
+          <label for="nInput">sieve limit n</label>
+          <input type="text" id="nInput" class="mono" value="120" inputmode="numeric" autocomplete="off" spellcheck="false" />
+        </div>
+        <span class="field-note">2 through n. Keep it small (≤ 400) — the *animation* is the point, and each multiple is struck one cell at a time.</span>
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Sieve</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Choose a limit and sieve — the grid will populate and the step slider will walk through each prime's strike wave.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">primes ≤ n</div>
+              <div class="value" id="statCount">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">sieve rounds</div>
+              <div class="value" id="statRounds">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">limit n</div>
+              <div class="value" id="statN">—</div>
+            </div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Step through</span>
+            <p class="field-note" id="stepNote">step 0 — nothing struck yet</p>
+            <div class="slider-row" style="margin-top:10px;">
+              <input type="range" id="stepSlider" min="0" max="0" value="0" />
+              <span class="step-label" id="stepLabel">round 0</span>
+            </div>
+            <div class="nt-sieve" id="sieveGrid"></div>
+            <div class="nt-sieve-legend">
+              <span><span class="swatch" style="background:var(--electric-teal)"></span>prime</span>
+              <span><span class="swatch" style="background:var(--infrared)"></span>being struck this round</span>
+              <span><span class="swatch" style="background:rgba(255,255,255,.18)"></span>candidate</span>
+              <span><span class="swatch" style="background:rgba(255,255,255,.05)"></span>struck out</span>
+            </div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">The primes</span>
+            <div class="nt-pipelist" id="primeList"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Number Theory Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/number-theory.js" defer></script>
+<script src="../../../assets/js/sieve-of-eratosthenes.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

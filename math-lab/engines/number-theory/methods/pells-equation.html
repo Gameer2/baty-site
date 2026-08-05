@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pell's Equation — Number Theory Engine</title>
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#a3623c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Number&nbsp;Theory&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Recommended additions</span>
+    <h1 class="h2" style="margin-top:14px;">Pell's Equation</h1>
+    <p class="method-summary">For a non-square <span class="mono">D</span>, Pell's equation <span class="mono">x² − D·y² = 1</span> always has a non-trivial integer solution — and a *smallest* one (the fundamental solution) from which all others are generated. Finding it by brute force is hopeless (D = 61 gives x = 1,766,319,049); finding it through the continued fraction of √D is automatic. The convergents of √D march toward the answer, and one of the first period (or two) is the fundamental solution.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="pellForm">
+        <span class="panel-title">Input — D (non-square)</span>
+        <div class="field">
+          <label for="dInput">D</label>
+          <input type="text" id="dInput" class="mono" value="61" inputmode="numeric" autocomplete="off" spellcheck="false" />
+        </div>
+        <span class="field-note">D = 61 is the famous one: the smallest solution is x = 1766319049, y = 226153980 — found here in 21 continued-fraction terms, not a billion trial squares. Try D = 13, 23, or 109.</span>
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Solve</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try D=109</span></button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter a non-square D — the fundamental solution, the verification, and the continued-fraction path will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent"><div class="label">x (fundamental)</div><div class="value" id="statX">—</div></div>
+            <div class="result-stat"><div class="label">y</div><div class="value" id="statY">—</div></div>
+            <div class="result-stat"><div class="label">CF terms used</div><div class="value" id="statTerms">—</div></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">The fundamental solution</span>
+            <div class="formula-block formula-block--result" id="pellBlock"></div>
+            <div class="field-note" id="pellNote" style="margin-top:10px;"></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">How it was found</span>
+            <div class="formula-block formula-block--reference" id="pathBlock"></div>
+            <div class="field-note" id="pathNote" style="margin-top:10px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Number Theory Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/number-theory.js" defer></script>
+<script src="../../../assets/js/pells-equation.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

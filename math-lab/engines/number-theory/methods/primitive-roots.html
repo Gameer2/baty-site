@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Primitive Roots — Number Theory Engine</title>
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#a3623c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Number&nbsp;Theory&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Primitive roots</span>
+    <h1 class="h2" style="margin-top:14px;">Primitive Roots</h1>
+    <p class="method-summary">A primitive root mod <span class="mono">n</span> is an element whose powers hit every unit — order exactly <span class="mono">φ(n)</span>. They exist only for <span class="mono">n ∈ {1, 2, 4, p^k, 2p^k}</span> (p an odd prime). The signature visual is the modular rosette: place <span class="mono">g^0, g^1, g^2, …</span> around a circle and connect consecutive powers. A primitive root traces a star polygon that visits every point before closing; a non-primitive base visits only a fraction.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <form class="panel crosshair-host" id="prForm">
+        <span class="panel-title">Input</span>
+        <div class="field">
+          <label for="nInput">modulus n</label>
+          <input type="text" id="nInput" class="mono" value="7" inputmode="numeric" autocomplete="off" spellcheck="false" />
+        </div>
+        <span class="field-note">Primitive roots exist for n = 1, 2, 4, p^k, 2p^k. Try 7 (g=3), 11, or 18 (=2·9). 8 has none.</span>
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Find roots</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try 11</span></button>
+        </div>
+      </form>
+
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter a modulus — the existence verdict, a generator, all primitive roots, and the rosette visual will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent"><div class="label">primitive roots?</div><div class="value" id="statExists">—</div></div>
+            <div class="result-stat"><div class="label">generator g</div><div class="value" id="statGen">—</div></div>
+            <div class="result-stat"><div class="label">φ(n)</div><div class="value" id="statPhi">—</div></div>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">All primitive roots mod n</span>
+            <div class="nt-pipelist" id="rootList"></div>
+            <div class="field-note" id="rootNote" style="margin-top:10px;"></div>
+          </div>
+
+          <div class="panel crosshair-host" id="rosettePanel">
+            <span class="panel-title">Rosette — powers of g around the circle</span>
+            <div class="nt-rosette-wrap"><canvas id="rosetteCanvas" width="520" height="520"></canvas></div>
+            <div class="nt-rosette-legend">
+              <span><span class="swatch" style="background:var(--electric-teal)"></span>residue points (g^k mod n)</span>
+              <span><span class="swatch" style="background:var(--infrared)"></span>step from g^k → g^(k+1)</span>
+            </div>
+            <div class="field-note" id="rosetteNote" style="margin-top:10px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Number Theory Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/number-theory.js" defer></script>
+<script src="../../../assets/js/primitive-roots.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

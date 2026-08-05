@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Techniques of Integration — Calculus Engine</title>
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#4f9e82; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Calculus&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Categories</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <a href="../methods.html" class="ring-back">← All categories</a>
+    <span class="eyebrow">Method Category</span>
+    <h1 class="h2" style="margin-top:14px;">Techniques of Integration</h1>
+    <p class="method-summary">7 methods. Click a card to preview it, then open it to work through the method.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="method-ring" data-accent="infrared">
+      <div class="ring-inner">
+
+        <div class="ring-card"
+             data-eyebrow="Techniques of Integration"
+             data-title="u-Substitution"
+             data-desc="Spots the right substitution and shows the full derivation, step by step."
+             data-tags="Symbolic antiderivative|Step-by-step|Verified by differentiating back"
+             data-href="u-substitution.html">
+          <div class="ring-face front"><span class="ring-card-title">u-Substitution</span></div>
+        </div>
+
+        <div class="ring-card"
+             data-eyebrow="Techniques of Integration"
+             data-title="Integration by Parts"
+             data-desc="Splits ∫u dv = uv − ∫v du with the LIATE heuristic, one line at a time."
+             data-tags="LIATE heuristic|Step-by-step|Verified by differentiating back"
+             data-href="integration-by-parts.html">
+          <div class="ring-face front"><span class="ring-card-title">Integration by Parts</span></div>
+        </div>
+
+        <div class="ring-card"
+             data-eyebrow="Techniques of Integration"
+             data-title="Partial Fractions"
+             data-desc="Breaks a rational function into simple pieces and integrates each one."
+             data-tags="Factors the denominator|Step-by-step|Verified by differentiating back"
+             data-href="partial-fractions.html">
+          <div class="ring-face front"><span class="ring-card-title">Partial Fractions</span></div>
+        </div>
+
+        <div class="ring-card"
+             data-eyebrow="Techniques of Integration"
+             data-title="Trigonometric Substitution"
+             data-desc="Clears stubborn radicals with a trig substitution, then simplifies the result cleanly."
+             data-tags="Three radical forms|Composition cleanup|Verified by differentiating back"
+             data-href="trigonometric-substitution.html">
+          <div class="ring-face front"><span class="ring-card-title">Trigonometric Substitution</span></div>
+        </div>
+
+        <div class="ring-card"
+             data-eyebrow="Techniques of Integration"
+             data-title="Algebraic Substitution"
+             data-desc="Solves nested-radical integrals that other solvers refuse outright."
+             data-tags="Radical of a linear expression|Clears the radical entirely|Verified by differentiating back"
+             data-href="algebraic-substitution.html">
+          <div class="ring-face front"><span class="ring-card-title">Algebraic Substitution</span></div>
+        </div>
+
+        <div class="ring-card"
+             data-eyebrow="Techniques of Integration"
+             data-title="Completing the Square"
+             data-desc="Reshapes a quadratic to unlock the arctan, log, or hyperbolic antiderivative."
+             data-tags="Standard-form recognition|Arctan, log, or hyperbolic|Verified by differentiating back"
+             data-href="completing-the-square.html">
+          <div class="ring-face front"><span class="ring-card-title">Completing the Square</span></div>
+        </div>
+
+        <div class="ring-card"
+             data-eyebrow="General-Purpose Solver"
+             data-title="Integral Calculator"
+             data-desc="Type any integral — every technique above is tried, in order, until one works."
+             data-tags="Every technique, in order|SymPy fallback (WASM)|Always independently verified"
+             data-href="integral-calculator.html">
+          <div class="ring-face front"><span class="ring-card-title">Integral Calculator</span></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container bar">
+      <span class="p2">Calculus Engine</span>
+      <a href="../methods.html" class="p2">← All categories</a>
+    </div>
+  </footer>
+</section>
+
+<div class="method-detail" id="methodDetail" data-accent="infrared" hidden>
+  <div class="method-detail-backdrop"></div>
+  <div class="method-detail-panel">
+    <button class="detail-close" id="detailClose" aria-label="Close" type="button">×</button>
+    <div class="detail-body" id="detailBody"></div>
+  </div>
+</div>
+
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/method-ring.js" defer></script>
+<script defer>
+document.addEventListener("DOMContentLoaded", () => { Engine.initChrome(); });
+</script>
+</body>
+</html>

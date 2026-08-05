@@ -1,0 +1,350 @@
+{
+  "timestamp": "2026-07-25T10:53:52.598Z",
+  "git": "89224d4",
+  "kind": "corpus",
+  "corpus": "syllabus",
+  "total": 875,
+  "correct": 372,
+  "wrong": 183,
+  "refused": 269,
+  "unverifiable": 32,
+  "timeout": 19,
+  "bySteps": {
+    "1-2": {
+      "total": 446,
+      "correct": 250
+    },
+    "3-5": {
+      "total": 355,
+      "correct": 115
+    },
+    "6-10": {
+      "total": 62,
+      "correct": 7
+    },
+    "11+": {
+      "total": 12,
+      "correct": 0
+    }
+  },
+  "failures": [
+    {
+      "problem": "cos(2*x)*sqrt(4-sin(2*x))",
+      "got": "(1/4)*cos(2*x)^2+2*sin(2*x)",
+      "expected": "-1/3*(4-sin(2*x))^(3/2)",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "sin(x)/(3+cos(x))^2",
+      "got": "(1/3)*cos(x)^3+(3/2)*cos(x)^2-(3+cos(x))^(-1)*sin(x)",
+      "expected": "1/(3+cos(x))",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "sin(x)/sqrt(cos(x)^3)",
+      "got": "-2*sqrt(cos(x))",
+      "expected": "2*cos(x)/sqrt(cos(x)^3)",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "sin(sqrt(1+x))/sqrt(1+x)",
+      "got": "-2*cos(sqrt((1+x)^(1/2)))",
+      "expected": "-2*cos(sqrt(1+x))",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "(1-2*x+x^2)^(1/5)/(1-x)",
+      "got": "(-5/12)*(-2*x+x^2+1)^(6/5)",
+      "expected": "-5/2*(1-2*x+x^2)^(1/5)",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "x^2*sin(x)^2",
+      "got": "((-1/2)*cos(x)*sin(x)+(1/2)*x)*x^2+(-1/3)*x^3+(-1/8)*x+(-1/8)*cos(x)*s",
+      "expected": "-1/4*x+1/6*x^3+1/4*cos(x)*sin(x)-1/2*x^2*cos(x)*sin(x)+1/2*x*sin(x)^2",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "(p1^2-x^2)^(5/2)",
+      "got": "(-83521/64000)*cos(2*asin((10/17)*x))*sin(2*asin((10/17)*x))+(-83521/9",
+      "expected": "5/24*p1^2*x*(p1^2-x^2)^(3/2)+1/6*x*(p1^2-x^2)^(5/2)+5/16*p1^6*atan(x/s",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "(1-x)^20*x^4",
+      "got": "(-10/3)*x^6+(-12920/3)*x^18+(-20995/2)*x^16+(-285/2)*x^8+(-3876/5)*x^2",
+      "expected": "-1/21*(1-x)^21+2/11*(1-x)^22-6/23*(1-x)^23+1/6*(1-x)^24-1/25*(1-x)^25",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "sin((-1+x)^(1/4))",
+      "got": "cos((-1+x)^(1/4))",
+      "expected": "24*(-1+x)^(1/4)*cos((-1+x)^(1/4))-4*(-1+x)^(3/4)*cos((-1+x)^(1/4))-24*",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "sin(2*x)*sqrt(1+3*cos(x)^2)",
+      "got": "(-3/8)*cos(2*x)^2+(-5/4)*cos(2*x)",
+      "expected": "-2/9*(4-3*sin(x)^2)^(3/2)",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "2^sqrt(x)/sqrt(x)",
+      "got": "2*2^(sqrt(2)*x^(1/4))*log(2)^(-1)",
+      "expected": "2^(1+sqrt(x))/log(2)",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "1/(2-x+x^2)",
+      "got": "((-1/2+x)^2-1/4-x^2+x)^(-1)*log((-1/2+x)^2+7/4)",
+      "expected": "-2*atan((1-2*x)/sqrt(7))/sqrt(7)",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "x*atan(x)^2",
+      "got": "(-1/15)*log(1+x^2)+(-1/3)*atan(x)*x^3+(-1/5)*atan(x)*x^5+(1/15)*x^2+(1",
+      "expected": "-x*atan(x)+1/2*atan(x)^2+1/2*x^2*atan(x)^2+1/2*log(1+x^2)",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "atan(sqrt(x))",
+      "got": "(-1/3)*x^(3/2)+(-1/5)*x^(5/2)+atan(sqrt((1/2)*x^(-1/2)))*x",
+      "expected": "atan(sqrt(x))+x*atan(sqrt(x))-sqrt(x)",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "exp(x)/(1+exp(2*x))",
+      "got": "(-1/2)*((1+e^(2*x))^(-1)*e^x-2*(1+e^(2*x))^(-2)*e^(3*x))*x^2+(1+e^(2*x",
+      "expected": "atan(exp(x))",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "sqrt((p2-x)*(-p1+x))",
+      "got": "(-2/3)*(-x+23/10)^(3/2)+(2/3)*(-17/10+x)^(3/2)",
+      "expected": "-1/8*(p1-p2)^2*atan(1/2*(p1+p2-2*x)/sqrt(-p1*p2+(p1+p2)*x-x^2))-1/4*(p",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "(3+2*x+x^2)/((-1+x)*(1+x)^2)",
+      "got": "(1/3)*x^3+4*(1+x)^(-1)+log(1+x)",
+      "expected": "1/(1+x)+3/2*log(1-x)-1/2*log(1+x)",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "1/(cos(x)+sin(x))",
+      "got": "-log(cos(x)+sin(x))",
+      "expected": "-atanh((cos(x)-sin(x))/sqrt(2))/sqrt(2)",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "(3+2*x)/((-2+x)*(5+x))",
+      "got": "(-3/7)*log(5+x)+(199/7)*log(-2+x)+14*x+x^2",
+      "expected": "log(2-x)+log(5+x)",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "(7+8*x^3)/((1+x)*(1+2*x)^3)",
+      "got": "(-7/4)*(1+2*x)^(-2)*x+(-7/4)*(1+2*x)^(-2)+(-7/8)*(1+2*x)^(-1)+(32/3)*x",
+      "expected": "(-3)/(1+2*x)^2+3/(1+2*x)+log(1+x)",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "1/((4-4*x+x^2)*(5-4*x+x^2))",
+      "got": "-((-2+x)^2-4-x^2+4*x)^(-1)*log((-2+x)^2+1)-(-2+x)^(-1)",
+      "expected": "1/(2-x)+atan(2-x)",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "1/(p2*cos(x)+p1*sin(x))^2",
+      "got": "((17/10)*sin(x)+(23/10)*cos(x))^(-1)",
+      "expected": "sin(x)/(p2*(p2*cos(x)+p1*sin(x)))",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "sqrt(3-x^2)",
+      "got": "(-9/2)*cos(asin(sqrt(3)^(-1)*x))*sin(asin(sqrt(3)^(-1)*x))+(-x^2+3)^(1",
+      "expected": "3/2*asin(x/sqrt(3))+1/2*x*sqrt(3-x^2)",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "sqrt(3-x^2)/x",
+      "got": "9*(-log(cot(asin(sqrt(3)^(-1)*x))+csc(asin(sqrt(3)^(-1)*x)))+cos(asin(",
+      "expected": "-atanh(sqrt(3-x^2)/sqrt(3))*sqrt(3)+sqrt(3-x^2)",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "exp(2*x)/(2-3*x+x^2)",
+      "got": "(-103/4)*e^(2*x)*x+(-15/2)*e^(2*x)*x^3+(-3*x+x^2+2)^(-1)*e^(2*x)*x+(10",
+      "expected": "exp(4)*Ei(-4+2*x)-exp(2)*Ei(-2+2*x)",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "(1+x)^3/(-1+x)^4",
+      "got": "(-1/3)*(-1+x)^(-3)*x+(-1/3)*(-1+x)^(-3)+(-1/6)*(-1+x)^(-2)",
+      "expected": "8/3/(1-x)^3+(-6)/(1-x)^2+6/(1-x)+log(1-x)",
+      "source": "Hearn Problems.mac"
+    },
+    {
+      "problem": "(p2+p1*x)/((-p3+x)*(-p4+x))",
+      "got": "(-102/25)*x+(17/20)*x^2+(-23/24)*log(-7+10*x)+(-357/125)*log(-7/10+x)+",
+      "expected": "(p2+p1*p3)*log(p3-x)/(p3-p4)-(p2+p1*p4)*log(p4-x)/(p3-p4)",
+      "source": "Hearn Problems.mac"
+    },
+    {
+      "problem": "1/(p3+p2*x+p1*x^2)",
+      "got": "10*(((23/2)*sqrt(17)^(-1)+sqrt(17)*x)^2-17*x^2-23*x-529/68)^(-1)*log((",
+      "expected": "-2*atanh((p2+2*p1*x)/sqrt(p2^2-4*p1*p3))/sqrt(p2^2-4*p1*p3)",
+      "source": "Hearn Problems.mac"
+    },
+    {
+      "problem": "1/(3-2*x+x^2)",
+      "got": "((-1+x)^2-1-x^2+2*x)^(-1)*log((-1+x)^2+2)",
+      "expected": "-atan((1-x)/sqrt(2))/sqrt(2)",
+      "source": "Hearn Problems.mac"
+    },
+    {
+      "problem": "1/((-1+x)^2*(1+x^2)^2)",
+      "got": "(1/2)*x^2+x-(-1+x)^(-1)+log(-1+x)",
+      "expected": "1/4/(1-x)+(-1/4)/(1+x^2)+1/4*atan(x)-1/2*log(1-x)+1/4*log(1+x^2)",
+      "source": "Hearn Problems.mac"
+    },
+    {
+      "problem": "x/((p1^2+x^2)*(p2^2+x^2))",
+      "got": "(-289/200)*log(100*x^2+289)+(1/2)*x^2+(529/200)*log(289/100+x^2)",
+      "expected": "-1/2*log(p1^2+x^2)/(p1^2-p2^2)+1/2*log(p2^2+x^2)/(p1^2-p2^2)",
+      "source": "Hearn Problems.mac"
+    },
+    {
+      "problem": "x^2/((p1^2+x^2)*(p2^2+x^2))",
+      "got": "(-102/25)*atan((10/17)*x)+(1/3)*x^3+(12/5)*x",
+      "expected": "p1*atan(x/p1)/(p1^2-p2^2)-p2*atan(x/p2)/(p1^2-p2^2)",
+      "source": "Hearn Problems.mac"
+    },
+    {
+      "problem": "x/((-1+x)*(1+x^2))",
+      "got": "(1/2)*x^2+(1/3)*x^3+2*x+2*log(-1+x)",
+      "expected": "1/2*atan(x)+1/2*log(1-x)-1/4*log(1+x^2)",
+      "source": "Hearn Problems.mac"
+    },
+    {
+      "problem": "x^3/((-1+x)^2*(1+x^3))",
+      "got": "(1/4)*x^4+(1/5)*x^5+(1/6)*x^6+(2/3)*x^3+2*x+x^2+2*log(-1+x)",
+      "expected": "1/2/(1-x)+3/4*log(1-x)-1/12*log(1+x)-1/3*log(1-x+x^2)",
+      "source": "Hearn Problems.mac"
+    },
+    {
+      "problem": "x^2/(p1+p2*x)",
+      "got": "(-17/10)*x+(23/20)*x^2+(289/230)*log((23/10)*x+17/10)",
+      "expected": "-p1*x/p2^2+1/2*x^2/p2+p1^2*log(p1+p2*x)/p2^3",
+      "source": "Hearn Problems.mac"
+    },
+    {
+      "problem": "x*log(p2+p1*x)",
+      "got": "(-289/400)*x^2+(391/200)*x+(-529/200)*log((17/10)*x+23/10)+(1/2)*log((",
+      "expected": "1/2*p2*x/p1-1/4*x^2-1/2*p2^2*log(p2+p1*x)/p1^2+1/2*x^2*log(p2+p1*x)",
+      "source": "Hearn Problems.mac"
+    },
+    {
+      "problem": "x^2*log(p2+p1*x)",
+      "got": "(-4913/9000)*x^3+(-8993/3000)*x+(6647/6000)*x^2+(1/3)*log((17/10)*x+23",
+      "expected": "-1/3*p2^2*x/p1^2+1/6*p2*x^2/p1-1/9*x^3+1/3*p2^3*log(p2+p1*x)/p1^3+1/3*",
+      "source": "Hearn Problems.mac"
+    },
+    {
+      "problem": "log(p1^2+x^2)",
+      "got": "2*((289/100+x^2)*log(289/100+x^2)-289/100-x^2)*x",
+      "expected": "-2*x+2*p1*atan(x/p1)+x*log(p1^2+x^2)",
+      "source": "Hearn Problems.mac"
+    },
+    {
+      "problem": "log(-p1^2+x^2)",
+      "got": "2*((-289/100+x^2)*log(-289/100+x^2)-x^2+289/100)*x",
+      "expected": "-2*x+2*p1*atanh(x/p1)+x*log(-p1^2+x^2)",
+      "source": "Hearn Problems.mac"
+    },
+    {
+      "problem": "1/(1+tan(x))^2",
+      "got": "-(1+tan(x))^(-1)",
+      "expected": "1/2*log(cos(x)+sin(x))+(-1/2)/(1+tan(x))",
+      "source": "Hearn Problems.mac"
+    }
+  ],
+  "timeouts": [
+    {
+      "problem": "(-1+4*x^5)/(1+x+x^5)^2",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "1/(5-cos(x)+2*sin(x))",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "1/(1+p1*cos(x))",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "1/(1+2*cos(x))",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "1/(1+1/2*cos(x))",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "sin(x)^2/(1+sin(x)^2)",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "1/(p2^2*cos(x)^2+p1^2*sin(x)^2)",
+      "source": "Apostol Problems.mac"
+    },
+    {
+      "problem": "x*log(x+(1+x^2)^(1/2))",
+      "source": "Hearn Problems.mac"
+    },
+    {
+      "problem": "x*(1+exp(x)*sin(x))^2",
+      "source": "Hearn Problems.mac"
+    },
+    {
+      "problem": "exp(x)*x*cos(x)",
+      "source": "Hearn Problems.mac"
+    },
+    {
+      "problem": "exp(x^2)/x+2*exp(x^2)*x*log(x)+(-2+log(x))/(x+log(x)^2)^2+(1",
+      "source": "Hearn Problems.mac"
+    },
+    {
+      "problem": "(-8-8*x-x^2-3*x^3+7*x^4+4*x^5+2*x^6)/((-1+2*x^2)^2*sqrt(1+2*",
+      "source": "Hearn Problems.mac"
+    },
+    {
+      "problem": "(-32+5*x-27*x^2+4*x^3)/(-70-299*x-286*x^2+50*x^3-13*x^4+30*x",
+      "source": "Stewart Problems.mac"
+    },
+    {
+      "problem": "(8-13*x^2-7*x^3+12*x^5)/(4-20*x+41*x^2-80*x^3+116*x^4-80*x^5",
+      "source": "Stewart Problems.mac"
+    },
+    {
+      "problem": "x^3/(1+x^2)^(1/3)",
+      "source": "Stewart Problems.mac"
+    },
+    {
+      "problem": "sqrt(x)/((-1)/x^(1/3)+sqrt(x))",
+      "source": "Stewart Problems.mac"
+    },
+    {
+      "problem": "1/(1/x^(1/4)+sqrt(x))",
+      "source": "Stewart Problems.mac"
+    },
+    {
+      "problem": "1/(1/x^(1/3)+1/x^(1/4))",
+      "source": "Stewart Problems.mac"
+    },
+    {
+      "problem": "sqrt((1-x)/x)",
+      "source": "Stewart Problems.mac"
+    }
+  ]
+}

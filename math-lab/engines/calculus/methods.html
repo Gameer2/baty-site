@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Methods — Calculus Engine</title>
+<link rel="stylesheet" href="../../assets/css/engine.css" />
+<link rel="stylesheet" href="../../assets/proto/proto.css" />
+<style>:root{ --electric-teal:#4f9e82; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="methods.html" class="logo"><span class="dot"></span> Calculus&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../numerical/methods.html"><span>Numerical</span><span class="dup" aria-hidden="true">Numerical</span></a></li>
+      <li><a href="../calculus/methods.html"><span>Calculus</span><span class="dup" aria-hidden="true">Calculus</span></a></li>
+      <li><a href="../linear-algebra/methods.html"><span>Linear&nbsp;Algebra</span><span class="dup" aria-hidden="true">Linear&nbsp;Algebra</span></a></li>
+      <li><a href="../statistics/methods.html"><span>Statistics</span><span class="dup" aria-hidden="true">Statistics</span></a></li>
+      <li><a href="../ode/index.html"><span>ODE</span><span class="dup" aria-hidden="true">ODE</span></a></li>
+    </ul>
+    <a href="../../index.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Engines</span></a>
+  </div>
+</header>
+
+<section class="hero hero--compact">
+  <canvas class="hero-canvas" id="heroCanvas"></canvas>
+  <div class="container hero-inner">
+    <span class="eyebrow">Method library</span>
+    <h1 class="h1" style="margin-top:18px;">Pick a category below</h1>
+    <div class="hero-stats">
+      <div class="hero-stat"><span class="hero-stat-num">5</span><span class="hero-stat-label">Categories</span></div>
+      <div class="hero-stat"><span class="hero-stat-num">26</span><span class="hero-stat-label">Methods</span></div>
+      <div class="hero-stat"><span class="hero-stat-num">809</span><span class="hero-stat-label">Automated tests</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="methods">
+  <div class="container">
+
+    <div class="method-landing">
+      <a class="method-tile" data-accent="teal" href="methods/category-limits-derivatives.html">
+        <span class="tile-label">
+          <span class="eyebrow">Limits &amp; Derivatives</span>
+          <span class="count">5 methods</span>
+        </span>
+      </a>
+      <a class="method-tile" data-accent="infrared" href="methods/category-techniques-integration.html">
+        <span class="tile-label">
+          <span class="eyebrow">Techniques of Integration</span>
+          <span class="count">7 methods</span>
+        </span>
+      </a>
+      <a class="method-tile" data-accent="green" href="methods/category-applications-integration.html">
+        <span class="tile-label">
+          <span class="eyebrow">Applications of Integration</span>
+          <span class="count">5 methods</span>
+        </span>
+      </a>
+      <a class="method-tile" data-accent="violet" href="methods/category-series.html">
+        <span class="tile-label">
+          <span class="eyebrow">Series</span>
+          <span class="count">4 methods</span>
+        </span>
+      </a>
+      <a class="method-tile" data-accent="amber" href="methods/category-multivariable-3d.html">
+        <span class="tile-label">
+          <span class="eyebrow">Multivariable · 3D</span>
+          <span class="count">5 methods</span>
+        </span>
+      </a>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container bar">
+      <span class="p2">Calculus Engine — part of The Lab.</span>
+      <nav class="footer-links">
+        <a href="../numerical/methods.html" class="p2">Numerical</a>
+        <a href="../linear-algebra/methods.html" class="p2">Linear Algebra</a>
+        <a href="../statistics/methods.html" class="p2">Statistics</a>
+        <a href="../ode/index.html" class="p2">ODE</a>
+        <a href="../../index.html" class="p2">All Engines</a>
+      </nav>
+    </div>
+  </footer>
+</section>
+
+<script src="../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../assets/vendor/three.min.js" defer></script>
+<script src="../../assets/js/engine-core.js" defer></script>
+<script src="../../assets/proto/proto.js" defer></script>
+<script defer>
+document.addEventListener("DOMContentLoaded", () => {
+  Engine.initChrome();
+  if (window.Proto && Proto.initRipple) Proto.initRipple(document.getElementById("heroCanvas"), 0x4f9e82);
+});
+</script>
+</body>
+</html>

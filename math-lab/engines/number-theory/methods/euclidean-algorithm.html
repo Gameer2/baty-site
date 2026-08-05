@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Euclidean Algorithm — Number Theory Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#a3623c; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Number&nbsp;Theory&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Divisibility &amp; the Euclidean Algorithm</span>
+    <h1 class="h2" style="margin-top:14px;">Euclidean Algorithm</h1>
+    <p class="method-summary">Repeatedly applies the Division Algorithm — <span class="mono">a = bq + r</span> — replacing <span class="mono">(a, b)</span> with <span class="mono">(b, r)</span> until the remainder hits zero. Whatever's left is <span class="mono">gcd(a, b)</span>, exactly, every time — no floating point, no approximation.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="euclidForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="aInput">a</label>
+            <input type="text" id="aInput" class="mono" value="1071" inputmode="numeric" autocomplete="off" spellcheck="false" />
+          </div>
+          <div class="field">
+            <label for="bInput">b</label>
+            <input type="text" id="bInput" class="mono" value="462" inputmode="numeric" autocomplete="off" spellcheck="false" />
+          </div>
+        </div>
+        <span class="field-note">Any whole numbers — arbitrarily large. Computed with exact integer (BigInt) arithmetic, never floating point.</span>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:18px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter two integers and compute — every division step, the shrinking-remainder visual, and the final gcd will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label">gcd(a, b) =</div>
+              <div class="value" id="statGcd">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Division steps</div>
+              <div class="value" id="statSteps">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">a</div>
+              <div class="value" id="statA">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">b</div>
+              <div class="value" id="statB">—</div>
+            </div>
+          </div>
+
+          <span class="field-note">The recurrence this whole algorithm is built from</span>
+          <div class="formula-block formula-block--reference" id="formulaBlock"></div>
+
+          <div class="data-table-wrap">
+            <table class="data-table" id="iterTable">
+              <thead>
+                <tr><th>n</th><th>a</th><th>b</th><th>q</th><th>r</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Step through</span>
+            <div class="formula-block formula-block--result" id="stepEquation" style="margin-top:14px;"></div>
+            <div id="barTrack" style="margin-top:18px;"></div>
+            <div class="slider-row" style="margin-top:14px;">
+              <input type="range" id="stepSlider" min="0" max="0" value="0" />
+              <span class="step-label" id="stepLabel">step 0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Number Theory Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/number-theory.js" defer></script>
+<script src="../../../assets/js/euclidean-algorithm.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

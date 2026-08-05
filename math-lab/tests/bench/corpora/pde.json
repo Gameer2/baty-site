@@ -1,0 +1,168 @@
+{
+ "source": "Authored from Boyce & DiPrima Ch. 10-11 and docs/ODE_PDE_SOLVER_DESIGN.md section 7",
+ "note": "No importable PDE corpus exists (SymPy's pde module is thin, FriCAS barely covers PDEs), so this is authored. Verification is four-part: PDE residual, boundary conditions, initial condition, and series convergence. A solution satisfying the equation but not the BCs is wrong in the way a student cannot detect.",
+ "problems": [
+  {
+   "kind": "heat",
+   "ref": "B&D 10.5",
+   "implemented": true,
+   "L": 1,
+   "k": 1,
+   "f": "sin(pi*x)",
+   "bc": "dirichlet-zero"
+  },
+  {
+   "kind": "heat",
+   "ref": "B&D 10.5",
+   "implemented": true,
+   "L": 1,
+   "k": 1,
+   "f": "x*(1-x)",
+   "bc": "dirichlet-zero"
+  },
+  {
+   "kind": "heat",
+   "ref": "B&D 10.5",
+   "implemented": true,
+   "L": 2,
+   "k": 1,
+   "f": "sin(pi*x/2)",
+   "bc": "dirichlet-zero"
+  },
+  {
+   "kind": "heat",
+   "ref": "B&D 10.5",
+   "implemented": true,
+   "L": 1,
+   "k": 0.5,
+   "f": "sin(2*pi*x)",
+   "bc": "dirichlet-zero"
+  },
+  {
+   "kind": "heat",
+   "ref": "B&D 10.5",
+   "implemented": true,
+   "L": 1,
+   "k": 1,
+   "f": "x",
+   "bc": "dirichlet-zero"
+  },
+  {
+   "kind": "heat",
+   "ref": "B&D 10.5",
+   "implemented": true,
+   "L": 3.141592653589793,
+   "k": 1,
+   "f": "sin(x)",
+   "bc": "dirichlet-zero"
+  },
+  {
+   "kind": "heat",
+   "ref": "B&D 10.5",
+   "implemented": true,
+   "L": 1,
+   "k": 2,
+   "f": "x*(1-x)^2",
+   "bc": "dirichlet-zero"
+  },
+  {
+   "kind": "heat",
+   "ref": "B&D 10.5",
+   "implemented": true,
+   "L": 3,
+   "k": 1,
+   "f": "sin(pi*x/3)",
+   "bc": "dirichlet-zero"
+  },
+  {
+   "kind": "heat",
+   "ref": "B&D 10.5",
+   "implemented": true,
+   "L": 1,
+   "k": 0.1,
+   "f": "1",
+   "bc": "dirichlet-zero"
+  },
+  {
+   "kind": "heat",
+   "ref": "B&D 10.5",
+   "implemented": true,
+   "L": 2,
+   "k": 0.5,
+   "f": "x*(2-x)",
+   "bc": "dirichlet-zero"
+  },
+  {
+   "kind": "wave",
+   "ref": "B&D 10.7",
+   "implemented": false,
+   "desc": "u_tt = c^2 u_xx, u(0,t)=u(L,t)=0, u(x,0)=f(x), u_t(x,0)=0"
+  },
+  {
+   "kind": "wave",
+   "ref": "B&D 10.7",
+   "implemented": false,
+   "desc": "plucked string: f(x) triangular initial displacement"
+  },
+  {
+   "kind": "wave",
+   "ref": "B&D 10.7",
+   "implemented": false,
+   "desc": "u_tt = 4 u_xx on [0,1], f(x)=sin(pi x)"
+  },
+  {
+   "kind": "wave",
+   "ref": "B&D 10.7",
+   "implemented": false,
+   "desc": "d'Alembert form on an infinite string"
+  },
+  {
+   "kind": "laplace",
+   "ref": "B&D 10.8",
+   "implemented": false,
+   "desc": "u_xx+u_yy=0 on a rectangle, Dirichlet data on all four sides"
+  },
+  {
+   "kind": "laplace",
+   "ref": "B&D 10.8",
+   "implemented": false,
+   "desc": "u_xx+u_yy=0 on a rectangle, one non-zero side"
+  },
+  {
+   "kind": "laplace",
+   "ref": "B&D 10.8",
+   "implemented": false,
+   "desc": "Laplace on a disk, Poisson integral formula"
+  },
+  {
+   "kind": "poisson",
+   "ref": "B&D 10.8",
+   "implemented": false,
+   "desc": "u_xx+u_yy = f(x,y) on a rectangle"
+  },
+  {
+   "kind": "heat-neumann",
+   "ref": "B&D 10.6",
+   "implemented": false,
+   "desc": "insulated ends: u_x(0,t)=u_x(L,t)=0"
+  },
+  {
+   "kind": "heat-nonzero-bc",
+   "ref": "B&D 10.6",
+   "implemented": false,
+   "desc": "u(0,t)=T1, u(L,t)=T2 - steady state plus transient"
+  },
+  {
+   "kind": "numerical-pde",
+   "ref": "B&D 10.5 / Num",
+   "implemented": false,
+   "desc": "explicit scheme + stability condition"
+  },
+  {
+   "kind": "numerical-pde",
+   "ref": "B&D 10.5 / Num",
+   "implemented": false,
+   "desc": "Crank-Nicolson, unconditional stability"
+  }
+ ]
+}

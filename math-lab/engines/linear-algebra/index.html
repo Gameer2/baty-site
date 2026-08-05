@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hand It Your Matrix — Linear Algebra Engine</title>
+<link rel="stylesheet" href="../../assets/css/engine.css" />
+<link rel="stylesheet" href="../../assets/proto/proto.css" />
+<style>:root{ --electric-teal:#8570b3; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="index.html" class="logo"><span class="dot"></span> Linear&nbsp;Algebra&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../numerical/methods.html"><span>Numerical</span><span class="dup" aria-hidden="true">Numerical</span></a></li>
+      <li><a href="../calculus/methods.html"><span>Calculus</span><span class="dup" aria-hidden="true">Calculus</span></a></li>
+      <li><a href="index.html"><span>Linear&nbsp;Algebra</span><span class="dup" aria-hidden="true">Linear&nbsp;Algebra</span></a></li>
+      <li><a href="../statistics/methods.html"><span>Statistics</span><span class="dup" aria-hidden="true">Statistics</span></a></li>
+      <li><a href="../ode/index.html"><span>ODE</span><span class="dup" aria-hidden="true">ODE</span></a></li>
+    </ul>
+    <a href="../../index.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Engines</span></a>
+  </div>
+</header>
+
+<section class="hero">
+  <canvas class="hero-canvas" id="heroCanvas"></canvas>
+  <div class="container hero-inner">
+    <span class="eyebrow">Linear Algebra</span>
+    <h1 class="h1" style="margin-top:18px;">Hand It Your Matrix</h1>
+    <p class="p1 hero-sub">Paste a matrix — and a right-hand side, if you're solving a system. The engine reads its structure (symmetric? positive-definite? diagonally dominant?), picks the matching method the way a numerical analyst actually would, and shows the full working: the row reduction, the factorization, or the iteration, whichever applies. No special structure? It falls back to the general-purpose route — Gaussian elimination, or shifted QR for eigenvalues — clearly labeled as the fallback, not a failure.</p>
+    <div class="hero-actions">
+      <a href="#workspace" class="btn btn--primary"><span class="btn-text">Start Computing ↓</span></a>
+      <a href="methods.html" class="btn btn--ghost"><span class="btn-text">Browse The Method Library →</span></a>
+    </div>
+    <span class="proto-badge" style="margin-top:28px;"><span class="status-dot"></span> Solving Ax = b: SPD → Cholesky, diagonally dominant → Jacobi/Gauss-Seidel, otherwise → Gaussian elimination. Eigenvalues: characteristic polynomial (exact) with automatic fallback to shifted QR.</span>
+  </div>
+</section>
+
+<section class="section--tight" id="workspace">
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="laForm" onsubmit="return false;">
+        <span class="panel-title">Input</span>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="rowsInput">Rows m</label>
+            <input type="number" id="rowsInput" value="3" step="1" min="1" max="60" />
+          </div>
+          <div class="field">
+            <label for="colsInput">Columns n</label>
+            <input type="number" id="colsInput" value="3" step="1" min="1" max="60" />
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:14px;">
+          <label>Matrix A</label>
+          <div id="matrixGrid" style="margin-top:8px;"></div>
+          <span class="field-note" id="modeNote" style="display:none;"></span>
+        </div>
+
+        <div class="field" style="margin-top:16px;">
+          <label>Right-hand side b</label>
+          <div id="vectorGrid" style="margin-top:8px;"></div>
+          <span class="field-note">Needed to solve Ax = b — leave as zeros if you only want the eigen-analysis below.</span>
+        </div>
+
+        <div class="status-line" id="statusLine" style="margin-top:16px;" aria-live="polite">
+          <span class="status-dot"></span><span id="statusText">Enter a matrix, then compute.</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;" aria-live="polite">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Compute</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Enter a matrix and press Compute — the classification (SPD? diagonally dominant?), the method it picks, and the full solve-and-eigen-analysis working will appear here.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip" id="statStrip"></div>
+          <div id="outputBlocks"></div>
+
+          <div class="panel crosshair-host" id="stepsPanel" style="display:none;margin-top:20px;">
+            <span class="panel-title">Row operations</span>
+            <div class="data-table-wrap" style="margin-top:12px;">
+              <table class="data-table">
+                <thead><tr><th>#</th><th>Operation</th><th>Result</th></tr></thead>
+                <tbody id="stepsBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Linear Algebra Engine</span>
+    <a href="methods.html" class="p2">Method library →</a>
+  </div>
+</footer>
+
+<script src="../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../assets/vendor/three.min.js" defer></script>
+<script src="../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../assets/js/engine-core.js" defer></script>
+<script src="../../assets/js/algorithms.js" defer></script>
+<script src="../../assets/js/linalg-algorithms.js" defer></script>
+<script src="../../assets/js/matrix-ui.js" defer></script>
+<script src="../../assets/js/calculus-3d.js" defer></script>
+<script src="../../assets/js/linalg-viz.js" defer></script>
+<script src="../../assets/js/linalg-page.js" defer></script>
+<script src="../../assets/js/linalg-auto-solve.js" defer></script>
+<script src="../../assets/proto/proto.js" defer></script>
+<script defer>
+document.addEventListener("DOMContentLoaded", () => {
+  Engine.initChrome();
+  if (window.Proto && Proto.initRipple) Proto.initRipple(document.getElementById("heroCanvas"), 0x8570b3);
+});
+</script>
+</body>
+</html>

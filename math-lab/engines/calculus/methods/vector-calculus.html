@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vector Calculus — Calculus Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#4f9e82; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Calculus&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="parametric-and-polar.html"><span>Parametric</span><span class="dup" aria-hidden="true">Parametric</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Vector Calculus</span>
+    <h1 class="h2" style="margin-top:14px;">Vector Calculus</h1>
+    <p class="method-summary">The three operations that turn a 2D vector field <span class="mono">F = ⟨P(x,y), Q(x,y)⟩</span> into a number: the <strong>divergence and curl</strong> (<span class="mono">∇·F = P_x + Q_y</span>, <span class="mono">∇×F = Q_x − P_y</span>) with a conservative test and, when the curl vanishes, a potential <span class="mono">φ</span> recovered by integration; the <strong>line integral</strong> of <span class="mono">F</span> along a parametric curve, giving the work <span class="mono">∫F·dr</span> and the flux <span class="mono">∫F·n ds</span>; and <strong>Green's theorem</strong>, computed both as the boundary line integral and as the double integral of <span class="mono">Q_x − P_y</span> — the theorem is confirmed by the two sides agreeing, not by trusting either one. Every quantity is checked against central differences or an independent Simpson integration before it is shown.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="vcForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label>Operation</label>
+          <div class="method-tags" id="opRow">
+            <button type="button" class="tag is-active" data-op="divergence-curl">Divergence &amp; curl</button>
+            <button type="button" class="tag" data-op="line-integral">Line integral</button>
+            <button type="button" class="tag" data-op="greens">Green's theorem</button>
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:18px;">
+          <label for="pInput">P(x, y) =</label>
+          <input type="text" id="pInput" class="mono" value="2*x" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="pPreview"></div>
+        </div>
+
+        <div class="field">
+          <label for="qInput">Q(x, y) =</label>
+          <input type="text" id="qInput" class="mono" value="6*y" autocomplete="off" spellcheck="false" />
+          <span class="field-note">Preview</span>
+          <div class="katex-preview" id="qPreview"></div>
+          <button type="button" class="keypad-toggle is-open" id="keypadToggle">
+            <span>Math Keypad</span><span class="chev">⌄</span>
+          </button>
+          <div class="math-keypad is-open" id="vcKeypad"></div>
+        </div>
+
+        <!-- line-integral fields -->
+        <div id="lineFields" style="display:none;">
+          <div class="field" style="margin-top:18px;">
+            <label for="lxInput">x(t) =</label>
+            <input type="text" id="lxInput" class="mono" value="t" autocomplete="off" spellcheck="false" style="width:9rem;" />
+            <label for="lyInput" style="margin-left:14px;">y(t) =</label>
+            <input type="text" id="lyInput" class="mono" value="t" autocomplete="off" spellcheck="false" style="width:9rem;" />
+          </div>
+          <div class="field">
+            <label for="laInput">from a =</label>
+            <input type="text" id="laInput" class="mono" value="0" autocomplete="off" spellcheck="false" style="width:7rem;" />
+            <label for="lbInput" style="margin-left:14px;">to b =</label>
+            <input type="text" id="lbInput" class="mono" value="1" autocomplete="off" spellcheck="false" style="width:7rem;" />
+          </div>
+        </div>
+
+        <!-- greens fields -->
+        <div id="greensFields" style="display:none;">
+          <div class="field" style="margin-top:18px;">
+            <label for="x0Input">x from</label>
+            <input type="text" id="x0Input" class="mono" value="-1" autocomplete="off" spellcheck="false" style="width:6rem;" />
+            <label for="x1Input" style="margin-left:10px;">to</label>
+            <input type="text" id="x1Input" class="mono" value="1" autocomplete="off" spellcheck="false" style="width:6rem;" />
+            <label for="y0Input" style="margin-left:18px;">y from</label>
+            <input type="text" id="y0Input" class="mono" value="-1" autocomplete="off" spellcheck="false" style="width:6rem;" />
+            <label for="y1Input" style="margin-left:10px;">to</label>
+            <input type="text" id="y1Input" class="mono" value="1" autocomplete="off" spellcheck="false" style="width:6rem;" />
+          </div>
+        </div>
+
+        <div class="status-line" id="startStatus">
+          <span class="status-dot"></span><span id="startStatusText">Checking…</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Evaluate</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+
+        <span class="field-note" style="margin-top:22px;">Worked examples — click to load</span>
+        <div class="method-tags" id="presetRow">
+          <button type="button" class="tag" data-op="divergence-curl" data-p="2*x" data-q="6*y">⟨2x, 6y⟩ — div=8, curl=0, potential x²+3y²</button>
+          <button type="button" class="tag" data-op="divergence-curl" data-p="-y" data-q="x">⟨−y, x⟩ — rotation, curl=2, not conservative</button>
+          <button type="button" class="tag" data-op="line-integral" data-p="y" data-q="x" data-lx="t" data-ly="t^2" data-la="0" data-lb="1">Work ∫⟨y,x⟩·dr along (t, t²) — W = 1</button>
+          <button type="button" class="tag" data-op="greens" data-p="-y" data-q="x" data-x0="-1" data-x1="1" data-y0="-1" data-y1="1">Green's on ⟨−y, x⟩ over [−1,1]² — both = 8</button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Pick an operation, enter the field (and the curve or rectangle it asks for), then evaluate — the div/curl (and potential, when conservative), the work and flux, or the two sides of Green's theorem, each verified independently, appear here with the derivation and a picture of the field.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip" id="statStrip"></div>
+
+          <span class="field-note">Result</span>
+          <div class="formula-block formula-block--result" id="formulaResult"></div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Derivation</span>
+            <div class="data-table-wrap">
+              <table class="data-table" id="stepTable">
+                <thead><tr><th>#</th><th>Rule</th><th>Expression</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <div class="slider-row" style="margin-top:16px;">
+              <input type="range" id="stepSlider" min="0" max="0" value="0" />
+              <span class="step-label" id="stepLabel">step 0</span>
+            </div>
+          </div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;" id="plotTitle">The vector field</span></div>
+            <div id="fxPlot" style="height:380px;"></div>
+          </div>
+        </div>
+
+        <div class="panel crosshair-host" id="refusedPanel" style="display:none;">
+          <span class="panel-title">Can't compute this one</span>
+          <p class="p1" id="refusedReason"></p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Calculus Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/vendor/nerdamer.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/calculus-symbolic.js" defer></script>
+<script src="../../../assets/js/cas-client.js" defer></script>
+<script src="../../../assets/js/vector-calculus.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Parametric &amp; Polar Coordinates — Calculus Engine</title>
+<link rel="stylesheet" href="../../../assets/vendor/katex.min.css" />
+<link rel="stylesheet" href="../../../assets/css/engine.css" />
+<style>:root{ --electric-teal:#4f9e82; }</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="../methods.html" class="logo"><span class="dot"></span> Calculus&nbsp;Engine</a>
+    <ul class="nav-links">
+      <li><a href="../methods.html"><span>Methods</span><span class="dup" aria-hidden="true">Methods</span></a></li>
+      <li><a href="arc-length-surface-area.html"><span>Arc Length</span><span class="dup" aria-hidden="true">Arc Length</span></a></li>
+      <li><a href="../../../index.html"><span>All Engines</span><span class="dup" aria-hidden="true">All Engines</span></a></li>
+    </ul>
+    <a href="../methods.html" class="btn btn--ghost btn--sm"><span class="btn-text">All Methods</span></a>
+  </div>
+</header>
+
+<section class="method-hero">
+  <div class="container">
+    <span class="eyebrow">Applications of Integration</span>
+    <h1 class="h2" style="margin-top:14px;">Parametric &amp; Polar Coordinates</h1>
+    <p class="method-summary">Curves that don't pass the vertical-line test — a point traced as a parameter runs. Parametric form <span class="mono">(x(t), y(t))</span> gives slope <span class="mono">dy/dx = y′/x′</span>, arc length <span class="mono">L = ∫√(x′²+y′²) dt</span>, and area <span class="mono">A = ∫ y·x′ dt</span>; polar form <span class="mono">r(θ)</span> gives area <span class="mono">A = ½∫r² dθ</span> and arc length <span class="mono">L = ∫√(r²+r′²) dθ</span>. The engine differentiates exactly, integrates with <span class="mono">π</span> kept symbolic (the unit circle closes to <span class="mono">2π</span>, not a rational that approximates it), and reports each quantity independently — a vertical tangent at the midpoint refuses the slope while the area still resolves, and a cardioid's non-elementary arc length is refused while its <span class="mono">3π/2</span> area lands.</p>
+  </div>
+</section>
+
+<section class="section--tight">
+  <div class="container">
+    <div class="workspace">
+
+      <!-- INPUT -->
+      <form class="panel crosshair-host" id="ppForm">
+        <span class="panel-title">Input</span>
+
+        <div class="field">
+          <label>Curve form</label>
+          <div class="method-tags" id="modeRow">
+            <button type="button" class="tag is-active" data-mode="parametric">Parametric (x(t), y(t))</button>
+            <button type="button" class="tag" data-mode="polar">Polar r(θ)</button>
+          </div>
+        </div>
+
+        <!-- parametric fields -->
+        <div id="paramFields">
+          <div class="field" style="margin-top:18px;">
+            <label for="xInput">x(t) =</label>
+            <input type="text" id="xInput" class="mono" value="cos(t)" autocomplete="off" spellcheck="false" />
+            <span class="field-note">Preview</span>
+            <div class="katex-preview" id="xPreview"></div>
+          </div>
+          <div class="field">
+            <label for="yInput">y(t) =</label>
+            <input type="text" id="yInput" class="mono" value="sin(t)" autocomplete="off" spellcheck="false" />
+            <span class="field-note">Preview</span>
+            <div class="katex-preview" id="yPreview"></div>
+            <button type="button" class="keypad-toggle is-open" id="keypadToggle">
+              <span>Math Keypad</span><span class="chev">⌄</span>
+            </button>
+            <div class="math-keypad is-open" id="ppKeypad"></div>
+          </div>
+        </div>
+
+        <!-- polar fields -->
+        <div id="polarFields" style="display:none;">
+          <div class="field" style="margin-top:18px;">
+            <label for="rInput">r(θ) =</label>
+            <input type="text" id="rInput" class="mono" value="1" autocomplete="off" spellcheck="false" />
+            <span class="field-note">Preview</span>
+            <div class="katex-preview" id="rPreview"></div>
+            <button type="button" class="keypad-toggle is-open" id="keypadToggleP">
+              <span>Math Keypad</span><span class="chev">⌄</span>
+            </button>
+            <div class="math-keypad is-open" id="ppKeypadP"></div>
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:18px;">
+          <label for="aInput">from a =</label>
+          <input type="text" id="aInput" class="mono" value="0" autocomplete="off" spellcheck="false" style="width:7rem;" />
+          <label for="bInput" style="margin-left:14px;">to b =</label>
+          <input type="text" id="bInput" class="mono" value="2*pi" autocomplete="off" spellcheck="false" style="width:7rem;" />
+          <span class="field-note">The parameter range. Numbers, or constants like <span class="mono">pi</span> / <span class="mono">2*pi</span>. In polar, use <span class="mono">theta</span> in r.</span>
+        </div>
+
+        <div class="status-line" id="startStatus">
+          <span class="status-dot"></span><span id="startStatusText">Checking…</span>
+        </div>
+
+        <div class="field" id="formError" style="display:none;">
+          <div class="status-line bad"><span class="status-dot"></span><span id="formErrorText"></span></div>
+        </div>
+
+        <div class="hero-actions" style="margin-top:6px;">
+          <button type="submit" class="btn btn--primary"><span class="btn-text">Evaluate</span></button>
+          <button type="button" class="btn btn--ghost btn--sm" id="exampleBtn"><span class="btn-text">Try Example</span></button>
+        </div>
+
+        <span class="field-note" style="margin-top:22px;">Worked examples — click to load</span>
+        <div class="method-tags" id="presetRow">
+          <button type="button" class="tag" data-mode="parametric" data-x="cos(t)" data-y="sin(t)" data-a="0" data-b="2*pi">Unit circle (parametric) — L = 2π, A = −π</button>
+          <button type="button" class="tag" data-mode="parametric" data-x="t" data-y="t^2" data-a="0" data-b="1">x = t, y = t² on [0,1]</button>
+          <button type="button" class="tag" data-mode="polar" data-r="1" data-a="0" data-b="2*pi">r = 1 — the circle, A = π, L = 2π</button>
+          <button type="button" class="tag" data-mode="polar" data-r="2*cos(theta)" data-a="-pi/2" data-b="pi/2">r = 2cos θ — disk, A = π</button>
+          <button type="button" class="tag" data-mode="polar" data-r="1+cos(theta)" data-a="0" data-b="2*pi">Cardioid — A = 3π/2, L refused</button>
+        </div>
+      </form>
+
+      <!-- OUTPUT -->
+      <div id="output">
+        <div class="panel crosshair-host" id="placeholderPanel">
+          <span class="panel-title">Output</span>
+          <p class="p1">Choose a curve form, enter the parameter functions and range, then evaluate — the slope, arc length, and area (each computed and verified independently) appear here, with the derivation shown step by step and the curve drawn in the plane.</p>
+        </div>
+
+        <div id="resultsArea" style="display:none;">
+          <div class="result-strip">
+            <div class="result-stat accent">
+              <div class="label" id="statLabelSlope">Slope dy/dx</div>
+              <div class="value" id="statSlope">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Arc length L</div>
+              <div class="value" id="statArc">—</div>
+            </div>
+            <div class="result-stat">
+              <div class="label">Area A</div>
+              <div class="value" id="statArea">—</div>
+            </div>
+          </div>
+
+          <span class="field-note">Result</span>
+          <div class="formula-block formula-block--result" id="formulaResult"></div>
+
+          <div class="panel crosshair-host">
+            <span class="panel-title">Derivation</span>
+            <div class="data-table-wrap">
+              <table class="data-table" id="stepTable">
+                <thead><tr><th>#</th><th>Quantity · Rule</th><th>Expression</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <div class="slider-row" style="margin-top:16px;">
+              <input type="range" id="stepSlider" min="0" max="0" value="0" />
+              <span class="step-label" id="stepLabel">step 0</span>
+            </div>
+          </div>
+
+          <div class="plot-wrap crosshair-host">
+            <div class="plot-wrap-head"><span class="panel-title" style="margin:0;" id="plotTitle">The curve in the plane</span></div>
+            <div id="fxPlot" style="height:360px;"></div>
+          </div>
+        </div>
+
+        <div class="panel crosshair-host" id="refusedPanel" style="display:none;">
+          <span class="panel-title">Can't compute this one</span>
+          <p class="p1" id="refusedReason"></p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container bar">
+    <span class="p2">Calculus Engine</span>
+    <a href="../methods.html" class="p2">← All Methods</a>
+  </div>
+</footer>
+
+<script src="../../../assets/vendor/gsap.min.js" defer></script>
+<script src="../../../assets/vendor/math.min.js" defer></script>
+<script src="../../../assets/vendor/katex.min.js" defer></script>
+<script src="../../../assets/vendor/plotly-cartesian.min.js" defer></script>
+<script src="../../../assets/vendor/nerdamer.min.js" defer></script>
+<script src="../../../assets/js/engine-core.js" defer></script>
+<script src="../../../assets/js/calc-core.js" defer></script>
+<script src="../../../assets/js/calculus-symbolic.js" defer></script>
+<script src="../../../assets/js/cas-client.js" defer></script>
+<script src="../../../assets/js/parametric-and-polar.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => Engine.initChrome());
+</script>
+</body>
+</html>
