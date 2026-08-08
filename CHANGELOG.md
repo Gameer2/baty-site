@@ -39,7 +39,24 @@ A new `polygon` element type: a regular N-gon (3–20 sides, default hexagon) in
 
 ## Engineering / drafting instruments
 
-Six new on-canvas instrument overlays — compass, ruler, protractor, T-square, set square, angle bisector (`components/engineeringOverlay.ts`, ~1500 lines, plus the `engineeringTools.ts` type registry). Unlike generic shapes, these render as live, draggable/rotatable instruments positioned directly on the interactive canvas; a draw gesture with the instrument's pen commits a real Excalidraw element (compass → ellipse, straightedges → line, protractor/angle bisector → arrow) through the normal scene + undo pipeline. Interaction model follows GeoGebra's protractor/ruler pattern.
+Six new on-canvas instrument overlays — compass, ruler, protractor, T-square, set square, angle bisector — grouped behind one toolbar flyout (`EngineeringToolsDropdown` in `Tools.tsx`; the trigger icon shows whichever sub-tool is active). Unlike generic shapes, these aren't drawn once and left as elements: each is a live, persistent instrument (`InstrumentOverlay` state in `components/engineeringOverlay.ts`, ~1550 lines, plus the `engineeringTools.ts` type registry) rendered on the interactive canvas that you manipulate directly, the same way you'd handle a physical drafting tool, before committing an actual mark.
+
+**Interaction model** (after GeoGebra's ruler/protractor): every instrument exposes up to five drag zones, hit-tested against the pointer in scene space —
+- **move** (drag the body) and **rotate** (a dedicated handle) on all six;
+- **draw** (drag the pen/tip handle) sweeps out the mark and only *previews* it — nothing is added to the scene until the gesture ends;
+- **radius** (compass only) opens/closes the legs to set the circle's radius before scribing, independent of drawing;
+- **spread** (angle bisector only) drags either leg tip to open/close the bisected angle — both legs stay symmetric around the bisector by construction.
+
+**What each one actually does:**
+- **Compass** — hinge-and-legs geometry with a locked radius while scribing, so the pen is mathematically constrained to a perfect circle as it swings (the radius only changes via the separate "radius" handle, never while drawing). A full sweep (≥ ~355°) commits a true `ellipse` element with `roughness: 0`; a partial swing commits a densely-sampled (~1.5° steps, up to 720 points) polyline arc along that same perfect circle — so you can scribe part of a circle and still get a mathematically clean curve, not a hand-drawn approximation. Live radius readout in real centimeters.
+- **Ruler** — a real metric scale: ticks at every mm (short), half-cm (medium), and cm (tall + labelled), derived from the CSS reference-pixel convention (96dpi, so 1 scene unit reads as a real screen cm — `PX_PER_CM = 96/2.54`). Dragging the pen along the edge previews an ink line under live length; releasing commits a `line` element.
+- **Protractor** — a semicircle with 5° ticks, 10° majors, and 30° labels, plus a live numeric angle readout as the swivel ray is dragged. Commits an `arrow` (not a line) along the marked ray, so the drawn angle stays visually anchored to its vertex.
+- **T-square** and **set square** — straightedges (set square: a right-triangle edge at 45°) with the same real cm/mm tick convention as the ruler, each committing a `line` along their blade/hypotenuse.
+- **Angle bisector** — two symmetric legs plus a fixed center arm; dragging either leg's tip opens/closes the angle (`MIN_SPREAD`/`MAX_SPREAD` ≈ 5°–165°) while the bisector ray stays exactly centered between them by construction. Commits an `arrow` along the bisector.
+
+**Rendering**: each instrument is drawn as a themed, semi-transparent "frosted glass and metal" object — gradient-filled bodies, brushed-metal legs/hinges with knurled grip ticks, drop shadows, accent-colored handles — with light/dark palettes pulled from the same accent tokens as the rest of the UI (`instrumentStyle`), not hard-coded colors. All sizing (tick spacing, handle radii, line widths) is expressed in screen pixels via `1/zoom`, so instruments stay a constant, legible on-screen size at any canvas zoom level rather than scaling with it.
+
+All committed marks (ellipse/line/arrow) go through the normal scene + undo pipeline (`app.scene.insertElementsAtIndex` + `scheduleCapture`), so drafting with an instrument is a regular, undoable action indistinguishable in history from drawing by hand.
 
 ## Toolbar & chrome redesign
 
