@@ -20,6 +20,8 @@ import { getCommonBounds, getElementAbsoluteCoords } from "@excalidraw/element";
 import {
   getInitializedImageElements,
   updateImageCache,
+  getInitializedVideoElements,
+  updateVideoCache,
 } from "@excalidraw/element";
 
 import { newElementWith } from "@excalidraw/element";
@@ -246,6 +248,14 @@ export const exportToCanvas = async (
     files,
   });
 
+  const { videoCache } = await updateVideoCache({
+    videoCache: new Map(),
+    fileIds: getInitializedVideoElements(elementsForRender).map(
+      (element) => element.fileId,
+    ),
+    files,
+  });
+
   renderStaticScene({
     canvas,
     rc: rough.canvas(canvas),
@@ -270,6 +280,7 @@ export const exportToCanvas = async (
     renderConfig: {
       canvasBackgroundColor: viewBackgroundColor,
       imageCache,
+      videoCache,
       renderGrid: false,
       isExporting: true,
       // empty disables embeddable rendering

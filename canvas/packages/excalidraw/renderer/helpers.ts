@@ -37,6 +37,7 @@ export const bootstrapCanvas = ({
   theme,
   isExporting,
   viewBackgroundColor,
+  bypassDarkFilter,
 }: {
   canvas: HTMLCanvasElement;
   scale: number;
@@ -45,6 +46,10 @@ export const bootstrapCanvas = ({
   theme?: AppState["theme"];
   isExporting?: StaticCanvasRenderConfig["isExporting"];
   viewBackgroundColor?: StaticCanvasAppState["viewBackgroundColor"];
+  // When true, paint `viewBackgroundColor` literally instead of running it
+  // through the dark-mode filter — used when the user has free-picked a paper
+  // color via the paper picker, so the paper is exactly what they chose.
+  bypassDarkFilter?: boolean;
 }): CanvasRenderingContext2D => {
   const context = canvas.getContext("2d")!;
 
@@ -71,10 +76,9 @@ export const bootstrapCanvas = ({
       // stale color from a previous draw. Seed a sane default so corrupted
       // values fall back to white instead of painting garbage.
       context.fillStyle = COLOR_WHITE;
-      context.fillStyle = applyDarkModeFilter(
-        viewBackgroundColor,
-        theme === THEME.DARK,
-      );
+      context.fillStyle = bypassDarkFilter
+        ? viewBackgroundColor
+        : applyDarkModeFilter(viewBackgroundColor, theme === THEME.DARK);
       context.fillRect(0, 0, normalizedWidth, normalizedHeight);
       context.restore();
     }

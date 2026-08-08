@@ -1,0 +1,40 @@
+// Auto / Light / Dark segment, rendered inside ChromeRail (see ChromeRail.scss)
+// rather than as its own fixed chip — no own background/border/shadow/position
+// here anymore; the rail supplies all of that as one shared capsule.
+
+.ThemeSwitcher {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+
+  &__btn {
+    all: unset;
+    box-sizing: border-box;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-gray-60);
+    cursor: pointer;
+    transition: color 0.2s ease, background 0.2s ease;
+
+    &:hover {
+      color: var(--color-on-surface);
+      background: var(--color-surface-high);
+    }
+
+    // Active: solid fill in the accent — flat, matching the rail's other
+    // segments (proto.css's .mode-tab treatment), no glow.
+    &--active {
+      color: #ffffff;
+      background: var(--color-primary);
+
+      &:hover {
+        color: #ffffff;
+        background: var(--color-primary);
+      }
+    }
+  }
+}

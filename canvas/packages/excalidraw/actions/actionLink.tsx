@@ -1,6 +1,7 @@
 import {
   getNonDeletedElements,
   isEmbeddableElement,
+  isSyntropyLinkElement,
 } from "@excalidraw/element";
 
 import { KEYS } from "@excalidraw/common";
@@ -40,7 +41,10 @@ export const actionLink = register({
   keyTest: (event) => event[KEYS.CTRL_OR_CMD] && event.key === KEYS.K,
   predicate: (elements, appState) => {
     const selectedElements = getSelectedElements(elements, appState);
-    return selectedElements.length === 1;
+    return (
+      selectedElements.length === 1 &&
+      !isSyntropyLinkElement(selectedElements[0])
+    );
   },
   PanelComponent: ({ elements, appState, updateData }) => {
     const selectedElements = getSelectedElements(elements, appState);

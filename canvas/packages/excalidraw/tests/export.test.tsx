@@ -18,6 +18,8 @@ import {
 import { API } from "./helpers/api";
 import { render, waitFor } from "./test-utils";
 
+import type { DataURL } from "../types";
+
 const { h } = window;
 
 const testElements = [
@@ -217,5 +219,37 @@ describe("export", () => {
     // in case of regressions, save the SVG to a file and visually compare to:
     // src/tests/fixtures/svg-image-exporting-reference.svg
     expect(svgText).toMatchSnapshot(`svg export output`);
+  });
+
+  it("exporting svg containing video", async () => {
+    const elements = [
+      API.createElement({
+        type: "video",
+        fileId: "file_V",
+        x: 0,
+        y: 0,
+        width: 320,
+        height: 180,
+      }),
+    ];
+    const appState = { ...getDefaultAppState(), exportBackground: false };
+    const files = {
+      file_V: {
+        id: "file_V" as FileId,
+        // tiny placeholder data URL — the SVG path never decodes it
+        dataURL: "data:video/mp4;base64,AAAA" as DataURL,
+        mimeType: "video/mp4",
+        created: Date.now(),
+        lastRetrieved: Date.now(),
+      },
+    } as const;
+
+    const svg = await exportToSvg(elements, appState, files);
+    const svgText = svg.outerHTML;
+
+    // the video is embedded inside a <foreignObject> as a <video> tag
+    expect(svgText.match(/<foreignObject/g)?.length).toBe(1);
+    expect(svgText.match(/<video/g)?.length).toBe(1);
+    expect(svgText).toContain("data:video/mp4;base64,AAAA");
   });
 });

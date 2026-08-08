@@ -4,11 +4,15 @@
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  background: #111111; // lab --rich-carbon
-  border: 1px solid rgba(255, 255, 255, 0.08); // lab .card border — hairline white, no shadow
+  // Surfaces/text read from the theme tokens index.scss re-publishes on
+  // .excalidraw-app.theme--light/dark, so the card follows the mood instead of
+  // being hard-coded dark (which left light-mode text invisible on a light
+  // card and made the "added things" ignore the theme switcher).
+  background: var(--island-bg-color);
+  border: 1px solid var(--input-border-color);
   border-radius: 20px; // lab --radius-lg (cards/panels)
   font-family: var(--ui-font);
-  color: #e7e7e7;
+  color: var(--color-on-surface);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -23,7 +27,7 @@
     border-color 0.3s ease;
 
   // Lab .engine-card::before — radial accent glow bleeding from the top-left, in the node's own
-  // accent. z-index: -1 + isolation: isolate keep it behind content but above the #111 background;
+  // accent. z-index: -1 + isolation: isolate keep it behind content but above the card background;
   // overflow: hidden clips it to the card. .14 at rest, .26 on hover (matches proto.css).
   &::before {
     content: "";
@@ -32,11 +36,7 @@
     left: -15%;
     width: 75%;
     height: 75%;
-    background: radial-gradient(
-      circle,
-      var(--node-accent) 0%,
-      transparent 72%
-    );
+    background: radial-gradient(circle, var(--node-accent) 0%, transparent 72%);
     opacity: 0.14;
     filter: blur(6px);
     pointer-events: none;
@@ -50,7 +50,7 @@
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--input-border-color);
   font-size: 11.5px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -88,7 +88,7 @@
   font-size: 10px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--node-accent) 75%, #e7e7e7);
+  color: color-mix(in srgb, var(--node-accent) 75%, var(--color-on-surface));
   padding: 3px 9px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--node-accent) 45%, transparent);
@@ -111,6 +111,8 @@
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
+  // On hover the accent fill sweeps in; near-black text reads on the mid-tone
+  // accent in both themes (engine accents are mid-tone light and dark alike).
   &:hover {
     color: #090909;
     border-color: var(--node-accent);
@@ -135,8 +137,8 @@
   box-sizing: border-box;
   height: 40px;
   border-radius: 8px;
-  background: #090909; // mockup --core-black
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--color-surface-low);
+  border: 1px solid var(--input-border-color);
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -165,13 +167,13 @@
 .SyntropyNode__scrubLabel {
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #7d858c; // mockup --pulse-ash
+  color: var(--color-gray-60);
   font-size: 9.5px;
 }
 
 .SyntropyNode__scrubValue {
   font-size: 15px;
-  color: #e7e7e7; // mockup --off-white
+  color: var(--color-on-surface);
   font-weight: 600;
 }
 
@@ -202,10 +204,10 @@
   box-sizing: border-box;
   margin-top: 2px;
   padding-top: 10px;
-  border-top: 1px dashed rgba(255, 255, 255, 0.1);
+  border-top: 1px dashed var(--input-border-color);
   display: grid;
   gap: 1px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--color-surface-low);
   border-radius: 6px;
   overflow: hidden;
   flex: 1;
@@ -218,17 +220,19 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #111111; // mockup --rich-carbon
+  background: var(--island-bg-color);
   padding: 7px 10px;
   font-size: 11px;
 }
 
 .SyntropyNode__outKey {
-  color: #7d858c; // mockup --pulse-ash
+  color: var(--color-gray-60);
 }
 
 .SyntropyNode__outVal {
-  color: var(--node-accent); // mockup used --validation-green; generic → node accent
+  color: var(
+    --node-accent
+  ); // mockup used --validation-green; generic → node accent
 }
 
 // pulseFlash capability — defined here, applied by NO element this phase.
@@ -251,7 +255,7 @@
 @keyframes SyntropyNode-rowglow {
   0%,
   100% {
-    background: #111111;
+    background: var(--island-bg-color);
   }
   15% {
     background: color-mix(in srgb, var(--node-accent) 14%, transparent);

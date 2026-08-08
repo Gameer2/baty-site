@@ -23,6 +23,7 @@ import {
 
 import {
   deconstructDiamondElement,
+  deconstructPolygonElement,
   deconstructRectanguloidElement,
   elementCenterPoint,
   getDiamondBaseCorners,
@@ -81,6 +82,8 @@ import type {
 
 import { renderSnaps } from "../renderer/renderSnaps";
 import { roundRect } from "../renderer/roundRect";
+import { isEngineeringTool } from "../components/engineeringTools";
+import { renderInstrumentOverlay } from "../components/engineeringOverlay";
 import {
   getScrollBars,
   SCROLLBAR_COLOR,
@@ -378,6 +381,26 @@ const renderBindingHighlightForBindableElement_simple = (
                 control2[1] - suggestedBinding.element.y,
                 end[0] - suggestedBinding.element.x,
                 end[1] - suggestedBinding.element.y,
+              );
+              context.stroke();
+            });
+          }
+
+          break;
+        case "polygon":
+          {
+            // Sharp corners only — no curves to draw, unlike diamond above.
+            const segments = deconstructPolygonElement(suggestedBinding.element);
+
+            segments.forEach((segment) => {
+              context.beginPath();
+              context.moveTo(
+                segment[0][0] - suggestedBinding.element.x,
+                segment[0][1] - suggestedBinding.element.y,
+              );
+              context.lineTo(
+                segment[1][0] - suggestedBinding.element.x,
+                segment[1][1] - suggestedBinding.element.y,
               );
               context.stroke();
             });
@@ -722,6 +745,26 @@ const renderBindingHighlightForBindableElement_complex = (
                 control2[1] - element.y + offset,
                 end[0] - element.x + offset,
                 end[1] - element.y + offset,
+              );
+              context.stroke();
+            });
+          }
+
+          break;
+        case "polygon":
+          {
+            // Sharp corners only — no curves to draw, unlike diamond above.
+            const segments = deconstructPolygonElement(element, offset);
+
+            segments.forEach((segment) => {
+              context.beginPath();
+              context.moveTo(
+                segment[0][0] - element.x + offset,
+                segment[0][1] - element.y + offset,
+              );
+              context.lineTo(
+                segment[1][0] - element.x + offset,
+                segment[1][1] - element.y + offset,
               );
               context.stroke();
             });
@@ -2065,6 +2108,19 @@ const _renderInteractiveScene = ({
   });
 
   renderSnaps(context, appState);
+
+  // engineering/drafting instrument overlay (compass, ruler, protractor, …).
+  // Drawn in scene space — same scheme as snap lines — above the scene & snaps
+  // but below the viewport-space remote cursors / scrollbars.
+  if (
+    appState.engineeringInstrument &&
+    isEngineeringTool(appState.activeTool.type)
+  ) {
+    context.save();
+    context.translate(appState.scrollX, appState.scrollY);
+    renderInstrumentOverlay(context, appState.engineeringInstrument, appState);
+    context.restore();
+  }
 
   context.restore();
 

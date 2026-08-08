@@ -26,21 +26,20 @@ import {
 } from "./icons";
 import {
   ArrowToolButton,
-  DiamondToolButton,
-  EllipseToolButton,
   EraserToolButton,
   FreedrawToolPopover,
   FreedrawToolButton,
   getToolShortcut,
   HandToolButton,
-  ImageToolButton,
   isToolButtonDisabled,
   LassoToolButton,
   LineToolButton,
-  RectangleToolButton,
   SelectionToolButton,
   SelectionToolPopover,
   TextToolButton,
+  EngineeringToolsDropdown,
+  ShapeToolsFan,
+  ImportToolsDropdown,
 } from "./Tools";
 
 import type {
@@ -49,6 +48,9 @@ import type {
   AppState,
   UIAppState,
 } from "../types";
+
+// the engineering/drafting instruments flyout lives in Tools.tsx and is shared
+// with the mobile toolbar (importing Toolbar.tsx here would cycle App→Toolbar).
 
 const ExtraToolsDropdown = ({
   app,
@@ -240,7 +242,7 @@ export const Toolbar = ({
         app={app}
       />
       {heading}
-      <Stack.Row gap={isCompactStylesPanel ? 0.5 : 1}>
+      <Stack.Row gap={isCompactStylesPanel ? 0.5 : 0.75}>
         {/* in compact UI the pen mode button is rendered as a separate
             floating button below the compact actions menu */}
         {!isCompactStylesPanel && (
@@ -276,9 +278,7 @@ export const Toolbar = ({
         ) : (
           <SelectionToolButton {...toolProps} />
         )}
-        <RectangleToolButton {...toolProps} />
-        <DiamondToolButton {...toolProps} />
-        <EllipseToolButton {...toolProps} />
+        <ShapeToolsFan {...toolProps} />
         <ArrowToolButton {...toolProps} />
         <LineToolButton {...toolProps} />
         {isCompactStylesPanel ? (
@@ -287,12 +287,23 @@ export const Toolbar = ({
           <FreedrawToolButton {...toolProps} />
         )}
         <TextToolButton {...toolProps} />
-        {UIOptions.tools?.image !== false && <ImageToolButton {...toolProps} />}
+        <ImportToolsDropdown
+          app={app}
+          activeTool={activeTool}
+          setAppState={setAppState}
+          UIOptions={UIOptions}
+        />
         <EraserToolButton {...toolProps} />
 
         <div
           className="App-toolbar__divider"
           style={{ marginLeft: "0.25rem" }}
+        />
+
+        <EngineeringToolsDropdown
+          app={app}
+          activeTool={activeTool}
+          setAppState={setAppState}
         />
 
         <ExtraToolsDropdown

@@ -1,6 +1,7 @@
 import type { UIAppState } from "@excalidraw/excalidraw/types";
 
 import { getSelectedElements } from "./selection";
+import { isSyntropyLinkElement } from "./syntropyLink";
 
 import type { NonDeletedExcalidrawElement } from "./types";
 
@@ -15,8 +16,12 @@ export const showSelectedShapeActions = (
         (appState.editingTextElement ||
           (appState.activeTool.type !== "selection" &&
             appState.activeTool.type !== "lasso" &&
-            appState.activeTool.type !== "eraser" &&
             appState.activeTool.type !== "hand" &&
             appState.activeTool.type !== "laser"))) ||
-        getSelectedElements(elements, appState).length),
+        // Syntropy nodes are not plain shapes — selecting one alone should not surface the
+        // generic stroke/background/etc. properties panel (excalidraw-app/syntropy provides its
+        // own UI). A regular shape selected alongside a node still shows the panel, scoped to it.
+        getSelectedElements(elements, appState).filter(
+          (element) => !isSyntropyLinkElement(element),
+        ).length),
   );

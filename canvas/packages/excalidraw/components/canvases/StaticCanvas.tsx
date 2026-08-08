@@ -93,6 +93,8 @@ const getRelevantAppStateProps = (appState: AppState): StaticCanvasAppState => {
     selectedElementsAreBeingDragged: appState.selectedElementsAreBeingDragged,
     gridSize: appState.gridSize,
     gridStep: appState.gridStep,
+    paperColor: appState.paperColor,
+    paperBgOverride: appState.paperBgOverride,
     frameRendering: appState.frameRendering,
     selectedElementIds: appState.selectedElementIds,
     frameToHighlight: appState.frameToHighlight,
@@ -100,6 +102,7 @@ const getRelevantAppStateProps = (appState: AppState): StaticCanvasAppState => {
     currentHoveredFontFamily: appState.currentHoveredFontFamily,
     croppingElementId: appState.croppingElementId,
     suggestedBinding: appState.suggestedBinding,
+    currentItemEraserMode: appState.currentItemEraserMode,
   };
 
   return relevantAppStateProps;

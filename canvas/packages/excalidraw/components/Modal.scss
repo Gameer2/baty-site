@@ -61,7 +61,8 @@
 
     opacity: 0;
     transform: translateY(10px);
-    animation: Modal__content_fade-in 0.15s cubic-bezier(0.16, 1, 0.3, 1) 0s forwards;
+    animation: Modal__content_fade-in 0.15s cubic-bezier(0.16, 1, 0.3, 1) 0s
+      forwards;
 
     position: relative;
     overflow-y: auto;

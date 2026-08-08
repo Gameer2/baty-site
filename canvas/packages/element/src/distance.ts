@@ -11,6 +11,7 @@ import type { GlobalPoint, Radians } from "@excalidraw/math";
 import {
   deconstructDiamondElement,
   deconstructLinearOrFreeDrawElement,
+  deconstructPolygonElement,
   deconstructRectanguloidElement,
 } from "./utils";
 
@@ -23,6 +24,7 @@ import type {
   ExcalidrawEllipseElement,
   ExcalidrawFreeDrawElement,
   ExcalidrawLinearElement,
+  ExcalidrawPolygonElement,
   ExcalidrawRectanguloidElement,
 } from "./types";
 
@@ -35,14 +37,18 @@ export const distanceToElement = (
     case "selection":
     case "rectangle":
     case "image":
+    case "video":
     case "text":
     case "iframe":
     case "embeddable":
     case "frame":
     case "magicframe":
+    case "shape3d":
       return distanceToRectanguloidElement(element, elementsMap, p);
     case "diamond":
       return distanceToDiamondElement(element, elementsMap, p);
+    case "polygon":
+      return distanceToPolygonElement(element, elementsMap, p);
     case "ellipse":
       return distanceToEllipseElement(element, elementsMap, p);
     case "line":
@@ -104,6 +110,19 @@ const distanceToDiamondElement = (
     ...sides.map((s) => distanceToLineSegment(rotatedPoint, s)),
     ...curves.map((a) => curvePointDistance(a, rotatedPoint)),
   );
+};
+
+// Sharp corners only, unlike diamond above — no curve component to check.
+const distanceToPolygonElement = (
+  element: ExcalidrawPolygonElement,
+  elementsMap: ElementsMap,
+  p: GlobalPoint,
+): number => {
+  const center = elementCenterPoint(element, elementsMap);
+  const rotatedPoint = pointRotateRads(p, center, -element.angle as Radians);
+  const sides = deconstructPolygonElement(element);
+
+  return Math.min(...sides.map((s) => distanceToLineSegment(rotatedPoint, s)));
 };
 
 /**

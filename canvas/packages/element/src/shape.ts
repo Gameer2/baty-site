@@ -26,6 +26,7 @@ import {
   LINE_POLYGON_POINT_MERGE_DISTANCE,
   applyDarkModeFilter,
   DEFAULT_STROKE_STREAMLINE,
+  shadeColor,
 } from "@excalidraw/common";
 
 import { RoughGenerator } from "roughjs/bin/generator";
@@ -63,8 +64,11 @@ import {
   getArrowheadPoints,
   getDiamondPoints,
   getElementAbsoluteCoords,
+  getPolygonPoints,
 } from "./bounds";
 import { shouldTestInside } from "./collision";
+import { isSyntropyLinkElement } from "./syntropyLink";
+import { getShape3DGeometry } from "./shape3d";
 
 import type {
   ExcalidrawElement,
@@ -229,6 +233,8 @@ export const generateRoughOptions = (
     case "iframe":
     case "embeddable":
     case "diamond":
+    case "polygon":
+    case "shape3d":
     case "ellipse": {
       options.fillStyle = element.fillStyle;
       options.fill = isTransparent(element.backgroundColor)
@@ -271,11 +277,7 @@ const modifyIframeLikeForRoughOptions = (
   // updateEmbeddables resolves the status, and reads as a stray white square behind every node.
   // Skip the placeholder entirely for Syntropy embeddables so the static canvas stays transparent
   // and only the NodeOverlay card shows.
-  if (
-    isEmbeddableElement(element) &&
-    typeof element.link === "string" &&
-    element.link.startsWith("syntropy://")
-  ) {
+  if (isEmbeddableElement(element) && isSyntropyLinkElement(element)) {
     return element;
   }
   if (
@@ -874,6 +876,83 @@ const _generateElementShape = (
       }
       return shape;
     }
+    case "polygon": {
+      // Sharp corners only — no rounded-corner analog of diamond's bezier-corner path above.
+      const shape: ElementShapes[typeof element.type] = generator.polygon(
+        getPolygonPoints(element).map(([x, y]) => [x, y] as [number, number]),
+        generateRoughOptions(element, false, isDarkMode),
+      );
+      return shape;
+    }
+    case "shape3d": {
+      const { fills, strokes } = getShape3DGeometry(element);
+      const baseOptions = generateRoughOptions(element, false, isDarkMode);
+      // every edge is drawn exactly once, via the dedicated stroke pass below
+      // — a fill polygon that also stroked its own boundary would double up
+      // with independent random jitter on shared edges, reading as fuzzy /
+      // misaligned seams between adjacent faces
+      const fillOptions: Options = { ...baseOptions, stroke: "none" };
+      const strokeOptions: Options = {
+        ...baseOptions,
+        fill: undefined,
+        fillStyle: undefined,
+        // a shape3d edge count scales with the primitive (up to 12+ for a
+        // cube), so rough.js's default hand-drawn double-stroke — barely
+        // noticeable on a 4-edge rectangle — compounds at every shared
+        // vertex into visible clutter; one clean stroke per edge reads far
+        // better here
+        disableMultiStroke: true,
+      };
+      // a ring/arc is drawn as many short straight segments approximating a
+      // circle; rough.js jitters every segment by a roughly fixed pixel
+      // offset regardless of segment length, and at a steep rotation the
+      // ring's on-screen ellipse can get very thin — thin enough that the
+      // normal jitter magnitude exceeds the curve's own width and reads as
+      // a jagged zigzag instead of a smooth arc. Capping roughness only for
+      // these ring/arc strokes keeps them reading as round at any rotation
+      // while leaving the genuinely-straight edges (cube/pyramid, tangent
+      // lines) at full sloppiness.
+      const curvedStrokeOptions: Options = {
+        ...strokeOptions,
+        roughness: Math.min(strokeOptions.roughness ?? 1, 0.6),
+        maxRandomnessOffset: 1,
+      };
+      const toRoughPoints = (points: readonly LocalPoint[]) =>
+        points.map(([x, y]) => [x, y] as [number, number]);
+
+      // fake directional lighting (see shape3d.ts's shadeForNormal): every
+      // face otherwise shares the exact same flat fill color, which reads as
+      // one undifferentiated blob rather than a 3D shape — shading each
+      // face's own fill color a little lighter/darker by its angle to a
+      // fixed light gives the faces visual separation without touching the
+      // element's actual backgroundColor.
+      const shadedFill = (shade: number | undefined): Options["fill"] =>
+        shade && fillOptions.fill
+          ? shadeColor(fillOptions.fill, shade)
+          : fillOptions.fill;
+
+      const shape: ElementShapes[typeof element.type] = [
+        ...fills.map((fill) => {
+          const options: Options = {
+            ...fillOptions,
+            fill: shadedFill(fill.shade),
+          };
+          return generator.polygon(
+            toRoughPoints(fill.points),
+            fill.curved
+              ? { ...options, roughness: Math.min(options.roughness ?? 1, 0.6) }
+              : options,
+          );
+        }),
+        ...strokes.map((s) => {
+          const options = s.curved ? curvedStrokeOptions : strokeOptions;
+          return s.closed
+            ? generator.polygon(toRoughPoints(s.points), options)
+            : generator.linearPath(toRoughPoints(s.points), options);
+        }),
+      ];
+      return shape;
+    }
     case "ellipse": {
       const shape: ElementShapes[typeof element.type] = generator.ellipse(
         element.width / 2,
@@ -997,7 +1076,8 @@ const _generateElementShape = (
     case "frame":
     case "magicframe":
     case "text":
-    case "image": {
+    case "image":
+    case "video": {
       const shape: ElementShapes[typeof element.type] = null;
       // we return (and cache) `null` to make sure we don't regenerate
       // `element.canvas` on rerenders
@@ -1089,10 +1169,13 @@ export const getElementShape = <Point extends GlobalPoint | LocalPoint>(
   switch (element.type) {
     case "rectangle":
     case "diamond":
+    case "polygon":
+    case "shape3d":
     case "frame":
     case "magicframe":
     case "embeddable":
     case "image":
+    case "video":
     case "iframe":
     case "text":
     case "selection":

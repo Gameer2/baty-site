@@ -29,12 +29,17 @@ export type StaticCanvasRenderConfig = {
   // extra options passed to the renderer
   // ---------------------------------------------------------------------------
   imageCache: AppClassProperties["imageCache"];
+  videoCache: AppClassProperties["videoCache"];
   renderGrid: boolean;
   /** Syntropy Canvas's dot board texture. Off by default so overlay canvases (the
    in-progress-element canvas, exports) don't paint it a second time over the main scene.
    Ignored while `renderGrid` is on, so the ruled grid and the dots never stack.
    @default false */
   renderDotGrid?: boolean;
+  /** GoodNotes-style ruled (horizontal notebook) lines. Mutually exclusive with
+   `renderGrid` and `renderDotGrid` — the paper picker only enables one texture at a time.
+   @default false */
+  renderRuled?: boolean;
   /** whether to render link icons on elements with links (never rendered
    when exporting). @default true */
   renderLinks?: boolean;
@@ -169,6 +174,8 @@ export type ElementShapes = {
   rectangle: Drawable;
   ellipse: Drawable;
   diamond: Drawable;
+  polygon: Drawable;
+  shape3d: Drawable[];
   iframe: Drawable;
   embeddable: Drawable;
   freedraw: (Drawable | SVGPathString)[];
@@ -176,6 +183,7 @@ export type ElementShapes = {
   line: Drawable[];
   text: null;
   image: null;
+  video: null;
   frame: null;
   magicframe: null;
 };

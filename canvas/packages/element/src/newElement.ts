@@ -31,6 +31,7 @@ import { isLineElement } from "./typeChecks";
 import type {
   ExcalidrawElement,
   ExcalidrawImageElement,
+  ExcalidrawVideoElement,
   ExcalidrawTextElement,
   ExcalidrawLinearElement,
   ExcalidrawGenericElement,
@@ -49,6 +50,8 @@ import type {
   ExcalidrawArrowElement,
   ExcalidrawElbowArrowElement,
   ExcalidrawLineElement,
+  ExcalidrawPolygonElement,
+  ExcalidrawShape3DElement,
 } from "./types";
 
 export type ElementConstructorOpts = MarkOptional<
@@ -165,6 +168,38 @@ export const newElement = (
   } & ElementConstructorOpts,
 ): NonDeleted<ExcalidrawGenericElement> =>
   _newElementBase<ExcalidrawGenericElement>(opts.type, opts);
+
+export const newPolygonElement = (
+  opts: {
+    type: "polygon";
+    sides: number;
+  } & ElementConstructorOpts,
+): NonDeleted<ExcalidrawPolygonElement> => {
+  return {
+    ..._newElementBase<ExcalidrawPolygonElement>("polygon", opts),
+    sides: opts.sides,
+  };
+};
+
+export const newShape3DElement = (
+  opts: {
+    type: "shape3d";
+    shape3DType: ExcalidrawShape3DElement["shape3DType"];
+    rotationX: number;
+    rotationY: number;
+    rotationZ: number;
+    wireframe: boolean;
+  } & ElementConstructorOpts,
+): NonDeleted<ExcalidrawShape3DElement> => {
+  return {
+    ..._newElementBase<ExcalidrawShape3DElement>("shape3d", opts),
+    shape3DType: opts.shape3DType,
+    rotationX: opts.rotationX,
+    rotationY: opts.rotationY,
+    rotationZ: opts.rotationZ,
+    wireframe: opts.wireframe,
+  };
+};
 
 export const newEmbeddableElement = (
   opts: {
@@ -576,5 +611,20 @@ export const newImageElement = (
     fileId: opts.fileId ?? null,
     scale: opts.scale ?? [1, 1],
     crop: opts.crop ?? null,
+  };
+};
+
+export const newVideoElement = (
+  opts: {
+    type: ExcalidrawVideoElement["type"];
+    status?: ExcalidrawVideoElement["status"];
+    fileId?: ExcalidrawVideoElement["fileId"];
+  } & ElementConstructorOpts,
+): NonDeleted<ExcalidrawVideoElement> => {
+  return {
+    ..._newElementBase<ExcalidrawVideoElement>("video", opts),
+    strokeColor: "transparent",
+    status: opts.status ?? "pending",
+    fileId: opts.fileId ?? null,
   };
 };

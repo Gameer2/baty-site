@@ -264,6 +264,7 @@ const getRelevantAppStateProps = (
   collaborators: appState.collaborators, // Necessary for collab. sessions
   activeEmbeddable: appState.activeEmbeddable,
   snapLines: appState.snapLines,
+  engineeringInstrument: appState.engineeringInstrument,
   zenModeEnabled: appState.zenModeEnabled,
   editingTextElement: appState.editingTextElement,
   isCropping: appState.isCropping,
@@ -275,6 +276,7 @@ const getRelevantAppStateProps = (
   shouldCacheIgnoreZoom: appState.shouldCacheIgnoreZoom,
   exportScale: appState.exportScale,
   currentItemArrowType: appState.currentItemArrowType,
+  currentItemEraserMode: appState.currentItemEraserMode,
 });
 
 const areEqual = (

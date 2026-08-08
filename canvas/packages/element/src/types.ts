@@ -97,6 +97,32 @@ export type ExcalidrawEllipseElement = _ExcalidrawElementBase & {
   type: "ellipse";
 };
 
+// Sharp corners only (no rounded-corner support, unlike diamond) — a regular N-gon inscribed in
+// the element's bounding box, one vertex centered at the top. `sides` is clamped to [3, 20] by
+// the UI (see MIN_POLYGON_SIDES/MAX_POLYGON_SIDES in @excalidraw/common).
+export type ExcalidrawPolygonElement = _ExcalidrawElementBase &
+  Readonly<{
+    type: "polygon";
+    sides: number;
+  }>;
+
+// A 3D primitive (cube/pyramid/cylinder/cone/sphere) projected onto the 2D
+// canvas. `rotationX/Y/Z` (degrees) orient the solid before an orthographic
+// projection fits its silhouette into the element's width/height bounding
+// box, so resizing behaves like every other shape. `wireframe` swaps the
+// filled-face render for edges-only.
+export type Shape3DType = "cube" | "pyramid" | "cylinder" | "cone" | "sphere";
+
+export type ExcalidrawShape3DElement = _ExcalidrawElementBase &
+  Readonly<{
+    type: "shape3d";
+    shape3DType: Shape3DType;
+    rotationX: number;
+    rotationY: number;
+    rotationZ: number;
+    wireframe: boolean;
+  }>;
+
 export type ExcalidrawEmbeddableElement = _ExcalidrawElementBase &
   Readonly<{
     type: "embeddable";
@@ -160,6 +186,19 @@ export type InitializedExcalidrawImageElement = MarkNonNullable<
   "fileId"
 >;
 
+export type ExcalidrawVideoElement = _ExcalidrawElementBase &
+  Readonly<{
+    type: "video";
+    fileId: FileId | null;
+    /** whether respective file is persisted */
+    status: "pending" | "saved" | "error";
+  }>;
+
+export type InitializedExcalidrawVideoElement = MarkNonNullable<
+  ExcalidrawVideoElement,
+  "fileId"
+>;
+
 export type ExcalidrawFrameElement = _ExcalidrawElementBase & {
   type: "frame";
   name: string | null;
@@ -191,12 +230,14 @@ export type ExcalidrawFlowchartNodeElement =
 export type ExcalidrawRectanguloidElement =
   | ExcalidrawRectangleElement
   | ExcalidrawImageElement
+  | ExcalidrawVideoElement
   | ExcalidrawTextElement
   | ExcalidrawFreeDrawElement
   | ExcalidrawIframeLikeElement
   | ExcalidrawFrameLikeElement
   | ExcalidrawEmbeddableElement
-  | ExcalidrawSelectionElement;
+  | ExcalidrawSelectionElement
+  | ExcalidrawShape3DElement;
 
 /**
  * ExcalidrawElement should be JSON serializable and (eventually) contain
@@ -205,11 +246,14 @@ export type ExcalidrawRectanguloidElement =
  */
 export type ExcalidrawElement =
   | ExcalidrawGenericElement
+  | ExcalidrawPolygonElement
+  | ExcalidrawShape3DElement
   | ExcalidrawTextElement
   | ExcalidrawLinearElement
   | ExcalidrawArrowElement
   | ExcalidrawFreeDrawElement
   | ExcalidrawImageElement
+  | ExcalidrawVideoElement
   | ExcalidrawFrameElement
   | ExcalidrawMagicFrameElement
   | ExcalidrawIframeElement
@@ -260,8 +304,11 @@ export type ExcalidrawBindableElement =
   | ExcalidrawRectangleElement
   | ExcalidrawDiamondElement
   | ExcalidrawEllipseElement
+  | ExcalidrawPolygonElement
+  | ExcalidrawShape3DElement
   | ExcalidrawTextElement
   | ExcalidrawImageElement
+  | ExcalidrawVideoElement
   | ExcalidrawIframeElement
   | ExcalidrawEmbeddableElement
   | ExcalidrawFrameElement
@@ -271,6 +318,8 @@ export type ExcalidrawTextContainer =
   | ExcalidrawRectangleElement
   | ExcalidrawDiamondElement
   | ExcalidrawEllipseElement
+  | ExcalidrawPolygonElement
+  | ExcalidrawShape3DElement
   | ExcalidrawArrowElement;
 
 export type ExcalidrawTextElementWithContainer = {

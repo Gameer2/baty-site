@@ -61,6 +61,7 @@ import {
 } from "./typeChecks";
 
 import { isInGroup } from "./groups";
+import { getSyntropyMinSize } from "./syntropyMinSize";
 
 import type { Scene } from "./Scene";
 
@@ -747,6 +748,12 @@ export const resizeSingleElement = (
       nextWidth,
       nextHeight,
     );
+  }
+
+  const syntropyMinSize = getSyntropyMinSize(latestElement);
+  if (syntropyMinSize) {
+    nextWidth = Math.max(nextWidth, syntropyMinSize.minWidth);
+    nextHeight = Math.max(nextHeight, syntropyMinSize.minHeight);
   }
 
   let boundTextFont: { fontSize?: number } = {};

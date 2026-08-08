@@ -13,31 +13,47 @@ export class LaserTrails implements Trail {
   public localTrail: AnimatedTrail;
   private collabTrails = new Map<SocketId, AnimatedTrail>();
   private container?: SVGSVGElement;
+  // Set the instant a stroke ends — the decay below is anchored to this,
+  // not to each point's own creation time (see getTrailOptions for why).
+  private localTrailEndedAt = 0;
+  private collabTrailEndedAt = new Map<SocketId, number>();
 
   constructor(private app: App) {
     this.localTrail = new AnimatedTrail(app, {
-      ...this.getTrailOptions(),
+      ...this.getTrailOptions(
+        () => this.localTrail.hasCurrentTrail,
+        () => this.localTrailEndedAt,
+      ),
       fill: () => DEFAULT_LASER_COLOR,
     });
   }
 
-  private getTrailOptions() {
+  private getTrailOptions(isActive: () => boolean, endedAt: () => number) {
     return {
       simplify: 0,
       streamline: 0.4,
-      sizeMapping: (c) => {
+      sizeMapping: () => {
         const DECAY_TIME = 1000;
-        const DECAY_LENGTH = 50;
-        const t = Math.max(
-          0,
-          1 - (performance.now() - c.pressure) / DECAY_TIME,
-        );
-        const l =
-          (DECAY_LENGTH -
-            Math.min(DECAY_LENGTH, c.totalLength - c.currentIndex)) /
-          DECAY_LENGTH;
+        // While the user is actively drawing/pointing, keep the trail fully
+        // visible — don't fade it out from under the cursor. Only apply the
+        // decay once they release (the trail moves to pastTrails), so it fades
+        // out gradually after they stop instead of vanishing while they draw.
+        if (isActive()) {
+          return 1;
+        }
+        // Anchored to when the STROKE ended, applied uniformly to every point
+        // in it — not to each point's own creation timestamp (`c.pressure`)
+        // or its distance from the tip (`c.totalLength - c.currentIndex`, the
+        // old `DECAY_LENGTH` term). Either of those meant a point could
+        // already be past its decay window the instant the stroke ended —
+        // it'd jump straight to invisible on release instead of fading,
+        // which is what read as "not smooth". Anchoring to release time
+        // guarantees every point is at full width right up to release and
+        // eases out together afterward, regardless of the stroke's length or
+        // how long it took to draw.
+        const t = Math.max(0, 1 - (performance.now() - endedAt()) / DECAY_TIME);
 
-        return Math.min(easeOut(l), easeOut(t));
+        return easeOut(t);
       },
     } as Partial<LaserPointerOptions>;
   }
@@ -51,6 +67,7 @@ export class LaserTrails implements Trail {
   }
 
   endPath(): void {
+    this.localTrailEndedAt = performance.now();
     this.localTrail.endPath();
   }
 
@@ -72,6 +89,7 @@ export class LaserTrails implements Trail {
       if (!collaborator) {
         trail.stop();
         this.collabTrails.delete(key);
+        this.collabTrailEndedAt.delete(key);
       }
     }
   }
@@ -95,7 +113,10 @@ export class LaserTrails implements Trail {
       let trail = this.collabTrails.get(key);
       if (!trail) {
         trail = new AnimatedTrail(this.app, {
-          ...this.getTrailOptions(),
+          ...this.getTrailOptions(
+            () => trail!.hasCurrentTrail,
+            () => this.collabTrailEndedAt.get(key) ?? 0,
+          ),
           fill: () =>
             collaborator.pointer?.laserColor ||
             getClientColor(key, collaborator),
@@ -127,6 +148,7 @@ export class LaserTrails implements Trail {
         // End the trail on button up
         if (buttonUp && hasTrail) {
           trail.addPointToPath(collaborator.pointer.x, collaborator.pointer.y);
+          this.collabTrailEndedAt.set(key, performance.now());
           trail.endPath();
         }
       }

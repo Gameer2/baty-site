@@ -1,16 +1,30 @@
 // math-lab/assets/js/algorithms.js is a plain UMD module (see its own header comment: "pure,
 // DOM-free numeric methods... shared between the browser pages and the Node verification suite"),
-// not a TypeScript module. It already has zero DOM/window references, so Vite's CJS/UMD interop
-// imports it directly — this is the ONE place canvas calls the real core file rather than
+// not a TypeScript module. It already has zero DOM/window references. Vite serves it as an ES
+// module with no static exports (the UMD wrapper only assigns to `module.exports` under CJS, or
+// `self.Algorithms` in the browser), so it's imported here for its side effect and read off the
+// global the UMD wrapper sets — this is the ONE place canvas calls the real core file rather than
 // reimplementing the arithmetic, per the project's one-algorithm-one-file rule.
 // @ts-ignore — algorithms.js lives outside canvas's rootDir (../../​../../math-lab/...), so tsc
 // would report TS6059 if it followed the import; ignoring the import keeps it out of tsc's program
-// while Vite's CJS/UMD interop resolves it fine at runtime.
-import Algorithms from "../../../../math-lab/assets/js/algorithms.js";
+// while Vite resolves it fine at runtime.
+import "../../../../math-lab/assets/js/algorithms.js";
 
 import { compileExpression } from "../compileExpression";
 
 import type { ComputeResult, PortSpec } from "./types";
+
+type AlgorithmsModule = {
+  runRiemannSum: (
+    fn: (x: number) => number,
+    a: number,
+    b: number,
+    n: number,
+  ) => { total: number; width: number; rectangles: unknown };
+};
+
+const Algorithms = (globalThis as { Algorithms?: AlgorithmsModule })
+  .Algorithms as AlgorithmsModule;
 
 export const RIEMANN_SUMS_PORT_SPEC: PortSpec = {
   engineId: "calculus",

@@ -25,6 +25,7 @@ import {
   isArrowElement,
   isIframeLikeElement,
   isInitializedImageElement,
+  isInitializedVideoElement,
   isTextElement,
 } from "@excalidraw/element";
 
@@ -147,6 +148,7 @@ const renderElementToSvg = (
     }
     case "rectangle":
     case "diamond":
+    case "polygon":
     case "ellipse": {
       const shape = ShapeCache.generateElementShape(element, renderConfig);
       const node = roughSVGDrawWithPrecision(
@@ -381,6 +383,40 @@ const renderElementToSvg = (
       }
       break;
     }
+    case "shape3d": {
+      const group = svgRoot.ownerDocument.createElementNS(SVG_NS, "g");
+      group.setAttribute("stroke-linecap", "round");
+
+      const shapes = ShapeCache.generateElementShape(element, renderConfig);
+      shapes.forEach((shape) => {
+        const node = roughSVGDrawWithPrecision(
+          rsvg,
+          shape,
+          MAX_DECIMALS_FOR_SVG_EXPORT,
+        );
+        if (opacity !== 1) {
+          node.setAttribute("stroke-opacity", `${opacity}`);
+          node.setAttribute("fill-opacity", `${opacity}`);
+        }
+        node.setAttribute(
+          "transform",
+          `translate(${offsetX || 0} ${
+            offsetY || 0
+          }) rotate(${degree} ${cx} ${cy})`,
+        );
+        group.appendChild(node);
+      });
+
+      const g = maybeWrapNodesInFrameClipPath(
+        element,
+        root,
+        [group],
+        renderConfig.frameRendering,
+        elementsMap,
+      );
+      addToRoot(g || group, element);
+      break;
+    }
     case "freedraw": {
       const wrapper = svgRoot.ownerDocument.createElementNS(SVG_NS, "g");
 
@@ -583,6 +619,85 @@ const renderElementToSvg = (
           const clipOffsetY = element.crop ? normalizedCropY : 0;
           clipRect.setAttribute("x", `${clipOffsetX}`);
           clipRect.setAttribute("y", `${clipOffsetY}`);
+          clipRect.setAttribute("width", `${element.width}`);
+          clipRect.setAttribute("height", `${element.height}`);
+          clipRect.setAttribute("rx", `${radius}`);
+          clipRect.setAttribute("ry", `${radius}`);
+          clipPath.appendChild(clipRect);
+          addToRoot(clipPath, element);
+
+          g.setAttributeNS(SVG_NS, "clip-path", `url(#${clipPath.id})`);
+        }
+
+        const clipG = maybeWrapNodesInFrameClipPath(
+          element,
+          root,
+          [g],
+          renderConfig.frameRendering,
+          elementsMap,
+        );
+        addToRoot(clipG || g, element);
+      }
+      break;
+    }
+    case "video": {
+      const width = Math.round(element.width);
+      const height = Math.round(element.height);
+      const fileData =
+        isInitializedVideoElement(element) && files[element.fileId];
+      if (fileData) {
+        const g = svgRoot.ownerDocument.createElementNS(SVG_NS, "g");
+
+        // SVG `<image>` can't render a video, so embed the actual `<video>`
+        // inside a `<foreignObject>`. Browsers render this fine; static SVG
+        // viewers that ignore foreignObject will just show empty space (PNG
+        // export already captures the frame via the canvas path).
+        const foreignObject = svgRoot.ownerDocument.createElementNS(
+          SVG_NS,
+          "foreignObject",
+        );
+        foreignObject.setAttribute("x", "0");
+        foreignObject.setAttribute("y", "0");
+        foreignObject.setAttribute("width", `${width}`);
+        foreignObject.setAttribute("height", `${height}`);
+
+        const video = svgRoot.ownerDocument.createElementNS(
+          "http://www.w3.org/1999/xhtml",
+          "video",
+        );
+        video.setAttribute("src", fileData.dataURL);
+        video.setAttribute("width", `${width}`);
+        video.setAttribute("height", `${height}`);
+        video.setAttribute("controls", "controls");
+        video.style.width = "100%";
+        video.style.height = "100%";
+        video.style.objectFit = "fill";
+        foreignObject.appendChild(video);
+
+        g.appendChild(foreignObject);
+        g.setAttribute(
+          "transform",
+          `translate(${offsetX} ${offsetY}) rotate(${degree} ${cx} ${cy})`,
+        );
+        g.setAttribute("opacity", `${opacity}`);
+
+        if (element.roundness) {
+          const clipPath = svgRoot.ownerDocument.createElementNS(
+            SVG_NS,
+            "clipPath",
+          );
+          clipPath.id = `video-clipPath-${element.id}`;
+          clipPath.setAttribute("clipPathUnits", "userSpaceOnUse");
+          const clipRect = svgRoot.ownerDocument.createElementNS(
+            SVG_NS,
+            "rect",
+          );
+          const radius = getCornerRadius(
+            Math.min(element.width, element.height),
+            element,
+          );
+          clipRect.setAttribute("x", "0");
+          clipRect.setAttribute("y", "0");
           clipRect.setAttribute("width", `${element.width}`);
           clipRect.setAttribute("height", `${element.height}`);
           clipRect.setAttribute("rx", `${radius}`);

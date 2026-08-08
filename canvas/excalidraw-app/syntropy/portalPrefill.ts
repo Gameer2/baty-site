@@ -19,6 +19,23 @@ export const buildPageState = (
 };
 
 /**
+ * Resolve a canonical lab page path (`/math-lab/engines/…/method.html`) to a URL that opens
+ * correctly no matter where the canvas app is served from.
+ *
+ * The app and the lab are sibling directories under the repo root — `canvas/dist/` (this app)
+ * and `math-lab/`. A hard-coded root-absolute `/math-lab/...` only resolves when the app is
+ * served from the repo root (serve.py) or via the dev proxy; opened from `canvas/dist/` with a
+ * static server, or via `file://`, that absolute path 404s and the page "doesn't open properly".
+ *
+ * `../../math-lab/...` is relative to this document: from `canvas/dist/` it climbs to the repo
+ * root and into the sibling `math-lab/`; under the dev server (document at `/`) it clamps to
+ * `/math-lab/...` which the Vite proxy forwards to serve.py; under `file://` it reaches the real
+ * sibling folder. `window.open` resolves the relative URL against this document's base URI.
+ */
+const toLabUrl = (pagePath: string): string =>
+  pagePath.startsWith("/math-lab/") ? `../../${pagePath.slice(1)}` : pagePath;
+
+/**
  * The portal: writes the node's current values into the exact localStorage key/shape the
  * method's real page already reads on load via Proto.loadState (math-lab/assets/proto/proto.js),
  * then opens that page in a new tab. Works only because phase A put the hub, math-lab, and
@@ -30,7 +47,7 @@ export const openMethodPage = (
 ): void => {
   const state = buildPageState(spec, inputs);
   localStorage.setItem(spec.pageStoreKey, JSON.stringify(state));
-  window.open(spec.pagePath, "_blank");
+  window.open(toLabUrl(spec.pagePath), "_blank");
 };
 
 /**
@@ -40,7 +57,7 @@ export const openMethodPage = (
  * follows the same convention the port specs use: `/math-lab/engines/<engineId>/methods/<methodId>.html`.
  */
 export const openMethodPageByPath = (pagePath: string): void => {
-  window.open(pagePath, "_blank");
+  window.open(toLabUrl(pagePath), "_blank");
 };
 
 export const methodPagePath = (engineId: string, methodId: string): string =>

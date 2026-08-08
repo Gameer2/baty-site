@@ -121,7 +121,7 @@ import {
   styleSyntropyWire,
 } from "./syntropy/syntropyWire";
 import { LibraryPanel } from "./syntropy/LibraryPanel";
-import { LibraryToggle } from "./syntropy/LibraryToggle";
+import { ChromeRail } from "./syntropy/ChromeRail";
 import { NodeOverlay } from "./syntropy/NodeOverlay";
 
 import "./syntropy/boardChrome.scss";
@@ -402,12 +402,25 @@ const ExcalidrawWrapper = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [activeEngineId, setActiveEngineId] = useState<EngineId | null>(null);
   const [isLibraryPanelOpen, setIsLibraryPanelOpen] = useState(true);
+  // Lifted out of PaperPicker so ChromeRail can render its trigger segment
+  // as part of the merged rail instead of PaperPicker owning its own chip.
+  const [isPaperPickerOpen, setIsPaperPickerOpen] = useState(false);
   // NodeOverlay (Task 8): the scene elements and appState the overlay reads to position
   // SyntropyNodeCards in screen space, refreshed on every Excalidraw onChange below.
   const [overlayElements, setOverlayElements] = useState<
     readonly OrderedExcalidrawElement[]
   >([]);
   const [overlayAppState, setOverlayAppState] = useState<AppState | null>(null);
+  // onChange fires on every pointermove during a drag/selection. The overlay
+  // position sync and wire auto-styling below are visual/idempotent, so we
+  // coalesce them to once per animation frame instead of running the full
+  // O(elements) + O(nodes x arrows) pass on every single onChange call —
+  // that per-frame cost was the main source of drag/selection lag.
+  const pendingOverlaySyncRef = useRef<{
+    elements: readonly OrderedExcalidrawElement[];
+    appState: AppState;
+  } | null>(null);
+  const overlaySyncRafRef = useRef<number | null>(null);
   // Syntropy Canvas: no collaboration server is configured for v0 (deprioritized —
   // see docs/superpowers/specs/2026-08-04-math-canvas-design.md), so this is
   // unconditionally disabled rather than only inside an iframe.
@@ -711,11 +724,18 @@ const ExcalidrawWrapper = () => {
     };
   }, [excalidrawAPI]);
 
-  const onChange = (
-    elements: readonly OrderedExcalidrawElement[],
-    appState: AppState,
-    files: BinaryFiles,
-  ) => {
+  // Flushes the coalesced overlay-position-sync + wire-auto-styling work
+  // (see pendingOverlaySyncRef above). Runs at most once per animation frame
+  // no matter how many onChange calls land in that frame.
+  const flushOverlaySync = () => {
+    overlaySyncRafRef.current = null;
+    const pending = pendingOverlaySyncRef.current;
+    if (!pending) {
+      return;
+    }
+    pendingOverlaySyncRef.current = null;
+    const { elements, appState } = pending;
+
     // NodeOverlay (Task 8): keep the overlay's view of the scene current so cards track
     // each node's screen position on every pan/zoom/move.
     setOverlayElements(elements);
@@ -773,6 +793,25 @@ const ExcalidrawWrapper = () => {
           captureUpdate: CaptureUpdateAction.NEVER,
         });
       }
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (overlaySyncRafRef.current !== null) {
+        cancelAnimationFrame(overlaySyncRafRef.current);
+      }
+    };
+  }, []);
+
+  const onChange = (
+    elements: readonly OrderedExcalidrawElement[],
+    appState: AppState,
+    files: BinaryFiles,
+  ) => {
+    pendingOverlaySyncRef.current = { elements, appState };
+    if (overlaySyncRafRef.current === null) {
+      overlaySyncRafRef.current = requestAnimationFrame(flushOverlaySync);
     }
 
     if (collabAPI?.isCollaborating()) {
@@ -1029,14 +1068,27 @@ const ExcalidrawWrapper = () => {
   return (
     <div
       style={{ height: "100%", display: "flex" }}
-      className={clsx("excalidraw-app", {
+      // Mirror the resolved theme onto .excalidraw-app so the shell chrome —
+      // LibraryPanel, ChromeRail (Library/Paper/Theme), NodeOverlay
+      // (the Syntropy node cards) — which all render as SIBLINGS of
+      // <Excalidraw> (outside its .excalidraw.theme--xxx subtree) can pick up
+      // theme tokens. index.scss re-publishes the chrome-relevant tokens under
+      // .excalidraw-app.theme--light/dark; the accent ramp below targets the
+      // same classes. Without this, the chrome is theme-blind.
+      className={clsx("excalidraw-app", `theme--${editorTheme}`, {
         "is-collaborating": isCollaborating,
       })}
     >
       {isLibraryPanelOpen && <LibraryPanel excalidrawAPI={excalidrawAPI} />}
-      <LibraryToggle
-        open={isLibraryPanelOpen}
-        onToggle={() => setIsLibraryPanelOpen((prev) => !prev)}
+      <ChromeRail
+        excalidrawAPI={excalidrawAPI}
+        libraryOpen={isLibraryPanelOpen}
+        onLibraryToggle={() => setIsLibraryPanelOpen((prev) => !prev)}
+        paperOpen={isPaperPickerOpen}
+        onPaperToggle={() => setIsPaperPickerOpen((prev) => !prev)}
+        onPaperClose={() => setIsPaperPickerOpen(false)}
+        appTheme={appTheme}
+        onThemeChange={setAppTheme}
       />
       {overlayAppState && (
         <NodeOverlay
@@ -1051,14 +1103,18 @@ const ExcalidrawWrapper = () => {
         {/* Always inject the toolbar's --color-primary ramp so tool-icon selected states stay
             on the lab palette at all times (note-taker: "the color is very bad... non consistent
             as a design"). Defaults to the flagship lab teal when no Syntropy node is selected;
-            switches to the selected node's engine accent when one is. */}
+            switches to the selected node's engine accent when one is. Emitted for BOTH themes so
+            the accent (and selection/active states) follow the mood across the whole UI, not just
+            dark — the cascade picks the block matching the .theme--dark / .theme--light class
+            Excalidraw puts on its wrapper. */}
         <style>
           {(() => {
             const accent = activeEngineId
               ? ENGINE_ACCENTS[activeEngineId]
               : "#5c939f";
-            const s = deriveAccentShades(accent);
-            return `.excalidraw.theme--dark {
+            const dark = deriveAccentShades(accent, "dark");
+            const light = deriveAccentShades(accent, "light");
+            const ramp = (s: typeof dark) => `
               --color-primary: ${s.primary};
               --color-primary-darker: ${s.primaryDarker};
               --color-primary-darkest: ${s.primaryDarkest};
@@ -1070,7 +1126,13 @@ const ExcalidrawWrapper = () => {
               --color-on-primary-container: ${s.onPrimaryContainer};
               --color-surface-primary-container: ${s.surfacePrimaryContainer};
               --color-selection: ${s.selection};
-            }`;
+            `;
+            return `.excalidraw.theme--dark, .excalidraw-app.theme--dark {${ramp(
+              dark,
+            )}}
+              .excalidraw.theme--light, .excalidraw-app.theme--light {${ramp(
+                light,
+              )}}`;
           })()}
         </style>
         <Excalidraw

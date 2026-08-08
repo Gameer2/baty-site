@@ -2,6 +2,8 @@ import { CURSOR_TYPE, MIME_TYPES, THEME } from "@excalidraw/common";
 
 import { isHandToolActive, isEraserActive } from "../appState";
 
+import { isEngineeringTool } from "./engineeringTools";
+
 import type App from "./App";
 import type { AppState, DataURL } from "../types";
 
@@ -86,18 +88,26 @@ export class AppCursor {
       this.applyEraser();
     } else if (activeTool.type === "autoshape") {
       this.set(CURSOR_TYPE.CROSSHAIR);
+    } else if (isEngineeringTool(activeTool.type)) {
+      // drafting instruments are dragged (move/rotate/draw handles) — a grab
+      // cursor communicates that, not a crosshair
+      this.set(CURSOR_TYPE.GRAB);
     } else if (activeTool.type === "laser") {
       const url =
         this.app.state.theme === THEME.LIGHT
           ? laserPointerCursorDataURL_lightMode
           : laserPointerCursorDataURL_darkMode;
       this.set(`url(${url}), auto`);
-    } else if (!["image", "custom"].includes(activeTool.type)) {
+    } else if (!["image", "video", "pdf", "custom"].includes(activeTool.type)) {
       this.set(CURSOR_TYPE.CROSSHAIR);
-      // do nothing if image tool is selected which suggests there's
-      // an image-preview set as the cursor
+      // do nothing if image/video/pdf tool is selected which suggests there's
+      // a preview set as the cursor, or a picker is about to open
       // Ignore custom type as well and let host decide
-    } else if (activeTool.type !== "image") {
+    } else if (
+      activeTool.type !== "image" &&
+      activeTool.type !== "video" &&
+      activeTool.type !== "pdf"
+    ) {
       this.set(CURSOR_TYPE.AUTO);
     }
   };

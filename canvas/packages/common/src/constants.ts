@@ -1,6 +1,7 @@
 import type {
   ExcalidrawElement,
   FontFamilyValues,
+  Shape3DType,
 } from "@excalidraw/element/types";
 import type { AppProps, AppState } from "@excalidraw/excalidraw/types";
 
@@ -246,6 +247,17 @@ export const IMAGE_MIME_TYPES = {
   jfif: "image/jfif",
 } as const;
 
+export const VIDEO_MIME_TYPES = {
+  mp4: "video/mp4",
+  webm: "video/webm",
+  ogg: "video/ogg",
+  mov: "video/quicktime",
+} as const;
+
+export const PDF_MIME_TYPES = {
+  pdf: "application/pdf",
+} as const;
+
 export const STRING_MIME_TYPES = {
   text: "text/plain",
   html: "text/html",
@@ -268,12 +280,18 @@ export const MIME_TYPES = {
   binary: "application/octet-stream",
   // image
   ...IMAGE_MIME_TYPES,
+  // video
+  ...VIDEO_MIME_TYPES,
+  // pdf (imported by rendering pages to images)
+  ...PDF_MIME_TYPES,
 } as const;
 
 export const ALLOWED_PASTE_MIME_TYPES = [
   MIME_TYPES.text,
   MIME_TYPES.html,
   ...Object.values(IMAGE_MIME_TYPES),
+  ...Object.values(VIDEO_MIME_TYPES),
+  ...Object.values(PDF_MIME_TYPES),
 ] as const;
 
 export const EXPORT_IMAGE_TYPES = {
@@ -329,6 +347,8 @@ export const DEFAULT_UI_OPTIONS: AppProps["UIOptions"] = {
   },
   tools: {
     image: true,
+    video: true,
+    pdf: true,
   },
 };
 
@@ -340,6 +360,12 @@ export const DEFAULT_EXPORT_PADDING = 10; // px
 export const DEFAULT_IMAGE_OPTIONS: AppProps["imageOptions"] = {
   maxWidthOrHeight: 1440,
   maxFileSizeBytes: 4 * 1024 * 1024,
+};
+
+export const DEFAULT_VIDEO_OPTIONS: AppProps["videoOptions"] = {
+  // Videos are stored inline as base64 dataURL in the scene file, so cap the
+  // upload size to keep scenes manageable. ~25 MB → ~33 MB base64 in JSON.
+  maxFileSizeBytes: 25 * 1024 * 1024,
 };
 
 export const SVG_NS = "http://www.w3.org/2000/svg";
@@ -447,6 +473,64 @@ export const getStrokeWidthByKey = (
 
 export const DEFAULT_ELEMENT_STROKE_WIDTH_KEY: StrokeWidthKey = "medium";
 
+// Screen-pixel diameter of the eraser brush — both its visual trail and its actual hit-test
+// radius (packages/excalidraw/eraser/index.ts) scale with this. A free-moving slider
+// (packages/excalidraw/actions/actionEraser.tsx) rather than a few discrete steps, since a
+// three-way pick made it hard to tell the sizes apart at a glance.
+export const ERASER_SIZE_MIN = 6;
+export const ERASER_SIZE_MAX = 48;
+export const ERASER_SIZE_STEP = 2;
+
+export const DEFAULT_ERASER_SIZE = 18;
+
+// Three erase behaviors:
+// - "precision": cuts out exactly the points the eraser circle passed over — a razor-exact,
+//   possibly jagged cut. Ideal for shaving off a small detail without disturbing the rest. Only
+//   freedraw and non-polygon line elements have a meaningful "partial" cut this way; every other
+//   element type is always erased whole regardless of mode (packages/excalidraw/components/App.tsx's
+//   eraseElements).
+// - "stroke" (default): deletes the entire element on any touch — the app's original (and for a
+//   long time only) eraser behavior.
+// - "clear": deletes every element on the canvas (locked elements excepted) on the very first
+//   touch, anywhere — equivalent to select-all + delete. Bypasses the eraser trail/hit-testing
+//   entirely (packages/excalidraw/components/App.tsx's onPointerDownFromPointerDownHandler calls
+//   clearAllErasableElements() instead of starting a trail). Undoable like any other action.
+export type EraserMode = "precision" | "stroke" | "clear";
+
+export const ERASER_MODES: readonly EraserMode[] = [
+  "precision",
+  "stroke",
+  "clear",
+];
+
+export const DEFAULT_ERASER_MODE: EraserMode = "stroke";
+
+// A regular N-gon inscribed in the element's bounding box. 3 (triangle) to 20 is a deliberately
+// wide but bounded range — enough to go from sharp polygons up to a shape that reads as
+// near-circular, without an unbounded slider.
+export const MIN_POLYGON_SIDES = 3;
+export const MAX_POLYGON_SIDES = 20;
+export const DEFAULT_POLYGON_SIDES = 6;
+
+// 3D primitives projected onto the 2D canvas (see @excalidraw/element/shape3d).
+// Rotation is in degrees so it maps directly onto the properties-panel sliders.
+export const SHAPE3D_TYPES: readonly Shape3DType[] = [
+  "cube",
+  "pyramid",
+  "cylinder",
+  "cone",
+  "sphere",
+];
+export const DEFAULT_SHAPE3D_TYPE: Shape3DType = "cube";
+// A mild tilt on X and turn on Y gives new solids an immediately-readable 3D
+// look (front + top + side faces visible) instead of a flat head-on view.
+export const DEFAULT_SHAPE3D_ROTATION_X = 335;
+export const DEFAULT_SHAPE3D_ROTATION_Y = 35;
+export const DEFAULT_SHAPE3D_ROTATION_Z = 0;
+export const DEFAULT_SHAPE3D_WIREFRAME = false;
+export const MIN_SHAPE3D_ROTATION = 0;
+export const MAX_SHAPE3D_ROTATION = 360;
+
 export const DEFAULT_ELEMENT_PROPS: {
   strokeColor: ExcalidrawElement["strokeColor"];
   backgroundColor: ExcalidrawElement["backgroundColor"];
@@ -479,6 +563,7 @@ export const LIBRARY_DISABLED_TYPES = new Set([
   "iframe",
   "embeddable",
   "image",
+  "video",
 ] as const);
 
 // use these constants to easily identify reference sites
@@ -487,12 +572,16 @@ export const TOOL_TYPE = {
   lasso: "lasso",
   rectangle: "rectangle",
   diamond: "diamond",
+  polygon: "polygon",
+  shape3d: "shape3d",
   ellipse: "ellipse",
   arrow: "arrow",
   line: "line",
   freedraw: "freedraw",
   text: "text",
   image: "image",
+  video: "video",
+  pdf: "pdf",
   eraser: "eraser",
   hand: "hand",
   frame: "frame",
@@ -501,6 +590,12 @@ export const TOOL_TYPE = {
   laser: "laser",
   autoshape: "autoshape",
   bucketfill: "bucketfill",
+  compass: "compass",
+  ruler: "ruler",
+  protractor: "protractor",
+  tsquare: "tsquare",
+  setsquare: "setsquare",
+  anglebisector: "anglebisector",
 } as const;
 
 export const EDITOR_LS_KEYS = {

@@ -1,4 +1,13 @@
 export { actionDeleteSelected } from "./actionDeleteSelected";
+export { actionChangeEraserSize, actionChangeEraserMode } from "./actionEraser";
+export { actionChangePolygonSides } from "./actionPolygon";
+export {
+  actionChangeShape3DType,
+  actionChangeShape3DRotationX,
+  actionChangeShape3DRotationY,
+  actionChangeShape3DRotationZ,
+  actionToggleShape3DWireframe,
+} from "./actionShape3D";
 export {
   actionBringForward,
   actionBringToFront,

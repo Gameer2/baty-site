@@ -27,6 +27,7 @@ import {
   KEYS,
   APP_NAME,
   CURSOR_TYPE,
+  DEFAULT_ERASER_SIZE,
   DEFAULT_STROKE_STREAMLINE,
   DEFAULT_STROKE_STREAMLINE_PRECISE,
   DEFAULT_TRANSFORM_HANDLE_SPACING,
@@ -37,6 +38,8 @@ import {
   EVENT,
   FRAME_STYLE,
   IMAGE_MIME_TYPES,
+  VIDEO_MIME_TYPES,
+  PDF_MIME_TYPES,
   IMAGE_RENDER_TIMEOUT,
   LINE_CONFIRM_THRESHOLD,
   MIME_TYPES,
@@ -132,7 +135,10 @@ import {
   newArrowElement,
   newElement,
   newImageElement,
+  newVideoElement,
   newLinearElement,
+  newPolygonElement,
+  newShape3DElement,
   newTextElement,
   refreshTextDimensions,
   deepCopyElement,
@@ -145,7 +151,10 @@ import {
   isFrameLikeElement,
   isImageElement,
   isEmbeddableElement,
+  isSyntropyLinkElement,
   isInitializedImageElement,
+  isInitializedVideoElement,
+  isVideoElement,
   isLinearElement,
   isLinearElementType,
   isUsingAdaptiveRadius,
@@ -167,8 +176,10 @@ import {
   maybeParseEmbedSrc,
   getEmbedLink,
   getInitializedImageElements,
+  getInitializedVideoElements,
   normalizeSVG,
   updateImageCache as _updateImageCache,
+  updateVideoCache as _updateVideoCache,
   getBoundTextElement,
   getContainerCenter,
   getContainerElement,
@@ -233,11 +244,14 @@ import {
   CaptureUpdateAction,
   type ElementUpdate,
   hitElementBoundingBox,
+  isFreeDrawElement,
   isLineElement,
   isSimpleArrow,
   StoreDelta,
   type ApplyToOptions,
   positionElementsOnGrid,
+  positionElementsInLayout,
+  type LayoutMode,
   calculateFixedPointForNonElbowArrowBinding,
   bindOrUnbindBindingElement,
   mutateElement,
@@ -280,6 +294,8 @@ import type {
   IframeData,
   ExcalidrawIframeElement,
   ExcalidrawEmbeddableElement,
+  ExcalidrawVideoElement,
+  InitializedExcalidrawVideoElement,
   Ordered,
   MagicGenerationData,
   ExcalidrawArrowElement,
@@ -378,6 +394,9 @@ import {
   ImageURLToFile,
   isImageFileHandle,
   isSupportedImageFile,
+  isSupportedVideoFile,
+  isSupportedPdfFile,
+  isSupportedPdfFileType,
   loadSceneOrLibraryFromBlob,
   normalizeFile,
   parseLibraryJSON,
@@ -385,6 +404,7 @@ import {
   SVGStringToFile,
 } from "../data/blob";
 
+import { renderPdfPages, renderPdfToImageFiles } from "../data/pdf";
 import { fileOpen } from "../data/filesystem";
 import {
   showHyperlinkTooltip,
@@ -421,6 +441,10 @@ import { isOverScrollBars } from "../scene/scrollbars";
 import { isMaybeMermaidDefinition } from "../mermaid";
 import { LassoTrail } from "../lasso";
 import { EraserTrail } from "../eraser";
+import {
+  buildStrokePieceFromRun,
+  getSurvivingRuns,
+} from "../eraser/splitStrokeElement";
 import { getShortcutKey } from "../shortcut";
 import { tryParseSpreadsheet } from "../charts";
 
@@ -437,6 +461,14 @@ import { AppCursor } from "./App.cursor";
 import { AppDrawShape } from "./App.drawshape";
 import { AppFlowchart } from "./App.flowchart";
 import { AppViewport, RIGHT_SIDEBAR_WIDTH } from "./App.viewport";
+import { isEngineeringTool } from "./engineeringTools";
+import {
+  defaultInstrument,
+  beginInstrumentDrag,
+  updateInstrumentOnDrag,
+  commitInstrumentDrawing,
+  type InstrumentType,
+} from "./engineeringOverlay";
 import BraveMeasureTextError from "./BraveMeasureTextError";
 import { ContextMenu, CONTEXT_MENU_SEPARATOR } from "./ContextMenu";
 import { activeEyeDropperAtom } from "./EyeDropper";
@@ -650,6 +682,17 @@ class App extends React.Component<AppProps, AppState> {
 
   public files: BinaryFiles = {};
   public imageCache: AppClassProperties["imageCache"] = new Map();
+  public videoCache: AppClassProperties["videoCache"] = new Map();
+  /**
+   * The PDF awaiting page-selection in the import dialog. Kept here (not in
+   * appState) because a File isn't serializable; the dialog is toggled via
+   * `appState.openDialog.name === "pdfImport"`.
+   */
+  public pendingPdfImport: {
+    file: File;
+    sceneX: number;
+    sceneY: number;
+  } | null = null;
   private iFrameRefs = new Map<ExcalidrawElement["id"], HTMLIFrameElement>();
   /**
    * Indicates whether the embeddable's url has been validated for rendering.
@@ -1568,6 +1611,12 @@ class App extends React.Component<AppProps, AppState> {
         300 &&
       gesture.pointers.size < 2 &&
       isIframeLikeElement(hitElement) &&
+      // Syntropy nodes reuse the `embeddable` type but render their own
+      // interactive card via the DOM overlay — they have no iframe to "activate
+      // into", and the center-click activation only hijacks pointer-up (so a
+      // center drag never moves the node) and then traps the node in an active
+      // state that blocks re-selection. Skip it for them.
+      !isSyntropyLinkElement(hitElement) &&
       (this.state.viewModeEnabled ||
         this.state.activeTool.type === "laser" ||
         this.isIframeLikeElementCenter(
@@ -2050,6 +2099,103 @@ class App extends React.Component<AppProps, AppState> {
                   </div>
                 </div>
               </div>
+            </div>
+          );
+        })}
+      </>
+    );
+  }
+
+  // Native video elements are rendered as a real `<video>` DOM overlay on top
+  // of the canvas (the canvas itself only paints a static frame for export /
+  // backdrop). This mirrors `renderEmbeddables` for positioning/visibility but
+  // is self-contained: pointer events are enabled only while the element is
+  // selected, so the canvas stays draggable otherwise and the `<video>`
+  // controls become usable once selected.
+  private renderVideos() {
+    const scale = this.state.zoom.value;
+    const normalizedWidth = this.state.width;
+    const normalizedHeight = this.state.height;
+
+    const videoElements = this.scene
+      .getNonDeletedElements()
+      .filter((el): el is Ordered<NonDeleted<ExcalidrawVideoElement>> =>
+        isVideoElement(el),
+      );
+
+    return (
+      <>
+        {videoElements.map((el) => {
+          if (!isInitializedVideoElement(el)) {
+            return null;
+          }
+          const fileData = this.files[el.fileId as string];
+          if (!fileData) {
+            return null;
+          }
+
+          const { x, y } = sceneCoordsToViewportCoords(
+            { sceneX: el.x, sceneY: el.y },
+            this.state,
+          );
+
+          const isVisible = isElementInViewport(
+            el,
+            normalizedWidth,
+            normalizedHeight,
+            this.state,
+            this.scene.getNonDeletedElementsMap(),
+          );
+
+          const isSelected = !!this.state.selectedElementIds[el.id];
+
+          return (
+            <div
+              key={el.id}
+              className="excalidraw__video-container"
+              style={{
+                position: "absolute",
+                left: 0,
+                top: 0,
+                transform: isVisible
+                  ? `translate(${x - this.state.offsetLeft}px, ${
+                      y - this.state.offsetTop
+                    }px) scale(${scale}) rotate(${el.angle}rad)`
+                  : "none",
+                transformOrigin: "top left",
+                display: isVisible ? "block" : "none",
+                opacity: getRenderOpacity(
+                  el,
+                  getContainingFrame(el, this.scene.getNonDeletedElementsMap()),
+                  this.elementsPendingErasure,
+                  null,
+                  this.state.openDialog?.name === "elementLinkSelector"
+                    ? DEFAULT_REDUCED_GLOBAL_ALPHA
+                    : 1,
+                ),
+                pointerEvents: isSelected
+                  ? POINTER_EVENTS.enabled
+                  : POINTER_EVENTS.disabled,
+                borderRadius: `${getCornerRadius(
+                  Math.min(el.width, el.height),
+                  el,
+                )}px`,
+                overflow: "hidden",
+              }}
+            >
+              <video
+                src={fileData.dataURL}
+                controls={isSelected}
+                playsInline
+                // muted so autoplay-browsers don't block; not autoplaying by default
+                preload="metadata"
+                style={{
+                  width: `${el.width}px`,
+                  height: `${el.height}px`,
+                  display: "block",
+                  objectFit: "fill",
+                }}
+              />
             </div>
           );
         })}
@@ -2570,9 +2716,11 @@ class App extends React.Component<AppProps, AppState> {
                             appState={this.state}
                             renderConfig={{
                               imageCache: this.imageCache,
+                              videoCache: this.videoCache,
                               isExporting: false,
                               renderGrid: isGridModeEnabled(this),
-                              renderDotGrid: true,
+                              renderDotGrid: this.state.paperMode === "dotted",
+                              renderRuled: this.state.paperMode === "ruled",
                               renderLinks: this.isLinksEnabled(),
                               canvasBackgroundColor:
                                 this.state.viewBackgroundColor,
@@ -2595,6 +2743,7 @@ class App extends React.Component<AppProps, AppState> {
                               allElementsMap={allElementsMap}
                               renderConfig={{
                                 imageCache: this.imageCache,
+                                videoCache: this.videoCache,
                                 isExporting: false,
                                 renderGrid: false,
                                 canvasBackgroundColor:
@@ -2664,6 +2813,7 @@ class App extends React.Component<AppProps, AppState> {
                             )}
                         </ExcalidrawActionManagerContext.Provider>
                         {this.renderEmbeddables()}
+                        {this.renderVideos()}
                       </ExcalidrawElementsContext.Provider>
                     </ExcalidrawAppStateContext.Provider>
                   </ExcalidrawSetAppStateContext.Provider>
@@ -3025,6 +3175,7 @@ class App extends React.Component<AppProps, AppState> {
     if (actionResult.files) {
       this.addMissingFiles(actionResult.files, actionResult.replaceFiles);
       this.addNewImagesToImageCache();
+      this.addNewVideosToVideoCache();
     }
 
     if (actionResult.appState || editingTextElement || this.state.contextMenu) {
@@ -3513,6 +3664,8 @@ class App extends React.Component<AppProps, AppState> {
       openSidebar: restoredAppState?.openSidebar || this.state.openSidebar,
       activeTool:
         activeTool.type === "image" ||
+        activeTool.type === "video" ||
+        activeTool.type === "pdf" ||
         activeTool.type === "lasso" ||
         activeTool.type === "selection"
           ? {
@@ -4467,10 +4620,19 @@ class App extends React.Component<AppProps, AppState> {
       }
     }
 
-    // ------------------- Images or SVG code -------------------
-    const imageFiles = dataTransferFiles.map((data) => data.file);
+    // ------------------- Images, videos, PDFs, or SVG code -------------------
+    const allFiles = dataTransferFiles.map((data) => data.file);
+    const imageFiles = allFiles.filter((file) => isSupportedImageFile(file));
+    const videoFiles = allFiles.filter((file) => isSupportedVideoFile(file));
+    const pdfFiles = allFiles.filter((file) => isSupportedPdfFile(file));
 
-    if (imageFiles.length === 0 && data.text && !isPlainPaste) {
+    if (
+      imageFiles.length === 0 &&
+      videoFiles.length === 0 &&
+      pdfFiles.length === 0 &&
+      data.text &&
+      !isPlainPaste
+    ) {
       const trimmedText = data.text.trim();
       if (trimmedText.startsWith("<svg") && trimmedText.endsWith("</svg>")) {
         // ignore SVG validation/normalization which will be done during image
@@ -4484,6 +4646,45 @@ class App extends React.Component<AppProps, AppState> {
         await this.insertImages(imageFiles, sceneX, sceneY);
       } else {
         this.setState({ errorMessage: t("errors.imageToolNotSupported") });
+      }
+      return;
+    }
+
+    if (videoFiles.length > 0) {
+      if (this.isToolSupported("video")) {
+        await this.insertVideos(videoFiles, sceneX, sceneY);
+      } else {
+        this.setState({ errorMessage: t("errors.videoToolNotSupported") });
+      }
+      return;
+    }
+
+    if (pdfFiles.length > 0) {
+      if (this.isToolSupported("pdf")) {
+        try {
+          if (pdfFiles.length === 1) {
+            // single PDF → page-selection / layout dialog
+            this.openPdfImportDialog(pdfFiles[0], sceneX, sceneY);
+            return;
+          }
+          // multiple PDFs pasted at once → insert all pages directly
+          const pdfImageFiles: File[] = [];
+          for (const pdfFile of pdfFiles) {
+            const pages = await renderPdfToImageFiles(pdfFile, {
+              maxWidthOrHeight: this.props.imageOptions.maxWidthOrHeight,
+            });
+            pdfImageFiles.push(...pages);
+          }
+          if (pdfImageFiles.length > 0) {
+            await this.insertImages(pdfImageFiles, sceneX, sceneY);
+          }
+        } catch (error: any) {
+          this.setState({
+            errorMessage: error.message || t("errors.unsupportedFileType"),
+          });
+        }
+      } else {
+        this.setState({ errorMessage: t("errors.pdfToolNotSupported") });
       }
       return;
     }
@@ -4788,6 +4989,7 @@ class App extends React.Component<AppProps, AppState> {
       () => {
         if (opts.files) {
           this.addNewImagesToImageCache();
+          this.addNewVideosToVideoCache();
         }
       },
     );
@@ -5145,6 +5347,7 @@ class App extends React.Component<AppProps, AppState> {
       this.scene.triggerUpdate();
 
       this.addNewImagesToImageCache();
+      this.addNewVideosToVideoCache();
     },
   );
 
@@ -5934,6 +6137,30 @@ class App extends React.Component<AppProps, AppState> {
     this.flowchart.handleKeyEvent(event);
   });
 
+  /**
+   * Engineering instrument overlay — pointer-down entry. Places a fresh
+   * instrument at the pointer if none is live (or a different instrument is
+   * active), then snapshots the interaction (move / rotate / draw). Dragging
+   * is driven by `updateInstrumentOnDrag` in the move handler; a draw gesture
+   * commits on pointer-up.
+   */
+  private handleEngineeringInstrumentDown = (
+    _pointerDownState: PointerDownState,
+    scenePointer: { x: number; y: number },
+  ) => {
+    const type = this.state.activeTool.type as InstrumentType;
+    let instrument = this.state.engineeringInstrument;
+    if (!instrument || instrument.type !== type) {
+      instrument = defaultInstrument(type, scenePointer.x, scenePointer.y);
+    }
+    instrument = beginInstrumentDrag(
+      instrument,
+      [scenePointer.x, scenePointer.y],
+      this.state.zoom.value,
+    );
+    this.setState({ engineeringInstrument: instrument });
+  };
+
   setActiveTool = (
     tool: ({ type: ToolType } | { type: "custom"; customType: string }) & {
       locked?: boolean;
@@ -6012,6 +6239,10 @@ class App extends React.Component<AppProps, AppState> {
     }
     if (nextActiveTool.type === "image") {
       this.onImageToolbarButtonClick();
+    } else if (nextActiveTool.type === "video") {
+      this.onVideoToolbarButtonClick();
+    } else if (nextActiveTool.type === "pdf") {
+      this.onPdfToolbarButtonClick();
     }
 
     this.setState((prevState) => {
@@ -6026,6 +6257,8 @@ class App extends React.Component<AppProps, AppState> {
         // only the text tool offers arrow-endpoint binding, and the highlight
         // is refreshed on pointermove — don't leave a stale one behind
         hoveredArrowTextAnchor: null,
+        // drop the live engineering instrument when leaving its tool
+        engineeringInstrument: null,
       } as const;
 
       if (nextActiveTool.type === "freedraw") {
@@ -7207,6 +7440,7 @@ class App extends React.Component<AppProps, AppState> {
       }
       if (
         element.link &&
+        !isSyntropyLinkElement(element) &&
         index >= hitElementIndex &&
         isPointHittingLink(
           element,
@@ -8037,6 +8271,7 @@ class App extends React.Component<AppProps, AppState> {
       if (
         hitElement &&
         (hitElement.link || isEmbeddableElement(hitElement)) &&
+        !isSyntropyLinkElement(hitElement) &&
         this.state.selectedElementIds[hitElement.id] &&
         !this.state.contextMenu &&
         !this.state.showHyperlinkPopup
@@ -8571,7 +8806,9 @@ class App extends React.Component<AppProps, AppState> {
       this.state.activeTool.type === "selection" ||
       this.state.activeTool.type === "lasso" ||
       this.state.activeTool.type === "text" ||
-      this.state.activeTool.type === "image";
+      this.state.activeTool.type === "image" ||
+      this.state.activeTool.type === "video" ||
+      this.state.activeTool.type === "pdf";
 
     if (!allowOnPointerDown) {
       return;
@@ -8690,7 +8927,8 @@ class App extends React.Component<AppProps, AppState> {
               this,
             ),
             showHyperlinkPopup:
-              hitElement.link || isEmbeddableElement(hitElement)
+              (hitElement.link || isEmbeddableElement(hitElement)) &&
+              !isSyntropyLinkElement(hitElement)
                 ? "info"
                 : false,
           };
@@ -8742,10 +8980,18 @@ class App extends React.Component<AppProps, AppState> {
       // mode this branch is unreachable:
       // `handleCanvasPanUsingWheelOrSpaceDrag` swallows the pointer-down.
       this.bucketFill.handlePointerDown(scenePointer);
+    } else if (isEngineeringTool(this.state.activeTool.type)) {
+      // on-canvas instrument overlay: place / hit-test the live instrument on
+      // pointer-down; dragging (move/rotate/draw) is handled in the move
+      // handler, and a draw gesture commits on pointer-up. No native element
+      // is created during drag — the overlay is the in-progress affordance.
+      this.handleEngineeringInstrumentDown(pointerDownState, scenePointer);
     } else if (
       this.state.activeTool.type !== "eraser" &&
       this.state.activeTool.type !== "hand" &&
-      this.state.activeTool.type !== "image"
+      this.state.activeTool.type !== "image" &&
+      this.state.activeTool.type !== "video" &&
+      this.state.activeTool.type !== "pdf"
     ) {
       this.createGenericElementOnPointerDown(
         this.state.activeTool.type,
@@ -8761,10 +9007,16 @@ class App extends React.Component<AppProps, AppState> {
     );
 
     if (this.state.activeTool.type === "eraser") {
-      this.eraserTrail.startPath(
-        pointerDownState.lastCoords.x,
-        pointerDownState.lastCoords.y,
-      );
+      // "clear" bypasses the trail/hit-testing machinery entirely — the very first touch wipes
+      // the canvas, so there's nothing to track a path for.
+      if (this.state.currentItemEraserMode === "clear") {
+        this.clearAllErasableElements();
+      } else {
+        this.eraserTrail.startPath(
+          pointerDownState.lastCoords.x,
+          pointerDownState.lastCoords.y,
+        );
+      }
     }
 
     const onPointerMove =
@@ -9639,7 +9891,8 @@ class App extends React.Component<AppProps, AppState> {
                     this,
                   ),
                   showHyperlinkPopup:
-                    hitElement.link || isEmbeddableElement(hitElement)
+                    (hitElement.link || isEmbeddableElement(hitElement)) &&
+                    !isSyntropyLinkElement(hitElement)
                       ? "info"
                       : false,
                 };
@@ -10302,7 +10555,11 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   private createGenericElementOnPointerDown = (
-    elementType: ExcalidrawGenericElement["type"] | "embeddable",
+    elementType:
+      | ExcalidrawGenericElement["type"]
+      | "embeddable"
+      | "polygon"
+      | "shape3d",
     pointerDownState: PointerDownState,
   ): void => {
     const [gridX, gridY] = getGridPoint(
@@ -10328,7 +10585,12 @@ class App extends React.Component<AppProps, AppState> {
       strokeStyle: this.state.currentItemStrokeStyle,
       roughness: this.state.currentItemRoughness,
       opacity: this.state.currentItemOpacity,
-      roundness: this.getCurrentItemRoundness(elementType),
+      // sharp corners only — polygon/shape3d have no rounded-corner support,
+      // unlike diamond/rectangle
+      roundness:
+        elementType === "polygon" || elementType === "shape3d"
+          ? null
+          : this.getCurrentItemRoundness(elementType),
       locked: false,
       frameId: topLayerFrame ? topLayerFrame.id : null,
     } as const;
@@ -10337,6 +10599,22 @@ class App extends React.Component<AppProps, AppState> {
     if (elementType === "embeddable") {
       element = newEmbeddableElement({
         type: "embeddable",
+        ...baseElementAttributes,
+      });
+    } else if (elementType === "polygon") {
+      element = newPolygonElement({
+        type: "polygon",
+        sides: this.state.currentItemPolygonSides,
+        ...baseElementAttributes,
+      });
+    } else if (elementType === "shape3d") {
+      element = newShape3DElement({
+        type: "shape3d",
+        shape3DType: this.state.currentItemShape3DType,
+        rotationX: this.state.currentItemShape3DRotationX,
+        rotationY: this.state.currentItemShape3DRotationY,
+        rotationZ: this.state.currentItemShape3DRotationZ,
+        wireframe: this.state.currentItemShape3DWireframe,
         ...baseElementAttributes,
       });
     } else {
@@ -10564,6 +10842,22 @@ class App extends React.Component<AppProps, AppState> {
 
       if (this.state.activeTool.type === "laser") {
         this.laserTrails.addPointToPath(pointerCoords.x, pointerCoords.y);
+      }
+
+      // engineering instrument overlay: drive move / rotate / draw from the
+      // live instrument state and re-render — short-circuits the generic
+      // element drag below
+      if (
+        isEngineeringTool(this.state.activeTool.type) &&
+        this.state.engineeringInstrument
+      ) {
+        this.setState({
+          engineeringInstrument: updateInstrumentOnDrag(
+            this.state.engineeringInstrument,
+            [pointerCoords.x, pointerCoords.y],
+          ),
+        });
+        return;
       }
 
       if (this.drawShape.handlePointerMove(pointerCoords)) {
@@ -11234,13 +11528,16 @@ class App extends React.Component<AppProps, AppState> {
             };
           }
 
+          const endpointX = gridX;
+          const endpointY = gridY;
+
           this.setState({
             newElement,
             ...LinearElementEditor.handlePointDragging(
               event,
               this,
-              gridX,
-              gridY,
+              endpointX,
+              endpointY,
               linearElementEditor,
             )!,
           });
@@ -11348,7 +11645,8 @@ class App extends React.Component<AppProps, AppState> {
               showHyperlinkPopup:
                 elementsWithinSelection.length === 1 &&
                 (elementsWithinSelection[0].link ||
-                  isEmbeddableElement(elementsWithinSelection[0]))
+                  isEmbeddableElement(elementsWithinSelection[0])) &&
+                !isSyntropyLinkElement(elementsWithinSelection[0])
                   ? "info"
                   : false,
             };
@@ -12073,9 +12371,25 @@ class App extends React.Component<AppProps, AppState> {
             scenePointer.x,
             scenePointer.y,
           );
-          hitElements.forEach((hitElement) =>
-            this.elementsPendingErasure.add(hitElement.id),
+          const eraserMode = this.state.currentItemEraserMode;
+          const eraserRadius =
+            (this.state.currentItemEraserSize ?? DEFAULT_ERASER_SIZE) /
+            2 /
+            this.state.zoom.value;
+          const tapPoint = pointFrom<GlobalPoint>(
+            scenePointer.x,
+            scenePointer.y,
           );
+          hitElements.forEach((hitElement) => {
+            this.elementsPendingErasure.add(hitElement.id);
+            if (eraserMode === "precision") {
+              this.eraserTrail.markTouchedPointsNear(
+                hitElement,
+                tapPoint,
+                eraserRadius,
+              );
+            }
+          });
         }
         this.eraseElements();
         return;
@@ -12206,7 +12520,8 @@ class App extends React.Component<AppProps, AppState> {
                   this,
                 ),
                 showHyperlinkPopup:
-                  hitElement.link || isEmbeddableElement(hitElement)
+                  (hitElement.link || isEmbeddableElement(hitElement)) &&
+                  !isSyntropyLinkElement(hitElement)
                     ? "info"
                     : false,
               };
@@ -12384,6 +12699,49 @@ class App extends React.Component<AppProps, AppState> {
         return;
       }
 
+      // engineering instrument overlay: commit a draw gesture (compass circle
+      // / ruler line / protractor ray / …) if one happened, then keep the
+      // tool active so the user can keep placing & drawing with the
+      // instrument. On a completed draw the instrument is removed from the
+      // canvas for a crisp "done" (the committed element is selected and its
+      // property panel is unobstructed); a move/rotate gesture just clears
+      // the drag so the instrument stays put for the next draw.
+      if (isEngineeringTool(activeTool.type)) {
+        const instrument = this.state.engineeringInstrument;
+        if (instrument?.drawing) {
+          const committed = commitInstrumentDrawing(this, instrument);
+          if (committed) {
+            // a real draw finished — clear the instrument for a crisp "done"
+            // (the committed element is selected, its panel unobstructed)
+            this.setState({ newElement: null, engineeringInstrument: null });
+          } else {
+            // a draw gesture that produced nothing (e.g. a click on the pen
+            // tip with no swing, or a sub-min-length drag) — keep the
+            // instrument so a stray click doesn't dismiss it
+            this.setState((prevState) => ({
+              newElement: null,
+              engineeringInstrument: prevState.engineeringInstrument
+                ? {
+                    ...prevState.engineeringInstrument,
+                    drawing: false,
+                    drawSweep: 0,
+                    dragZone: null,
+                  }
+                : null,
+            }));
+          }
+        } else {
+          // move / rotate / radius — keep the instrument, just clear the drag
+          this.setState((prevState) => ({
+            newElement: null,
+            engineeringInstrument: prevState.engineeringInstrument
+              ? { ...prevState.engineeringInstrument, dragZone: null }
+              : null,
+          }));
+        }
+        return;
+      }
+
       if (
         !this.isToolLocked() &&
         activeTool.type !== "freedraw" &&
@@ -12417,6 +12775,23 @@ class App extends React.Component<AppProps, AppState> {
   private restoreReadyToEraseElements = () => {
     this.elementsPendingErasure = new Set();
     this.triggerRender();
+  };
+
+  // Eraser "clear" mode: the equivalent of select-all + delete, triggered by the very first touch
+  // rather than anything the eraser actually passed over. Locked elements are left alone, same
+  // convention the rest of erasing follows. Goes through the normal history capture, so it's
+  // undoable like any other action.
+  private clearAllErasableElements = () => {
+    const elements = this.scene
+      .getElementsIncludingDeleted()
+      .map((ele) =>
+        !ele.isDeleted && !ele.locked
+          ? newElementWith(ele, { isDeleted: true })
+          : ele,
+      );
+
+    this.store.scheduleCapture();
+    this.scene.replaceAllElements(elements);
   };
 
   private eraseElements = () => {
@@ -12482,7 +12857,9 @@ class App extends React.Component<AppProps, AppState> {
       }
     });
 
-    const elements = this.scene.getElementsIncludingDeleted().map((ele) => {
+    const eraserMode = this.state.currentItemEraserMode;
+
+    const elements = this.scene.getElementsIncludingDeleted().flatMap((ele) => {
       if (
         this.elementsPendingErasure.has(ele.id) ||
         (ele.frameId && this.elementsPendingErasure.has(ele.frameId)) ||
@@ -12490,9 +12867,31 @@ class App extends React.Component<AppProps, AppState> {
           this.elementsPendingErasure.has(ele.containerId))
       ) {
         didChange = true;
-        return newElementWith(ele, { isDeleted: true });
+
+        // "precision" only makes sense for an element the eraser was actually dragged over (not
+        // one erased via frame/container membership above, and not a plain click with no path to
+        // cut along) — everything else still gets the original whole-element delete.
+        if (
+          this.elementsPendingErasure.has(ele.id) &&
+          eraserMode === "precision" &&
+          (isFreeDrawElement(ele) || (isLineElement(ele) && !ele.polygon))
+        ) {
+          const touchedIndices = this.eraserTrail.getTouchedPoints(ele.id);
+          if (touchedIndices && touchedIndices.size > 0) {
+            const survivingRuns = getSurvivingRuns(
+              ele.points.length,
+              touchedIndices,
+            );
+            const pieces = survivingRuns.map((run) =>
+              buildStrokePieceFromRun(ele, run),
+            );
+            return [newElementWith(ele, { isDeleted: true }), ...pieces];
+          }
+        }
+
+        return [newElementWith(ele, { isDeleted: true })];
       }
-      return ele;
+      return [ele];
     });
 
     this.elementsPendingErasure = new Set();
@@ -12783,6 +13182,473 @@ class App extends React.Component<AppProps, AppState> {
     this.addNewImagesToImageCache();
   }, IMAGE_RENDER_TIMEOUT);
 
+  // --------------------------------------------------------------------------
+  // Native video elements — mirrors the image insertion/cache path but with a
+  // `videoCache` of `HTMLVideoElement`s. The live `<video>` is rendered as a
+  // DOM overlay (`renderVideos`); this cache only feeds the canvas paint.
+  // --------------------------------------------------------------------------
+
+  private newVideoPlaceholder = ({
+    sceneX,
+    sceneY,
+    addToFrameUnderCursor = true,
+  }: {
+    sceneX: number;
+    sceneY: number;
+    addToFrameUnderCursor?: boolean;
+  }) => {
+    const [gridX, gridY] = getGridPoint(
+      sceneX,
+      sceneY,
+      this.lastPointerDownEvent?.[KEYS.CTRL_OR_CMD]
+        ? null
+        : this.getEffectiveGridSize(),
+    );
+
+    const topLayerFrame = addToFrameUnderCursor
+      ? this.getTopLayerFrameAtSceneCoords({
+          x: gridX,
+          y: gridY,
+        })
+      : null;
+
+    const placeholderSize = 100 / this.state.zoom.value;
+
+    return newVideoElement({
+      type: "video",
+      strokeColor: this.state.currentItemStrokeColor,
+      backgroundColor: this.state.currentItemBackgroundColor,
+      fillStyle: this.state.currentItemFillStyle,
+      strokeWidth: this.getCurrentItemStrokeWidth("video"),
+      strokeStyle: this.state.currentItemStrokeStyle,
+      roughness: this.state.currentItemRoughness,
+      roundness: null,
+      opacity: this.state.currentItemOpacity,
+      locked: false,
+      frameId: topLayerFrame ? topLayerFrame.id : null,
+      x: gridX - placeholderSize / 2,
+      y: gridY - placeholderSize / 2,
+      width: placeholderSize,
+      height: placeholderSize,
+    });
+  };
+
+  private getLatestInitializedVideoElement = (
+    videoPlaceholder: ExcalidrawVideoElement,
+    fileId: FileId,
+  ) => {
+    const latestVideoElement =
+      this.scene.getElement(videoPlaceholder.id) ?? videoPlaceholder;
+
+    return newElementWith(
+      latestVideoElement as NonDeleted<InitializedExcalidrawVideoElement>,
+      {
+        fileId,
+      },
+    );
+  };
+
+  private getVideoNaturalDimensions = (
+    videoElement: ExcalidrawVideoElement,
+    videoHTML: HTMLVideoElement,
+  ) => {
+    const minHeight = Math.max(this.state.height - 120, 160);
+    const maxHeight = Math.min(
+      minHeight,
+      Math.floor(this.state.height * 0.5) / this.state.zoom.value,
+    );
+
+    const naturalHeight = videoHTML.videoHeight || 1;
+    const naturalWidth = videoHTML.videoWidth || 1;
+
+    const height = Math.min(naturalHeight, maxHeight);
+    const width = height * (naturalWidth / naturalHeight);
+
+    const x = videoElement.x + videoElement.width / 2 - width / 2;
+    const y = videoElement.y + videoElement.height / 2 - height / 2;
+
+    return {
+      x,
+      y,
+      width,
+      height,
+    };
+  };
+
+  /** updates video cache, setting status to error for videos that fail */
+  private updateVideoCache = async (
+    elements: readonly InitializedExcalidrawVideoElement[],
+    files = this.files,
+  ) => {
+    const { updatedFiles, erroredFiles } = await _updateVideoCache({
+      videoCache: this.videoCache,
+      fileIds: elements.map((element) => element.fileId),
+      files,
+    });
+
+    if (erroredFiles.size) {
+      this.store.scheduleAction(CaptureUpdateAction.NEVER);
+      this.scene.replaceAllElements(
+        this.scene.getElementsIncludingDeleted().map((element) => {
+          if (
+            isInitializedVideoElement(element) &&
+            erroredFiles.has(element.fileId)
+          ) {
+            return newElementWith(element, {
+              status: "error",
+            });
+          }
+          return element;
+        }),
+      );
+    }
+
+    return { updatedFiles, erroredFiles };
+  };
+
+  /** adds new videos to videoCache and re-renders if needed */
+  private addNewVideosToVideoCache = async (
+    videoElements: InitializedExcalidrawVideoElement[] = getInitializedVideoElements(
+      this.scene.getNonDeletedElements(),
+    ),
+    files: BinaryFiles = this.files,
+  ) => {
+    const uncachedVideoElements = videoElements.filter(
+      (element) => !element.isDeleted && !this.videoCache.has(element.fileId),
+    );
+
+    if (uncachedVideoElements.length) {
+      const { updatedFiles } = await this.updateVideoCache(
+        uncachedVideoElements,
+        files,
+      );
+
+      if (updatedFiles.size) {
+        for (const element of uncachedVideoElements) {
+          if (updatedFiles.has(element.fileId)) {
+            ShapeCache.delete(element);
+          }
+        }
+      }
+
+      if (updatedFiles.size) {
+        this.scene.triggerUpdate();
+      }
+    }
+  };
+
+  private onVideoToolbarButtonClick = async () => {
+    try {
+      const clientX = this.state.width / 2 + this.state.offsetLeft;
+      const clientY = this.state.height / 2 + this.state.offsetTop;
+
+      const { x, y } = viewportCoordsToSceneCoords(
+        { clientX, clientY },
+        this.state,
+      );
+
+      const videoFiles = await fileOpen({
+        description: "Video",
+        extensions: Object.keys(
+          VIDEO_MIME_TYPES,
+        ) as (keyof typeof VIDEO_MIME_TYPES)[],
+        multiple: true,
+      });
+
+      this.insertVideos(videoFiles, x, y);
+    } catch (error: any) {
+      if (error.name !== "AbortError") {
+        console.error(error);
+      } else {
+        console.warn(error);
+      }
+      this.setState(
+        {
+          newElement: null,
+          activeTool: updateActiveTool(this.state, {
+            type: this.state.preferredSelectionTool.type,
+          }),
+        },
+        () => {
+          this.actionManager.executeAction(actionFinalize);
+        },
+      );
+    }
+  };
+
+  private onPdfToolbarButtonClick = async () => {
+    try {
+      const clientX = this.state.width / 2 + this.state.offsetLeft;
+      const clientY = this.state.height / 2 + this.state.offsetTop;
+
+      const { x, y } = viewportCoordsToSceneCoords(
+        { clientX, clientY },
+        this.state,
+      );
+
+      const pdfFile = await fileOpen({
+        description: "PDF",
+        extensions: Object.keys(
+          PDF_MIME_TYPES,
+        ) as (keyof typeof PDF_MIME_TYPES)[],
+        multiple: false,
+      });
+
+      if (!pdfFile || !isSupportedPdfFileType(pdfFile.type)) {
+        throw new Error(t("errors.unsupportedFileType"));
+      }
+
+      this.openPdfImportDialog(pdfFile, x, y);
+    } catch (error: any) {
+      if (error.name !== "AbortError") {
+        console.error(error);
+        this.setState({
+          errorMessage: error.message || t("errors.unsupportedFileType"),
+        });
+      } else {
+        console.warn(error);
+      }
+      this.resetActiveToolAfterImport();
+    }
+  };
+
+  /** Open the page-selection / layout dialog for a single PDF. */
+  public openPdfImportDialog = (file: File, sceneX: number, sceneY: number) => {
+    this.pendingPdfImport = { file, sceneX, sceneY };
+    this.setOpenDialog({ name: "pdfImport" });
+  };
+
+  /** Cancel the dialog without inserting anything. */
+  public cancelPdfImport = () => {
+    this.pendingPdfImport = null;
+    this.setOpenDialog(null);
+    this.resetActiveToolAfterImport();
+  };
+
+  /**
+   * Render the selected pages of the pending PDF at full resolution and insert
+   * them as images, laid out per `layout`. Called by the import dialog on
+   * confirm.
+   */
+  public confirmPdfImport = async (
+    pages: number[],
+    layout: { mode: LayoutMode; gap: number; columns?: number },
+  ) => {
+    const pending = this.pendingPdfImport;
+    this.pendingPdfImport = null;
+    this.setOpenDialog(null);
+    if (!pending || pages.length === 0) {
+      this.resetActiveToolAfterImport();
+      return;
+    }
+    try {
+      const rendered = await renderPdfPages(pending.file, {
+        maxWidthOrHeight: this.props.imageOptions.maxWidthOrHeight,
+        pages,
+      });
+      const baseName = pending.file.name.replace(/\.pdf$/i, "");
+      const imageFiles = rendered.map(
+        (page) =>
+          new File(
+            [page.blob],
+            `${baseName || "pdf"}-p${page.pageNumber}.png`,
+            {
+              type: "image/png",
+            },
+          ),
+      );
+      await this.insertImages(
+        imageFiles,
+        pending.sceneX,
+        pending.sceneY,
+        layout,
+      );
+    } catch (error: any) {
+      console.error(error);
+      this.setState({
+        errorMessage: error.message || t("errors.unsupportedFileType"),
+      });
+    } finally {
+      this.resetActiveToolAfterImport();
+    }
+  };
+
+  private resetActiveToolAfterImport = () => {
+    this.setState(
+      {
+        newElement: null,
+        activeTool: updateActiveTool(this.state, {
+          type: this.state.preferredSelectionTool.type,
+        }),
+      },
+      () => {
+        this.actionManager.executeAction(actionFinalize);
+      },
+    );
+  };
+
+  private initializeVideo = async (
+    placeholderVideoElement: ExcalidrawVideoElement,
+    videoFile: File,
+  ) => {
+    if (!isSupportedVideoFile(videoFile)) {
+      throw new Error(t("errors.unsupportedFileType"));
+    }
+    const mimeType = videoFile.type;
+
+    this.cursor.set("wait");
+
+    // generate file id (by default the file digest) before any
+    // compression takes place to keep it more portable
+    const fileId = await ((this.props.generateIdForFile?.(
+      videoFile,
+    ) as Promise<FileId>) || generateIdFromFile(videoFile));
+
+    if (!fileId) {
+      console.warn(
+        "Couldn't generate file id or the supplied `generateIdForFile` didn't resolve to one.",
+      );
+      throw new Error(t("errors.imageInsertError"));
+    }
+
+    const existingFileData = this.files[fileId];
+    if (!existingFileData?.dataURL) {
+      const { maxFileSizeBytes } = this.props.videoOptions;
+
+      if (videoFile.size > maxFileSizeBytes) {
+        throw new Error(
+          t("errors.fileTooBig", {
+            maxSize: `${Math.trunc(maxFileSizeBytes / 1024 / 1024)}MB`,
+          }),
+        );
+      }
+    }
+
+    const dataURL =
+      this.files[fileId]?.dataURL || (await getDataURL(videoFile));
+
+    return new Promise<NonDeleted<InitializedExcalidrawVideoElement>>(
+      async (resolve, reject) => {
+        try {
+          let initializedVideoElement = this.getLatestInitializedVideoElement(
+            placeholderVideoElement,
+            fileId,
+          );
+
+          this.addMissingFiles([
+            {
+              mimeType,
+              id: fileId,
+              dataURL,
+              created: Date.now(),
+              lastRetrieved: Date.now(),
+            },
+          ]);
+
+          if (!this.videoCache.get(fileId)) {
+            this.addNewVideosToVideoCache();
+
+            const { erroredFiles } = await this.updateVideoCache([
+              initializedVideoElement,
+            ]);
+
+            if (erroredFiles.size) {
+              throw new Error("Video cache update resulted with an error.");
+            }
+          }
+
+          const videoHTML = await this.videoCache.get(fileId)?.video;
+
+          if (
+            videoHTML &&
+            this.state.newElement?.id !== initializedVideoElement.id
+          ) {
+            initializedVideoElement = this.getLatestInitializedVideoElement(
+              placeholderVideoElement,
+              fileId,
+            );
+
+            const naturalDimensions = this.getVideoNaturalDimensions(
+              initializedVideoElement,
+              videoHTML,
+            );
+
+            Object.assign(initializedVideoElement, naturalDimensions);
+          }
+
+          resolve(initializedVideoElement);
+        } catch (error: any) {
+          console.error(error);
+          reject(new Error(t("errors.imageInsertError")));
+        }
+      },
+    );
+  };
+
+  private insertVideos = async (
+    videoFiles: File[],
+    sceneX: number,
+    sceneY: number,
+  ) => {
+    const gridPadding = 50 / this.state.zoom.value;
+    // Create, position, and insert placeholders
+    const placeholders = positionElementsOnGrid(
+      videoFiles.map(() => this.newVideoPlaceholder({ sceneX, sceneY })),
+      sceneX,
+      sceneY,
+      gridPadding,
+    );
+    this.insertNewElements(placeholders);
+
+    // Create, position, insert and select initialized (replacing placeholders)
+    const initialized = await Promise.all(
+      placeholders.map(async (placeholder, i) => {
+        try {
+          return await this.initializeVideo(
+            placeholder,
+            await normalizeFile(videoFiles[i]),
+          );
+        } catch (error: any) {
+          this.setState({
+            errorMessage: error.message || t("errors.imageInsertError"),
+          });
+          return newElementWith(placeholder as ExcalidrawVideoElement, {
+            isDeleted: true,
+          });
+        }
+      }),
+    );
+    const initializedMap = arrayToMap(initialized);
+
+    const positioned = positionElementsOnGrid(
+      initialized.filter((el) => !el.isDeleted),
+      sceneX,
+      sceneY,
+      gridPadding,
+    );
+    const positionedMap = arrayToMap(positioned);
+
+    const nextElements = this.scene
+      .getElementsIncludingDeleted()
+      .map((el) => positionedMap.get(el.id) ?? initializedMap.get(el.id) ?? el);
+
+    this.updateScene({
+      appState: {
+        selectedElementIds: makeNextSelectedElementIds(
+          Object.fromEntries(positioned.map((el) => [el.id, true])),
+          this.state,
+        ),
+      },
+      elements: nextElements,
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    });
+
+    this.setState({}, () => {
+      // actionFinalize after all state values have been updated
+      this.actionManager.executeAction(actionFinalize);
+    });
+  };
+
   private clearSelection(hitElement: ExcalidrawElement | null): void {
     this.setState((prevState) => ({
       selectedElementIds: makeNextSelectedElementIds({}, prevState),
@@ -12842,14 +13708,25 @@ class App extends React.Component<AppProps, AppState> {
     imageFiles: File[],
     sceneX: number,
     sceneY: number,
+    layout?: { mode: LayoutMode; gap: number; columns?: number },
   ) => {
     const gridPadding = 50 / this.state.zoom.value;
+    // Placeholders are positioned with the same layout as the final elements so
+    // the on-canvas arrangement doesn't jump once images decode.
+    const place = <TElement extends ExcalidrawElement>(els: TElement[]) =>
+      layout
+        ? positionElementsInLayout(
+            els,
+            sceneX,
+            sceneY,
+            layout.mode,
+            layout.gap,
+            layout.columns,
+          )
+        : positionElementsOnGrid(els, sceneX, sceneY, gridPadding);
     // Create, position, and insert placeholders
-    const placeholders = positionElementsOnGrid(
+    const placeholders = place(
       imageFiles.map(() => this.newImagePlaceholder({ sceneX, sceneY })),
-      sceneX,
-      sceneY,
-      gridPadding,
     );
     this.insertNewElements(placeholders);
 
@@ -12873,12 +13750,7 @@ class App extends React.Component<AppProps, AppState> {
     );
     const initializedMap = arrayToMap(initialized);
 
-    const positioned = positionElementsOnGrid(
-      initialized.filter((el) => !el.isDeleted),
-      sceneX,
-      sceneY,
-      gridPadding,
-    );
+    const positioned = place(initialized.filter((el) => !el.isDeleted));
     const positionedMap = arrayToMap(positioned);
 
     const nextElements = this.scene
@@ -12955,6 +13827,43 @@ class App extends React.Component<AppProps, AppState> {
 
     if (imageFiles.length > 0 && this.isToolSupported("image")) {
       return this.insertImages(imageFiles, sceneX, sceneY);
+    }
+
+    const videoFiles = fileItems
+      .map((data) => data.file)
+      .filter((file) => isSupportedVideoFile(file));
+
+    if (videoFiles.length > 0 && this.isToolSupported("video")) {
+      return this.insertVideos(videoFiles, sceneX, sceneY);
+    }
+
+    const pdfFiles = fileItems
+      .map((data) => data.file)
+      .filter((file) => isSupportedPdfFile(file));
+
+    if (pdfFiles.length > 0 && this.isToolSupported("pdf")) {
+      try {
+        if (pdfFiles.length === 1) {
+          // single PDF → page-selection / layout dialog
+          this.openPdfImportDialog(pdfFiles[0], sceneX, sceneY);
+          return;
+        }
+        // multiple PDFs dropped at once → insert all pages directly
+        const imageFiles: File[] = [];
+        for (const pdfFile of pdfFiles) {
+          const pages = await renderPdfToImageFiles(pdfFile, {
+            maxWidthOrHeight: this.props.imageOptions.maxWidthOrHeight,
+          });
+          imageFiles.push(...pages);
+        }
+        if (imageFiles.length > 0) {
+          return this.insertImages(imageFiles, sceneX, sceneY);
+        }
+      } catch (error: any) {
+        this.setState({
+          errorMessage: error.message || t("errors.unsupportedFileType"),
+        });
+      }
     }
     const excalidrawLibrary_ids = dataTransferList.getData(
       MIME_TYPES.excalidrawlibIds,

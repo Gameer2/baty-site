@@ -111,16 +111,38 @@ const adjust = (hex: string, dl: number, ds = 0): string => {
   return rgbToHex(r2, g2, b2);
 };
 
-export const deriveAccentShades = (baseHex: string): AccentShades => ({
-  primary: baseHex,
-  primaryDarker: adjust(baseHex, -0.08),
-  primaryDarkest: adjust(baseHex, -0.16),
-  primaryLight: adjust(baseHex, -0.32, -0.35),
-  primaryLightDarker: adjust(baseHex, -0.37, -0.4),
-  primaryHover: adjust(baseHex, 0.08),
-  brandHover: adjust(baseHex, 0.08),
-  brandActive: adjust(baseHex, 0.14),
-  onPrimaryContainer: adjust(baseHex, 0.3, -0.3),
-  surfacePrimaryContainer: adjust(baseHex, -0.32, -0.35),
-  selection: adjust(baseHex, -0.27, -0.2),
-});
+/** Derive the full accent ramp for a base color. Dark-theme shades darken the
+ *  container/surface stops (they sit on a dark board); light-theme shades
+ *  lighten them into tints and flip hover to darken so the accent reads on
+ *  white. `theme` defaults to "dark" to keep the original behavior. */
+export const deriveAccentShades = (
+  baseHex: string,
+  theme: "dark" | "light" = "dark",
+): AccentShades =>
+  theme === "light"
+    ? {
+        primary: baseHex,
+        primaryDarker: adjust(baseHex, -0.1),
+        primaryDarkest: adjust(baseHex, -0.18),
+        primaryLight: adjust(baseHex, 0.42, -0.25),
+        primaryLightDarker: adjust(baseHex, 0.36, -0.28),
+        primaryHover: adjust(baseHex, -0.08),
+        brandHover: adjust(baseHex, -0.08),
+        brandActive: adjust(baseHex, -0.14),
+        onPrimaryContainer: adjust(baseHex, -0.4, -0.25),
+        surfacePrimaryContainer: adjust(baseHex, 0.44, -0.3),
+        selection: adjust(baseHex, 0.3, -0.18),
+      }
+    : {
+        primary: baseHex,
+        primaryDarker: adjust(baseHex, -0.08),
+        primaryDarkest: adjust(baseHex, -0.16),
+        primaryLight: adjust(baseHex, -0.32, -0.35),
+        primaryLightDarker: adjust(baseHex, -0.37, -0.4),
+        primaryHover: adjust(baseHex, 0.08),
+        brandHover: adjust(baseHex, 0.08),
+        brandActive: adjust(baseHex, 0.14),
+        onPrimaryContainer: adjust(baseHex, 0.3, -0.3),
+        surfacePrimaryContainer: adjust(baseHex, -0.32, -0.35),
+        selection: adjust(baseHex, -0.27, -0.2),
+      };

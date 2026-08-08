@@ -46,10 +46,12 @@ import {
   isImageElement,
   isLinearElement,
   isTextElement,
+  isVideoElement,
 } from "./typeChecks";
 import {
   deconstructDiamondElement,
   deconstructLinearOrFreeDrawElement,
+  deconstructPolygonElement,
   deconstructRectanguloidElement,
 } from "./utils";
 
@@ -72,6 +74,7 @@ import type {
   ExcalidrawEllipseElement,
   ExcalidrawFreeDrawElement,
   ExcalidrawLinearElement,
+  ExcalidrawPolygonElement,
   ExcalidrawRectanguloidElement,
   NonDeleted,
   NonDeletedExcalidrawElement,
@@ -98,7 +101,7 @@ export const shouldTestInside = (element: ExcalidrawElement) => {
     return isDraggableFromInside && isPathALoop(element.points);
   }
 
-  return isDraggableFromInside || isImageElement(element);
+  return isDraggableFromInside || isImageElement(element) || isVideoElement(element);
 };
 
 export type HitTestArgs = {
@@ -468,12 +471,14 @@ export const intersectElementWithLineSegment = (
   switch (element.type) {
     case "rectangle":
     case "image":
+    case "video":
     case "text":
     case "iframe":
     case "embeddable":
     case "frame":
     case "selection":
     case "magicframe":
+    case "shape3d":
       return intersectRectanguloidWithLineSegment(
         element,
         elementsMap,
@@ -483,6 +488,14 @@ export const intersectElementWithLineSegment = (
       );
     case "diamond":
       return intersectDiamondWithLineSegment(
+        element,
+        elementsMap,
+        line,
+        offset,
+        onlyFirst,
+      );
+    case "polygon":
+      return intersectPolygonWithLineSegment(
         element,
         elementsMap,
         line,
@@ -682,6 +695,36 @@ const intersectRectanguloidWithLineSegment = (
  * @param b
  * @returns
  */
+// Sharp corners only, unlike the diamond function below — no bezier corner curves, so this is
+// just the straight-side half of intersectDiamondWithLineSegment.
+const intersectPolygonWithLineSegment = (
+  element: ExcalidrawPolygonElement,
+  elementsMap: ElementsMap,
+  l: LineSegment<GlobalPoint>,
+  offset: number = 0,
+  onlyFirst = false,
+): GlobalPoint[] => {
+  const center = elementCenterPoint(element, elementsMap);
+
+  const rotatedA = pointRotateRads(l[0], center, -element.angle as Radians);
+  const rotatedB = pointRotateRads(l[1], center, -element.angle as Radians);
+  const rotatedIntersector = lineSegment(rotatedA, rotatedB);
+
+  const sides = deconstructPolygonElement(element, offset);
+  const intersections: GlobalPoint[] = [];
+
+  lineIntersections(
+    sides,
+    rotatedIntersector,
+    intersections,
+    center,
+    element.angle,
+    onlyFirst,
+  );
+
+  return intersections;
+};
+
 const intersectDiamondWithLineSegment = (
   element: ExcalidrawDiamondElement,
   elementsMap: ElementsMap,

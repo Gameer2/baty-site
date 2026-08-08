@@ -317,6 +317,23 @@ export const colorToHex = (color: string): string | null => {
   return rgbToHex(r, g, b, a);
 };
 
+/**
+ * Nudges a color's HSL lightness by `deltaLightness` percentage points
+ * (positive lightens toward white, negative darkens toward black; alpha is
+ * preserved) — used to fake a fixed directional light across a shape's
+ * faces so flat-filled 3D primitives (see shape3d.ts) read as three-
+ * dimensional instead of one undifferentiated blob of color.
+ */
+export const shadeColor = (color: string, deltaLightness: number): string => {
+  const tc = tinycolor(color);
+  if (deltaLightness >= 0) {
+    tc.lighten(deltaLightness);
+  } else {
+    tc.darken(-deltaLightness);
+  }
+  return tc.getAlpha() < 1 ? tc.toHex8String() : tc.toHexString();
+};
+
 export const isTransparent = (color: string) => {
   return tinycolor(color).getAlpha() === 0;
 };

@@ -131,6 +131,8 @@ describe("image insertion", () => {
           API.loadFile("./fixtures/smiley.png"),
         ]),
     );
+    // image/video/pdf are grouped behind the "Import" toolbar flyout
+    UI.clickOnTestId("toolbar-import-tools");
     UI.clickTool("image");
 
     await assert();

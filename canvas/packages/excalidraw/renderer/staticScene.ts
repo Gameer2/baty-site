@@ -1,11 +1,10 @@
 import {
-  applyDarkModeFilter,
   COLOR_WHITE,
   FRAME_STYLE,
   THEME,
   throttleRAF,
 } from "@excalidraw/common";
-import { isElementLink } from "@excalidraw/element";
+import { isElementLink, isSyntropyLinkElement } from "@excalidraw/element";
 import { createPlaceholderEmbeddableLabel } from "@excalidraw/element";
 import { getBoundTextElement } from "@excalidraw/element";
 import {
@@ -43,16 +42,31 @@ import type {
 } from "../scene/types";
 import type { StaticCanvasAppState, Zoom } from "../types";
 
+// Three-tier hierarchy, lightest to boldest: `regular` (unit squares) →
+// `medium` (every `gridStep` units) → `major` (every `gridStep * 2` units —
+// a 2×2 block of medium squares, e.g. 5-unit squares grouped 2×2 into a
+// 10-unit block, matching graph-paper convention). Alpha-over-ink rather than
+// flat grey hexes — same technique as `DOT_GRID_COLORS` right below, so the
+// grid reads as the same family of "ink on paper" texture, and the steps
+// between tiers are wide enough to read as three distinct layers rather than
+// three shades of the same grey.
 const GridLineColor = {
   [THEME.LIGHT]: {
-    bold: "#dddddd",
-    regular: "#e5e5e5",
+    major: "rgba(0, 0, 0, 0.26)",
+    medium: "rgba(0, 0, 0, 0.13)",
+    regular: "rgba(0, 0, 0, 0.05)",
   },
   [THEME.DARK]: {
-    bold: applyDarkModeFilter("#dddddd"),
-    regular: applyDarkModeFilter("#e5e5e5"),
+    major: "rgba(255, 255, 255, 0.24)",
+    medium: "rgba(255, 255, 255, 0.12)",
+    regular: "rgba(255, 255, 255, 0.05)",
   },
 } as const;
+
+/** the big/major grid block is this many medium blocks wide — 2×2 medium
+ *  blocks per major block, per the graph-paper spec (e.g. 5-unit medium
+ *  blocks grouped 2×2 into a 10-unit major block). */
+const MAJOR_GRID_STEP_MULTIPLIER = 2;
 
 /** Syntropy Canvas board texture: the approved v6 mockup's `.canvas5` dot field —
     `radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px)` at `24px 24px`. Drawn on the
@@ -70,6 +84,16 @@ const DOT_GRID_COLORS = {
   [THEME.DARK]: "rgba(255, 255, 255, 0.05)",
 } as const;
 
+/** GoodNotes-style ruled (notebook) paper: horizontal lines only, no verticals, no
+    element snapping. Reuses the grid's color + spacing so it reads as the same family
+    of texture, just the lined variant. The left margin rule is the one GoodNotes
+    signature we keep — drawn in the Syntropy infrared accent at low opacity, anchored
+    to scene x = 0 so it stays put as the page's left edge while you pan. */
+const RULED_MARGIN_COLORS = {
+  [THEME.LIGHT]: "rgba(237, 109, 64, 0.32)",
+  [THEME.DARK]: "rgba(237, 109, 64, 0.28)",
+} as const;
+
 const strokeDotGrid = (
   context: CanvasRenderingContext2D,
   scrollX: number,
@@ -78,31 +102,27 @@ const strokeDotGrid = (
   theme: StaticCanvasRenderConfig["theme"],
   width: number,
   height: number,
+  /** Spacing in board px. Defaults to the v6 mockup's 24px dot field. */
+  size: number = DOT_GRID_SIZE,
+  /** Free-picked dot color; falls back to the theme default when unset. */
+  colorOverride?: string,
 ) => {
   // Below this the dots crowd into a haze and cost more than they read — the line grid makes
   // the same call at `actualGridSize < 10`.
-  if (DOT_GRID_SIZE * zoom.value < 10) {
+  if (size * zoom.value < 10) {
     return;
   }
 
-  const offsetX = (scrollX % DOT_GRID_SIZE) - DOT_GRID_SIZE;
-  const offsetY = (scrollY % DOT_GRID_SIZE) - DOT_GRID_SIZE;
+  const offsetX = (scrollX % size) - size;
+  const offsetY = (scrollY % size) - size;
   // The context is already zoom-scaled, so a constant screen-pixel dot needs dividing back out.
   const radius = 1 / zoom.value;
 
   context.save();
-  context.fillStyle = DOT_GRID_COLORS[theme];
+  context.fillStyle = colorOverride || DOT_GRID_COLORS[theme];
 
-  for (
-    let x = offsetX;
-    x < offsetX + width + DOT_GRID_SIZE * 2;
-    x += DOT_GRID_SIZE
-  ) {
-    for (
-      let y = offsetY;
-      y < offsetY + height + DOT_GRID_SIZE * 2;
-      y += DOT_GRID_SIZE
-    ) {
+  for (let x = offsetX; x < offsetX + width + size * 2; x += size) {
+    for (let y = offsetY; y < offsetY + height + size * 2; y += size) {
       context.beginPath();
       context.arc(x, y, radius, 0, Math.PI * 2);
       context.fill();
@@ -112,11 +132,38 @@ const strokeDotGrid = (
   context.restore();
 };
 
+type GridTier = "regular" | "medium" | "major";
+
+/** Which tier a grid line at board-space `pos` (already snapped to a
+ *  `gridSize` step) belongs to: every `gridStep` unit squares is a `medium`
+ *  line (bounding a `gridStep`×`gridStep` block — e.g. 25 unit squares at the
+ *  default step of 5); every `MAJOR_GRID_STEP_MULTIPLIER` medium blocks is a
+ *  `major` line (e.g. 2×2 medium blocks — 100 unit squares — per major
+ *  block). Matches real graph-paper's minor/mid/major rule convention. */
+const gridLineTier = (
+  pos: number,
+  origin: number,
+  gridSize: number,
+  gridStep: number,
+): GridTier => {
+  if (gridStep <= 1) {
+    return "regular";
+  }
+  const cell = Math.round(pos - origin) / gridSize;
+  if (Math.round(cell) % (gridStep * MAJOR_GRID_STEP_MULTIPLIER) === 0) {
+    return "major";
+  }
+  if (Math.round(cell) % gridStep === 0) {
+    return "medium";
+  }
+  return "regular";
+};
+
 const strokeGrid = (
   context: CanvasRenderingContext2D,
   /** grid cell pixel size */
   gridSize: number,
-  /** setting to 1 will disble bold lines */
+  /** setting to 1 disables the medium/major tiers — every line is `regular` */
   gridStep: number,
   scrollX: number,
   scrollY: number,
@@ -124,13 +171,13 @@ const strokeGrid = (
   theme: StaticCanvasRenderConfig["theme"],
   width: number,
   height: number,
+  /** Free-picked line color; falls back to the theme's 3-tier palette when unset. */
+  colorOverride?: string,
 ) => {
   const offsetX = (scrollX % gridSize) - gridSize;
   const offsetY = (scrollY % gridSize) - gridSize;
 
   const actualGridSize = gridSize * zoom.value;
-
-  const spaceWidth = 1 / zoom.value;
 
   context.save();
 
@@ -142,49 +189,103 @@ const strokeGrid = (
     context.translate(offsetX % 1 ? 0 : 0.5, offsetY % 1 ? 0 : 0.5);
   }
 
+  // dividing by zoom.value converts a target SCREEN-pixel width into scene
+  // units, so each tier renders at a constant, clearly-different width no
+  // matter the zoom level. All three are solid (no dashing) — real graph
+  // paper's finest ruling is still a solid line, just thin and light; a
+  // dashed fine grid reads as "not really there" instead of a third tier.
+  const tierLineWidth: Record<GridTier, number> = {
+    regular: 0.5 / zoom.value,
+    medium: 1.25 / zoom.value,
+    major: 2.25 / zoom.value,
+  };
+
   // vertical lines
   for (let x = offsetX; x < offsetX + width + gridSize * 2; x += gridSize) {
-    const isBold =
-      gridStep > 1 && Math.round(x - scrollX) % (gridStep * gridSize) === 0;
+    const tier = gridLineTier(x, scrollX, gridSize, gridStep);
     // don't render regular lines when zoomed out and they're barely visible
-    if (!isBold && actualGridSize < 10) {
+    if (tier === "regular" && actualGridSize < 10) {
       continue;
     }
 
-    const lineWidth = Math.min(1 / zoom.value, isBold ? 4 : 1);
-    context.lineWidth = lineWidth;
-    const lineDash = [lineWidth * 3, spaceWidth + (lineWidth + spaceWidth)];
-
+    context.lineWidth = tierLineWidth[tier];
     context.beginPath();
-    context.setLineDash(isBold ? [] : lineDash);
-    context.strokeStyle = isBold
-      ? GridLineColor[theme].bold
-      : GridLineColor[theme].regular;
+    context.strokeStyle = colorOverride || GridLineColor[theme][tier];
     context.moveTo(x, offsetY - gridSize);
     context.lineTo(x, Math.ceil(offsetY + height + gridSize * 2));
     context.stroke();
   }
 
   for (let y = offsetY; y < offsetY + height + gridSize * 2; y += gridSize) {
-    const isBold =
-      gridStep > 1 && Math.round(y - scrollY) % (gridStep * gridSize) === 0;
-    if (!isBold && actualGridSize < 10) {
+    const tier = gridLineTier(y, scrollY, gridSize, gridStep);
+    if (tier === "regular" && actualGridSize < 10) {
       continue;
     }
 
-    const lineWidth = Math.min(1 / zoom.value, isBold ? 4 : 1);
-    context.lineWidth = lineWidth;
-    const lineDash = [lineWidth * 3, spaceWidth + (lineWidth + spaceWidth)];
-
+    context.lineWidth = tierLineWidth[tier];
     context.beginPath();
-    context.setLineDash(isBold ? [] : lineDash);
-    context.strokeStyle = isBold
-      ? GridLineColor[theme].bold
-      : GridLineColor[theme].regular;
+    context.strokeStyle = colorOverride || GridLineColor[theme][tier];
     context.moveTo(offsetX - gridSize, y);
     context.lineTo(Math.ceil(offsetX + width + gridSize * 2), y);
     context.stroke();
   }
+  context.restore();
+};
+
+const strokeRuledLines = (
+  context: CanvasRenderingContext2D,
+  /** line spacing px — same value the grid uses */
+  gridSize: number,
+  scrollX: number,
+  scrollY: number,
+  zoom: Zoom,
+  theme: StaticCanvasRenderConfig["theme"],
+  width: number,
+  height: number,
+  /** Free-picked rule color; falls back to the theme default when unset. */
+  colorOverride?: string,
+) => {
+  const offsetX = (scrollX % gridSize) - gridSize;
+  const offsetY = (scrollY % gridSize) - gridSize;
+
+  const actualGridSize = gridSize * zoom.value;
+  // Match the grid's density guard: below this the rules crowd into a haze.
+  if (actualGridSize < 10) {
+    return;
+  }
+
+  context.save();
+  // Crisp 1px lines at 100% zoom, per the grid's own offset trick.
+  if (zoom.value === 1) {
+    context.translate(offsetX % 1 ? 0 : 0.5, offsetY % 1 ? 0 : 0.5);
+  }
+
+  context.lineWidth = 1 / zoom.value;
+  context.strokeStyle = colorOverride || GridLineColor[theme].regular;
+
+  // Horizontal rules only — the lined-paper variant of the grid.
+  for (let y = offsetY; y < offsetY + height + gridSize * 2; y += gridSize) {
+    context.beginPath();
+    context.moveTo(offsetX - gridSize, y);
+    context.lineTo(Math.ceil(offsetX + width + gridSize * 2), y);
+    context.stroke();
+  }
+
+  // Left margin rule: scene x = 0 is at screen x = scrollX (the context is zoom-
+  // scaled but not scroll-translated, so scrollX is its screen coordinate). Only
+  // draw it when the page's left edge is actually within the visible span.
+  const marginX = scrollX;
+  if (marginX >= offsetX && marginX <= offsetX + width + gridSize * 2) {
+    context.beginPath();
+    context.lineWidth = Math.max(1 / zoom.value, 1.5 / zoom.value);
+    // Margin follows the chosen rule color when set; otherwise the Syntropy
+    // infrared accent — the notebook's red rule.
+    context.strokeStyle = colorOverride || RULED_MARGIN_COLORS[theme];
+    context.moveTo(marginX, offsetY - gridSize);
+    context.lineTo(marginX, Math.ceil(offsetY + height + gridSize * 2));
+    context.stroke();
+  }
+
   context.restore();
 };
 
@@ -230,7 +331,11 @@ const renderLinkIcon = (
   appState: StaticCanvasAppState,
   elementsMap: ElementsMap,
 ) => {
-  if (element.link && !appState.selectedElementIds[element.id]) {
+  if (
+    element.link &&
+    !isSyntropyLinkElement(element) &&
+    !appState.selectedElementIds[element.id]
+  ) {
     const [x1, y1, x2, y2] = getElementAbsoluteCoords(element, elementsMap);
     const [x, y, width, height] = getLinkHandleFromCoords(
       [x1, y1, x2, y2],
@@ -308,6 +413,7 @@ const _renderStaticScene = ({
   const {
     renderGrid = true,
     renderDotGrid = false,
+    renderRuled = false,
     isExporting,
   } = renderConfig;
 
@@ -324,6 +430,9 @@ const _renderStaticScene = ({
     theme: appState.theme,
     isExporting,
     viewBackgroundColor: appState.viewBackgroundColor,
+    // A free-picked paper color paints literally; otherwise the dark-mode
+    // filter keeps the default board dark in dark theme.
+    bypassDarkFilter: appState.paperBgOverride === true,
   });
 
   // Apply zoom
@@ -339,6 +448,25 @@ const _renderStaticScene = ({
       renderConfig.theme,
       normalizedWidth / appState.zoom.value,
       normalizedHeight / appState.zoom.value,
+      // Dots follow the paper spacing (gridSize) + free-picked color.
+      appState.gridSize,
+      appState.paperColor || undefined,
+    );
+  }
+
+  // GoodNotes-style ruled (lined) paper. Mutually exclusive with the grid and dots —
+  // the paper picker only sets one texture at a time.
+  if (renderRuled && !renderGrid && !renderDotGrid) {
+    strokeRuledLines(
+      context,
+      appState.gridSize,
+      appState.scrollX,
+      appState.scrollY,
+      appState.zoom,
+      renderConfig.theme,
+      normalizedWidth / appState.zoom.value,
+      normalizedHeight / appState.zoom.value,
+      appState.paperColor || undefined,
     );
   }
 
@@ -354,6 +482,7 @@ const _renderStaticScene = ({
       renderConfig.theme,
       normalizedWidth / appState.zoom.value,
       normalizedHeight / appState.zoom.value,
+      appState.paperColor || undefined,
     );
   }
 

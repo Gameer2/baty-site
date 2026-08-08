@@ -63,6 +63,8 @@ export const createSyntropyNode = (
         methodId: method.methodId,
         name: method.name,
         ...(inputs ? { inputs } : {}),
+        minWidth: size.width,
+        minHeight: size.height,
       },
     },
   });

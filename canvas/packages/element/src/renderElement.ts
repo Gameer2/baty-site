@@ -26,6 +26,8 @@ import {
   isSafari,
 } from "@excalidraw/common";
 
+import type { EraserMode } from "@excalidraw/common";
+
 import type {
   AppState,
   StaticCanvasAppState,
@@ -57,11 +59,14 @@ import {
   isTextElement,
   isLinearElement,
   isFreeDrawElement,
+  isLineElement,
   isInitializedImageElement,
+  isInitializedVideoElement,
   isArrowElement,
   hasBoundTextElement,
   isMagicFrameElement,
   isImageElement,
+  isVideoElement,
 } from "./typeChecks";
 import { getContainingFrame } from "./frame";
 import { getCornerRadius } from "./utils";
@@ -75,6 +80,7 @@ import type {
   NonDeletedExcalidrawElement,
   ExcalidrawFreeDrawElement,
   ExcalidrawImageElement,
+  ExcalidrawVideoElement,
   ExcalidrawTextElementWithContainer,
   ExcalidrawFrameLikeElement,
   NonDeletedSceneElementsMap,
@@ -112,6 +118,7 @@ export const getRenderOpacity = (
   elementsPendingErasure: ElementsPendingErasure,
   pendingNodes: Readonly<PendingExcalidrawElements> | null,
   globalAlpha: number = 1,
+  eraserMode?: EraserMode,
 ) => {
   // multiplying frame opacity with element opacity to combine them
   // (e.g. frame 50% and element 50% opacity should result in 25% opacity)
@@ -119,12 +126,24 @@ export const getRenderOpacity = (
     (((containingFrame?.opacity ?? 100) * element.opacity) / 10000) *
     globalAlpha;
 
+  // "precision" mode never deletes a freedraw/non-polygon-line element whole while the eraser is
+  // still mid-drag — it only ever cuts out the part actually swept over (see App.tsx's
+  // eraseElements). Dimming the entire element here would misleadingly preview the whole thing
+  // vanishing, same as stroke/clear mode, when in fact most of it will survive untouched. Every
+  // other element type still gets a whole-element delete even in precision mode, so it keeps the
+  // preview.
+  const isPartialCutCandidate =
+    eraserMode === "precision" &&
+    (isFreeDrawElement(element) ||
+      (isLineElement(element) && !element.polygon));
+
   // if pending erasure, multiply again to combine further
   // (so that erasing always results in lower opacity than original)
   if (
-    elementsPendingErasure.has(element.id) ||
-    (pendingNodes && pendingNodes.some((node) => node.id === element.id)) ||
-    (containingFrame && elementsPendingErasure.has(containingFrame.id))
+    !isPartialCutCandidate &&
+    (elementsPendingErasure.has(element.id) ||
+      (pendingNodes && pendingNodes.some((node) => node.id === element.id)) ||
+      (containingFrame && elementsPendingErasure.has(containingFrame.id)))
   ) {
     opacity *= ELEMENT_READY_TO_ERASE_OPACITY / 100;
   }
@@ -290,7 +309,7 @@ IMAGE_ERROR_PLACEHOLDER_IMG.src = `data:${MIME_TYPES.svg},${encodeURIComponent(
 )}`;
 
 const drawImagePlaceholder = (
-  element: ExcalidrawImageElement,
+  element: ExcalidrawImageElement | ExcalidrawVideoElement,
   context: CanvasRenderingContext2D,
   theme: StaticCanvasRenderConfig["theme"],
 ) => {
@@ -326,6 +345,7 @@ const drawElementOnCanvas = (
     case "iframe":
     case "embeddable":
     case "diamond":
+    case "polygon":
     case "ellipse": {
       context.lineJoin = "round";
       context.lineCap = "round";
@@ -334,7 +354,8 @@ const drawElementOnCanvas = (
       break;
     }
     case "arrow":
-    case "line": {
+    case "line":
+    case "shape3d": {
       context.lineJoin = "round";
       context.lineCap = "round";
 
@@ -468,6 +489,44 @@ const drawElementOnCanvas = (
             element.height,
           );
         }
+      } else {
+        drawImagePlaceholder(element, context, renderConfig.theme);
+      }
+      context.restore();
+      break;
+    }
+    case "video": {
+      context.save();
+      const cacheEntry =
+        element.fileId !== null
+          ? renderConfig.videoCache.get(element.fileId)
+          : null;
+      const video = isInitializedVideoElement(element)
+        ? cacheEntry?.video
+        : undefined;
+
+      if (video != null && !(video instanceof Promise)) {
+        if (element.roundness && context.roundRect) {
+          context.beginPath();
+          context.roundRect(
+            0,
+            0,
+            element.width,
+            element.height,
+            getCornerRadius(Math.min(element.width, element.height), element),
+          );
+          context.clip();
+        }
+
+        // Draw the current video frame. `drawImage` accepts an
+        // HTMLVideoElement; while paused this is the poster/first frame, and
+        // during export it captures whatever frame is currently shown. The
+        // live, interactive playback happens via a DOM `<video>` overlay in
+        // App.tsx (`renderVideos`), so this canvas paint only needs to provide
+        // the static representation behind/for export.
+        const vw = video.videoWidth || element.width;
+        const vh = video.videoHeight || element.height;
+        context.drawImage(video, 0, 0, vw, vh, 0, 0, element.width, element.height);
       } else {
         drawImagePlaceholder(element, context, renderConfig.theme);
       }
@@ -732,6 +791,7 @@ export const renderElement = (
     renderConfig.elementsPendingErasure,
     renderConfig.pendingFlowchartNodes,
     reduceAlphaForSelection ? DEFAULT_REDUCED_GLOBAL_ALPHA : 1,
+    appState.currentItemEraserMode,
   );
 
   switch (element.type) {
@@ -815,10 +875,13 @@ export const renderElement = (
     }
     case "rectangle":
     case "diamond":
+    case "polygon":
+    case "shape3d":
     case "ellipse":
     case "line":
     case "arrow":
     case "image":
+    case "video":
     case "text":
     case "iframe":
     case "embeddable": {

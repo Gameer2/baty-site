@@ -5,6 +5,14 @@ import {
   DEFAULT_FONT_FAMILY,
   DEFAULT_FONT_SIZE,
   DEFAULT_ELEMENT_STROKE_WIDTH_KEY,
+  DEFAULT_ERASER_SIZE,
+  DEFAULT_ERASER_MODE,
+  DEFAULT_POLYGON_SIDES,
+  DEFAULT_SHAPE3D_TYPE,
+  DEFAULT_SHAPE3D_ROTATION_X,
+  DEFAULT_SHAPE3D_ROTATION_Y,
+  DEFAULT_SHAPE3D_ROTATION_Z,
+  DEFAULT_SHAPE3D_WIREFRAME,
   DEFAULT_TEXT_ALIGN,
   DEFAULT_GRID_SIZE,
   EXPORT_SCALES,
@@ -42,6 +50,14 @@ export const getDefaultAppState = (): Omit<
     currentItemArrowType: ARROW_TYPE.round,
     currentItemStrokeStyle: DEFAULT_ELEMENT_PROPS.strokeStyle,
     currentItemStrokeWidthKey: DEFAULT_ELEMENT_STROKE_WIDTH_KEY,
+    currentItemEraserSize: DEFAULT_ERASER_SIZE,
+    currentItemEraserMode: DEFAULT_ERASER_MODE,
+    currentItemPolygonSides: DEFAULT_POLYGON_SIDES,
+    currentItemShape3DType: DEFAULT_SHAPE3D_TYPE,
+    currentItemShape3DRotationX: DEFAULT_SHAPE3D_ROTATION_X,
+    currentItemShape3DRotationY: DEFAULT_SHAPE3D_ROTATION_Y,
+    currentItemShape3DRotationZ: DEFAULT_SHAPE3D_ROTATION_Z,
+    currentItemShape3DWireframe: DEFAULT_SHAPE3D_WIREFRAME,
     currentItemTextAlign: DEFAULT_TEXT_ALIGN,
     currentHoveredFontFamily: null,
     cursorButton: "up",
@@ -71,6 +87,15 @@ export const getDefaultAppState = (): Omit<
     gridSize: DEFAULT_GRID_SIZE,
     gridStep: DEFAULT_GRID_STEP,
     gridModeEnabled: false,
+    // Default `dotted` preserves the Syntropy board texture the canvas shipped with.
+    paperMode: "dotted",
+    // "" = auto (theme-picked texture color, the original look). Set to a color to
+    // free-pick the grid/ruled/dot line color.
+    paperColor: "",
+    // `false` = viewBackgroundColor goes through the dark-mode filter (default
+    // dark board). The paper picker sets `true` on an explicit color choice so
+    // the paper paints literally; its "Auto" swatch resets this to `false`.
+    paperBgOverride: false,
     isBindingEnabled: true,
     bindingPreference: "enabled",
     isMidpointSnappingEnabled: true,
@@ -131,7 +156,15 @@ export const getDefaultAppState = (): Omit<
     lockedMultiSelections: {},
     activeLockedId: null,
     bindMode: "orbit",
-    boxSelectionMode: "contain",
+    // "overlap" instead of upstream's "contain" default — this board is full
+    // of small nodes/wires, and requiring a drag to fully enclose an element
+    // before it's selected is more friction than it's worth here. Still a
+    // normal user-facing preference (main menu → general), so anyone who
+    // wants "contain" back can switch it.
+    boxSelectionMode: "overlap",
+    // on-canvas engineering instrument overlay (compass/ruler/protractor/…).
+    // null until an engineering tool is activated and the user places one.
+    engineeringInstrument: null,
   };
 };
 
@@ -180,6 +213,18 @@ const APP_STATE_STORAGE_CONF = (<
   currentItemStrokeColor: { browser: true, export: false, server: false },
   currentItemStrokeStyle: { browser: true, export: false, server: false },
   currentItemStrokeWidthKey: { browser: true, export: false, server: false },
+  currentItemEraserSize: { browser: true, export: false, server: false },
+  currentItemEraserMode: { browser: true, export: false, server: false },
+  currentItemPolygonSides: { browser: true, export: false, server: false },
+  currentItemShape3DType: { browser: true, export: false, server: false },
+  currentItemShape3DRotationX: { browser: true, export: false, server: false },
+  currentItemShape3DRotationY: { browser: true, export: false, server: false },
+  currentItemShape3DRotationZ: { browser: true, export: false, server: false },
+  currentItemShape3DWireframe: {
+    browser: true,
+    export: false,
+    server: false,
+  },
   currentItemTextAlign: { browser: true, export: false, server: false },
   currentHoveredFontFamily: { browser: false, export: false, server: false },
   cursorButton: { browser: true, export: false, server: false },
@@ -200,6 +245,10 @@ const APP_STATE_STORAGE_CONF = (<
   gridSize: { browser: true, export: true, server: true },
   gridStep: { browser: true, export: true, server: true },
   gridModeEnabled: { browser: true, export: true, server: true },
+  // Paper choice is part of the document (like GoodNotes), so it persists everywhere.
+  paperMode: { browser: true, export: true, server: true },
+  paperColor: { browser: true, export: true, server: true },
+  paperBgOverride: { browser: true, export: true, server: true },
   height: { browser: false, export: false, server: false },
   isBindingEnabled: { browser: true, export: false, server: false },
   boxSelectionMode: { browser: true, export: false, server: false },
@@ -265,6 +314,7 @@ const APP_STATE_STORAGE_CONF = (<
   lockedMultiSelections: { browser: true, export: true, server: true },
   activeLockedId: { browser: false, export: false, server: false },
   bindMode: { browser: true, export: false, server: false },
+  engineeringInstrument: { browser: false, export: false, server: false },
 });
 
 const _clearAppStateForStorage = <

@@ -40,7 +40,10 @@ export class AnimatedTrail implements Trail {
 
   constructor(
     protected app: App,
-    private options: Partial<LaserPointerOptions> &
+    // protected, not private: EraserTrail overrides `options.size` per-stroke to reflect the
+    // user's chosen eraser size (packages/excalidraw/eraser/index.ts) — `size` isn't itself a
+    // reactive function like `fill`/`stroke` above, so it has to be reassigned directly.
+    protected options: Partial<LaserPointerOptions> &
       Partial<AnimatedTrailOptions>,
   ) {
     this.key = `animated-trail-${AnimatedTrail.counter++}`;

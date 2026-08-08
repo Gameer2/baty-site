@@ -1,20 +1,24 @@
 import clsx from "clsx";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { KEYS, capitalizeString } from "@excalidraw/common";
 
 import type { PointerType } from "@excalidraw/element/types";
 
 import { trackEvent } from "../analytics";
+import { useOutsideClick } from "../hooks/useOutsideClick";
 import { t } from "../i18n";
 import { getShortcutKey } from "../shortcut";
 
 import { IconButton } from "./IconButton";
 import { ToolPopover } from "./ToolPopover";
+import DropdownMenu from "./dropdownMenu/DropdownMenu";
 import {
   SelectionIcon,
   RectangleIcon,
   DiamondIcon,
+  PolygonIcon,
+  Shape3DIcon,
   EllipseIcon,
   ArrowIcon,
   LineIcon,
@@ -22,6 +26,8 @@ import {
   drawShapeToolIcon,
   TextIcon,
   ImageIcon,
+  VideoIcon,
+  PdfIcon,
   EraserIcon,
   laserPointerToolIcon,
   bucketFillIcon,
@@ -29,10 +35,20 @@ import {
   handIcon,
   frameToolIcon,
   EmbedIcon,
+  compassIcon,
+  rulerIcon,
+  protractorIcon,
+  tSquareIcon,
+  setSquareIcon,
+  angleBisectorIcon,
+  engineeringToolsIcon,
+  shapeFamilyIcon,
+  importToolsIcon,
 } from "./icons";
 
 import type {
   AppClassProperties,
+  AppProps,
   AppState,
   ToolType,
   UIAppState,
@@ -89,6 +105,16 @@ export const TOOLS = defineTools({
     numericKey: KEYS["3"],
     fillable: true,
   },
+  polygon: {
+    icon: PolygonIcon,
+    letterKey: KEYS.C,
+    fillable: true,
+  },
+  shape3d: {
+    icon: Shape3DIcon,
+    letterKey: KEYS.W,
+    fillable: true,
+  },
   ellipse: {
     icon: EllipseIcon,
     letterKey: KEYS.O,
@@ -121,6 +147,12 @@ export const TOOLS = defineTools({
     icon: ImageIcon,
     numericKey: KEYS["9"],
   },
+  video: {
+    icon: VideoIcon,
+  },
+  pdf: {
+    icon: PdfIcon,
+  },
   eraser: {
     icon: EraserIcon,
     letterKey: KEYS.E,
@@ -151,6 +183,27 @@ export const TOOLS = defineTools({
   lasso: {
     icon: LassoIcon,
     fillable: false,
+  },
+  // engineering / drafting instruments — grouped behind one toolbar icon,
+  // so they carry icon + label only (no keyboard shortcut): activation goes
+  // through the EngineeringToolsDropdown, not `findShapeByKey`
+  compass: {
+    icon: compassIcon,
+  },
+  ruler: {
+    icon: rulerIcon,
+  },
+  protractor: {
+    icon: protractorIcon,
+  },
+  tsquare: {
+    icon: tSquareIcon,
+  },
+  setsquare: {
+    icon: setSquareIcon,
+  },
+  anglebisector: {
+    icon: angleBisectorIcon,
   },
 });
 
@@ -316,14 +369,13 @@ const createToolButton = (
 };
 
 export const HandToolButton = createToolButton("hand");
-export const RectangleToolButton = createToolButton("rectangle");
-export const DiamondToolButton = createToolButton("diamond");
-export const EllipseToolButton = createToolButton("ellipse");
 export const ArrowToolButton = createToolButton("arrow");
 export const LineToolButton = createToolButton("line");
 export const FreedrawToolButton = createToolButton("freedraw");
 export const TextToolButton = createToolButton("text");
 export const ImageToolButton = createToolButton("image");
+export const VideoToolButton = createToolButton("video");
+export const PdfToolButton = createToolButton("pdf");
 export const EraserToolButton = createToolButton("eraser");
 export const FrameToolButton = createToolButton("frame");
 
@@ -463,5 +515,253 @@ export const FreedrawToolPopover = ({
       }}
       displayedOption={displayedOption}
     />
+  );
+};
+
+// the six engineering/drafting instruments, grouped behind one toolbar icon.
+// Static flyout (no "remember last used"): the trigger shows the active
+// sub-tool's icon, or the category icon when no engineering tool is active.
+const ENGINEERING_TOOLS = [
+  { type: "compass", icon: compassIcon, label: "toolBar.compass" },
+  { type: "ruler", icon: rulerIcon, label: "toolBar.ruler" },
+  { type: "protractor", icon: protractorIcon, label: "toolBar.protractor" },
+  { type: "tsquare", icon: tSquareIcon, label: "toolBar.tsquare" },
+  { type: "setsquare", icon: setSquareIcon, label: "toolBar.setsquare" },
+  {
+    type: "anglebisector",
+    icon: angleBisectorIcon,
+    label: "toolBar.anglebisector",
+  },
+] as const;
+
+export const EngineeringToolsDropdown = ({
+  app,
+  activeTool,
+  setAppState,
+}: {
+  app: AppClassProperties;
+  activeTool: UIAppState["activeTool"];
+  setAppState: React.Component<any, AppState>["setState"];
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const activeEngineeringTool = ENGINEERING_TOOLS.find(
+    (tool) => activeTool.type === tool.type,
+  );
+  const engineeringToolSelected = activeEngineeringTool != null;
+
+  return (
+    <DropdownMenu open={isOpen}>
+      <DropdownMenu.Trigger
+        className={clsx("App-toolbar__engineering-tools-trigger", {
+          "App-toolbar__engineering-tools-trigger--selected":
+            engineeringToolSelected,
+        })}
+        onToggle={() => {
+          setIsOpen(!isOpen);
+          setAppState({ openMenu: null, openPopup: null });
+        }}
+        title={t("toolBar.engineeringTools")}
+      >
+        {activeEngineeringTool
+          ? activeEngineeringTool.icon
+          : engineeringToolsIcon}
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content
+        onClickOutside={() => setIsOpen(false)}
+        onSelect={() => setIsOpen(false)}
+        className="App-toolbar__extra-tools-dropdown"
+      >
+        {ENGINEERING_TOOLS.map((tool) => (
+          <DropdownMenu.Item
+            key={tool.type}
+            onSelect={() => app.setActiveTool({ type: tool.type })}
+            icon={tool.icon}
+            data-testid={`toolbar-${tool.type}`}
+            selected={activeTool.type === tool.type}
+            disabled={isToolButtonDisabled(app, tool.type)}
+          >
+            {t(tool.label)}
+          </DropdownMenu.Item>
+        ))}
+      </DropdownMenu.Content>
+    </DropdownMenu>
+  );
+};
+
+// the five 2D shape tools, grouped behind one "shape family" trigger that
+// fans them out along an arc instead of a vertical list — this is the one
+// tool group whose whole point is "many shapes, one origin," so the reveal
+// itself carries that meaning instead of just being another dropdown.
+const SHAPE_TOOLS = [
+  {
+    type: "rectangle",
+    icon: TOOLS.rectangle.icon,
+    label: "toolBar.rectangle",
+  },
+  { type: "diamond", icon: TOOLS.diamond.icon, label: "toolBar.diamond" },
+  { type: "polygon", icon: TOOLS.polygon.icon, label: "toolBar.polygon" },
+  { type: "shape3d", icon: TOOLS.shape3d.icon, label: "toolBar.shape3d" },
+  { type: "ellipse", icon: TOOLS.ellipse.icon, label: "toolBar.ellipse" },
+] as const;
+
+// fan geometry — 5 chips swept across 110° (35°→145°, measured from the
+// positive x-axis) at a 76px radius, opening downward — the toolbar sits at
+// the top of the canvas, so an upward fan would push chips off-screen.
+const SHAPE_FAN_RADIUS = 76;
+const SHAPE_FAN_ANGLES_DEG = [35, 62.5, 90, 117.5, 145];
+const SHAPE_FAN_STAGGER_MS = 35;
+
+export const ShapeToolsFan = ({
+  app,
+  activeTool,
+}: {
+  app: AppClassProperties;
+  activeTool: UIAppState["activeTool"];
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useOutsideClick(containerRef, () => setIsOpen(false));
+
+  // dismiss on canvas interaction, same as ToolPopover
+  useEffect(() => {
+    const unsubscribe = app.onPointerDownEmitter.on(() => setIsOpen(false));
+    return () => unsubscribe?.();
+  }, [app]);
+
+  const activeShapeTool = SHAPE_TOOLS.find(
+    (tool) => activeTool.type === tool.type,
+  );
+
+  return (
+    <div
+      className={clsx("App-toolbar__shape-fan", {
+        "App-toolbar__shape-fan--open": isOpen,
+      })}
+      ref={containerRef}
+    >
+      <IconButton
+        className={clsx("App-toolbar__shape-fan-trigger", {
+          "App-toolbar__shape-fan-trigger--selected": activeShapeTool != null,
+        })}
+        type="toggle"
+        icon={activeShapeTool ? activeShapeTool.icon : shapeFamilyIcon}
+        checked={isOpen}
+        title={capitalizeString(t("toolBar.shapes"))}
+        aria-label={capitalizeString(t("toolBar.shapes"))}
+        data-testid="toolbar-shapes"
+        onSelect={() => setIsOpen((open) => !open)}
+      />
+      {SHAPE_TOOLS.map((tool, index) => {
+        const angle = (SHAPE_FAN_ANGLES_DEG[index] * Math.PI) / 180;
+        const sx = Math.cos(angle) * SHAPE_FAN_RADIUS;
+        const sy = Math.sin(angle) * SHAPE_FAN_RADIUS;
+        return (
+          <IconButton
+            key={tool.type}
+            className={clsx("App-toolbar__shape-fan-chip", {
+              fillable: TOOLS[tool.type].fillable,
+            })}
+            type="toggle"
+            icon={tool.icon}
+            checked={activeTool.type === tool.type}
+            disabled={isToolButtonDisabled(app, tool.type)}
+            title={`${capitalizeString(t(tool.label))} — ${getToolShortcut(
+              tool.type,
+            )}`}
+            aria-label={capitalizeString(t(tool.label))}
+            data-testid={`toolbar-${tool.type}`}
+            style={
+              {
+                "--sx": `${sx}px`,
+                "--sy": `${sy}px`,
+                "--d": `${index * SHAPE_FAN_STAGGER_MS}ms`,
+              } as React.CSSProperties
+            }
+            onSelect={() => {
+              if (app.state.activeTool.type !== tool.type) {
+                trackEvent("toolbar", tool.type, "ui");
+                app.setActiveTool({ type: tool.type });
+              }
+              setIsOpen(false);
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+};
+
+// image/video/pdf, grouped behind one "import" trigger — a flat labeled
+// list (mirrors EngineeringToolsDropdown), deliberately not a fan: these
+// are three unrelated file kinds, not one family of shapes, so a vertical
+// list of icon+label reads truer than a radial reveal.
+const IMPORT_TOOLS = [
+  { type: "image", icon: ImageIcon, label: "toolBar.image" },
+  { type: "video", icon: VideoIcon, label: "toolBar.video" },
+  { type: "pdf", icon: PdfIcon, label: "toolBar.pdf" },
+] as const;
+
+export const ImportToolsDropdown = ({
+  app,
+  activeTool,
+  setAppState,
+  UIOptions,
+}: {
+  app: AppClassProperties;
+  activeTool: UIAppState["activeTool"];
+  setAppState: React.Component<any, AppState>["setState"];
+  UIOptions: AppProps["UIOptions"];
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const enabledImportTools = IMPORT_TOOLS.filter(
+    (tool) => UIOptions.tools?.[tool.type] !== false,
+  );
+
+  if (enabledImportTools.length === 0) {
+    return null;
+  }
+
+  const activeImportTool = enabledImportTools.find(
+    (tool) => activeTool.type === tool.type,
+  );
+  const importToolSelected = activeImportTool != null;
+
+  return (
+    <DropdownMenu open={isOpen}>
+      <DropdownMenu.Trigger
+        className={clsx("App-toolbar__import-tools-trigger", {
+          "App-toolbar__import-tools-trigger--selected": importToolSelected,
+        })}
+        onToggle={() => {
+          setIsOpen(!isOpen);
+          setAppState({ openMenu: null, openPopup: null });
+        }}
+        title={capitalizeString(t("toolBar.import"))}
+        data-testid="toolbar-import-tools"
+      >
+        {activeImportTool ? activeImportTool.icon : importToolsIcon}
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content
+        onClickOutside={() => setIsOpen(false)}
+        onSelect={() => setIsOpen(false)}
+        className="App-toolbar__extra-tools-dropdown"
+      >
+        {enabledImportTools.map((tool) => (
+          <DropdownMenu.Item
+            key={tool.type}
+            onSelect={() => app.setActiveTool({ type: tool.type })}
+            icon={tool.icon}
+            data-testid={`toolbar-${tool.type}`}
+            selected={activeTool.type === tool.type}
+            disabled={isToolButtonDisabled(app, tool.type)}
+          >
+            {t(tool.label)}
+          </DropdownMenu.Item>
+        ))}
+      </DropdownMenu.Content>
+    </DropdownMenu>
   );
 };

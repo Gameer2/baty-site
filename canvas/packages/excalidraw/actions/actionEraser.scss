@@ -1,0 +1,37 @@
+@use "../css/variables.module" as *;
+
+.excalidraw {
+  .EraserSizeControl {
+    display: flex;
+    // flex-start, not center: the slider's own label prop is null (the fieldset legend already
+    // titles this control), so .range-wrapper's track sits right after its 10px top padding —
+    // centering the dots against the row's full height (which includes the 25px bottom padding
+    // reserved for the value bubble) would visibly sink them below the track.
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .EraserSizeControl__slider {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .EraserSizeControl__dot {
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--color-slider-thumb);
+  }
+
+  // Centered on the track's vertical position (10px top padding + half the 4px track height).
+  .EraserSizeControl__dot--min {
+    width: 4px;
+    height: 4px;
+    margin-top: 10px;
+  }
+
+  .EraserSizeControl__dot--max {
+    width: 14px;
+    height: 14px;
+    margin-top: 5px;
+  }
+}

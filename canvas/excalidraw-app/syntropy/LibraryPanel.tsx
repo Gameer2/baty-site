@@ -42,6 +42,13 @@ const groupByCategory = (methods: Method[]) => {
   return groups;
 };
 
+// Staggered reveal step, ms — matches the mockup's ~30ms-per-row cascade.
+// Capped so a 26-row engine (Calculus) doesn't take over a second to finish.
+const REVEAL_STEP_MS = 30;
+const REVEAL_STEP_MAX_MS = 240;
+const revealDelay = (index: number) =>
+  `${Math.min(index * REVEAL_STEP_MS, REVEAL_STEP_MAX_MS)}ms`;
+
 export const LibraryPanel = ({ excalidrawAPI }: LibraryPanelProps) => {
   // Collapsed by default. 135 methods across 7 engines means any auto-opened engine fills the
   // whole panel — calculus alone is 26 rows — and the list reads as a file dump instead of a
@@ -98,8 +105,14 @@ export const LibraryPanel = ({ excalidrawAPI }: LibraryPanelProps) => {
       {engines.map((engine) => {
         const isOpen = isSearching || engine.engineId === openEngineId;
         const accent = engine.accent;
+        let methodIndex = 0;
         return (
-          <div className="LibraryPanel__engine" key={engine.engineId}>
+          <div
+            className={`LibraryPanel__engine${
+              isOpen ? " LibraryPanel__engine--open" : ""
+            }`}
+            key={engine.engineId}
+          >
             <button
               type="button"
               className="LibraryPanel__engine-head"
@@ -113,8 +126,12 @@ export const LibraryPanel = ({ excalidrawAPI }: LibraryPanelProps) => {
                 )
               }
             >
+              {/* Pulses only while its methods are showing — one engine
+                  (or a few, mid-search) breathing, not all seven at rest. */}
               <span
-                className="LibraryPanel__engine-dot"
+                className={`LibraryPanel__engine-dot${
+                  isOpen ? " LibraryPanel__engine-dot--pulse" : ""
+                }`}
                 style={{ background: accent }}
               />
               <span className="LibraryPanel__engine-name">
@@ -123,13 +140,26 @@ export const LibraryPanel = ({ excalidrawAPI }: LibraryPanelProps) => {
               <span className="LibraryPanel__engine-count">
                 {engine.methods.length}
               </span>
+              <span className="LibraryPanel__engine-chevron" aria-hidden="true">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
+              </span>
             </button>
 
-            {isOpen && (
-              <div
-                className="LibraryPanel__methods"
-                style={{ "--engine-accent": accent } as React.CSSProperties}
-              >
+            {/* Always mounted (not conditionally rendered) so opening/closing can
+                animate height via grid-template-rows instead of popping the list
+                in and out — see LibraryPanel.scss. */}
+            <div
+              className="LibraryPanel__methods"
+              style={{ "--engine-accent": accent } as React.CSSProperties}
+            >
+              <div className="LibraryPanel__methods-inner">
                 {groupByCategory(engine.methods as Method[]).map((group) => (
                   <div
                     className="LibraryPanel__category"
@@ -140,31 +170,38 @@ export const LibraryPanel = ({ excalidrawAPI }: LibraryPanelProps) => {
                         {group.categoryName}
                       </div>
                     )}
-                    {group.methods.map((method) => (
-                      <button
-                        type="button"
-                        key={method.methodId}
-                        className="LibraryPanel__method"
-                        onClick={() => {
-                          if (excalidrawAPI) {
-                            createSyntropyNode(excalidrawAPI, {
-                              engineId: engine.engineId as EngineId,
-                              methodId: method.methodId,
-                              name: method.name,
-                            });
+                    {group.methods.map((method) => {
+                      const delay = revealDelay(methodIndex);
+                      methodIndex += 1;
+                      return (
+                        <button
+                          type="button"
+                          key={method.methodId}
+                          className="LibraryPanel__method"
+                          style={
+                            { "--reveal-delay": delay } as React.CSSProperties
                           }
-                        }}
-                      >
-                        <span className="LibraryPanel__method-dot" />
-                        <span className="LibraryPanel__method-name">
-                          {method.name}
-                        </span>
-                      </button>
-                    ))}
+                          onClick={() => {
+                            if (excalidrawAPI) {
+                              createSyntropyNode(excalidrawAPI, {
+                                engineId: engine.engineId as EngineId,
+                                methodId: method.methodId,
+                                name: method.name,
+                              });
+                            }
+                          }}
+                        >
+                          <span className="LibraryPanel__method-dot" />
+                          <span className="LibraryPanel__method-name">
+                            {method.name}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 ))}
               </div>
-            )}
+            </div>
           </div>
         );
       })}

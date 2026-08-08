@@ -34,7 +34,10 @@ import {
   type LocalPoint,
 } from "@excalidraw/math";
 
-import { getElementAbsoluteCoords } from "@excalidraw/element";
+import {
+  getElementAbsoluteCoords,
+  getPolygonPoints,
+} from "@excalidraw/element";
 
 import type {
   ElementsMap,
@@ -48,9 +51,12 @@ import type {
   ExcalidrawIframeElement,
   ExcalidrawImageElement,
   ExcalidrawLinearElement,
+  ExcalidrawPolygonElement,
   ExcalidrawRectangleElement,
   ExcalidrawSelectionElement,
+  ExcalidrawShape3DElement,
   ExcalidrawTextElement,
+  ExcalidrawVideoElement,
 } from "@excalidraw/element/types";
 import type { Curve, LineSegment, Polygon, Radians } from "@excalidraw/math";
 
@@ -108,13 +114,19 @@ type RectangularElement =
   | ExcalidrawFrameLikeElement
   | ExcalidrawEmbeddableElement
   | ExcalidrawImageElement
+  | ExcalidrawVideoElement
   | ExcalidrawIframeElement
   | ExcalidrawTextElement
-  | ExcalidrawSelectionElement;
+  | ExcalidrawSelectionElement
+  // hit-tested as a plain bounding box — like image, not worth an exact
+  // silhouette for selection/eraser purposes
+  | ExcalidrawShape3DElement;
 
-// polygon
+// polygon (the geometric shape kind — not to be confused with the "polygon" ELEMENT type below,
+// which is just one of several element types this function accepts and reduces to a plain
+// point list, same as it already does for rectangle/diamond/etc.)
 export const getPolygonShape = <Point extends GlobalPoint | LocalPoint>(
-  element: RectangularElement,
+  element: RectangularElement | ExcalidrawPolygonElement,
 ): GeometricShape<Point> => {
   const { angle, width, height, x, y } = element;
 
@@ -131,6 +143,12 @@ export const getPolygonShape = <Point extends GlobalPoint | LocalPoint>(
       pointRotateRads(pointFrom(x + width, cy), center, angle),
       pointRotateRads(pointFrom(cx, y + height), center, angle),
       pointRotateRads(pointFrom(x, cy), center, angle),
+    );
+  } else if (element.type === "polygon") {
+    data = polygonFromPoints(
+      getPolygonPoints(element).map(([px, py]) =>
+        pointRotateRads(pointFrom<Point>(x + px, y + py), center, angle),
+      ),
     );
   } else {
     data = polygon(

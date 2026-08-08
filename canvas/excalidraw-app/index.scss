@@ -1,5 +1,55 @@
 @import "../packages/excalidraw/css/variables.module.scss";
 
+// Theme token bridge for the app-shell chrome.
+//
+// The custom chrome — LibraryPanel, ChromeRail (Library/Paper/Theme),
+// and NodeOverlay (the Syntropy node cards) — renders as SIBLINGS of
+// <Excalidraw>, inside .excalidraw-app but OUTSIDE the .excalidraw.theme--xxx
+// subtree that Excalidraw owns. Excalidraw defines every theme token
+// (--island-bg-color, --color-on-surface, --color-gray-*, --color-surface-*,
+// --shadow-island, --ui-font, …) on `.excalidraw`, so those vars never cascade
+// to the shell chrome — it sat theme-blind, reading as "the mood isn't applying
+// to the libraries and the added things", and in light mode as light text on a
+// light surface (the vars fell back to inherited/initial values).
+//
+// App.tsx mirrors the resolved theme onto .excalidraw-app as theme--light /
+// theme--dark (the same class names Excalidraw uses). This block re-publishes
+// the chrome-relevant tokens on that scope so the shell follows the mood. The
+// values deliberately mirror packages/excalidraw/css/theme.scss + styles.scss
+// (those stay the single source of truth; this is a token-only mirror so the
+// chrome, which can't live inside .excalidraw, still tracks the theme).
+.excalidraw-app {
+  --ui-font: "Azeret Mono", ui-monospace, "Roc Grotesk", system-ui,
+    -apple-system, sans-serif;
+  --island-bg-color: #ffffff;
+  --input-border-color: #{$color-gray-4};
+  --color-on-surface: #1b1b1f;
+  --color-surface-lowest: #ffffff;
+  --color-surface-low: #ececf4;
+  --color-surface-mid: #f6f6f9;
+  --color-surface-high: #f1f0ff;
+  // --color-gray-30..60 are theme-invariant (defined once in theme.scss, never
+  // overridden in dark) — published once here, used for muted text/borders.
+  --color-gray-30: #d6d6d6;
+  --color-gray-40: #b8b8b8;
+  --color-gray-50: #999999;
+  --color-gray-60: #7a7a7a;
+  --shadow-island: 0px 0px 1px 0px rgba(0, 0, 0, 0.17),
+    0px 0px 3px 0px rgba(0, 0, 0, 0.08), 0px 7px 14px 0px rgba(0, 0, 0, 0.05);
+  --shadow-island-stronger: 0px 0px 1px 0px rgba(0, 0, 0, 0.17),
+    0px 0px 3px 0px rgba(0, 0, 0, 0.08), 0px 7px 14px 0px rgb(0 0 0 / 18%);
+
+  &.theme--dark {
+    --island-bg-color: #111111;
+    --input-border-color: rgba(255, 255, 255, 0.12);
+    --color-on-surface: #e7e7e7;
+    --color-surface-lowest: #090909;
+    --color-surface-low: #0d0d0d;
+    --color-surface-mid: #111111;
+    --color-surface-high: #1b1b1b;
+  }
+}
+
 .excalidraw {
   --color-primary-contrast-offset: #625ee0; // to offset Chubb illusion
 

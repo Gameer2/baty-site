@@ -1,0 +1,325 @@
+// GoodNotes-style paper picker. The trigger chip now lives in ChromeRail
+// (see ChromeRail.scss) as one segment of the merged Library/Paper/Theme
+// capsule — this file owns only the panel + scrim.
+
+// Full-screen click-away so a click anywhere back onto the canvas closes the popover.
+.PaperPicker__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 19;
+  background: transparent;
+}
+
+.PaperPanel {
+  position: fixed;
+  // Below the whole ChromeRail — now a single horizontal row (36px content +
+  // the rail's own 1px top/bottom border = 38px), rail's own 16px top inset,
+  // plus a 12px gap = 66px.
+  top: 66px;
+  left: 16px;
+  z-index: 21;
+  width: 252px;
+  max-height: calc(100vh - 82px);
+  overflow-y: auto;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  box-sizing: border-box;
+  padding: 14px;
+  background: var(--island-bg-color);
+  border: 1px solid var(--input-border-color);
+  border-radius: 12px;
+  box-shadow: var(--shadow-island-stronger);
+  font-family: var(--ui-font);
+  color: var(--color-on-surface);
+  transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &.shifted {
+    left: calc(300px + 16px);
+  }
+
+  &__section + &__section {
+    margin-top: 14px;
+  }
+
+  &__eyebrow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-gray-60);
+    margin-bottom: 10px;
+  }
+
+  &__value {
+    letter-spacing: 0.04em;
+    text-transform: none;
+    color: var(--color-gray-50);
+  }
+
+  &__types {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+}
+
+.PaperType {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px 6px;
+  border-radius: 8px;
+  border: 1px solid var(--input-border-color);
+  background: var(--color-surface-low);
+  cursor: pointer;
+  transition: border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &:hover {
+    border-color: var(--color-gray-40);
+    transform: translateY(-2px);
+  }
+
+  &--active {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 1px
+        color-mix(in srgb, var(--color-primary) 40%, transparent),
+      0 0 14px color-mix(in srgb, var(--color-primary) 30%, transparent);
+  }
+
+  // Live preview of the paper at the current paper color + line color.
+  &__preview {
+    width: 38px;
+    height: 30px;
+    border-radius: 4px;
+    border: 1px solid var(--input-border-color);
+    background-color: var(--paper-bg, #fafafa);
+
+    &--blank {
+      background-image: none;
+    }
+    &--ruled {
+      background-image: repeating-linear-gradient(
+        to bottom,
+        transparent 0 7px,
+        var(--paper-line, rgba(0, 0, 0, 0.28)) 7px 8px
+      );
+    }
+    &--grid {
+      background-image: repeating-linear-gradient(
+          to bottom,
+          transparent 0 7px,
+          var(--paper-line, rgba(0, 0, 0, 0.28)) 7px 8px
+        ),
+        repeating-linear-gradient(
+          to right,
+          transparent 0 7px,
+          var(--paper-line, rgba(0, 0, 0, 0.28)) 7px 8px
+        );
+    }
+    &--dotted {
+      background-image: radial-gradient(
+        var(--paper-line, rgba(0, 0, 0, 0.32)) 1px,
+        transparent 1.4px
+      );
+      background-size: 8px 8px;
+      background-position: 3px 3px;
+    }
+  }
+
+  &__label {
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--color-gray-60);
+  }
+
+  &--active &__label {
+    color: var(--color-on-surface);
+  }
+}
+
+// Color row: swatches on top, then a custom row (color wheel + hex field).
+.PaperField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &__swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  &__custom {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.PaperSwatch {
+  all: unset;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid var(--color-gray-40);
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &:hover {
+    transform: scale(1.14);
+  }
+
+  &--active {
+    box-shadow: 0 0 0 2px var(--island-bg-color), 0 0 0 4px var(--color-primary);
+  }
+
+  // The "Auto" swatch — a dashed ring with an "A", reads as "no custom color".
+  &--auto {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px dashed var(--color-gray-40);
+    font-size: 10px;
+    color: var(--color-gray-60);
+
+    &.PaperSwatch--active {
+      color: var(--color-on-surface);
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 2px var(--island-bg-color),
+        0 0 0 4px var(--color-primary);
+    }
+  }
+}
+
+// The color wheel: a chip that opens the native `<input type="color">` picker.
+.PaperWheel {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  // Conic ring reads as "color wheel" even before it's opened.
+  background: conic-gradient(
+    #ff5252,
+    #ffd740,
+    #69f0ae,
+    #40c4ff,
+    #b388ff,
+    #ff80ab,
+    #ff5252
+  );
+  border: 1px solid var(--color-gray-40);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &:hover {
+    transform: scale(1.12);
+  }
+
+  &__chip {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.4);
+    // The chosen color is painted via inline `backgroundColor` (set in JS). The
+    // `--auto` modifier shows a checkerboard so the empty/Auto state reads as
+    // "no color" rather than a blank hole.
+    &--auto {
+      background-image: linear-gradient(
+          45deg,
+          #555 25%,
+          transparent 25%,
+          transparent 75%,
+          #555 75%
+        ),
+        linear-gradient(
+          45deg,
+          #555 25%,
+          transparent 25%,
+          transparent 75%,
+          #555 75%
+        );
+      background-size: 6px 6px;
+      background-position: 0 0, 3px 3px;
+      background-color: #888;
+      border-color: var(--color-gray-40);
+    }
+  }
+
+  input[type="color"] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+}
+
+.PaperHex {
+  all: unset;
+  box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 6px;
+  border: 1px solid var(--input-border-color);
+  background: var(--color-surface-low);
+  font-family: var(--ui-font);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--color-on-surface);
+  text-transform: lowercase;
+
+  &::placeholder {
+    color: var(--color-gray-50);
+  }
+
+  &:focus {
+    border-color: color-mix(in srgb, var(--color-primary) 60%, transparent);
+  }
+}
+
+.PaperSlider {
+  all: unset;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--color-gray-30);
+  cursor: pointer;
+
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    border: 2px solid var(--island-bg-color);
+    box-shadow: 0 0 8px
+      color-mix(in srgb, var(--color-primary) 50%, transparent);
+  }
+  &::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    border: 2px solid var(--island-bg-color);
+  }
+}

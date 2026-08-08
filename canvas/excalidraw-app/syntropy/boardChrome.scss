@@ -59,11 +59,11 @@
 
   // The main-menu trigger uses the stock `filledButtonOnCanvas` mixin, which fills it with a light
   // surface — on the dark lab canvas that reads as a bad white square in the upper-right (note-taker:
-  // "there still a bad white square on the upper right corner"). Restyle it to the lab's dark pill:
-  // #111 surface, hairline white ring, accent ring on hover.
+  // "there still a bad white square on the upper right corner"). Restyle it to the lab pill: the
+  // theme-aware island surface, a hairline border, accent ring on hover — so it follows the mood.
   .main-menu-trigger {
-    background-color: #111111;
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+    background-color: var(--island-bg-color);
+    box-shadow: 0 0 0 1px var(--input-border-color);
     transition: box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 
     &:hover {
@@ -90,64 +90,5 @@
   --zIndex-layerUI: 10;
 }
 
-// The library toggle — a fixed chip on the LEFT edge, next to the panel it toggles, glowing in
-// the current toolbar accent when the panel is open (note-taker: "should be on the other side in
-// the left and also should be glowing"). Rendered directly by LibraryToggle.tsx (no portal).
-.LibraryToggle {
-  all: unset;
-  box-sizing: border-box;
-  position: fixed;
-  top: 16px;
-  left: 16px;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: var(--lg-button-size, 2.25rem);
-  padding: 0 14px;
-  border-radius: 999px;
-  background: #111111;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  font-family: var(--ui-font);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #7d858c;
-  cursor: pointer;
-  transition: color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-    left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-
-  &::before {
-    content: "";
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: currentColor;
-    flex-shrink: 0;
-  }
-
-  &:hover {
-    color: #e7e7e7;
-    border-color: rgba(255, 255, 255, 0.24);
-  }
-
-  // Open is the resting state, so the lit dot marks it. The chip also slides right by the panel
-  // width so it never overlaps the open panel, and picks up a soft accent glow. Keep 300px in sync
-  // with LIBRARY_PANEL_WIDTH in App.tsx.
-  &--open {
-    left: calc(300px + 16px);
-    color: #e7e7e7;
-    border-color: color-mix(in srgb, var(--color-primary) 60%, transparent);
-    box-shadow: 0 0 20px color-mix(in srgb, var(--color-primary) 45%, transparent);
-
-    &::before {
-      background: var(--color-primary);
-    }
-
-    &:hover {
-      box-shadow: 0 0 28px color-mix(in srgb, var(--color-primary) 65%, transparent);
-    }
-  }
-}
+// The Library trigger now lives in ChromeRail (see ChromeRail.scss) as one
+// segment of the merged Library/Paper/Theme capsule, not its own fixed chip.

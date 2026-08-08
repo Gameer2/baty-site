@@ -34,7 +34,11 @@ import type {
   Zoom,
 } from "@excalidraw/excalidraw/types";
 
-import { elementCenterPoint, getDiamondPoints } from "./bounds";
+import {
+  elementCenterPoint,
+  getDiamondPoints,
+  getPolygonPoints,
+} from "./bounds";
 
 import { generateLinearCollisionShape } from "./shape";
 
@@ -56,6 +60,7 @@ import type {
   ExcalidrawElement,
   ExcalidrawFreeDrawElement,
   ExcalidrawLinearElement,
+  ExcalidrawPolygonElement,
   ExcalidrawRectanguloidElement,
 } from "./types";
 
@@ -470,6 +475,40 @@ export function deconstructDiamondElement(
   setElementShapesCacheEntry(element, shape, offset);
 
   return shape;
+}
+
+/**
+ * Get the **unrotated** building components of a polygon element as line segments — sharp
+ * corners only (no bezier corner curves, unlike diamond's rounded-corner support above), so this
+ * is much simpler than deconstructDiamondElement. Not cached: N <= 20 points is cheap enough to
+ * recompute, and the cache above is shaped for diamond's [sides, corners] tuple specifically.
+ *
+ * @param element The element to deconstruct
+ * @param offset An optional outward offset — approximated by scaling each vertex away from the
+ * element's center, which is exact for a regular polygon (every vertex is equidistant from it).
+ */
+export function deconstructPolygonElement(
+  element: ExcalidrawPolygonElement,
+  offset: number = 0,
+): LineSegment<GlobalPoint>[] {
+  const cx = element.width / 2;
+  const cy = element.height / 2;
+
+  const vertices: GlobalPoint[] = getPolygonPoints(element).map(([x, y]) => {
+    if (offset > 0) {
+      const dx = x - cx;
+      const dy = y - cy;
+      const dist = Math.hypot(dx, dy) || 1;
+      const scale = (dist + offset) / dist;
+      x = cx + dx * scale;
+      y = cy + dy * scale;
+    }
+    return pointFrom<GlobalPoint>(element.x + x, element.y + y);
+  });
+
+  return vertices.map((v, i) =>
+    lineSegment<GlobalPoint>(v, vertices[(i + 1) % vertices.length]),
+  );
 }
 
 // Checks if the first and last point are close enough

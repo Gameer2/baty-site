@@ -206,9 +206,13 @@ export const AllowedExcalidrawActiveTools: Record<
   text: true,
   rectangle: true,
   diamond: true,
+  polygon: true,
+  shape3d: true,
   ellipse: true,
   line: true,
   image: true,
+  video: true,
+  pdf: true,
   arrow: true,
   freedraw: true,
   eraser: false,
@@ -220,6 +224,12 @@ export const AllowedExcalidrawActiveTools: Record<
   autoshape: false,
   magicframe: false,
   bucketfill: true,
+  compass: true,
+  ruler: true,
+  protractor: true,
+  tsquare: true,
+  setsquare: true,
+  anglebisector: true,
 };
 
 export type RestoredDataState = {
@@ -575,6 +585,11 @@ export const restoreElement = (
         fileId: element.fileId,
         scale: element.scale || [1, 1],
         crop: element.crop ?? null,
+      });
+    case "video":
+      return restoreElementWithProperties(element, {
+        status: element.status || "pending",
+        fileId: element.fileId,
       });
     case "line":
     // @ts-ignore LEGACY type
@@ -1155,6 +1170,13 @@ export const restoreAppState = (
     gridStep: getNormalizedGridStep(
       isFiniteNumber(appState.gridStep) ? appState.gridStep : DEFAULT_GRID_STEP,
     ),
+    // Clamp to a known paper mode so a corrupt/legacy saved value can't put the
+    // renderer into an unhandled state (defaults to the Syntropy dot texture).
+    paperMode: (["blank", "ruled", "grid", "dotted"] as const).includes(
+      nextAppState.paperMode,
+    )
+      ? nextAppState.paperMode
+      : defaultAppState.paperMode,
     editingFrame: null,
   };
 };

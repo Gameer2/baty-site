@@ -59,6 +59,7 @@ import type {
   ExcalidrawEllipseElement,
   ExcalidrawFreeDrawElement,
   ExcalidrawLinearElement,
+  ExcalidrawPolygonElement,
   ExcalidrawRectanguloidElement,
   ExcalidrawTextElementWithContainer,
   NonDeleted,
@@ -421,6 +422,7 @@ const _isRectanguloidElement = (
     element != null &&
     (element.type === "rectangle" ||
       element.type === "image" ||
+      element.type === "video" ||
       element.type === "iframe" ||
       element.type === "embeddable" ||
       element.type === "frame" ||
@@ -531,6 +533,30 @@ export const getDiamondPoints = (element: ExcalidrawElement) => {
   const leftY = rightY;
 
   return [topX, topY, rightX, rightY, bottomX, bottomY, leftX, leftY];
+};
+
+/**
+ * Vertices of a regular `element.sides`-gon inscribed in the element's bounding box, one vertex
+ * centered at the top — same "unrotated, local to the element's own x/y" convention as
+ * getDiamondPoints above. Sharp corners only (no rounded-corner analog).
+ */
+export const getPolygonPoints = (
+  element: ExcalidrawPolygonElement,
+): LocalPoint[] => {
+  const cx = element.width / 2;
+  const cy = element.height / 2;
+  const n = element.sides;
+  const points: LocalPoint[] = [];
+  for (let i = 0; i < n; i++) {
+    const theta = -Math.PI / 2 + (i * 2 * Math.PI) / n;
+    points.push(
+      pointFrom<LocalPoint>(
+        cx + cx * Math.cos(theta),
+        cy + cy * Math.sin(theta),
+      ),
+    );
+  }
+  return points;
 };
 
 // reference: https://eliot-jones.com/2019/12/cubic-bezier-curve-bounding-boxes

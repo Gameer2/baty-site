@@ -9,6 +9,7 @@ import React, {
 import {
   applyDarkModeFilter,
   DEFAULT_IMAGE_OPTIONS,
+  DEFAULT_VIDEO_OPTIONS,
   DEFAULT_UI_OPTIONS,
   getStrokeWidthByKey,
   isShallowEqual,
@@ -110,6 +111,7 @@ const ExcalidrawBase = (props: ExcalidrawProps) => {
     showDeprecatedFonts,
     renderScrollbars,
     imageOptions,
+    videoOptions,
   } = props;
 
   const canvasActions = props.UIOptions?.canvasActions;
@@ -124,6 +126,8 @@ const ExcalidrawBase = (props: ExcalidrawProps) => {
     },
     tools: {
       image: props.UIOptions?.tools?.image ?? true,
+      video: props.UIOptions?.tools?.video ?? true,
+      pdf: props.UIOptions?.tools?.pdf ?? true,
     },
   };
 
@@ -145,6 +149,11 @@ const ExcalidrawBase = (props: ExcalidrawProps) => {
       imageOptions?.maxFileSizeBytes ?? DEFAULT_IMAGE_OPTIONS.maxFileSizeBytes,
     maxWidthOrHeight:
       imageOptions?.maxWidthOrHeight ?? DEFAULT_IMAGE_OPTIONS.maxWidthOrHeight,
+  };
+
+  const normalizedVideoOptions: AppProps["videoOptions"] = {
+    maxFileSizeBytes:
+      videoOptions?.maxFileSizeBytes ?? DEFAULT_VIDEO_OPTIONS.maxFileSizeBytes,
   };
 
   const setExcalidrawAPI = useContext(ExcalidrawAPISetContext);
@@ -246,6 +255,7 @@ const ExcalidrawBase = (props: ExcalidrawProps) => {
           showDeprecatedFonts={showDeprecatedFonts}
           renderScrollbars={renderScrollbars}
           imageOptions={normalizedImageOptions}
+          videoOptions={normalizedVideoOptions}
         >
           {children}
         </App>
@@ -264,6 +274,7 @@ const areEqual = (prevProps: ExcalidrawProps, nextProps: ExcalidrawProps) => {
     initialData: prevInitialData,
     UIOptions: prevUIOptions = {},
     imageOptions: prevImageOptions,
+    videoOptions: prevVideoOptions,
     interaction: prevInteraction,
     ui: prevUI,
     activeTool: prevActiveTool,
@@ -273,6 +284,7 @@ const areEqual = (prevProps: ExcalidrawProps, nextProps: ExcalidrawProps) => {
     initialData: nextInitialData,
     UIOptions: nextUIOptions = {},
     imageOptions: nextImageOptions,
+    videoOptions: nextVideoOptions,
     interaction: nextInteraction,
     ui: nextUI,
     activeTool: nextActiveTool,
@@ -383,7 +395,18 @@ const areEqual = (prevProps: ExcalidrawProps, nextProps: ExcalidrawProps) => {
       (nextImageOptions?.maxFileSizeBytes ??
         DEFAULT_IMAGE_OPTIONS.maxFileSizeBytes);
 
-  return isUIOptionsSame && isImageOptionsSame && isShallowEqual(prev, next);
+  const isVideoOptionsSame =
+    (prevVideoOptions?.maxFileSizeBytes ??
+      DEFAULT_VIDEO_OPTIONS.maxFileSizeBytes) ===
+    (nextVideoOptions?.maxFileSizeBytes ??
+      DEFAULT_VIDEO_OPTIONS.maxFileSizeBytes);
+
+  return (
+    isUIOptionsSame &&
+    isImageOptionsSame &&
+    isVideoOptionsSame &&
+    isShallowEqual(prev, next)
+  );
 };
 
 export const Excalidraw = React.memo(ExcalidrawBase, areEqual);

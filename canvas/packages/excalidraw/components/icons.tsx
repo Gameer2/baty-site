@@ -348,6 +348,77 @@ export const DiamondIcon = createIcon(
   tablerIconProps,
 );
 
+// tabler-icons: hexagon — used as the generic N-sided "polygon" tool icon
+export const PolygonIcon = createIcon(
+  <g strokeWidth="1.5">
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M19.875 8.5l-7.875 -4.5l-7.875 4.5v7l7.875 4.5l7.875 -4.5z" />
+  </g>,
+  tablerIconProps,
+);
+
+// tabler-icons: cube — used as the "3D Shapes" tool icon
+export const Shape3DIcon = createIcon(
+  <g strokeWidth="1.5">
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M21 16.008v-8.018a1.98 1.98 0 0 0 -1 -1.717l-7 -4.008a2.016 2.016 0 0 0 -2 0l-7 4.008c-.617 .35 -1 1.006 -1 1.718v8.018c0 .712 .383 1.368 1 1.718l7 4.008a2.016 2.016 0 0 0 2 0l7 -4.008c.617 -.35 1 -1.006 1 -1.718z" />
+    <path d="M12 22v-10" />
+    <path d="M12 12l8.73 -5.04" />
+    <path d="M3.27 6.96l8.73 5.04" />
+  </g>,
+  tablerIconProps,
+);
+
+// simple pyramid glyph — used in the 3D shape-type picker
+export const PyramidIcon = createIcon(
+  <g strokeWidth="1.5">
+    <path d="M12 3l9 16h-18z" />
+    <path d="M12 3l-2.5 16" />
+    <path d="M12 3l2.5 16" />
+  </g>,
+  tablerIconProps,
+);
+
+// tabler-icons: cylinder — used in the 3D shape-type picker
+export const CylinderIcon = createIcon(
+  <g strokeWidth="1.5">
+    <ellipse cx="12" cy="6" rx="7" ry="3" />
+    <path d="M5 6v12a7 3 0 0 0 14 0v-12" />
+  </g>,
+  tablerIconProps,
+);
+
+// simple cone glyph — used in the 3D shape-type picker
+export const ConeIcon = createIcon(
+  <g strokeWidth="1.5">
+    <ellipse cx="12" cy="18" rx="7" ry="3" />
+    <path d="M12 3l-6.5 15.5" />
+    <path d="M12 3l6.5 15.5" />
+  </g>,
+  tablerIconProps,
+);
+
+// simple globe-style sphere glyph — mirrors the equator/meridian decoration
+// lines the actual sphere render draws
+export const SphereIcon = createIcon(
+  <g strokeWidth="1.5">
+    <circle cx="12" cy="12" r="9" />
+    <path d="M3 12a9 4 0 0 0 18 0" />
+    <path d="M12 3a4 9 0 0 0 0 18" />
+  </g>,
+  tablerIconProps,
+);
+
+// used for the solid/wireframe toggle — a plain filled square vs. its outline
+export const Shape3DSolidIcon = createIcon(
+  <rect x="4" y="4" width="16" height="16" fill="currentColor" />,
+  tablerIconProps,
+);
+export const Shape3DWireframeIcon = createIcon(
+  <rect x="4" y="4" width="16" height="16" strokeWidth="1.5" />,
+  tablerIconProps,
+);
+
 // tabler-icons: circle
 export const EllipseIcon = createIcon(
   <g strokeWidth="1.5">
@@ -435,12 +506,44 @@ export const ImageIcon = createIcon(
   modifiedTablerIconProps,
 );
 
+// video file — a screen with a play triangle
+export const VideoIcon = createIcon(
+  <g strokeWidth="1.25">
+    <rect x="3" y="4.5" width="14" height="11" rx="2" />
+    <path d="M9 8v4l3.5-2z" fill="currentColor" stroke="none" />
+  </g>,
+  modifiedTablerIconProps,
+);
+
+// PDF document — a page with a folded corner and a couple of text lines
+export const PdfIcon = createIcon(
+  <g strokeWidth="1.25">
+    <path d="M5.5 2.5h6L15.5 6.5v10a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z" />
+    <path d="M11.5 2.5V6.5H15.5" />
+    <path d="M6.5 10h7M6.5 12.5h7M6.5 15h4" />
+  </g>,
+  modifiedTablerIconProps,
+);
+
 // tabler-icons: eraser
 export const EraserIcon = createIcon(
   <g strokeWidth="1.5">
     <path stroke="none" d="M0 0h24v24H0z" fill="none" />
     <path d="M19 20h-10.5l-4.21 -4.3a1 1 0 0 1 0 -1.41l10 -10a1 1 0 0 1 1.41 0l5 5a1 1 0 0 1 0 1.41l-9.2 9.3" />
     <path d="M18 13.3l-6.3 -6.3" />
+  </g>,
+  tablerIconProps,
+);
+
+// tabler-icons: focus-2 — used for the "precision" eraser mode (exact, small-area erasing)
+export const EraserPrecisionIcon = createIcon(
+  <g strokeWidth="1.5">
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M3 3l3 0l0 3" />
+    <path d="M18 3l3 0l0 3" />
+    <path d="M3 18l0 3l3 0" />
+    <path d="M18 21l3 0l0 -3" />
+    <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
   </g>,
   tablerIconProps,
 );
@@ -629,6 +732,127 @@ export const bucketFillIcon = createIcon(
     <path d="M5 16l1.465 1.638a2 2 0 1 1 -3.015 .099l1.55 -1.737z" />
     <path d="M13.737 9.737c2.299 -2.3 3.23 -5.095 2.081 -6.245c-1.15 -1.15 -3.945 -.217 -6.244 2.082c-2.3 2.299 -3.231 5.095 -2.082 6.244c1.15 1.15 3.946 .218 6.245 -2.081z" />
     <path d="M7.492 11.818c.362 .362 .768 .676 1.208 .934l6.895 4.047c1.078 .557 2.255 -.075 3.692 -1.512c1.437 -1.437 2.07 -2.614 1.512 -3.692c-.372 -.718 -1.72 -3.017 -4.047 -6.895a6.015 6.015 0 0 0 -.934 -1.208" />
+  </g>,
+  tablerIconProps,
+);
+
+// engineering tools — drafting/measurement instruments (Tabler-style 24x24)
+
+// drafting compass: pivot + two splayed legs (needle + pencil)
+export const compassIcon = createIcon(
+  <g strokeWidth={1.25}>
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <circle cx="12" cy="4.5" r="1.5" />
+    <path d="M12 6l-4.5 13.5" />
+    <path d="M12 6l4.5 13.5" />
+    <path d="M7.5 19.5l-1 2.5" />
+    <path d="M16.5 19.5l1 2.5" />
+  </g>,
+  tablerIconProps,
+);
+
+// ruler: a straight edge with tick marks
+export const rulerIcon = createIcon(
+  <g strokeWidth={1.25}>
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <rect x="2.5" y="9" width="19" height="6" rx="1" />
+    <path d="M6 9v2.5" />
+    <path d="M9 9v3.5" />
+    <path d="M12 9v2.5" />
+    <path d="M15 9v3.5" />
+    <path d="M18 9v2.5" />
+  </g>,
+  tablerIconProps,
+);
+
+// protractor: semicircle with a baseline + center mark
+export const protractorIcon = createIcon(
+  <g strokeWidth={1.25}>
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M3 16a9 9 0 0 1 18 0" />
+    <path d="M3 16h18" />
+    <path d="M12 16v-2.5" />
+    <path d="M6.5 16v-1.5" />
+    <path d="M17.5 16v-1.5" />
+  </g>,
+  tablerIconProps,
+);
+
+// t-square: a T — head bar + stem
+export const tSquareIcon = createIcon(
+  <g strokeWidth={1.25}>
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M3 6h18" />
+    <path d="M3 6v2.5" />
+    <path d="M21 6v2.5" />
+    <path d="M12 8.5v12" />
+  </g>,
+  tablerIconProps,
+);
+
+// set square: a right-angled triangle with a small square corner mark
+export const setSquareIcon = createIcon(
+  <g strokeWidth={1.25}>
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M5 19L5 5L19 19Z" />
+    <path d="M7.5 16.5v0" />
+    <path d="M7 17h2" />
+    <path d="M7 17v-2" />
+  </g>,
+  tablerIconProps,
+);
+
+// angle bisector: an angle with a dashed bisecting ray
+export const angleBisectorIcon = createIcon(
+  <g strokeWidth={1.25}>
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M4 18l7 -12" />
+    <path d="M4 18l16 -3" />
+    <path d="M4 18l12 -8" strokeDasharray="2 2" />
+  </g>,
+  tablerIconProps,
+);
+
+// the engineering-tools flyout trigger — a compass over a triangle
+export const engineeringToolsIcon = createIcon(
+  <g strokeWidth={1.25}>
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M4 20L12 5L20 20" />
+    <circle cx="12" cy="13" r="3.5" />
+  </g>,
+  tablerIconProps,
+);
+
+// shape family: three overlapping outline primitives (circle, square,
+// triangle) stand in for the whole shapes group — no single tool's icon
+// should represent "shapes" better than another.
+export const shapeFamilyIcon = createIcon(
+  <g strokeWidth={1.3}>
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <circle cx="9" cy="15" r="5.6" opacity="0.45" />
+    <rect
+      x="10.2"
+      y="3.2"
+      width="10"
+      height="10"
+      rx="1.6"
+      opacity="0.7"
+      transform="rotate(15 15.2 8.2)"
+    />
+    <path d="M12.5 6.5l4.8 8.5h-9.6z" opacity="1" />
+  </g>,
+  tablerIconProps,
+);
+
+// import group trigger: a tray with an inbound arrow — stands in for
+// image/video/pdf until one of them is active (then that tool's own icon
+// takes over, same convention as shapeFamilyIcon/engineeringToolsIcon).
+export const importToolsIcon = createIcon(
+  <g strokeWidth={1.25}>
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M12 4v10" />
+    <path d="M8.5 10.5l3.5 3.5l3.5 -3.5" />
+    <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-3" />
   </g>,
   tablerIconProps,
 );

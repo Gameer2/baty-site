@@ -3,13 +3,13 @@
   flex-shrink: 0;
   height: 100%;
   overflow-y: auto;
-  background: #111111;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--island-bg-color);
+  border-right: 1px solid var(--input-border-color);
   // No top padding — the sticky head owns it, so it can sit flush against the scrollport edge.
   padding: 0 14px 16px;
   box-sizing: border-box;
   font-family: var(--ui-font);
-  color: #e7e7e7;
+  color: var(--color-on-surface);
   // This panel is a flex sibling of NodeOverlay (not inside .layer-ui__wrapper, so the
   // --zIndex-layerUI lift in boardChrome.scss doesn't reach it). Without a position+z-index it's a
   // non-positioned flex item, which NodeOverlay (position: fixed; z-index:5) paints over. Raise it
@@ -28,7 +28,7 @@
   position: sticky;
   top: 0;
   z-index: 1;
-  background: #111111;
+  background: var(--island-bg-color);
   // Bleed over the panel's 14px side padding so scrolling rows pass behind it, not beside it.
   margin: 0 -14px;
   padding: 16px 14px 10px;
@@ -38,62 +38,40 @@
   font-size: 13px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #7d858c;
+  color: var(--color-gray-60);
   margin: 0 4px 12px;
 }
 
 .LibraryPanel__engine {
-  margin-bottom: 8px;
+  margin-bottom: 1px;
 }
 
+// A row with a permanent accent bar on the left, not a bordered/shadowed card —
+// the accent reads at rest, it doesn't need hover or a glow to say which engine
+// this is. Ported from the mockup's ".np-engine__row".
 .LibraryPanel__engine-head {
   all: unset;
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
-  padding: 12px 14px;
-  position: relative;
-  overflow: hidden;
-  isolation: isolate;
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 8px;
-  background: #0e0e0e;
-  font-size: 14px;
-  color: #e7e7e7;
+  padding: 10px 10px 10px 12px;
+  border-left: 3px solid var(--engine-accent, var(--color-gray-40));
+  border-radius: 0 6px 6px 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-on-surface);
   cursor: pointer;
-  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-
-  // .engine-card::before — radial accent glow bleeding from the top-left,
-  // in this engine's own accent. Ported from proto.css; .14 → .26 on hover.
-  &::before {
-    content: "";
-    position: absolute;
-    top: -35%;
-    left: -15%;
-    width: 75%;
-    height: 75%;
-    background: radial-gradient(
-      circle,
-      var(--engine-accent, #ffffff) 0%,
-      transparent 72%
-    );
-    opacity: 0.14;
-    filter: blur(6px);
-    pointer-events: none;
-    z-index: -1;
-    transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  }
+  transition: background 0.15s ease;
 
   &:hover {
-    transform: translateY(-2px);
-    border-color: var(--engine-accent, rgba(255, 255, 255, 0.24));
+    background: var(--color-surface-high);
   }
-  &:hover::before {
-    opacity: 0.26;
-  }
+}
+
+.LibraryPanel__engine--open .LibraryPanel__engine-head {
+  background: color-mix(in srgb, var(--engine-accent, transparent) 10%, transparent);
 }
 
 .LibraryPanel__engine-dot {
@@ -101,17 +79,44 @@
   height: 7px;
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+// Pulses only while its engine is open — engineDotPulse is the real site
+// motif (proto.css), kept for the one engine actually in view instead of
+// running on all seven simultaneously at rest.
+.LibraryPanel__engine-dot--pulse {
   animation: LibraryPanel-engineDotPulse 2.4s ease-in-out infinite;
 }
 
 .LibraryPanel__engine-name {
   flex: 1;
-  text-align: left;
 }
 
 .LibraryPanel__engine-count {
-  color: #7d858c;
-  font-size: 12px;
+  color: var(--color-gray-60);
+  font-size: 11px;
+  font-family: var(--ui-font);
+  background: var(--color-surface-low);
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+
+.LibraryPanel__engine-chevron {
+  display: flex;
+  color: var(--color-gray-60);
+  flex-shrink: 0;
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.3, 1), color 0.15s ease;
+
+  svg {
+    width: 11px;
+    height: 11px;
+    display: block;
+  }
+}
+
+.LibraryPanel__engine--open .LibraryPanel__engine-chevron {
+  transform: rotate(90deg);
+  color: var(--engine-accent, var(--color-on-surface));
 }
 
 .LibraryPanel__searchInput {
@@ -119,19 +124,19 @@
   width: 100%;
   padding: 9px 11px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  background: #090909;
-  color: #e7e7e7;
+  border: 1px solid var(--input-border-color);
+  background: var(--color-surface-low);
+  color: var(--color-on-surface);
   font-family: inherit;
   font-size: 13px;
   outline: none;
   transition: border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 
   &::placeholder {
-    color: #7d858c;
+    color: var(--color-gray-60);
   }
   &:focus {
-    border-color: rgba(255, 255, 255, 0.28);
+    border-color: color-mix(in srgb, var(--color-primary) 60%, transparent);
   }
   // The native "search" clear affordance is a light-on-light glyph here; the field is
   // clearable by selecting and deleting like any other input.
@@ -144,12 +149,27 @@
   margin: 0 6px 12px;
   font-size: 13px;
   line-height: 1.5;
-  color: #7d858c;
+  color: var(--color-gray-60);
 }
 
+// Height animates via grid-template-rows (0fr closed, 1fr open) rather than
+// mounting/unmounting the list — opening an engine reads as one panel
+// unfolding, not text popping into place.
 .LibraryPanel__methods {
-  padding-left: 8px;
-  margin-top: 4px;
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.32s cubic-bezier(0.2, 0.8, 0.3, 1);
+  margin-left: 3px;
+  border-left: 1px solid var(--input-border-color);
+}
+
+.LibraryPanel__engine--open .LibraryPanel__methods {
+  grid-template-rows: 1fr;
+}
+
+.LibraryPanel__methods-inner {
+  overflow: hidden;
+  padding-left: 15px;
 }
 
 .LibraryPanel__category + .LibraryPanel__category {
@@ -161,52 +181,44 @@
   font-size: 11px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #7d858c;
+  color: var(--color-gray-60);
 }
 
-// Mockup .method5 — a dot in the engine's accent, and a soft accent glow bleeding in from the
-// left on hover. Replaces the plain text row, which read as a file tree.
+// A flat row — background tint + accent text on hover, same accent dot as
+// before but no blur wash. proto.css's glow-blob was sized for a handful of
+// 260px hero cards; this list runs up to 26 rows deep in one engine, and the
+// same effect at that density read as noise, not craft.
 .LibraryPanel__method {
   all: unset;
   box-sizing: border-box;
-  position: relative;
-  overflow: hidden;
-  isolation: isolate;
   display: flex;
   align-items: center;
   gap: 9px;
   width: 100%;
-  padding: 9px 10px;
+  padding: 8px 9px;
   border-radius: 6px;
-  font-size: 14px;
-  color: #dadada;
+  font-size: 13px;
+  color: var(--color-on-surface);
   cursor: pointer;
-  transition: color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background 0.15s ease, color 0.15s ease;
 
-  &::before {
-    content: "";
-    position: absolute;
-    top: -60%;
-    left: -20%;
-    width: 70%;
-    height: 220%;
-    background: radial-gradient(
-      circle,
-      var(--engine-accent, #ffffff) 0%,
-      transparent 70%
-    );
-    opacity: 0;
-    pointer-events: none;
-    z-index: -1;
-    transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  }
+  // Staggered fade+step-in on open, ~30ms per row (capped) — set per-row via
+  // the --reveal-delay custom property in LibraryPanel.tsx.
+  opacity: 0;
+  transform: translateX(-6px);
+}
 
-  &:hover {
-    color: #ffffff;
-  }
-  &:hover::before {
-    opacity: 0.28;
-  }
+.LibraryPanel__engine--open .LibraryPanel__method {
+  opacity: 1;
+  transform: translateX(0);
+  transition: background 0.15s ease, color 0.15s ease,
+    opacity 0.3s ease var(--reveal-delay, 0ms),
+    transform 0.3s ease var(--reveal-delay, 0ms);
+}
+
+.LibraryPanel__method:hover {
+  background: var(--color-surface-high);
+  color: var(--engine-accent, var(--color-primary));
 }
 
 .LibraryPanel__method-dot {
@@ -223,8 +235,6 @@
 }
 
 // Site .engineDotPulse (proto.css) — scale 1 → 1.4, opacity 1 → .5, 2.4s.
-// Only the engine-picker dot pulses; the per-method dots stay static, or 135 of them
-// breathing at once would turn the panel into a light show.
 @keyframes LibraryPanel-engineDotPulse {
   0%,
   100% {
@@ -234,5 +244,16 @@
   50% {
     opacity: 0.5;
     transform: scale(1.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .LibraryPanel__engine-dot--pulse {
+    animation: none;
+  }
+  .LibraryPanel__methods,
+  .LibraryPanel__engine-chevron,
+  .LibraryPanel__method {
+    transition-duration: 0.01ms !important;
   }
 }

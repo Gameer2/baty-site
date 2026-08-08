@@ -130,6 +130,8 @@ export const getShapeActionPredicates = (
     strokeStyle: forToolOrSelection(hasStrokeStyle),
     sloppiness: forToolOrSelection(hasStrokeStyle),
     roundness: forToolOrSelection(canChangeRoundness),
+    polygonSides: forToolOrSelection((type) => type === "polygon"),
+    shape3d: forToolOrSelection((type) => type === "shape3d"),
     arrowType: forToolOrSelection(toolIsArrow),
     arrowheads: forToolOrSelection(canHaveArrowheads),
 

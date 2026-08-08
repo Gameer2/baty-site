@@ -33,8 +33,12 @@ describe("openMethodPage", () => {
       localStorage.getItem("engine-lab:calculus-riemann-sums") ?? "{}",
     );
     expect(stored).toEqual({ fx: "x^2", a: 0, b: 1, n: 4 });
+    // The portal opens the lab page RELATIVE to the document (../../math-lab/...) so it
+    // resolves whether the app is served from the repo root, canvas/dist, or file:// —
+    // see toLabUrl in portalPrefill.ts. window.open resolves the relative URL against the
+    // opener's base URI at navigation time.
     expect(openSpy).toHaveBeenCalledWith(
-      "/math-lab/engines/calculus/methods/riemann-sums.html",
+      "../../math-lab/engines/calculus/methods/riemann-sums.html",
       "_blank",
     );
   });

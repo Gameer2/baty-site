@@ -2,6 +2,14 @@
 
 .excalidraw {
   .App-toolbar {
+    // Minimized treatment for the main toolbar: the default button/icon
+    // tokens (theme.scss) are sized for isolated controls scattered around
+    // the canvas; packed edge-to-edge in one island they read as bulky. This
+    // scopes the reduction to the toolbar itself rather than the tokens
+    // globally, so panels/sidebars elsewhere keep their normal sizing.
+    --default-button-size: 1.875rem;
+    --default-icon-size: 1.0625rem;
+
     &.zen-mode {
       .ToolIcon__keybinding,
       .HintViewer {
@@ -23,7 +31,10 @@
     }
   }
 
-  .App-toolbar__extra-tools-trigger {
+  .App-toolbar__extra-tools-trigger,
+  .App-toolbar__engineering-tools-trigger,
+  .App-toolbar__import-tools-trigger,
+  .App-toolbar__shape-fan-trigger {
     box-shadow: none;
     border: 0;
     background-color: transparent;
@@ -51,5 +62,50 @@
     right: 0;
     min-width: 11.875rem;
     z-index: 1;
+  }
+
+  // The shapes group fans its five tools out along an arc instead of a
+  // vertical dropdown — the one tool group whose whole point is "many
+  // shapes, one origin," so the reveal itself carries that meaning. Chip
+  // geometry (radius/angle) is set per-chip from Tools.tsx via --sx/--sy;
+  // this file only owns the motion.
+  .App-toolbar__shape-fan {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .App-toolbar__shape-fan-chip {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: var(--zIndex-layerUI);
+    // closed: stacked exactly on the trigger, invisible and inert
+    transform: translate(0, 0) scale(0.4);
+    opacity: 0;
+    pointer-events: none;
+    box-shadow: var(--shadow-island);
+    transition: transform 0.28s cubic-bezier(0.32, 1.5, 0.4, 1),
+      opacity 0.18s ease;
+    transition-delay: 0ms;
+  }
+
+  .App-toolbar__shape-fan--open .App-toolbar__shape-fan-chip {
+    transform: translate(var(--sx), var(--sy)) scale(1);
+    opacity: 1;
+    pointer-events: auto;
+    transition-delay: var(--d, 0ms);
+  }
+
+  // closing collapses immediately (no stagger) — a fan that snaps shut
+  // reads as responsive, one that un-cascades reads as sluggish
+  .App-toolbar__shape-fan:not(.App-toolbar__shape-fan--open)
+    .App-toolbar__shape-fan-chip {
+    transition-delay: 0ms;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .App-toolbar__shape-fan-chip {
+      transition-duration: 0.01ms !important;
+    }
   }
 }

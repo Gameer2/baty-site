@@ -2,13 +2,15 @@
 // ExcalidrawImageElement & related helpers
 // -----------------------------------------------------------------------------
 
-import { MIME_TYPES, SVG_NS } from "@excalidraw/common";
+import { MIME_TYPES, SVG_NS, type IMAGE_MIME_TYPES } from "@excalidraw/common";
 
 import type {
   AppClassProperties,
   DataURL,
   BinaryFiles,
 } from "@excalidraw/excalidraw/types";
+
+import type { ValueOf } from "@excalidraw/common/utility-types";
 
 import { isInitializedImageElement } from "./typeChecks";
 
@@ -60,7 +62,7 @@ export const updateImageCache = async ({
               const imagePromise = loadHTMLImageElement(fileData.dataURL);
               const data = {
                 image: imagePromise,
-                mimeType: fileData.mimeType,
+                mimeType: fileData.mimeType as ValueOf<typeof IMAGE_MIME_TYPES>,
               } as const;
               // store the promise immediately to indicate there's an in-progress
               // initialization

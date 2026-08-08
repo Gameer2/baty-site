@@ -16,15 +16,20 @@ import {
   getToolShortcut,
   HandToolButton,
   ImageToolButton,
+  VideoToolButton,
+  PdfToolButton,
   isToolButtonDisabled,
   SelectionToolPopover,
   TextToolButton,
   TOOLS,
+  EngineeringToolsDropdown,
 } from "./Tools";
 
 import {
   TextIcon,
   ImageIcon,
+  VideoIcon,
+  PdfIcon,
   DotsIcon,
   frameToolIcon,
   EmbedIcon,
@@ -49,7 +54,7 @@ export const MobileToolbar = ({ app, setAppState }: MobileToolbarProps) => {
   const activeTool = app.state.activeTool;
   const [isOtherShapesMenuOpen, setIsOtherShapesMenuOpen] = useState(false);
   const [lastActiveGenericShape, setLastActiveGenericShape] = useState<
-    "rectangle" | "diamond" | "ellipse"
+    "rectangle" | "diamond" | "polygon" | "shape3d" | "ellipse"
   >("rectangle");
   const [lastActiveLinearElement, setLastActiveLinearElement] = useState<
     "arrow" | "line"
@@ -60,6 +65,8 @@ export const MobileToolbar = ({ app, setAppState }: MobileToolbarProps) => {
     if (
       activeTool.type === "rectangle" ||
       activeTool.type === "diamond" ||
+      activeTool.type === "polygon" ||
+      activeTool.type === "shape3d" ||
       activeTool.type === "ellipse"
     ) {
       setLastActiveGenericShape(activeTool.type);
@@ -81,14 +88,14 @@ export const MobileToolbar = ({ app, setAppState }: MobileToolbarProps) => {
 
   const { TTDDialogTriggerTunnel } = useTunnels();
 
-  const SHAPE_TOOLS = (["rectangle", "diamond", "ellipse"] as const).map(
-    (type) => ({
-      type,
-      icon: TOOLS[type].icon,
-      title: capitalizeString(t(`toolBar.${type}`)),
-      fillable: TOOLS[type].fillable,
-    }),
-  );
+  const SHAPE_TOOLS = (
+    ["rectangle", "diamond", "polygon", "shape3d", "ellipse"] as const
+  ).map((type) => ({
+    type,
+    icon: TOOLS[type].icon,
+    title: capitalizeString(t(`toolBar.${type}`)),
+    fillable: TOOLS[type].fillable,
+  }));
 
   const LINEAR_ELEMENT_TOOLS = (["arrow", "line"] as const).map((type) => ({
     type,
@@ -109,7 +116,9 @@ export const MobileToolbar = ({ app, setAppState }: MobileToolbarProps) => {
 
   const showTextToolOutside = toolbarWidth >= MIN_WIDTH + 1 * ADDITIONAL_WIDTH;
   const showImageToolOutside = toolbarWidth >= MIN_WIDTH + 2 * ADDITIONAL_WIDTH;
-  const showFrameToolOutside = toolbarWidth >= MIN_WIDTH + 3 * ADDITIONAL_WIDTH;
+  const showVideoToolOutside = toolbarWidth >= MIN_WIDTH + 3 * ADDITIONAL_WIDTH;
+  const showPdfToolOutside = toolbarWidth >= MIN_WIDTH + 4 * ADDITIONAL_WIDTH;
+  const showFrameToolOutside = toolbarWidth >= MIN_WIDTH + 5 * ADDITIONAL_WIDTH;
 
   const extraTools: readonly typeof activeTool.type[] = (
     [
@@ -182,6 +191,8 @@ export const MobileToolbar = ({ app, setAppState }: MobileToolbarProps) => {
           if (
             type === "rectangle" ||
             type === "diamond" ||
+            type === "polygon" ||
+            type === "shape3d" ||
             type === "ellipse"
           ) {
             setLastActiveGenericShape(type);
@@ -220,8 +231,21 @@ export const MobileToolbar = ({ app, setAppState }: MobileToolbarProps) => {
       {/* Image */}
       {showImageToolOutside && <ImageToolButton {...toolProps} hideShortcut />}
 
+      {/* Video */}
+      {showVideoToolOutside && <VideoToolButton {...toolProps} hideShortcut />}
+
+      {/* PDF */}
+      {showPdfToolOutside && <PdfToolButton {...toolProps} hideShortcut />}
+
       {/* Frame Tool */}
       {showFrameToolOutside && <FrameToolButton {...toolProps} hideShortcut />}
+
+      {/* Engineering tools (compass, ruler, protractor, T-square, ...) */}
+      <EngineeringToolsDropdown
+        app={app}
+        activeTool={activeTool}
+        setAppState={setAppState}
+      />
 
       {/* Other Shapes */}
       <DropdownMenu open={isOtherShapesMenuOpen}>
@@ -276,6 +300,28 @@ export const MobileToolbar = ({ app, setAppState }: MobileToolbarProps) => {
               disabled={isToolButtonDisabled(app, "image")}
             >
               {t("toolBar.image")}
+            </DropdownMenu.Item>
+          )}
+          {!showVideoToolOutside && (
+            <DropdownMenu.Item
+              onSelect={() => app.setActiveTool({ type: "video" })}
+              icon={VideoIcon}
+              data-testid="toolbar-video"
+              selected={activeTool.type === "video"}
+              disabled={isToolButtonDisabled(app, "video")}
+            >
+              {t("toolBar.video")}
+            </DropdownMenu.Item>
+          )}
+          {!showPdfToolOutside && (
+            <DropdownMenu.Item
+              onSelect={() => app.setActiveTool({ type: "pdf" })}
+              icon={PdfIcon}
+              data-testid="toolbar-pdf"
+              selected={activeTool.type === "pdf"}
+              disabled={isToolButtonDisabled(app, "pdf")}
+            >
+              {t("toolBar.pdf")}
             </DropdownMenu.Item>
           )}
           {!showFrameToolOutside && (

@@ -1,0 +1,85 @@
+// Library / Paper / Theme, merged into one capsule instead of three separate
+// fixed chips 44px apart. Segments share this one border + shadow + radius
+// (the mockup's ".rail") and read as a single control group, the way
+// proto.css's own .mode-tabs already do elsewhere on the site — solid fill
+// on the active segment, no blur-glow. Positioning (including the
+// library-open shift) lives here ONCE instead of being duplicated across
+// three components.
+//
+// Laid out as a single horizontal row — Library, Paper, and the theme
+// switcher sit side by side, like proto.css's own .mode-tabs, not stacked
+// as separate rows on top of one another.
+
+.ChromeRail {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 20;
+  display: flex;
+  flex-direction: row;
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--island-bg-color);
+  border: 1px solid var(--input-border-color);
+  box-shadow: var(--shadow-island);
+  transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &.shifted {
+    // Library panel open: slide right to sit beside it (300px = LIBRARY_PANEL_WIDTH).
+    left: calc(300px + 16px);
+  }
+}
+
+.ChromeRail__seg {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--lg-button-size, 2.25rem);
+  padding: 0 14px;
+  border-right: 1px solid var(--input-border-color);
+  font-family: var(--ui-font);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-gray-60);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.2s ease, background 0.2s ease;
+
+  &::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    color: var(--color-on-surface);
+    background: var(--color-surface-high);
+  }
+
+  // Active: solid fill in the accent, same treatment as proto.css's .mode-tab
+  // — a flat color swap, not a glow.
+  &--active {
+    color: #ffffff;
+    background: var(--color-primary);
+
+    &:hover {
+      background: var(--color-primary);
+    }
+
+    &::before {
+      background: #ffffff;
+    }
+  }
+}
+
+.ChromeRail__themeRow {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+}

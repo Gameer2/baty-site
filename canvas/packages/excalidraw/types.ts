@@ -1,10 +1,12 @@
 import type {
   IMAGE_MIME_TYPES,
+  VIDEO_MIME_TYPES,
   UserIdleState,
   throttleRAF,
   MIME_TYPES,
   EditorInterface,
   StrokeWidthKey,
+  EraserMode,
 } from "@excalidraw/common";
 
 import type { LinearElementEditor } from "@excalidraw/element";
@@ -36,6 +38,7 @@ import type {
   BindMode,
   ExcalidrawTextElement,
   StrokeVariability,
+  Shape3DType,
 } from "@excalidraw/element/types";
 
 import type {
@@ -62,6 +65,7 @@ import type { SnapLine } from "./snapping";
 import type { ImportedDataState } from "./data/types";
 import type { SetViewportOptions } from "./viewport";
 
+import type { InstrumentOverlay } from "./components/engineeringOverlay";
 import type { Language } from "./i18n";
 import type { isOverScrollBars } from "./scene/scrollbars";
 import type React from "react";
@@ -117,6 +121,7 @@ export type DataURL = string & { _brand: "DataURL" };
 export type BinaryFileData = {
   mimeType:
     | ValueOf<typeof IMAGE_MIME_TYPES>
+    | ValueOf<typeof VIDEO_MIME_TYPES>
     // future user or unknown file type
     | typeof MIME_TYPES.binary;
   id: FileId;
@@ -149,12 +154,16 @@ export type ToolType =
   | "lasso"
   | "rectangle"
   | "diamond"
+  | "polygon"
+  | "shape3d"
   | "ellipse"
   | "arrow"
   | "line"
   | "freedraw"
   | "text"
   | "image"
+  | "video"
+  | "pdf"
   | "eraser"
   | "hand"
   | "frame"
@@ -162,7 +171,13 @@ export type ToolType =
   | "embeddable"
   | "laser"
   | "autoshape"
-  | "bucketfill";
+  | "bucketfill"
+  | "compass"
+  | "ruler"
+  | "protractor"
+  | "tsquare"
+  | "setsquare"
+  | "anglebisector";
 
 export type ElementOrToolType = ExcalidrawElementType | ToolType | "custom";
 
@@ -209,12 +224,18 @@ export type StaticCanvasAppState = Readonly<
     selectedElementsAreBeingDragged: AppState["selectedElementsAreBeingDragged"];
     gridSize: AppState["gridSize"];
     gridStep: AppState["gridStep"];
+    /** Free-picked paper texture color ("" = auto by theme). */
+    paperColor: AppState["paperColor"];
+    /** Whether viewBackgroundColor is a literal user pick (bypass dark filter). */
+    paperBgOverride: AppState["paperBgOverride"];
     frameRendering: AppState["frameRendering"];
     currentHoveredFontFamily: AppState["currentHoveredFontFamily"];
     hoveredElementIds: AppState["hoveredElementIds"];
     suggestedBinding: AppState["suggestedBinding"];
     // Cropping
     croppingElementId: AppState["croppingElementId"];
+    // Eraser
+    currentItemEraserMode: AppState["currentItemEraserMode"];
   }
 >;
 
@@ -239,6 +260,8 @@ export type InteractiveCanvasAppState = Readonly<
     collaborators: AppState["collaborators"];
     // SnapLines
     snapLines: AppState["snapLines"];
+    // Engineering instrument overlay (rendered above the scene)
+    engineeringInstrument: AppState["engineeringInstrument"];
     zenModeEnabled: AppState["zenModeEnabled"];
     editingTextElement: AppState["editingTextElement"];
     // Cropping
@@ -253,6 +276,8 @@ export type InteractiveCanvasAppState = Readonly<
     shouldCacheIgnoreZoom: AppState["shouldCacheIgnoreZoom"];
     exportScale: AppState["exportScale"];
     currentItemArrowType: AppState["currentItemArrowType"];
+    // Eraser
+    currentItemEraserMode: AppState["currentItemEraserMode"];
   }
 >;
 
@@ -419,6 +444,14 @@ export interface AppState {
   currentItemBackgroundColor: string;
   currentItemFillStyle: ExcalidrawElement["fillStyle"];
   currentItemStrokeWidthKey: StrokeWidthKey;
+  currentItemEraserSize: number;
+  currentItemEraserMode: EraserMode;
+  currentItemPolygonSides: number;
+  currentItemShape3DType: Shape3DType;
+  currentItemShape3DRotationX: number;
+  currentItemShape3DRotationY: number;
+  currentItemShape3DRotationZ: number;
+  currentItemShape3DWireframe: boolean;
   currentItemStrokeStyle: ExcalidrawElement["strokeStyle"];
   currentItemRoughness: number;
   currentItemStrokeVariability: StrokeVariability;
@@ -455,7 +488,7 @@ export interface AppState {
   openSidebar: { name: SidebarName; tab?: SidebarTabName } | null;
   openDialog:
     | null
-    | { name: "imageExport" | "help" | "jsonExport" }
+    | { name: "imageExport" | "help" | "jsonExport" | "pdfImport" }
     | { name: "ttd"; tab: "text-to-diagram" | "mermaid" }
     | { name: "commandPalette" }
     | { name: "settings" }
@@ -487,6 +520,29 @@ export interface AppState {
   gridSize: number;
   gridStep: number;
   gridModeEnabled: boolean;
+  /**
+   * GoodNotes-style paper background. Drives the static-scene texture:
+   * `blank` (none), `ruled` (horizontal notebook lines), `grid` (ruled grid +
+   * element snapping, same as `gridModeEnabled`), `dotted` (dot field).
+   * `grid` is kept in sync with `gridModeEnabled` so snapping follows the paper.
+   */
+  paperMode: PaperMode;
+  /**
+   * Color of the paper texture (grid/ruled/dot lines). Empty string = auto,
+   * picked per theme to preserve the default look. Any other value is used
+   * directly so the user can free-pick a line/dot color.
+   */
+  paperColor: string;
+  /**
+   * Whether `viewBackgroundColor` is a free-picked paper color that should be
+   * painted literally. When `false` (default), the background goes through
+   * Excalidraw's dark-mode filter so the board stays dark in dark theme. When
+   * `true` (set by the paper picker on any explicit color choice), the filter
+   * is bypassed so the paper is exactly the color the user chose — WYSIWYG,
+   * including a light paper on a dark-themed app. Reset to `false` by the
+   * picker's "Auto" paper-color swatch.
+   */
+  paperBgOverride: boolean;
   viewModeEnabled: boolean;
 
   /** top-most selected groups (i.e. does not include nested groups) */
@@ -540,6 +596,14 @@ export interface AppState {
   // a drag operation (like pointer position vs bindable element) but needed
   // globally for calculating the binding strategy
   bindMode: BindMode;
+
+  /**
+   * The live engineering/drafting instrument placed on the canvas (compass,
+   * ruler, protractor, T-square, set square, angle bisector) when an
+   * engineering tool is active, else null. Identity churns per pointermove
+   * while dragging the overlay — see `engineeringOverlay.ts`.
+   */
+  engineeringInstrument: InstrumentOverlay | null;
 }
 
 export type SearchMatch = {
@@ -572,6 +636,9 @@ export type UIAppState = Omit<
   | "hoveredArrowTextAnchor"
   | "frameToHighlight"
   | "elementsToHighlight"
+  // engineering instrument overlay — identity churns per pointermove while
+  // dragging the on-canvas compass/ruler/protractor/etc.
+  | "engineeringInstrument"
 >;
 
 export type NormalizedZoomValue = number & { _brand: "normalizedZoom" };
@@ -877,11 +944,11 @@ export interface ExcalidrawProps {
    * `UIOptions.tools`, and — while the editor is non-interactive — allowed
    * via `interaction.enabled.tools`. Otherwise the editor stays on (or, when
    * non-interactive, resets to) the `selection` tool, and the forced tool is
-   * applied once it becomes activatable. `image` cannot be forced (its
-   * activation opens the file picker).
+   * applied once it becomes activatable. `image`, `video`, and `pdf` cannot be
+   * forced (their activation opens the file picker).
    */
   activeTool?:
-    | { type: Exclude<ToolType, "image"> }
+    | { type: Exclude<ToolType, "image" | "video" | "pdf"> }
     | { type: "custom"; customType: string };
   zenModeEnabled?: boolean;
   gridModeEnabled?: boolean;
@@ -899,6 +966,11 @@ export interface ExcalidrawProps {
    * dimensions and size constraints for inserted images
    */
   imageOptions?: ImageOptions;
+  /**
+   * size constraints for inserted videos (bytes are stored inline as dataURL,
+   * so keep this modest — large videos bloat the scene file)
+   */
+  videoOptions?: VideoOptions;
   detectScroll?: boolean;
   handleKeyboardGlobally?: boolean;
   onLibraryChange?: (libraryItems: LibraryItems) => void | Promise<any>;
@@ -990,6 +1062,10 @@ export type ImageOptions = Partial<{
   maxFileSizeBytes: number;
 }>;
 
+export type VideoOptions = Partial<{
+  maxFileSizeBytes: number;
+}>;
+
 // NOTE at the moment, if action name corresponds to canvasAction prop, its
 // truthiness value will determine whether the action is rendered or not
 // (see manager renderAction). We also override canvasAction values in
@@ -1014,6 +1090,8 @@ export type UIOptions = Partial<{
   canvasActions: CanvasActions;
   tools: {
     image: boolean;
+    video: boolean;
+    pdf: boolean;
   };
   /**
    * Optionally control the editor form factor and desktop UI mode from the host app.
@@ -1037,6 +1115,7 @@ export type AppProps = Merge<
       }
     >;
     imageOptions: Required<ImageOptions>;
+    videoOptions: Required<VideoOptions>;
     detectScroll: boolean;
     handleKeyboardGlobally: boolean;
     isCollaborating: boolean;
@@ -1062,6 +1141,13 @@ export type AppClassProperties = {
     {
       image: HTMLImageElement | Promise<HTMLImageElement>;
       mimeType: ValueOf<typeof IMAGE_MIME_TYPES>;
+    }
+  >;
+  videoCache: Map<
+    FileId,
+    {
+      video: HTMLVideoElement | Promise<HTMLVideoElement>;
+      mimeType: ValueOf<typeof VIDEO_MIME_TYPES>;
     }
   >;
   files: BinaryFiles;
@@ -1093,6 +1179,10 @@ export type AppClassProperties = {
   plugins: App["plugins"];
   visibleElements: App["visibleElements"];
   excalidrawContainerValue: App["excalidrawContainerValue"];
+  pendingPdfImport: App["pendingPdfImport"];
+  openPdfImportDialog: App["openPdfImportDialog"];
+  confirmPdfImport: App["confirmPdfImport"];
+  cancelPdfImport: App["cancelPdfImport"];
 
   onPointerUpEmitter: App["onPointerUpEmitter"];
   updateEditorAtom: App["updateEditorAtom"];
@@ -1324,6 +1414,12 @@ export type PendingExcalidrawElements = NonDeletedExcalidrawElement[];
 export type NullableGridSize =
   | (AppState["gridSize"] & MakeBrand<"NullableGridSize">)
   | null;
+
+/**
+ * GoodNotes-style paper background for the canvas. `grid` maps onto the existing
+ * ruled grid + element snapping (`gridModeEnabled`); the others are pure texture.
+ */
+export type PaperMode = "blank" | "ruled" | "grid" | "dotted";
 
 export type GenerateDiagramToCode = (props: {
   frame: NonDeleted<ExcalidrawMagicFrameElement>;

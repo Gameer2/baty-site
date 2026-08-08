@@ -68,7 +68,7 @@ describe("SyntropyNodeCard", () => {
     const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
     fireEvent.click(screen.getByRole("button", { name: /open/i }));
     expect(openSpy).toHaveBeenCalledWith(
-      "/math-lab/engines/calculus/methods/riemann-sums.html",
+      "../../math-lab/engines/calculus/methods/riemann-sums.html",
       "_blank",
     );
     openSpy.mockRestore();

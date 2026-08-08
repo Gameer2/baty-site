@@ -129,6 +129,18 @@ describe("box-selection", () => {
     assertSelectedElements([]);
   });
 
+});
+
+// This board defaults `boxSelectionMode` to "overlap" (see appState.ts), so
+// this specific "must fully enclose" behavior only exists under an explicit
+// "contain" mode now — it's no longer what a bare `<Excalidraw />` gives you.
+describe("box-selection contain mode", () => {
+  beforeEach(async () => {
+    await render(
+      <Excalidraw initialData={{ appState: { boxSelectionMode: "contain" } }} />,
+    );
+  });
+
   it("should not select an element when the selection box only partially overlaps it", () => {
     const rect1 = API.createElement({
       type: "rectangle",
@@ -787,8 +799,14 @@ describe("box-selection overlap mode", () => {
 });
 
 describe("inner box-selection", () => {
+  // These tests verify nested-group containment specifically ("not selected
+  // until ALL members are contained") — contain-mode semantics that this
+  // board no longer defaults to (see appState.ts), so it has to be explicit
+  // here to keep testing what it was written to test.
   beforeEach(async () => {
-    await render(<Excalidraw />);
+    await render(
+      <Excalidraw initialData={{ appState: { boxSelectionMode: "contain" } }} />,
+    );
   });
   it("selecting elements visually nested inside another", async () => {
     const rect1 = API.createElement({
@@ -1352,7 +1370,20 @@ describe("tool locking & selection", () => {
         value !== "frame" &&
         value !== "embeddable" &&
         value !== "autoshape" &&
-        value !== "bucketfill"
+        value !== "bucketfill" &&
+        // engineering instruments are grouped behind one dropdown icon and are
+        // on-canvas overlays (not click-drag element tools), so they have no
+        // clickable top-level toolbar button for `clickTool` to drive
+        value !== "compass" &&
+        value !== "ruler" &&
+        value !== "protractor" &&
+        value !== "tsquare" &&
+        value !== "setsquare" &&
+        value !== "anglebisector" &&
+        // video/pdf are grouped behind the Import dropdown (same as image
+        // above), no top-level toolbar button for `clickTool` to drive
+        value !== "video" &&
+        value !== "pdf"
       ) {
         const element = UI.createElement(value);
         expect(h.state.selectedElementIds[element.id]).not.toBe(true);

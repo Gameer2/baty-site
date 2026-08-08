@@ -16,6 +16,7 @@ type OverlayElement = {
   height: number;
   angle?: number;
   customData?: Record<string, unknown>;
+  isDeleted?: boolean;
 };
 
 type OverlayAppState = {
@@ -53,6 +54,13 @@ export const NodeOverlay = ({
   return (
     <div className="NodeOverlay">
       {elements.map((element) => {
+        // `elements` includes soft-deleted elements (App.tsx feeds this from
+        // getElementsIncludingDeleted, since Excalidraw's own onChange does
+        // too) — skip them, or a deleted node's card stays stuck on screen
+        // forever even though the underlying element is correctly gone.
+        if (element.isDeleted) {
+          return null;
+        }
         const nodeData = element.customData?.syntropyNode as
           | SyntropyNodeData
           | undefined;

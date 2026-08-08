@@ -9,14 +9,15 @@ const getDarkThemeMediaQuery = (): MediaQueryList | undefined =>
   window.matchMedia?.("(prefers-color-scheme: dark)");
 
 export const useHandleAppTheme = () => {
-  // Syntropy Canvas is dark-only (DESIGN_SYSTEM.md: "no light sections, ever") —
-  // default to dark rather than upstream's THEME.LIGHT default.
+  // Default to "system" so first-time visitors get their OS/browser color
+  // scheme; a stored choice (Light / Dark / Auto) always wins. The ThemeSwitcher
+  // exposes all three; `editorTheme` resolves "system" to a concrete theme.
   const [appTheme, setAppTheme] = useState<Theme | "system">(() => {
     return (
       (localStorage.getItem(STORAGE_KEYS.LOCAL_STORAGE_THEME) as
         | Theme
         | "system"
-        | null) || THEME.DARK
+        | null) || "system"
     );
   });
   const [editorTheme, setEditorTheme] = useState<Theme>(THEME.DARK);

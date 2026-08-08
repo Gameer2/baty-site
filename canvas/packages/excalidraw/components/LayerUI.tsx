@@ -54,6 +54,7 @@ import { ImageExportDialog } from "./ImageExportDialog";
 import { Island } from "./Island";
 import { JSONExportDialog } from "./JSONExportDialog";
 import { LaserPointerButton } from "./LaserPointerButton";
+import { PdfImportDialog } from "./PdfImportDialog";
 import { Toast } from "./Toast";
 import { Toolbar } from "./Toolbar";
 
@@ -568,6 +569,13 @@ const LayerUI = ({
       <tunnels.OverwriteConfirmDialogTunnel.Out />
       {renderImageExportDialog()}
       {renderJSONExportDialog()}
+      {defaultUIEnabled && appState.openDialog?.name === "pdfImport" && (
+        <PdfImportDialog
+          file={app.pendingPdfImport!.file}
+          onConfirm={(pages, layout) => app.confirmPdfImport(pages, layout)}
+          onCloseRequest={() => app.cancelPdfImport()}
+        />
+      )}
       {defaultUIEnabled && appState.openDialog?.name === "charts" && (
         <PasteChartDialog
           data={appState.openDialog.data}

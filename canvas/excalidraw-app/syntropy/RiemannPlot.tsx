@@ -51,7 +51,11 @@ export const RiemannPlot = ({ rectangles, accent }: RiemannPlotProps) => {
         y1={baselineY}
         x2={VIEW_WIDTH - PAD}
         y2={baselineY}
-        stroke="rgba(255,255,255,.12)"
+        // currentColor so the axis follows the theme — .RiemannPlot sets
+        // color: var(--color-gray-60) in SyntropyNodeCard.scss (a hairline that
+        // reads on both the light and dark plot surfaces).
+        stroke="currentColor"
+        strokeOpacity={0.5}
       />
       {rectangles.map((r, index) => {
         const x = scaleX(r.x0);

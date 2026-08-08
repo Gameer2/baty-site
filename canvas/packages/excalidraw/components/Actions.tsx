@@ -13,6 +13,7 @@ import type {
 } from "@excalidraw/element/types";
 
 import { actionToggleZenMode } from "../actions";
+import { isEraserActive } from "../appState";
 
 import { t } from "../i18n";
 import { getTargetElements } from "../scene";
@@ -164,6 +165,17 @@ export const SelectedShapeActions = ({
     );
   }
 
+  // the eraser has no selection to act on — its only configurable properties are its own mode
+  // and brush size
+  if (appState.activeTool.type === "eraser") {
+    return (
+      <div className="selected-shape-actions">
+        {renderAction("changeEraserMode")}
+        {renderAction("changeEraserSize")}
+      </div>
+    );
+  }
+
   return (
     <div className="selected-shape-actions">
       <div>{predicates.strokeColor && renderAction("changeStrokeColor")}</div>
@@ -181,6 +193,18 @@ export const SelectedShapeActions = ({
       {predicates.sloppiness && <>{renderAction("changeSloppiness")}</>}
 
       {predicates.roundness && <>{renderAction("changeRoundness")}</>}
+
+      {predicates.polygonSides && <>{renderAction("changePolygonSides")}</>}
+
+      {predicates.shape3d && (
+        <>
+          {renderAction("changeShape3DType")}
+          {renderAction("changeShape3DRotationX")}
+          {renderAction("changeShape3DRotationY")}
+          {renderAction("changeShape3DRotationZ")}
+          {renderAction("toggleShape3DWireframe")}
+        </>
+      )}
 
       {predicates.arrowType && <>{renderAction("changeArrowType")}</>}
 
@@ -238,8 +262,8 @@ const CombinedShapeProperties = ({
 }) => {
   const shouldShowCombinedProperties =
     predicates.hasSelection ||
+    isEraserActive(appState) ||
     (appState.activeTool.type !== "selection" &&
-      appState.activeTool.type !== "eraser" &&
       appState.activeTool.type !== "hand" &&
       appState.activeTool.type !== "laser" &&
       appState.activeTool.type !== "lasso");
@@ -267,7 +291,9 @@ const CombinedShapeProperties = ({
             className={clsx("compact-action-button properties-trigger", {
               active: isOpen,
             })}
-            title={t("labels.stroke")}
+            title={t(
+              isEraserActive(appState) ? "labels.eraserSize" : "labels.stroke",
+            )}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -288,6 +314,12 @@ const CombinedShapeProperties = ({
             onClose={() => {}}
           >
             <div className="selected-shape-actions">
+              {isEraserActive(appState) && (
+                <>
+                  {renderAction("changeEraserMode")}
+                  {renderAction("changeEraserSize")}
+                </>
+              )}
               {predicates.fill && renderAction("changeFillStyle")}
               {predicates.strokeWidth && renderAction("changeStrokeWidth")}
               {
@@ -302,6 +334,16 @@ const CombinedShapeProperties = ({
               )}
               {predicates.sloppiness && <>{renderAction("changeSloppiness")}</>}
               {predicates.roundness && renderAction("changeRoundness")}
+              {predicates.polygonSides && renderAction("changePolygonSides")}
+              {predicates.shape3d && (
+                <>
+                  {renderAction("changeShape3DType")}
+                  {renderAction("changeShape3DRotationX")}
+                  {renderAction("changeShape3DRotationY")}
+                  {renderAction("changeShape3DRotationZ")}
+                  {renderAction("toggleShape3DWireframe")}
+                </>
+              )}
               {predicates.opacity && renderAction("changeOpacity")}
             </div>
           </PropertiesPopover>

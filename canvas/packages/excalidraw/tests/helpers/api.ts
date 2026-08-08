@@ -19,15 +19,26 @@ import {
   newFreeDrawElement,
   newIframeElement,
   newImageElement,
+  newVideoElement,
   newLinearElement,
   newMagicFrameElement,
+  newPolygonElement,
+  newShape3DElement,
   newTextElement,
 } from "@excalidraw/element";
 
 import { isUsingAdaptiveRadius, getSelectedElements } from "@excalidraw/element";
 import { selectGroupsForSelectedElements } from "@excalidraw/element";
 
-import { FONT_SIZES } from "@excalidraw/common";
+import {
+  DEFAULT_POLYGON_SIDES,
+  DEFAULT_SHAPE3D_TYPE,
+  DEFAULT_SHAPE3D_ROTATION_X,
+  DEFAULT_SHAPE3D_ROTATION_Y,
+  DEFAULT_SHAPE3D_ROTATION_Z,
+  DEFAULT_SHAPE3D_WIREFRAME,
+  FONT_SIZES,
+} from "@excalidraw/common";
 
 import type {
   ExcalidrawElement,
@@ -36,12 +47,16 @@ import type {
   ExcalidrawLinearElement,
   ExcalidrawFreeDrawElement,
   ExcalidrawImageElement,
+  ExcalidrawVideoElement,
   FileId,
   ExcalidrawFrameElement,
   ExcalidrawElementType,
   ExcalidrawMagicFrameElement,
   ExcalidrawElbowArrowElement,
   ExcalidrawArrowElement,
+  ExcalidrawPolygonElement,
+  ExcalidrawShape3DElement,
+  Shape3DType,
   FixedSegment,
   NonDeleted,
   NonDeletedExcalidrawElement,
@@ -212,9 +227,11 @@ export class API {
       ? ExcalidrawFreeDrawElement["strokeOptions"]
       : never;
     locked?: boolean;
-    fileId?: T extends "image" ? string : never;
+    fileId?: T extends "image" | "video" ? string : never;
     scale?: T extends "image" ? ExcalidrawImageElement["scale"] : never;
-    status?: T extends "image" ? ExcalidrawImageElement["status"] : never;
+    status?: T extends "image" | "video"
+      ? ExcalidrawImageElement["status"] | ExcalidrawVideoElement["status"]
+      : never;
     startBinding?: T extends "arrow"
       ? ExcalidrawArrowElement["startBinding"] | ExcalidrawElbowArrowElement["startBinding"]
       : never;
@@ -229,6 +246,12 @@ export class API {
       : never;
     elbowed?: boolean;
     fixedSegments?: FixedSegment[] | null;
+    sides?: T extends "polygon" ? ExcalidrawPolygonElement["sides"] : never;
+    shape3DType?: T extends "shape3d" ? Shape3DType : never;
+    rotationX?: T extends "shape3d" ? ExcalidrawShape3DElement["rotationX"] : never;
+    rotationY?: T extends "shape3d" ? ExcalidrawShape3DElement["rotationY"] : never;
+    rotationZ?: T extends "shape3d" ? ExcalidrawShape3DElement["rotationZ"] : never;
+    wireframe?: T extends "shape3d" ? ExcalidrawShape3DElement["wireframe"] : never;
   }): NonDeleted<
     T extends "arrow" | "line"
       ? ExcalidrawLinearElement
@@ -238,10 +261,16 @@ export class API {
       ? ExcalidrawTextElement
       : T extends "image"
       ? ExcalidrawImageElement
+      : T extends "video"
+      ? ExcalidrawVideoElement
       : T extends "frame"
       ? ExcalidrawFrameElement
       : T extends "magicframe"
       ? ExcalidrawMagicFrameElement
+      : T extends "polygon"
+      ? ExcalidrawPolygonElement
+      : T extends "shape3d"
+      ? ExcalidrawShape3DElement
       : ExcalidrawGenericElement
   > => {
     let element: Mutable<ExcalidrawElement> = null!;
@@ -297,6 +326,24 @@ export class API {
       case "ellipse":
         element = newElement({
           type: type as "rectangle" | "diamond" | "ellipse",
+          ...base,
+        });
+        break;
+      case "polygon":
+        element = newPolygonElement({
+          type: "polygon",
+          sides: rest.sides ?? DEFAULT_POLYGON_SIDES,
+          ...base,
+        });
+        break;
+      case "shape3d":
+        element = newShape3DElement({
+          type: "shape3d",
+          shape3DType: rest.shape3DType ?? DEFAULT_SHAPE3D_TYPE,
+          rotationX: rest.rotationX ?? DEFAULT_SHAPE3D_ROTATION_X,
+          rotationY: rest.rotationY ?? DEFAULT_SHAPE3D_ROTATION_Y,
+          rotationZ: rest.rotationZ ?? DEFAULT_SHAPE3D_ROTATION_Z,
+          wireframe: rest.wireframe ?? DEFAULT_SHAPE3D_WIREFRAME,
           ...base,
         });
         break;
@@ -371,6 +418,16 @@ export class API {
           fileId: (rest.fileId as string as FileId) ?? null,
           status: rest.status || "saved",
           scale: rest.scale || [1, 1],
+        });
+        break;
+      case "video":
+        element = newVideoElement({
+          ...base,
+          width,
+          height,
+          type,
+          fileId: (rest.fileId as string as FileId) ?? null,
+          status: rest.status || "saved",
         });
         break;
       case "frame":

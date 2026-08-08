@@ -3,11 +3,16 @@
    and the Node verification suite (tests/verify.js) — one implementation, two callers,
    so a regression here is caught by tests instead of only by eyeballing a plot. */
 (function (root, factory) {
+  // Always attach to `root` (window/self/globalThis), not just when there's no CJS `module` —
+  // canvas's Vite/Vitest tooling runs source files through vite-node, which shims a `module`
+  // global onto plain .js files even outside node_modules, so relying on the CJS branch alone
+  // left `root.Algorithms` unset under `yarn test:app` even though the real browser (which has no
+  // `module` global) and Node's `require()` both worked fine.
+  const exported = factory();
   if (typeof module === "object" && module.exports) {
-    module.exports = factory();
-  } else {
-    root.Algorithms = factory();
+    module.exports = exported;
   }
+  root.Algorithms = exported;
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
 
