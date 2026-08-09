@@ -1,8 +1,8 @@
 import { API } from "@excalidraw/excalidraw/tests/helpers/api";
 
-import { showSelectedShapeActions } from "../src/showSelectedShapeActions";
-
 import type { UIAppState } from "@excalidraw/excalidraw/types";
+
+import { showSelectedShapeActions } from "../src/showSelectedShapeActions";
 
 const baseAppState = {
   viewModeEnabled: false,

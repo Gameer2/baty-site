@@ -8,9 +8,7 @@ describe("isSyntropyLinkElement", () => {
   });
 
   it("returns false for a normal http link", () => {
-    expect(isSyntropyLinkElement({ link: "https://example.com" })).toBe(
-      false,
-    );
+    expect(isSyntropyLinkElement({ link: "https://example.com" })).toBe(false);
   });
 
   it("returns false when there is no link", () => {

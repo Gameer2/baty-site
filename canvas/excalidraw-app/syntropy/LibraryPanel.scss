@@ -71,7 +71,11 @@
 }
 
 .LibraryPanel__engine--open .LibraryPanel__engine-head {
-  background: color-mix(in srgb, var(--engine-accent, transparent) 10%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--engine-accent, transparent) 10%,
+    transparent
+  );
 }
 
 .LibraryPanel__engine-dot {

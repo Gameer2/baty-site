@@ -66,7 +66,6 @@ import {
   hasBoundTextElement,
   isMagicFrameElement,
   isImageElement,
-  isVideoElement,
 } from "./typeChecks";
 import { getContainingFrame } from "./frame";
 import { getCornerRadius } from "./utils";
@@ -526,7 +525,17 @@ const drawElementOnCanvas = (
         // the static representation behind/for export.
         const vw = video.videoWidth || element.width;
         const vh = video.videoHeight || element.height;
-        context.drawImage(video, 0, 0, vw, vh, 0, 0, element.width, element.height);
+        context.drawImage(
+          video,
+          0,
+          0,
+          vw,
+          vh,
+          0,
+          0,
+          element.width,
+          element.height,
+        );
       } else {
         drawImagePlaceholder(element, context, renderConfig.theme);
       }

@@ -390,7 +390,9 @@ const renderBindingHighlightForBindableElement_simple = (
         case "polygon":
           {
             // Sharp corners only — no curves to draw, unlike diamond above.
-            const segments = deconstructPolygonElement(suggestedBinding.element);
+            const segments = deconstructPolygonElement(
+              suggestedBinding.element,
+            );
 
             segments.forEach((segment) => {
               context.beginPath();

@@ -128,7 +128,6 @@ describe("box-selection", () => {
 
     assertSelectedElements([]);
   });
-
 });
 
 // This board defaults `boxSelectionMode` to "overlap" (see appState.ts), so
@@ -137,7 +136,9 @@ describe("box-selection", () => {
 describe("box-selection contain mode", () => {
   beforeEach(async () => {
     await render(
-      <Excalidraw initialData={{ appState: { boxSelectionMode: "contain" } }} />,
+      <Excalidraw
+        initialData={{ appState: { boxSelectionMode: "contain" } }}
+      />,
     );
   });
 
@@ -805,7 +806,9 @@ describe("inner box-selection", () => {
   // here to keep testing what it was written to test.
   beforeEach(async () => {
     await render(
-      <Excalidraw initialData={{ appState: { boxSelectionMode: "contain" } }} />,
+      <Excalidraw
+        initialData={{ appState: { boxSelectionMode: "contain" } }}
+      />,
     );
   });
   it("selecting elements visually nested inside another", async () => {

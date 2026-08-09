@@ -352,8 +352,7 @@ export const hitTestInstrument = (
     for (const local of spreadPts) {
       const handle = localToScene(local, state);
       if (
-        Math.hypot(scenePt[0] - handle[0], scenePt[1] - handle[1]) <=
-        handleTol
+        Math.hypot(scenePt[0] - handle[0], scenePt[1] - handle[1]) <= handleTol
       ) {
         return "spread";
       }
@@ -1350,10 +1349,7 @@ const drawTSquare = (
       ctx.lineWidth = isCm ? style.lineWidth : style.thinLineWidth;
       ctx.beginPath();
       ctx.moveTo(bladeW / 2, y);
-      ctx.lineTo(
-        bladeW / 2 + (isCm ? 11 : isHalfCm ? 8 : 6) * style.px,
-        y,
-      );
+      ctx.lineTo(bladeW / 2 + (isCm ? 11 : isHalfCm ? 8 : 6) * style.px, y);
       ctx.stroke();
       if (isCm) {
         const label = mm === bladeTotalMm ? `${mm / 10}cm` : `${mm / 10}`;

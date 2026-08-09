@@ -244,12 +244,7 @@ const getPolyhedronGeometry = (
   const visibleFaces = model.faces
     .map((face) => ({
       face,
-      rotatedNormal: rotateVec3(
-        face.normal,
-        rotationX,
-        rotationY,
-        rotationZ,
-      ),
+      rotatedNormal: rotateVec3(face.normal, rotationX, rotationY, rotationZ),
     }))
     .filter(({ rotatedNormal }) => rotatedNormal[2] > 0);
 
@@ -429,7 +424,11 @@ const getCylinderGeometry = (element: Shape3DElementLike): Shape3DGeometry => {
   const fills: Shape3DFill[] = wireframe
     ? []
     : [
-        { points: bottomFit, curved: true, shade: shadeForNormal(bottomNormal) },
+        {
+          points: bottomFit,
+          curved: true,
+          shade: shadeForNormal(bottomNormal),
+        },
         {
           points: [
             topFit[top.leftIdx],

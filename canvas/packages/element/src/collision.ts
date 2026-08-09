@@ -101,7 +101,9 @@ export const shouldTestInside = (element: ExcalidrawElement) => {
     return isDraggableFromInside && isPathALoop(element.points);
   }
 
-  return isDraggableFromInside || isImageElement(element) || isVideoElement(element);
+  return (
+    isDraggableFromInside || isImageElement(element) || isVideoElement(element)
+  );
 };
 
 export type HitTestArgs = {

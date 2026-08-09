@@ -105,6 +105,7 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       outDir: "../dist",
+      emptyOutDir: true,
       // math-lab/assets/js/algorithms.js is a plain UMD/CJS module living outside node_modules,
       // so @rollup/plugin-commonjs doesn't process it by default (it only auto-includes
       // node_modules). Without this, the production build fails with `"default" is not exported by
@@ -153,7 +154,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       Sitemap({
         hostname: "https://excalidraw.com",
-        outDir: "build",
+        outDir: "../dist",
         changefreq: "monthly",
         // its static in public folder
         generateRobotsTxt: false,
