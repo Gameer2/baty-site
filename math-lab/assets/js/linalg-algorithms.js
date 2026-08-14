@@ -10,11 +10,20 @@
    columnSpaceBasis, rank, linear independence, inverse and eigenvectors are all built on
    LinAlg.rref rather than re-deriving elimination each time. */
 (function (root, factory) {
+  // Always attach to `root` (window/self/globalThis), not just in the non-CJS branch —
+  // canvas's Vite/Vitest tooling runs source files through vite-node, which shims a `module`
+  // global onto plain .js files even outside node_modules, so the CJS branch below would run
+  // and set `module.exports` but leave `root.LinAlg` unset under `yarn test:app` — even though
+  // the real browser (no `module` global) and Node's `require()` both worked fine. This mirrors
+  // the fix already applied to algorithms.js (see its header comment).
+  const Algorithms = typeof module === "object" && module.exports
+    ? require("./algorithms.js")
+    : root.Algorithms;
+  const exported = factory(Algorithms);
   if (typeof module === "object" && module.exports) {
-    module.exports = factory(require("./algorithms.js"));
-  } else {
-    root.LinAlg = factory(root.Algorithms);
+    module.exports = exported;
   }
+  root.LinAlg = exported;
 })(typeof self !== "undefined" ? self : this, function (Algorithms) {
   "use strict";
 
