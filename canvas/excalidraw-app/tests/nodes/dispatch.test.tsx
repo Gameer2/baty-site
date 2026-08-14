@@ -108,6 +108,38 @@ const CURVE_FIXTURE: PortSpec = {
   }),
 };
 
+// A minimal symbolic spec proving the dispatcher routes the symbolic (expression) archetype to
+// SymbolicNode. Mirrors SymbolicNode.test.tsx's fixture — isolated from the real number-theory
+// migrations so the dispatch test doesn't depend on migration order.
+const SYMBOLIC_FIXTURE: PortSpec = {
+  engineId: "number-theory",
+  methodId: "dispatch-symbolic-fixture",
+  inputs: [{ key: "n", label: "n", kind: "expression", default: "12" }],
+  outputs: [
+    { key: "expr", label: "factorization", kind: "expression" },
+    { key: "factorCount", label: "distinct primes", kind: "number" },
+  ],
+  executionMode: "live",
+  pagePath: "/math-lab/engines/number-theory/methods/prime-factorisation.html",
+  pageStoreKey: "engine-lab:number-theory-prime-factorisation",
+  relation: "factorization",
+  compute: () => ({
+    outputs: {
+      expr: {
+        display: "12 = 2^2 · 3",
+        structured: {
+          kind: "factorization",
+          factors: [
+            { base: "2", exponent: 2 },
+            { base: "3", exponent: 1 },
+          ],
+        },
+      },
+      factorCount: 2,
+    },
+  }),
+};
+
 describe("NodeBody dispatcher", () => {
   it("routes the migrated newton-raphson spec to TraceNode (convergence plot renders)", () => {
     const inputs = { fx: "x^3 - x - 2", x0: 1.5, tol: 0.000001, maxIter: 30 };
@@ -238,6 +270,33 @@ describe("NodeBody dispatcher", () => {
     expect(
       container.querySelector(
         '[data-syntropy-port="output"][data-port-key="probability"]',
+      ),
+    ).toBeTruthy();
+  });
+
+  it("routes the symbolic archetype to SymbolicNode (renders the expression, not the scalar card)", () => {
+    const { container } = render(
+      <NodeBody
+        nodeId="n"
+        spec={SYMBOLIC_FIXTURE}
+        name="Prime Factorisation"
+        accent="#a3623c"
+        inputs={{ n: "12" }}
+        onInputsChange={() => {}}
+        computedResult={{
+          ...SYMBOLIC_FIXTURE.compute({ n: "12" }),
+          wiredInputKeys: new Set(),
+          effectiveInputs: { n: "12" },
+        }}
+        onOutputPortPointerDown={() => {}}
+      />,
+    );
+    // SymbolicNode renders the expression area; ScalarNode does not.
+    expect(container.querySelector("[data-syntropy-symbolic]")).toBeTruthy();
+    // The scalar `factorCount` output still gets its output port dot under either renderer.
+    expect(
+      container.querySelector(
+        '[data-syntropy-port="output"][data-port-key="factorCount"]',
       ),
     ).toBeTruthy();
   });

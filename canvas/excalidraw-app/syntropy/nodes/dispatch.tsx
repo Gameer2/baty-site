@@ -2,12 +2,15 @@ import { DistributionNode } from "./DistributionNode";
 import { MatrixNode } from "./MatrixNode";
 import { RealLineNode } from "./RealLineNode";
 import { ScalarNode } from "./ScalarNode";
+import { SymbolicNode } from "./SymbolicNode";
 import { TraceNode } from "./TraceNode";
 
 import type { PortSpec } from "../portSpecs/types";
 import type { WiredComputeResult } from "../wiring";
 
-/** The six visualization archetypes — see
+/** The seven visualization archetypes — see
+ *  docs/superpowers/specs/2026-08-14-syntropy-async-run-and-symbolic-design.md (§2 adds Symbolic).
+ *  The original six are documented in
  *  docs/superpowers/specs/2026-08-14-syntropy-node-archetype-redesign-design.md. */
 export type Archetype =
   | "trace"
@@ -15,6 +18,7 @@ export type Archetype =
   | "matrix"
   | "field"
   | "distribution"
+  | "symbolic"
   | "scalar";
 
 // First rich (non-number, non-text) output kind wins. A spec may carry a `number` summary
@@ -27,6 +31,7 @@ const ARCHETYPE_BY_KIND: Record<string, Archetype> = {
   eigenpairs: "matrix",
   field: "field",
   distribution: "distribution",
+  expression: "symbolic",
 };
 
 /** Picks a node's archetype from its declared outputs. The dispatcher (`NodeBody`) reads this to
@@ -59,10 +64,11 @@ export type NodeBodyProps = {
 
 // The per-archetype renderers land in their follow-on plans. MatrixNode (factor grids,
 // eigenpairs, solution vectors), TraceNode (step table + convergence plot), DistributionNode
-// (pdf curve + shaded region), and RealLineNode (curve + overlay plot) have shipped. The
-// remaining archetype (field) still routes to ScalarNode until its renderer lands; ScalarNode
-// renders number/text outputs exactly as the old single card did, so those nodes keep their
-// appearance. When a renderer lands, replace the matching branch here with it.
+// (pdf curve + shaded region), RealLineNode (curve + overlay plot), and SymbolicNode (symbolic
+// expression + scalar stat rows) have shipped. The remaining archetype (field) still routes to
+// ScalarNode until its renderer lands; ScalarNode renders number/text outputs exactly as the old
+// single card did, so those nodes keep their appearance. When a renderer lands, replace the
+// matching branch here with it.
 const renderBody = (props: NodeBodyProps) => {
   switch (archetypeFromSpec(props.spec)) {
     case "matrix":
@@ -73,6 +79,8 @@ const renderBody = (props: NodeBodyProps) => {
       return <DistributionNode {...props} />;
     case "real-line":
       return <RealLineNode {...props} />;
+    case "symbolic":
+      return <SymbolicNode {...props} />;
     default:
       return <ScalarNode {...props} />;
   }
