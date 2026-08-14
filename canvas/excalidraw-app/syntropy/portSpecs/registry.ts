@@ -15,6 +15,7 @@ import { CONFIDENCE_INTERVALS_PORT_SPEC } from "./confidenceIntervals";
 import { CONJUGATE_GRADIENT_PORT_SPEC } from "./conjugateGradient";
 import { CONTINUED_FRACTIONS_PORT_SPEC } from "./continuedFractions";
 import { CONTINUOUS_DISTRIBUTIONS_PORT_SPEC } from "./continuousDistributions";
+import { CONVERGENCE_TESTS_PORT_SPEC } from "./convergenceTests";
 import { CURVE_SKETCHING_PORT_SPEC } from "./curveSketching";
 import { DESCRIPTIVE_STATISTICS_PORT_SPEC } from "./descriptiveStatistics";
 import { DETERMINANT_PORT_SPEC } from "./determinant";
@@ -76,6 +77,7 @@ import { NUMERICAL_DIFF_PORT_SPEC } from "./numericalDiff";
 import { ONE_SAMPLE_T_TEST_PORT_SPEC } from "./oneSampleTTest";
 import { ORDER_OF_ELEMENT_PORT_SPEC } from "./orderOfElement";
 import { PARAMETRIC_AND_POLAR_PORT_SPEC } from "./parametricAndPolar";
+import { PARTIAL_DERIVATIVES_PORT_SPEC } from "./partialDerivatives";
 import { PARTIAL_FRACTIONS_PORT_SPEC } from "./partialFractions";
 import { PELLS_EQUATION_PORT_SPEC } from "./pellsEquation";
 import { POWER_METHOD_PORT_SPEC } from "./powerMethod";
@@ -106,6 +108,8 @@ import { TRAPEZOIDAL_RULE_PORT_SPEC } from "./trapezoidalRule";
 import { TRIG_SUBSTITUTION_PORT_SPEC } from "./trigSubstitution";
 import { TWO_SAMPLE_PAIRED_TESTS_PORT_SPEC } from "./twoSamplePairedTests";
 import { U_SUBSTITUTION_PORT_SPEC } from "./uSubstitution";
+import { VECTOR_CALCULUS_PORT_SPEC } from "./vectorCalculus";
+import { VECTORS_IN_SPACE_PORT_SPEC } from "./vectorsInSpace";
 import { VOLUME_OF_REVOLUTION_PORT_SPEC } from "./volumeOfRevolution";
 import { WILSONS_THEOREM_PORT_SPEC } from "./wilsonsTheorem";
 
@@ -119,6 +123,7 @@ const REGISTRY: Record<string, PortSpec> = {
   "calculus:applied-optimization": APPLIED_OPTIMIZATION_PORT_SPEC,
   "calculus:arc-length-surface-area": ARC_LENGTH_SURFACE_AREA_PORT_SPEC,
   "calculus:completing-the-square": COMPLETE_THE_SQUARE_PORT_SPEC,
+  "calculus:convergence-tests": CONVERGENCE_TESTS_PORT_SPEC,
   "calculus:curve-sketching": CURVE_SKETCHING_PORT_SPEC,
   "calculus:fourier-series": FOURIER_SERIES_PORT_SPEC,
   "calculus:improper-integrals": IMPROPER_INTEGRALS_PORT_SPEC,
@@ -129,6 +134,7 @@ const REGISTRY: Record<string, PortSpec> = {
   "calculus:lhopital": LHOPITAL_PORT_SPEC,
   "calculus:multiple-integrals": MULTIPLE_INTEGRALS_PORT_SPEC,
   "calculus:parametric-and-polar": PARAMETRIC_AND_POLAR_PORT_SPEC,
+  "calculus:partial-derivatives": PARTIAL_DERIVATIVES_PORT_SPEC,
   "calculus:partial-fractions": PARTIAL_FRACTIONS_PORT_SPEC,
   "calculus:power-series": POWER_SERIES_PORT_SPEC,
   "calculus:related-rates": RELATED_RATES_PORT_SPEC,
@@ -136,6 +142,8 @@ const REGISTRY: Record<string, PortSpec> = {
   "calculus:trigonometric-substitution": TRIG_SUBSTITUTION_PORT_SPEC,
   "calculus:u-substitution": U_SUBSTITUTION_PORT_SPEC,
   "calculus:riemann-sums": RIEMANN_SUMS_PORT_SPEC,
+  "calculus:vector-calculus": VECTOR_CALCULUS_PORT_SPEC,
+  "calculus:vectors-in-space": VECTORS_IN_SPACE_PORT_SPEC,
   "calculus:volumes-of-revolution": VOLUME_OF_REVOLUTION_PORT_SPEC,
   "numerical:bisection": BISECTION_PORT_SPEC,
   "numerical:false-position": FALSE_POSITION_PORT_SPEC,
