@@ -1,0 +1,122 @@
+// The distribution archetype body. The scrub-chip inputs and scalar output rows mirror
+// ScalarNode/TraceNode (same premium tokens, focus ring, wired-state treatment); only the
+// pdf/pmf plot is new here.
+
+.DistributionNode__scrub {
+  position: relative;
+  box-sizing: border-box;
+  border-radius: 8px;
+  background: var(--color-surface-low);
+  border: 1px solid var(--input-border-color);
+  overflow: hidden;
+  flex-shrink: 0;
+  // Clicks pass through to the canvas for select/drag; only the value input re-enables them.
+}
+
+.DistributionNode__scrubRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  padding: 0 10px;
+  gap: 8px;
+}
+
+.DistributionNode__scrubLabel {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-gray-60);
+  font-size: 9.5px;
+  flex-shrink: 0;
+}
+
+.DistributionNode__scrubValue {
+  all: unset;
+  box-sizing: border-box;
+  width: 100%;
+  text-align: right;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--color-on-surface);
+  font-weight: 600;
+  pointer-events: auto;
+  cursor: text;
+}
+
+.DistributionNode__scrub:focus-within {
+  border-color: var(--node-accent);
+  box-shadow: 0 0 0 1px var(--node-accent),
+    0 0 10px 1px color-mix(in srgb, var(--node-accent) 45%, transparent);
+}
+
+.DistributionNode__scrub--wired {
+  border-color: var(--node-accent);
+  background: color-mix(
+    in srgb,
+    var(--node-accent) 10%,
+    var(--color-surface-low)
+  );
+}
+
+.DistributionNode__scrub--wired .DistributionNode__scrubValue {
+  color: var(--node-accent);
+  cursor: default;
+}
+
+.DistributionNode__wireMark {
+  color: var(--node-accent);
+  margin-right: 3px;
+}
+
+// The pdf/pmf curve with its shaded region. Faint fill under the whole curve, denser fill over
+// the shaded [lo, hi] tail/interval; bars for a discrete pmf.
+.DistributionNode__plot {
+  margin-top: 4px;
+  border-radius: 8px;
+  border: 1px solid var(--input-border-color);
+  background: var(--color-surface-low);
+  padding: 6px;
+  width: 100%;
+  height: auto;
+  color: var(--color-gray-60);
+  pointer-events: auto;
+}
+
+.DistributionNode__output {
+  margin-top: 2px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--input-border-color);
+  display: grid;
+  gap: 1px;
+  background: var(--color-surface-low);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.DistributionNode__outRow {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--island-bg-color);
+  padding: 7px 10px;
+  font-family: var(--ui-font);
+  font-size: 11px;
+}
+
+.DistributionNode__outKey {
+  color: var(--color-gray-60);
+}
+
+.DistributionNode__outVal {
+  color: var(--node-accent);
+}
+
+// iOS Safari auto-zoom guard — same rationale as ScalarNode (editable text fields at <16px
+// zoom the whole canvas on focus).
+@media (max-width: 900px) {
+  .DistributionNode__scrubValue {
+    font-size: 16px;
+  }
+}

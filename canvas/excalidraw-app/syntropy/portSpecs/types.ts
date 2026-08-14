@@ -43,6 +43,19 @@ export const PORT_OUTPUT_KINDS = [
 
 export type PortOutputKind = typeof PORT_OUTPUT_KINDS[number];
 
+/** The value carried by a `distribution` output: a sampled pdf/pmf curve (`points`, each
+ *  carrying the density `pdf` and cumulative `cdf` at sample `x`) plus the region `[lo, hi]` the
+ *  renderer shades — a lower tail `P(X ≤ x)` for the pdf/pmf methods, the central interval
+ *  `[lower, upper]` for a confidence interval. Distribution parameters (μ, σ, n, p, …) stay as the
+ *  spec's separate `number` outputs; only the curve and its shade region live here. compute()
+ *  assembles `points` by calling the core's existing pdf/cdf primitives at sample x's — display
+ *  sampling, not new math. */
+export type DistributionOutput = {
+  points: { x: number; pdf: number; cdf: number }[];
+  lo: number;
+  hi: number;
+};
+
 export type PortInput = {
   key: string;
   label: string;
