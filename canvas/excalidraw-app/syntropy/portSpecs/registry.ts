@@ -3,18 +3,25 @@ import { ALGEBRAIC_SUBSTITUTION_PORT_SPEC } from "./algebraicSubstitution";
 import { ARC_LENGTH_SURFACE_AREA_PORT_SPEC } from "./arcLengthSurfaceArea";
 import { ANOVA_F_TEST_PORT_SPEC } from "./anovaFTest";
 import { APPLIED_OPTIMIZATION_PORT_SPEC } from "./appliedOptimization";
+import { ARGUMENT_ROUCHE_PORT_SPEC } from "./argumentRouche";
 import { BISECTION_PORT_SPEC } from "./bisection";
 import { BROYDENS_METHOD_PORT_SPEC } from "./broydensMethod";
+import { CAUCHY_INTEGRAL_FORMULA_PORT_SPEC } from "./cauchyIntegralFormula";
+import { CAUCHY_RIEMANN_PORT_SPEC } from "./cauchyRiemann";
 import { CHEBYSHEV_ECON_PORT_SPEC } from "./chebyshevEcon";
 import { CHI_SQUARE_TESTS_PORT_SPEC } from "./chiSquareTests";
 import { CHINESE_REMAINDER_THEOREM_PORT_SPEC } from "./chineseRemainderTheorem";
 import { CHOLESKY_PORT_SPEC } from "./cholesky";
 import { CLASSICAL_CIPHERS_PORT_SPEC } from "./classicalCiphers";
 import { COMPLETE_THE_SQUARE_PORT_SPEC } from "./completeTheSquare";
+import { COMPLEX_ARITHMETIC_PORT_SPEC } from "./complexArithmetic";
+import { COMPLEX_EXP_LOG_POWERS_PORT_SPEC } from "./complexExpLogPowers";
+import { COMPLEX_TRIG_HYPERBOLIC_PORT_SPEC } from "./complexTrigHyperbolic";
 import { CONFIDENCE_INTERVALS_PORT_SPEC } from "./confidenceIntervals";
 import { CONJUGATE_GRADIENT_PORT_SPEC } from "./conjugateGradient";
 import { CONTINUED_FRACTIONS_PORT_SPEC } from "./continuedFractions";
 import { CONTINUOUS_DISTRIBUTIONS_PORT_SPEC } from "./continuousDistributions";
+import { CONTOUR_INTEGRATION_PORT_SPEC } from "./contourIntegration";
 import { CONVERGENCE_TESTS_PORT_SPEC } from "./convergenceTests";
 import { CURVE_SKETCHING_PORT_SPEC } from "./curveSketching";
 import { DESCRIPTIVE_STATISTICS_PORT_SPEC } from "./descriptiveStatistics";
@@ -50,6 +57,7 @@ import { ITERATIVE_SOLVERS_PORT_SPEC } from "./iterativeSolvers";
 import { JACOBI_SYMBOL_PORT_SPEC } from "./jacobiSymbol";
 import { LAGRANGE_INTERPOLATION_PORT_SPEC } from "./lagrangeInterpolation";
 import { LAGRANGE_MULTIPLIERS_PORT_SPEC } from "./lagrangeMultipliers";
+import { LAURENT_SINGULARITIES_PORT_SPEC } from "./laurentSingularities";
 import { LEAST_SQUARES_PORT_SPEC } from "./leastSquares";
 import { LEAST_SQUARES_LINALG_PORT_SPEC } from "./leastSquaresLinalg";
 import { LHOPITAL_PORT_SPEC } from "./lhopital";
@@ -89,6 +97,7 @@ import { PROBABILITY_COMBINATORICS_PORT_SPEC } from "./probabilityCombinatorics"
 import { QR_ALGORITHM_PORT_SPEC } from "./qrAlgorithm";
 import { QUADRATIC_RECIPROCITY_PORT_SPEC } from "./quadraticReciprocity";
 import { QUADRATIC_RESIDUES_PORT_SPEC } from "./quadraticResidues";
+import { REAL_INTEGRALS_RESIDUES_PORT_SPEC } from "./realIntegralsResidues";
 import { RELATED_RATES_PORT_SPEC } from "./relatedRates";
 import { RICHARDSON_DIFF_PORT_SPEC } from "./richardsonDiff";
 import { RIEMANN_SUMS_PORT_SPEC } from "./riemannSums";
@@ -145,6 +154,15 @@ const REGISTRY: Record<string, PortSpec> = {
   "calculus:vector-calculus": VECTOR_CALCULUS_PORT_SPEC,
   "calculus:vectors-in-space": VECTORS_IN_SPACE_PORT_SPEC,
   "calculus:volumes-of-revolution": VOLUME_OF_REVOLUTION_PORT_SPEC,
+  "complex:complex-arithmetic": COMPLEX_ARITHMETIC_PORT_SPEC,
+  "complex:complex-exp-log-powers": COMPLEX_EXP_LOG_POWERS_PORT_SPEC,
+  "complex:complex-trig-hyperbolic": COMPLEX_TRIG_HYPERBOLIC_PORT_SPEC,
+  "complex:cauchy-riemann": CAUCHY_RIEMANN_PORT_SPEC,
+  "complex:laurent-singularities": LAURENT_SINGULARITIES_PORT_SPEC,
+  "complex:contour-integration": CONTOUR_INTEGRATION_PORT_SPEC,
+  "complex:cauchy-integral-formula": CAUCHY_INTEGRAL_FORMULA_PORT_SPEC,
+  "complex:real-integrals-residues": REAL_INTEGRALS_RESIDUES_PORT_SPEC,
+  "complex:argument-rouche": ARGUMENT_ROUCHE_PORT_SPEC,
   "numerical:bisection": BISECTION_PORT_SPEC,
   "numerical:false-position": FALSE_POSITION_PORT_SPEC,
   "numerical:fixed-point-iteration": FIXED_POINT_ITERATION_PORT_SPEC,

@@ -82,3 +82,26 @@ export const stepsToText = (steps: unknown): string => {
     .filter(Boolean)
     .join("\n");
 };
+
+/** Format a complex value `{ re, im }` (the shape complex.js / the residue ops return) as a
+ *  readable "a + bi" string for a `text` output. Handles pure-real / pure-imaginary / unit-imag
+ *  cases, trims trailing zeros, and returns "—" for missing or non-finite values. */
+export const complexDisplay = (
+  z: { re?: number; im?: number } | undefined,
+  dp = 4,
+): string => {
+  if (!z || !Number.isFinite(z.re) || !Number.isFinite(z.im)) {
+    return "—";
+  }
+  const re = Number(Number(z.re).toFixed(dp));
+  const im = Number(Number(z.im).toFixed(dp));
+  if (im === 0) {
+    return String(re);
+  }
+  if (re === 0) {
+    return im === 1 ? "i" : im === -1 ? "-i" : `${im}i`;
+  }
+  const sign = im >= 0 ? " + " : " − ";
+  const mag = Math.abs(im);
+  return `${re}${sign}${mag === 1 ? "" : mag}i`;
+};
