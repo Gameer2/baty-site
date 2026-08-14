@@ -12,7 +12,9 @@ import "../../../../math-lab/assets/js/algorithms.js";
 
 import { compileExpression } from "../compileExpression";
 
-import type { ComputeResult, PortSpec } from "./types";
+import { samplePoints } from "./sampleCurve";
+
+import type { ComputeResult, CurveOutput, PortSpec } from "./types";
 
 type AlgorithmsModule = {
   runRiemannSum: (
@@ -36,8 +38,8 @@ export const RIEMANN_SUMS_PORT_SPEC: PortSpec = {
     { key: "n", label: "n", kind: "number", default: 12 },
   ],
   outputs: [
+    { key: "curve", label: "plot", kind: "curve" },
     { key: "total", label: "total", kind: "number" },
-    { key: "rectangles", label: "plot", kind: "curve" },
   ],
   executionMode: "live",
   pagePath: "/math-lab/engines/calculus/methods/riemann-sums.html",
@@ -54,11 +56,23 @@ export const RIEMANN_SUMS_PORT_SPEC: PortSpec = {
     }
     try {
       const result = Algorithms.runRiemannSum(compiled.fn, a, b, Math.round(n));
+      // The integrand f sampled over [a,b] for display (the input function, via the already-
+      // compiled expression — not the method's math) with the core's own partition rectangles
+      // drawn behind it and the signed area filled.
+      const curve: CurveOutput = {
+        points: samplePoints(compiled.fn, a, b),
+        rectangles: result.rectangles as {
+          x0: number;
+          x1: number;
+          height: number;
+        }[],
+        fillArea: true,
+      };
       return {
         outputs: {
+          curve,
           total: result.total,
           width: result.width,
-          rectangles: result.rectangles,
         },
       };
     } catch (err) {
