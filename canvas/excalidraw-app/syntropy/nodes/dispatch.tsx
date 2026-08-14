@@ -74,7 +74,10 @@ export type NodeBodyProps = {
 // (pdf curve + shaded region), RealLineNode (curve + overlay plot), SymbolicNode (symbolic
 // expression + scalar stat rows), and FieldNode (2D vector/scalar field plot) have shipped.
 // ScalarNode renders number/text outputs exactly as the old single card did, so number/text-only
-// nodes keep their appearance.
+// nodes keep their appearance. Every renderer mounts a shared NodeRunBar: for `executionMode
+// "run"` specs it shows a Run button that triggers useNodeCompute's async computeRun (live specs
+// render just the status chip, which is null when fresh) — the run-state reports flow back to the
+// host via the onRunResult prop.
 const renderBody = (props: NodeBodyProps) => {
   switch (archetypeFromSpec(props.spec)) {
     case "matrix":
