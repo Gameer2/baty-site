@@ -291,6 +291,108 @@ const OPS = Object.assign(Object.create(null), {
     const r = ComplexContourTheorems.argumentPrinciple(args[0], "z", args[2]);
     if (!r.ok) return r;
     return { ...r, count: r.nMinusP };
+  },
+
+  // Complex arithmetic / exp-log-powers / trig-hyperbolic — numeric, composed from the Complex
+  // primitives (complex.js) and math.js's native complex functions. No CAS, no SymPy. The page
+  // versions are DOM-coupled domain-coloring canvases; these ops return only the headline value(s)
+  // the node card shows (polar form + power + roots; principal branch + branches; fn(z) value).
+  complexArithmetic: (args) => {
+    const z = args[0];
+    const n = Number(args[1]);
+    if (!z || !Number.isFinite(z.re) || !Number.isFinite(z.im)) {
+      return { ok: false, reason: "z needs numeric Re and Im parts." };
+    }
+    if (!Number.isInteger(n) || n < 1) {
+      return { ok: false, reason: "n must be a positive integer (1–24 keeps the roots readable)." };
+    }
+    const r = Complex.abs(z);
+    const theta = Complex.arg(z);
+    return {
+      ok: true,
+      display: `z = ${Complex.format(z, 4)} = ${Number(r.toFixed(4))}·e^{i·${theta.toFixed(4)}}`,
+      forms: `cartesian: ${Complex.format(z, 4)}; polar: ${Number(r.toFixed(4))} ∠ ${theta.toFixed(4)}`,
+      power: Complex.format(Complex.powInt(z, n), 4),
+      roots: Complex.nthRoots(z, n).map((w) => Complex.format(w, 4)),
+      verified: true,
+    };
+  },
+  complexExpLogPowers: (args) => {
+    const mode = args[0];
+    const params = args[1] || {};
+    const z = args[2];
+    if (!z || !Number.isFinite(z.re) || !Number.isFinite(z.im)) {
+      return { ok: false, reason: "z needs numeric Re and Im parts." };
+    }
+    if (z.re === 0 && z.im === 0) {
+      return { ok: false, reason: "z = 0 — log and non-integer powers are undefined here." };
+    }
+    let principal;
+    let label;
+    let branches;
+    if (mode === "log") {
+      principal = Complex.logBranch(z, 0);
+      label = `log(z) = ${Complex.format(principal, 4)}`;
+      branches = [-2, -1, 0, 1, 2].map((k) => ({
+        k,
+        value: Complex.format(Complex.logBranch(z, k), 4),
+      }));
+    } else if (mode === "rational") {
+      const p = Number(params.p);
+      const q = Number(params.q);
+      if (!Number.isInteger(p) || !Number.isInteger(q) || q < 1) {
+        return { ok: false, reason: "p and q must be integers with q ≥ 1." };
+      }
+      const w = { re: p / q, im: 0 };
+      principal = Complex.powBranch(z, w, 0);
+      label = `z^(${p}/${q}) = ${Complex.format(principal, 4)}`;
+      branches = [];
+      for (let k = 0; k < q; k++) {
+        branches.push({ k, value: Complex.format(Complex.powBranch(z, w, k), 4) });
+      }
+    } else {
+      const w = { re: Number(params.wRe), im: Number(params.wIm) };
+      principal = Complex.powBranch(z, w, 0);
+      label = `z^(${Complex.format(w, 4)}) = ${Complex.format(principal, 4)}`;
+      branches = [-2, -1, 0, 1, 2].map((k) => ({
+        k,
+        value: Complex.format(Complex.powBranch(z, w, k), 4),
+      }));
+    }
+    return {
+      ok: true,
+      display: label,
+      principal: Complex.format(principal, 4),
+      branches,
+      verified: true,
+    };
+  },
+  complexTrigHyperbolic: (args) => {
+    const fn = String(args[0]);
+    const z = args[1];
+    if (!z || !Number.isFinite(z.re) || !Number.isFinite(z.im)) {
+      return { ok: false, reason: "z needs numeric Re and Im parts." };
+    }
+    if (!/^[a-z]+$/.test(fn)) {
+      return { ok: false, reason: "Unknown function name." };
+    }
+    let w;
+    try {
+      w = math.parse(`${fn}(z)`).compile().evaluate({ z: math.complex(z.re, z.im) });
+    } catch (e) {
+      return { ok: false, reason: `Couldn't evaluate ${fn}(z): ${e.message}` };
+    }
+    const val = { re: w && w.re, im: w && w.im };
+    if (!Number.isFinite(val.re) || !Number.isFinite(val.im)) {
+      return { ok: false, reason: `${fn}(z) is undefined here.` };
+    }
+    return {
+      ok: true,
+      display: `${fn}(${Complex.format(z, 4)}) = ${Complex.format(val, 4)}`,
+      value: val,
+      abs: Complex.abs(val),
+      verified: true,
+    };
   }
 });
 

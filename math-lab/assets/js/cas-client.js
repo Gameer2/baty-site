@@ -292,6 +292,21 @@
     return CAS.call("argumentRouche", [f, g, contour, mode], opts);
   };
 
+  // Numeric complex ops — composed from Complex.* primitives + math.js (no CAS, no SymPy).
+  // complexArithmetic: z = {re, im}, n (power/root count) → polar form, z^n, nth roots.
+  CAS.complexArithmetic = function (z, n, opts) {
+    return CAS.call("complexArithmetic", [z, n], opts);
+  };
+  // complexExpLogPowers: mode "log"|"rational"|"complex", params {p,q}|{wRe,wIm}, z = {re,im}
+  // → principal branch value + the branch list.
+  CAS.complexExpLogPowers = function (mode, params, z, opts) {
+    return CAS.call("complexExpLogPowers", [mode, params, z], opts);
+  };
+  // complexTrigHyperbolic: fn name (sin/cos/sinh/...), z = {re, im} → fn(z) value.
+  CAS.complexTrigHyperbolic = function (fn, z, opts) {
+    return CAS.call("complexTrigHyperbolic", [fn, z], opts);
+  };
+
   // Exposed for tests and for pages that want to reset after a timeout.
   CAS._reset = function () { kill(); failAll("reset"); seq = 0; mode = "worker"; };
 
