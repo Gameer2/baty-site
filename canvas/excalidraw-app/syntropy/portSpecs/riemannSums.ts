@@ -37,7 +37,7 @@ export const RIEMANN_SUMS_PORT_SPEC: PortSpec = {
   ],
   outputs: [
     { key: "total", label: "total", kind: "number" },
-    { key: "rectangles", label: "plot", kind: "plot2d" },
+    { key: "rectangles", label: "plot", kind: "curve" },
   ],
   executionMode: "live",
   pagePath: "/math-lab/engines/calculus/methods/riemann-sums.html",

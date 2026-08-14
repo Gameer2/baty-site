@@ -9,7 +9,7 @@ import {
 import { RIEMANN_SUMS_PORT_SPEC } from "../syntropy/portSpecs/riemannSums";
 
 describe("computeInitialNodeSize", () => {
-  it("reserves extra height for a spec with a plot2d output", () => {
+  it("reserves extra height for a spec with a curve output", () => {
     const size = computeInitialNodeSize(RIEMANN_SUMS_PORT_SPEC);
     expect(size.width).toBe(260);
     // 4 inputs + a plot output should be taller than the old fixed 200px shell.

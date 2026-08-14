@@ -15,7 +15,7 @@ export const computeInitialNodeSize = (
   if (!spec) {
     return { width: PLACEHOLDER_WIDTH, height: PLACEHOLDER_HEIGHT };
   }
-  const hasPlot = spec.outputs.some((o) => o.kind === "plot2d");
+  const hasPlot = spec.outputs.some((o) => o.kind === "curve");
   const inputRowHeight = 40 + 8; // matches .SyntropyNode__scrub height + column gap
   const height =
     72 /* header */ +
