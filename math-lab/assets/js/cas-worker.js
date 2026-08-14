@@ -408,12 +408,13 @@ const OPS = Object.assign(Object.create(null), {
   },
 
   // Complex residue ops — these go through SymPy (complex-residues.js → SympyClient → the nested
-  // sympy-worker), so they return Promises; the async-aware onmessage below awaits them. Variable
-  // is "z" throughout these pages. The first call pays Pyodide's cold boot; the node surfaces that
-  // as a long-running state.
+  // sympy-worker), so they return Promises; the async-aware onmessage below awaits them. The
+  // complex-contour ops use variable "z"; realIntegralsResidues integrates over the real line, so
+  // its variable is "x" (matches real-integrals-residues.js — SymPy and the numeric check both key
+  // off it). The first call pays Pyodide's cold boot; the node surfaces that as a long-running state.
   contourIntegration: (args) => ComplexResidues.contourIntegral(args[0], "z", args[1]),
   realIntegralsResidues: (args) =>
-    ComplexResidues.realIntegralByResidues(args[0], "z", args[1]),
+    ComplexResidues.realIntegralByResidues(args[0], "x", args[1]),
   laurentSingularities: (args) => {
     const f = args[0];
     const point = args[1];
