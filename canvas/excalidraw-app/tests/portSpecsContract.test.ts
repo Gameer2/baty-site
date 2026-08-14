@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 
+import { archetypeFromSpec } from "../syntropy/nodes/dispatch";
+import { CONTINUED_FRACTIONS_PORT_SPEC } from "../syntropy/portSpecs/continuedFractions";
+import { LINEAR_CONGRUENCES_PORT_SPEC } from "../syntropy/portSpecs/linearCongruences";
+import { PRIME_FACTORISATION_PORT_SPEC } from "../syntropy/portSpecs/primeFactorisation";
 import { ALL_PORT_SPECS } from "../syntropy/portSpecs/registry";
 import {
   PORT_INPUT_KINDS,
@@ -8,6 +12,16 @@ import {
 
 const INPUT_KINDS = new Set(PORT_INPUT_KINDS);
 const OUTPUT_KINDS = new Set(PORT_OUTPUT_KINDS);
+
+// The number-theory Symbolic residents — the three synchronous BigInt methods whose full form the
+// core already returns, surfaced as an `expression` output declared first so archetypeFromSpec
+// routes them to SymbolicNode. See
+// docs/superpowers/specs/2026-08-14-syntropy-async-run-and-symbolic-design.md §5.
+const SYMBOLIC_RESIDENTS = [
+  PRIME_FACTORISATION_PORT_SPEC,
+  CONTINUED_FRACTIONS_PORT_SPEC,
+  LINEAR_CONGRUENCES_PORT_SPEC,
+];
 
 describe("port spec contract", () => {
   it("every registered spec declares only valid input and output kinds", () => {
@@ -53,5 +67,22 @@ describe("port spec contract", () => {
 
   it("point is a declared input kind", () => {
     expect(INPUT_KINDS.has("point")).toBe(true);
+  });
+
+  it("the number-theory Symbolic residents declare an expression output first and route to the symbolic archetype", () => {
+    for (const spec of SYMBOLIC_RESIDENTS) {
+      expect(
+        spec.outputs[0].kind,
+        `${spec.methodId} should declare its expression output first`,
+      ).toBe("expression");
+      expect(
+        spec.relation,
+        `${spec.methodId} should carry relation:"factorization"`,
+      ).toBe("factorization");
+      expect(
+        archetypeFromSpec(spec),
+        `${spec.methodId} should resolve to the symbolic archetype`,
+      ).toBe("symbolic");
+    }
   });
 });
