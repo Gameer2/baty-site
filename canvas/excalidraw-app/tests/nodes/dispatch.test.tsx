@@ -6,7 +6,35 @@ import { RIEMANN_SUMS_PORT_SPEC } from "../../syntropy/portSpecs/riemannSums";
 import { NEWTON_RAPHSON_PORT_SPEC } from "../../syntropy/portSpecs/newtonRaphson";
 import { LU_DECOMPOSITION_PORT_SPEC } from "../../syntropy/portSpecs/luDecomposition";
 
+import type { PortSpec } from "../../syntropy/portSpecs/types";
 import type { WiredComputeResult } from "../../syntropy/wiring";
+
+// A minimal trace spec used only to prove the dispatcher routes the trace archetype to
+// TraceNode before any real spec is migrated (Task 16). Mirrors the fixture in TraceNode.test.tsx.
+const TRACE_FIXTURE: PortSpec = {
+  engineId: "numerical",
+  methodId: "dispatch-trace-fixture",
+  inputs: [
+    { key: "fx", label: "f(x)", kind: "expression", default: "x^3 - x - 2" },
+    { key: "x0", label: "x0", kind: "number", default: 1.5 },
+  ],
+  outputs: [
+    { key: "steps", label: "iterations", kind: "trace" },
+    { key: "root", label: "root", kind: "number" },
+  ],
+  executionMode: "live",
+  pagePath: "/math-lab/engines/numerical/methods/newton-raphson.html",
+  pageStoreKey: "engine-lab:numerical-newton-raphson",
+  compute: () => ({
+    outputs: {
+      steps: [
+        { n: 1, x: 1.5, xNext: 1.210526, err: 0.289474 },
+        { n: 2, x: 1.210526, xNext: 1.16335, err: 0.047176 },
+      ],
+      root: 1.16335,
+    },
+  }),
+};
 
 const DEFAULT_RIEMANN = { fx: "x", a: 0, b: 2, n: 2 };
 const resultFor = (inputs: Record<string, unknown>): WiredComputeResult => ({
@@ -89,5 +117,31 @@ describe("NodeBody dispatcher", () => {
     );
     // LU's primary output is a matrix -> archetype "matrix" -> MatrixNode -> "A = L · U".
     expect(container.textContent).toContain("A =");
+  });
+
+  it("routes the trace archetype to TraceNode (renders the step table, not the scalar card)", () => {
+    const { container } = render(
+      <NodeBody
+        nodeId="n"
+        spec={TRACE_FIXTURE}
+        name="Newton–Raphson"
+        accent="#5c939f"
+        inputs={{ fx: "x^3 - x - 2", x0: 1.5 }}
+        onInputsChange={() => {}}
+        computedResult={{
+          ...TRACE_FIXTURE.compute({ fx: "x^3 - x - 2", x0: 1.5 }),
+          wiredInputKeys: new Set(),
+          effectiveInputs: { fx: "x^3 - x - 2", x0: 1.5 },
+        }}
+        onOutputPortPointerDown={() => {}}
+      />,
+    );
+    // TraceNode renders the iteration columns as a step table header; ScalarNode does not.
+    expect(screen.getByText("xNext")).toBeTruthy();
+    // The scalar `root` output still gets its output port dot under either renderer.
+    const out = container.querySelector(
+      '[data-syntropy-port="output"][data-port-key="root"]',
+    );
+    expect(out).toBeTruthy();
   });
 });

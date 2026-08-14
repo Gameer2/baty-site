@@ -1,5 +1,6 @@
 import { MatrixNode } from "./MatrixNode";
 import { ScalarNode } from "./ScalarNode";
+import { TraceNode } from "./TraceNode";
 
 import type { PortSpec } from "../portSpecs/types";
 import type { WiredComputeResult } from "../wiring";
@@ -54,17 +55,22 @@ export type NodeBodyProps = {
   readOnly?: boolean;
 };
 
-// The per-archetype renderers land in their follow-on plans. MatrixNode is the first to ship
-// (the matrix archetype — factor grids, eigenpairs, solution vectors). The remaining archetypes
-// (trace, real-line, field, distribution) still route to ScalarNode until their renderers land;
-// ScalarNode renders number/text/curve outputs exactly as the old single card did, so those
-// nodes keep their appearance. When a renderer lands, replace the matching branch here with it.
-const renderBody = (props: NodeBodyProps) =>
-  archetypeFromSpec(props.spec) === "matrix" ? (
-    <MatrixNode {...props} />
-  ) : (
-    <ScalarNode {...props} />
-  );
+// The per-archetype renderers land in their follow-on plans. MatrixNode (factor grids,
+// eigenpairs, solution vectors) and TraceNode (step table + convergence plot) have shipped. The
+// remaining archetypes (real-line, field, distribution) still route to ScalarNode until their
+// renderers land; ScalarNode renders number/text/curve outputs exactly as the old single card
+// did, so those nodes keep their appearance. When a renderer lands, replace the matching branch
+// here with it.
+const renderBody = (props: NodeBodyProps) => {
+  switch (archetypeFromSpec(props.spec)) {
+    case "matrix":
+      return <MatrixNode {...props} />;
+    case "trace":
+      return <TraceNode {...props} />;
+    default:
+      return <ScalarNode {...props} />;
+  }
+};
 
 /** The single component NodeOverlay renders for a node. Dispatches on the spec's archetype; v1
  *  routes every archetype to ScalarNode. Props are identical to the old SyntropyNodeCard so
