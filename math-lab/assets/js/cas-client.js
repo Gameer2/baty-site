@@ -281,6 +281,17 @@
     return CAS.call("harmonicConjugate", [u, basepoint], opts);
   };
 
+  // Complex contour theorems — pure-numeric cores in complex-contour-theorems.js (no SymPy).
+  // cauchyIntegralFormula: f(z), z0 = {re, im}, derivative order n, contour radius r.
+  CAS.cauchyIntegralFormula = function (f, z0, order, radius, opts) {
+    return CAS.call("cauchyIntegralFormula", [f, z0, order, radius], opts);
+  };
+  // argumentRouche: mode "argument" (f only, returns N−P) or "rouche" (f + g, returns zeros of
+  // f inside γ when |f−g| < |f| on γ). contour = { type:"circle", center:{re,im}, radius }.
+  CAS.argumentRouche = function (f, g, contour, mode, opts) {
+    return CAS.call("argumentRouche", [f, g, contour, mode], opts);
+  };
+
   // Exposed for tests and for pages that want to reset after a timeout.
   CAS._reset = function () { kill(); failAll("reset"); seq = 0; mode = "worker"; };
 

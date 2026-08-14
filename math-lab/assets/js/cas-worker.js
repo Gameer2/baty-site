@@ -20,7 +20,16 @@ importScripts(
   "./calculus-symbolic.js",
   "./integration-advanced.js",
   "./ode-symbolic.js",
-  "./complex-symbolic.js"
+  "./complex-symbolic.js",
+  // Complex Analysis shared cores — pure/DOM-free UMD factories (root-detected via `self`, so
+  // worker-safe). Order matters: complex.js is dependency-free; complex-residues.js needs
+  // Complex + CalcCore; complex-contour-theorems.js needs Complex + ComplexSymbolic + CalcCore
+  // + ComplexResidues. Only the pure-numeric functions (cauchyIntegralFormula, argumentPrinciple,
+  // rouche) are routed below — the SymPy-dependent residue functions (contourIntegral,
+  // realIntegralByResidues, findSingularitiesWithResidues) stay main-thread via SympyClient.
+  "./complex.js",
+  "./complex-residues.js",
+  "./complex-contour-theorems.js"
 );
 
 /* Symbolic kernel (assets/js/kernel/ — see docs/kernel/04_BUILD_PHASES.md Phase 1/2/2b/2d).
@@ -266,7 +275,23 @@ const OPS = Object.assign(Object.create(null), {
   solveWaveEquation: (args) => ODESymbolic.solveWaveEquation(args[0]),
 
   cauchyRiemann: (args) => ComplexSymbolic.cauchyRiemann(args[0], args[1]),
-  harmonicConjugate: (args) => ComplexSymbolic.harmonicConjugate(args[0], args[1])
+  harmonicConjugate: (args) => ComplexSymbolic.harmonicConjugate(args[0], args[1]),
+
+  // Complex contour theorems — pure numeric, no SymPy (complex-contour-theorems.js). The
+  // variable is "z" throughout these pages, so it's pinned here rather than threaded as an arg.
+  cauchyIntegralFormula: (args) =>
+    ComplexContourTheorems.cauchyIntegralFormula(args[0], "z", args[1], args[2], args[3]),
+  argumentRouche: (args) => {
+    const mode = args[3];
+    if (mode === "rouche") {
+      const r = ComplexContourTheorems.rouche(args[0], args[1], "z", args[2]);
+      if (!r.ok) return r;
+      return { ...r, count: r.applies ? r.nF : null };
+    }
+    const r = ComplexContourTheorems.argumentPrinciple(args[0], "z", args[2]);
+    if (!r.ok) return r;
+    return { ...r, count: r.nMinusP };
+  }
 });
 
 self.onmessage = function (e) {
