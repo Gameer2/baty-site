@@ -15,8 +15,15 @@
 // The in-page sync fallback cas-client.js falls back to over file:// is deliberately NOT
 // replicated here — it depends on `self.CalculusSymbolic` & friends, which the canvas bundle
 // never loads. If the worker can't spawn, `casCall` rejects with a clear "unavailable" message
-// rather than hanging. The real worker URL + bootstrap is wired in Task 3; tests inject a
-// `workerFactory` so no real nerdamer is ever loaded.
+// rather than hanging.
+//
+// Worker URL wiring (Task 3): the app layer (syntropy/cas/init.ts, imported from index.tsx) calls
+// `configureCas({ workerUrl: "../../math-lab/assets/js/cas-worker.js" })` at startup. That path is
+// resolved relative to the document (same convention as portalPrefill's lab-page URLs) so it
+// reaches the sibling math-lab/ from canvas/dist, the dev proxy, and file:// alike. cas-worker.js
+// is a classic (importScripts) worker, so the default `new Worker(url)` boots it with no module
+// wrapper or build step. Tests inject a `workerFactory` so no real nerdamer is ever loaded; the
+// real-worker boot is verified manually behind `CAS_INT=1` (casClient.integration.test.ts).
 
 type CasWorkerLike = {
   postMessage: (msg: unknown) => void;
