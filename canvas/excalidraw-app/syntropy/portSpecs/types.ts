@@ -56,6 +56,23 @@ export type DistributionOutput = {
   hi: number;
 };
 
+/** The value carried by a `curve` (real-line) output: a sampled curve over its x-range — the
+ *  integrand `f` for quadrature, the interpolant for interpolation, the fitted line/polynomial
+ *  for regression — plus optional overlays the method's own core already returns:
+ *  `samples` (interpolation nodes or a regression scatter, drawn as dots) and `rectangles`
+ *  (Riemann partition rectangles or adaptive-quadrature leaves, drawn as bars). `fillArea` fills
+ *  the area under the curve (quadrature: the signed integral region). The curve itself is the
+ *  method's input function sampled for display via the already-compiled expression, or the
+ *  core's own evaluator applied at sample x's — display sampling, not new math; the method's
+ *  real result (the total, the coefficients, the fitted value) stays as the spec's `number`
+ *  outputs. */
+export type CurveOutput = {
+  points: { x: number; y: number }[];
+  samples?: { x: number; y: number }[];
+  rectangles?: { x0: number; x1: number; height: number }[];
+  fillArea?: boolean;
+};
+
 export type PortInput = {
   key: string;
   label: string;
