@@ -147,10 +147,10 @@ export type WiredComputeResult = {
   outputs: Record<string, unknown>;
   error?: string;
   /** Input keys on this node whose value came from an upstream wire, not its own stored inputs
-   *  — SyntropyNodeCard uses this to render those scrub chips read-only and highlighted. */
+   *  — the node body uses this to render those scrub chips read-only and highlighted. */
   wiredInputKeys: Set<string>;
   /** The actual input values compute() ran with — the node's own stored inputs with any wired
-   *  keys overridden by their upstream value. SyntropyNodeCard reads a wired chip's displayed
+   *  keys overridden by their upstream value. The node body reads a wired chip's displayed
    *  value from here (not from the node's own stored inputs) so it shows what's really flowing
    *  through the wire, not stale local state. */
   effectiveInputs: Record<string, unknown>;

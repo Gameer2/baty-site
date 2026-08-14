@@ -54,8 +54,8 @@ export const RiemannPlot = ({ rectangles, accent }: RiemannPlotProps) => {
         x2={VIEW_WIDTH - PAD}
         y2={baselineY}
         // currentColor so the axis follows the theme — .RiemannPlot sets
-        // color: var(--color-gray-60) in SyntropyNodeCard.scss (a hairline that
-        // reads on both the light and dark plot surfaces).
+        // color: var(--color-gray-60) (a hairline that reads on both the
+        // light and dark plot surfaces).
         stroke="currentColor"
         strokeOpacity={0.5}
       />

@@ -73,7 +73,7 @@
 }
 
 // Premium portal button — same lab .btn--ghost fill-sweep + accent glow as the real card's
-// (SyntropyNodeCard.scss). Placeholder nodes render through renderEmbeddable, so this is gated
+// (NodeShell.scss). Placeholder nodes render through renderEmbeddable, so this is gated
 // behind Excalidraw's embeddable pointer-events rule until the node is double-clicked into —
 // consistent with the rest of this shell's content.
 .SyntropyNode__portal {
