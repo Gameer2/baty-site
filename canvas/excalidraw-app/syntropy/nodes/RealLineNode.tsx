@@ -3,6 +3,8 @@ import { useState } from "react";
 import { openMethodPage } from "../portalPrefill";
 
 import { NodeShell, PortDot } from "./NodeShell";
+import { NodeStatus } from "./NodeStatus";
+import { useNodeCompute, type RunResult } from "./useNodeCompute";
 
 import "./RealLineNode.scss";
 
@@ -21,6 +23,7 @@ type RealLineNodeProps = {
     outputKey: string,
     event: React.PointerEvent<HTMLSpanElement>,
   ) => void;
+  onRunResult?: (nodeId: string, result: RunResult) => void;
   readOnly?: boolean;
 };
 
@@ -39,6 +42,7 @@ export const RealLineNode = ({
   onInputsChange,
   computedResult,
   onOutputPortPointerDown,
+  onRunResult,
   readOnly = false,
 }: RealLineNodeProps) => {
   const { error, wiredInputKeys, effectiveInputs } = computedResult;
@@ -60,8 +64,14 @@ export const RealLineNode = ({
   for (const key of wiredInputKeys) {
     effectiveLocalInputs[key] = effectiveInputs[key];
   }
-  const { outputs, error: localError } = spec.compute(effectiveLocalInputs);
-  const displayError = error ?? localError;
+  const {
+    outputs,
+    error: localError,
+    pending,
+    stale,
+  } = useNodeCompute(nodeId, spec, effectiveLocalInputs, onRunResult);
+  // Suppress a stale error while a run is in flight so "running…" is the only status shown.
+  const displayError = pending ? undefined : error ?? localError;
 
   const curveOutput = spec.outputs.find((o) => o.kind === "curve");
   const scalarOutputs = spec.outputs.filter(
@@ -134,6 +144,8 @@ export const RealLineNode = ({
       })}
 
       {displayError && <p className="NodeShell__error">{displayError}</p>}
+
+      <NodeStatus pending={pending} stale={stale} />
 
       {!displayError && curve && <RealLinePlot curve={curve} accent={accent} />}
 

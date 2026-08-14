@@ -3,6 +3,8 @@ import { useState } from "react";
 import { openMethodPage } from "../portalPrefill";
 
 import { NodeShell, PortDot } from "./NodeShell";
+import { NodeStatus } from "./NodeStatus";
+import { useNodeCompute, type RunResult } from "./useNodeCompute";
 
 import "./SymbolicNode.scss";
 
@@ -25,6 +27,7 @@ type SymbolicNodeProps = {
     outputKey: string,
     event: React.PointerEvent<HTMLSpanElement>,
   ) => void;
+  onRunResult?: (nodeId: string, result: RunResult) => void;
   readOnly?: boolean;
 };
 
@@ -45,6 +48,7 @@ export const SymbolicNode = ({
   onInputsChange,
   computedResult,
   onOutputPortPointerDown,
+  onRunResult,
   readOnly = false,
 }: SymbolicNodeProps) => {
   const { error, wiredInputKeys, effectiveInputs } = computedResult;
@@ -66,8 +70,14 @@ export const SymbolicNode = ({
   for (const key of wiredInputKeys) {
     effectiveLocalInputs[key] = effectiveInputs[key];
   }
-  const { outputs, error: localError } = spec.compute(effectiveLocalInputs);
-  const displayError = error ?? localError;
+  const {
+    outputs,
+    error: localError,
+    pending,
+    stale,
+  } = useNodeCompute(nodeId, spec, effectiveLocalInputs, onRunResult);
+  // Suppress a stale error while a run is in flight so "running…" is the only status shown.
+  const displayError = pending ? undefined : error ?? localError;
 
   const expressionOutput = spec.outputs.find((o) => o.kind === "expression");
   const scalarOutputs = spec.outputs.filter(
@@ -141,6 +151,8 @@ export const SymbolicNode = ({
       })}
 
       {displayError && <p className="NodeShell__error">{displayError}</p>}
+
+      <NodeStatus pending={pending} stale={stale} />
 
       {!displayError && expr && (
         <div className="SymbolicNode__expr" data-syntropy-symbolic>

@@ -146,6 +146,11 @@ export type NodeState = {
 export type WiredComputeResult = {
   outputs: Record<string, unknown>;
   error?: string;
+  /** True while a run-mode node's async compute is in flight (or before its first run). Live
+   *  nodes are always synchronous, so this is undefined for them. */
+  pending?: boolean;
+  /** True when a run-mode node's inputs changed since its last run. Undefined for live nodes. */
+  stale?: boolean;
   /** Input keys on this node whose value came from an upstream wire, not its own stored inputs
    *  — the node body uses this to render those scrub chips read-only and highlighted. */
   wiredInputKeys: Set<string>;
@@ -240,8 +245,22 @@ export const computeWiredResults = (
         wiredInputKeys.add(c.targetInputKey);
       }
     }
-    const result = spec.compute(effectiveInputs);
-    results.set(id, { ...result, wiredInputKeys, effectiveInputs });
+    // wiring stays synchronous (the render path can't await), so a run-mode node — whose real
+    // async result lives in the host's runStore, populated when its Run action fires via
+    // computeRun — gets a pending placeholder here rather than invoking compute. Task 7's
+    // runStore propagation reads the cached result back into this slot once the run resolves.
+    // Live nodes compute synchronously.
+    if (spec.executionMode === "run") {
+      results.set(id, {
+        outputs: {},
+        pending: true,
+        wiredInputKeys,
+        effectiveInputs,
+      });
+      continue;
+    }
+    const raw = spec.compute(effectiveInputs);
+    results.set(id, { ...raw, wiredInputKeys, effectiveInputs });
   }
 
   for (const id of cyclic) {

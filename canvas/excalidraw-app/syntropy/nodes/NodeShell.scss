@@ -201,3 +201,29 @@
       0 0 14px 3px color-mix(in srgb, var(--node-accent) 50%, transparent);
   }
 }
+
+// Run-mode status chip — "running…" / "stale — press Run". Shared by every archetype renderer
+// (mounted unconditionally; renders nothing when a run node is ready or for live nodes).
+.NodeStatus {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  pointer-events: auto;
+}
+
+.NodeStatus--pending {
+  color: var(--node-accent);
+  background: color-mix(in srgb, var(--node-accent) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--node-accent) 45%, transparent);
+}
+
+.NodeStatus--stale {
+  color: var(--color-gray-60);
+  background: var(--color-surface-low);
+  border: 1px solid var(--input-border-color);
+}

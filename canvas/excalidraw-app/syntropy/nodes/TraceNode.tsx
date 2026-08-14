@@ -3,6 +3,8 @@ import { useState } from "react";
 import { openMethodPage } from "../portalPrefill";
 
 import { NodeShell, PortDot } from "./NodeShell";
+import { NodeStatus } from "./NodeStatus";
+import { useNodeCompute, type RunResult } from "./useNodeCompute";
 
 import "./TraceNode.scss";
 
@@ -21,6 +23,7 @@ type TraceNodeProps = {
     outputKey: string,
     event: React.PointerEvent<HTMLSpanElement>,
   ) => void;
+  onRunResult?: (nodeId: string, result: RunResult) => void;
   readOnly?: boolean;
 };
 
@@ -59,6 +62,7 @@ export const TraceNode = ({
   onInputsChange,
   computedResult,
   onOutputPortPointerDown,
+  onRunResult,
   readOnly = false,
 }: TraceNodeProps) => {
   const { error, wiredInputKeys, effectiveInputs } = computedResult;
@@ -80,8 +84,14 @@ export const TraceNode = ({
   for (const key of wiredInputKeys) {
     effectiveLocalInputs[key] = effectiveInputs[key];
   }
-  const { outputs, error: localError } = spec.compute(effectiveLocalInputs);
-  const displayError = error ?? localError;
+  const {
+    outputs,
+    error: localError,
+    pending,
+    stale,
+  } = useNodeCompute(nodeId, spec, effectiveLocalInputs, onRunResult);
+  // Suppress a stale error while a run is in flight so "running…" is the only status shown.
+  const displayError = pending ? undefined : error ?? localError;
 
   const traceOutput = spec.outputs.find((o) => o.kind === "trace");
   const scalarOutputs = spec.outputs.filter(
@@ -172,6 +182,8 @@ export const TraceNode = ({
       })}
 
       {displayError && <p className="NodeShell__error">{displayError}</p>}
+
+      <NodeStatus pending={pending} stale={stale} />
 
       {!displayError && rows.length > 0 && (
         <div className="TraceNode__tableScroll">

@@ -3,6 +3,8 @@ import { useState } from "react";
 import { openMethodPage } from "../portalPrefill";
 
 import { NodeShell, PortDot } from "./NodeShell";
+import { NodeStatus } from "./NodeStatus";
+import { useNodeCompute, type RunResult } from "./useNodeCompute";
 
 import "./FieldNode.scss";
 
@@ -21,6 +23,7 @@ type FieldNodeProps = {
     outputKey: string,
     event: React.PointerEvent<HTMLSpanElement>,
   ) => void;
+  onRunResult?: (nodeId: string, result: RunResult) => void;
   readOnly?: boolean;
 };
 
@@ -40,6 +43,7 @@ export const FieldNode = ({
   onInputsChange,
   computedResult,
   onOutputPortPointerDown,
+  onRunResult,
   readOnly = false,
 }: FieldNodeProps) => {
   const { error, wiredInputKeys, effectiveInputs } = computedResult;
@@ -61,8 +65,14 @@ export const FieldNode = ({
   for (const key of wiredInputKeys) {
     effectiveLocalInputs[key] = effectiveInputs[key];
   }
-  const { outputs, error: localError } = spec.compute(effectiveLocalInputs);
-  const displayError = error ?? localError;
+  const {
+    outputs,
+    error: localError,
+    pending,
+    stale,
+  } = useNodeCompute(nodeId, spec, effectiveLocalInputs, onRunResult);
+  // Suppress a stale error while a run is in flight so "running…" is the only status shown.
+  const displayError = pending ? undefined : error ?? localError;
 
   const fieldOutput = spec.outputs.find((o) => o.kind === "field");
   const scalarOutputs = spec.outputs.filter(
@@ -135,6 +145,8 @@ export const FieldNode = ({
       })}
 
       {displayError && <p className="NodeShell__error">{displayError}</p>}
+
+      <NodeStatus pending={pending} stale={stale} />
 
       {!displayError && field && <FieldPlot field={field} accent={accent} />}
 

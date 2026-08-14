@@ -8,6 +8,7 @@ import { TraceNode } from "./TraceNode";
 
 import type { PortSpec } from "../portSpecs/types";
 import type { WiredComputeResult } from "../wiring";
+import type { RunResult } from "./useNodeCompute";
 
 /** The seven visualization archetypes — see
  *  docs/superpowers/specs/2026-08-14-syntropy-async-run-and-symbolic-design.md (§2 adds Symbolic).
@@ -60,6 +61,10 @@ export type NodeBodyProps = {
     outputKey: string,
     event: React.PointerEvent<HTMLSpanElement>,
   ) => void;
+  /** A run-mode node reports its resolved result back to the host (NodeOverlay) so the host's
+   *  runStore can propagate the value to downstream wired nodes. Optional — live nodes never call
+   *  it, and the host wires it in Task 8. */
+  onRunResult?: (nodeId: string, result: RunResult) => void;
   readOnly?: boolean;
 };
 

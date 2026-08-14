@@ -145,9 +145,19 @@ export type PortSpec = {
   methodId: string;
   inputs: PortInput[];
   outputs: PortOutput[];
-  /** Never reimplements a method's math — always adapts the method's existing core file. */
+  /** Never reimplements a method's math — always adapts the method's existing core file.
+   *  Synchronous for `executionMode: "live"` (all 89 existing specs — recompute on every input
+   *  change, invoked by the render path and wiring on every keystroke). For `executionMode:
+   *  "run"` (the CAS methods) `compute` stays sync but returns a not-yet-run placeholder — the
+   *  real async result comes from `computeRun`, triggered explicitly by a Run button, not on
+   *  every keystroke. See
+   *  docs/superpowers/specs/2026-08-14-syntropy-async-run-and-symbolic-design.md §4. */
   compute: (inputs: Record<string, unknown>) => ComputeResult;
-  executionMode: "live";
+  /** Async compute for `executionMode: "run"` specs (the CAS methods). Undefined for `"live"`
+   *  specs. The render path never awaits this on every keystroke — useNodeCompute invokes it only
+   *  when the node's Run action fires, keeping the last result stable between runs. See spec §4. */
+  computeRun?: (inputs: Record<string, unknown>) => Promise<ComputeResult>;
+  executionMode: "live" | "run";
   /**
    * Opt-in hint for a factorization-shaped output layout. On the Matrix archetype `"factorization"`
    * means the matrix outputs are factors whose product reconstructs the single matrix input (LU's
