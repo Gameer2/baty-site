@@ -37,8 +37,25 @@ describe("MatrixNode", () => {
     expect(cell.value).toBe("2");
   });
 
-  // The "renders L/U factor grids with the A = L · U convention" test lives in Task 3,
-  // alongside the LU spec migration that declares L and U as matrix outputs.
+  it("renders each matrix output as a labeled read-only grid with the A = L · U convention", () => {
+    const { container } = render(
+      <MatrixNode
+        nodeId={NODE_ID}
+        spec={LU_DECOMPOSITION_PORT_SPEC}
+        name="LU Decomposition"
+        accent="#8570b3"
+        inputs={DEFAULT_INPUTS}
+        onInputsChange={() => {}}
+        computedResult={resultFor(DEFAULT_INPUTS)}
+        onOutputPortPointerDown={() => {}}
+      />,
+    );
+    expect(screen.getByText("L")).toBeTruthy();
+    expect(screen.getByText("U")).toBeTruthy();
+    // The "A =" prefix (input key) and the "·" separator between factors.
+    expect(container.textContent).toContain("A =");
+    expect(container.textContent).toContain("·");
+  });
 
   it("renders number outputs as scalar stat rows with an output port dot", () => {
     const { container } = render(

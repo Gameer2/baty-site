@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { NodeBody } from "../../syntropy/nodes/dispatch";
 import { RIEMANN_SUMS_PORT_SPEC } from "../../syntropy/portSpecs/riemannSums";
 import { NEWTON_RAPHSON_PORT_SPEC } from "../../syntropy/portSpecs/newtonRaphson";
+import { LU_DECOMPOSITION_PORT_SPEC } from "../../syntropy/portSpecs/luDecomposition";
 
 import type { WiredComputeResult } from "../../syntropy/wiring";
 
@@ -67,5 +68,26 @@ describe("NodeBody dispatcher", () => {
     );
     expect(out).toBeTruthy();
     expect(out?.getAttribute("data-port-node-id")).toBe("n");
+  });
+
+  it("routes the matrix archetype to MatrixNode (renders the A = L · U factor row)", () => {
+    const { container } = render(
+      <NodeBody
+        nodeId="n"
+        spec={LU_DECOMPOSITION_PORT_SPEC}
+        name="LU Decomposition"
+        accent="#8570b3"
+        inputs={{ A: "2,1,1;4,-6,0;-2,7,2" }}
+        onInputsChange={() => {}}
+        computedResult={{
+          ...LU_DECOMPOSITION_PORT_SPEC.compute({ A: "2,1,1;4,-6,0;-2,7,2" }),
+          wiredInputKeys: new Set(),
+          effectiveInputs: { A: "2,1,1;4,-6,0;-2,7,2" },
+        }}
+        onOutputPortPointerDown={() => {}}
+      />,
+    );
+    // LU's primary output is a matrix -> archetype "matrix" -> MatrixNode -> "A = L · U".
+    expect(container.textContent).toContain("A =");
   });
 });
