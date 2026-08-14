@@ -74,6 +74,15 @@ export type PortSpec = {
   /** Never reimplements a method's math — always adapts the method's existing core file. */
   compute: (inputs: Record<string, unknown>) => ComputeResult;
   executionMode: "live";
+  /**
+   * Opt-in hint for the Matrix archetype's output layout. `"factorization"` means the
+   * matrix outputs are factors whose product reconstructs the single matrix input (LU's
+   * L·U, Gram-Schmidt's Q·R, SVD's U·Σ·V), so MatrixNode renders them on one line joined by
+   * "·" with an "{A} =" prefix. Omit it for any spec whose matrix outputs are not a product
+   * (four-subspaces' bases, an RREF, an inverse, a solution vector) — those render as
+   * stacked labeled grids, since "A = A⁻¹" or "A = col · row · null" would read wrong.
+   */
+  relation?: "factorization";
   /** The method's real page on math-lab, opened by the node's portal tab. */
   pagePath: string;
   /** The Proto.saveState/loadState localStorage key that page already reads on load. */

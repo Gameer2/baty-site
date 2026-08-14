@@ -20,6 +20,7 @@ export const LU_DECOMPOSITION_PORT_SPEC: PortSpec = {
     { key: "det", label: "det(A)", kind: "number" },
     { key: "swaps", label: "row swaps", kind: "number" },
   ],
+  relation: "factorization",
   executionMode: "live",
   pagePath: "/math-lab/engines/linear-algebra/methods/lu-decomposition.html",
   pageStoreKey: "engine-lab:linear-algebra-lu-decomposition",

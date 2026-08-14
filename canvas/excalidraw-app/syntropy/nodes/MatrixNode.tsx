@@ -92,9 +92,11 @@ const Grid = ({
 );
 
 /** The matrix archetype: editable cell-grid input + factor/eigenpair/scalar outputs.
- *  v1 layout convention: matrix outputs render in declared order joined by " · "; if the
- *  spec has exactly one matrix-kind input, prefix with "{inputKey} = " (the "A = L · U"
- *  relation). Eigenpairs render as (λ, v) rows; number/text as scalar stat rows. */
+ *  v1 layout convention: when the spec opts in via `relation: "factorization"`, its matrix
+ *  outputs render on one line joined by " · " with an "{inputKey} =" prefix (the "A = L · U"
+ *  relation). Any other spec's matrix outputs render as stacked labeled grids — bases, an
+ *  RREF, an inverse, a solution vector are not products, so "A = col · row · null" or
+ *  "A = A⁻¹" would read wrong. Eigenpairs render as (λ, v) rows; number/text as scalar rows. */
 export const MatrixNode = ({
   nodeId,
   spec,
@@ -152,6 +154,12 @@ export const MatrixNode = ({
   const scalarOutputs = spec.outputs.filter(
     (o) => o.kind === "number" || o.kind === "text",
   );
+  // A genuine factorization: opted-in AND a single matrix input AND 2+ matrix factors.
+  // Anything else (bases, RREF, inverse, solution) renders as stacked labeled grids.
+  const isFactorization =
+    spec.relation === "factorization" &&
+    matrixInput !== undefined &&
+    matrixOutputs.length >= 2;
 
   return (
     <NodeShell
@@ -230,17 +238,21 @@ export const MatrixNode = ({
       {displayError && <p className="MatrixNode__error">{displayError}</p>}
 
       {!displayError && matrixOutputs.length > 0 && (
-        <div className="MatrixNode__factors">
-          {/* The "{A} =" relation prefix is only correct for a factorization — 2+ matrix
-              outputs that multiply back to the input (A = L·U, A = Q·R, A = U·Σ·V). A single
-              matrix output (Cholesky's L, an RREF, an inverse, a solution vector) is just the
-              labeled grid alone; "A = A⁻¹" would read wrong. */}
-          {matrixInput && matrixOutputs.length >= 2 && (
-            <span className="MatrixNode__relation">{matrixInput.key} =</span>
+        <div
+          className={
+            isFactorization
+              ? "MatrixNode__factors"
+              : "MatrixNode__factors MatrixNode__factors--stacked"
+          }
+        >
+          {isFactorization && (
+            <span className="MatrixNode__relation">{matrixInput!.key} =</span>
           )}
           {matrixOutputs.map((o, i) => (
             <div className="MatrixNode__factor" key={o.key}>
-              {i > 0 && <span className="MatrixNode__op">·</span>}
+              {isFactorization && i > 0 && (
+                <span className="MatrixNode__op">·</span>
+              )}
               <Grid
                 matrix={(outputs[o.key] as number[][]) ?? []}
                 displayLabel={o.label}

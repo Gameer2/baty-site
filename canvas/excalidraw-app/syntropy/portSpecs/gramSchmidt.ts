@@ -21,6 +21,7 @@ export const GRAM_SCHMIDT_PORT_SPEC: PortSpec = {
     { key: "orthogonalityError", label: "orthog. err", kind: "number" },
     { key: "reconstructionError", label: "recon. err", kind: "number" },
   ],
+  relation: "factorization",
   executionMode: "live",
   pagePath: "/math-lab/engines/linear-algebra/methods/gram-schmidt.html",
   pageStoreKey: "engine-lab:linear-algebra-gram-schmidt",

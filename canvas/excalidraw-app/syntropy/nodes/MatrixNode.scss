@@ -98,6 +98,15 @@
   font-weight: 600;
 }
 
+// Non-factorization matrix outputs (the four subspaces, an RREF, an inverse, a solution
+// vector, a basis) are a set, not a product — stack their labeled grids vertically with a
+// little breathing room instead of the "A = X · Y" factor row.
+.MatrixNode__factors--stacked {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
 .MatrixNode__eigenpairs {
   margin-top: 4px;
   display: grid;

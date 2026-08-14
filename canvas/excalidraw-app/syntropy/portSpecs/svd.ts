@@ -22,6 +22,7 @@ export const SVD_PORT_SPEC: PortSpec = {
     { key: "sigma1", label: "sigma 1", kind: "number" },
     { key: "conditionNumber", label: "cond #", kind: "number" },
   ],
+  relation: "factorization",
   executionMode: "live",
   pagePath: "/math-lab/engines/linear-algebra/methods/svd.html",
   pageStoreKey: "engine-lab:linear-algebra-svd",
