@@ -9,7 +9,9 @@ describe("getPortSpec", () => {
   });
 
   it("returns null for a method with no port spec yet", () => {
-    expect(getPortSpec("calculus", "limits")).toBeNull();
-    expect(getPortSpec("complex", "mobius-mapping")).toBeNull();
+    // Bogus method ids — real method names (limits, mobius-mapping, …) get registered as each
+    // engine rolls out, which would churn this assertion. A non-existent id stays null forever.
+    expect(getPortSpec("calculus", "not-a-real-method")).toBeNull();
+    expect(getPortSpec("complex", "not-a-real-method")).toBeNull();
   });
 });

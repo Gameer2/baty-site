@@ -1,4 +1,6 @@
 import { ADAPTIVE_QUADRATURE_PORT_SPEC } from "./adaptiveQuadrature";
+import { ALGEBRAIC_SUBSTITUTION_PORT_SPEC } from "./algebraicSubstitution";
+import { ARC_LENGTH_SURFACE_AREA_PORT_SPEC } from "./arcLengthSurfaceArea";
 import { ANOVA_F_TEST_PORT_SPEC } from "./anovaFTest";
 import { BISECTION_PORT_SPEC } from "./bisection";
 import { BROYDENS_METHOD_PORT_SPEC } from "./broydensMethod";
@@ -7,6 +9,7 @@ import { CHI_SQUARE_TESTS_PORT_SPEC } from "./chiSquareTests";
 import { CHINESE_REMAINDER_THEOREM_PORT_SPEC } from "./chineseRemainderTheorem";
 import { CHOLESKY_PORT_SPEC } from "./cholesky";
 import { CLASSICAL_CIPHERS_PORT_SPEC } from "./classicalCiphers";
+import { COMPLETE_THE_SQUARE_PORT_SPEC } from "./completeTheSquare";
 import { CONFIDENCE_INTERVALS_PORT_SPEC } from "./confidenceIntervals";
 import { CONJUGATE_GRADIENT_PORT_SPEC } from "./conjugateGradient";
 import { CONTINUED_FRACTIONS_PORT_SPEC } from "./continuedFractions";
@@ -34,6 +37,9 @@ import { GAUSSIAN_QUADRATURE_PORT_SPEC } from "./gaussianQuadrature";
 import { GRAM_SCHMIDT_PORT_SPEC } from "./gramSchmidt";
 import { HERMITE_INTERPOLATION_PORT_SPEC } from "./hermiteInterpolation";
 import { HORNER_PORT_SPEC } from "./horner";
+import { IMPROPER_INTEGRALS_PORT_SPEC } from "./improperIntegrals";
+import { INTEGRAL_CALCULATOR_PORT_SPEC } from "./integralCalculator";
+import { INTEGRATION_BY_PARTS_PORT_SPEC } from "./integrationByParts";
 import { INDEPENDENCE_BASIS_PORT_SPEC } from "./independenceBasis";
 import { INVERSE_POWER_METHOD_PORT_SPEC } from "./inversePowerMethod";
 import { ITERATIVE_SOLVERS_PORT_SPEC } from "./iterativeSolvers";
@@ -41,6 +47,8 @@ import { JACOBI_SYMBOL_PORT_SPEC } from "./jacobiSymbol";
 import { LAGRANGE_INTERPOLATION_PORT_SPEC } from "./lagrangeInterpolation";
 import { LEAST_SQUARES_PORT_SPEC } from "./leastSquares";
 import { LEAST_SQUARES_LINALG_PORT_SPEC } from "./leastSquaresLinalg";
+import { LHOPITAL_PORT_SPEC } from "./lhopital";
+import { LIMITS_PORT_SPEC } from "./limits";
 import { LINEAR_CONGRUENCES_PORT_SPEC } from "./linearCongruences";
 import { LINEAR_DIOPHANTINE_PORT_SPEC } from "./linearDiophantine";
 import { LINEAR_REGRESSION_STATS_PORT_SPEC } from "./linearRegressionStats";
@@ -62,6 +70,7 @@ import { NEWTON_RAPHSON_PORT_SPEC } from "./newtonRaphson";
 import { NUMERICAL_DIFF_PORT_SPEC } from "./numericalDiff";
 import { ONE_SAMPLE_T_TEST_PORT_SPEC } from "./oneSampleTTest";
 import { ORDER_OF_ELEMENT_PORT_SPEC } from "./orderOfElement";
+import { PARTIAL_FRACTIONS_PORT_SPEC } from "./partialFractions";
 import { PELLS_EQUATION_PORT_SPEC } from "./pellsEquation";
 import { POWER_METHOD_PORT_SPEC } from "./powerMethod";
 import { PRIMALITY_TESTING_PORT_SPEC } from "./primalityTesting";
@@ -85,7 +94,9 @@ import { SPECTRAL_THEOREM_PORT_SPEC } from "./spectralTheorem";
 import { STEFFENSEN_PORT_SPEC } from "./steffensen";
 import { SVD_PORT_SPEC } from "./svd";
 import { TRAPEZOIDAL_RULE_PORT_SPEC } from "./trapezoidalRule";
+import { TRIG_SUBSTITUTION_PORT_SPEC } from "./trigSubstitution";
 import { TWO_SAMPLE_PAIRED_TESTS_PORT_SPEC } from "./twoSamplePairedTests";
+import { U_SUBSTITUTION_PORT_SPEC } from "./uSubstitution";
 import { WILSONS_THEOREM_PORT_SPEC } from "./wilsonsTheorem";
 
 import type { EngineId } from "../engineAccents";
@@ -94,6 +105,17 @@ import type { PortSpec } from "./types";
 // Phase D (port-spec rollout) adds to this map — nothing else about the node host changes to
 // onboard a new method beyond adding its spec here.
 const REGISTRY: Record<string, PortSpec> = {
+  "calculus:algebraic-substitution": ALGEBRAIC_SUBSTITUTION_PORT_SPEC,
+  "calculus:arc-length-surface-area": ARC_LENGTH_SURFACE_AREA_PORT_SPEC,
+  "calculus:completing-the-square": COMPLETE_THE_SQUARE_PORT_SPEC,
+  "calculus:improper-integrals": IMPROPER_INTEGRALS_PORT_SPEC,
+  "calculus:integral-calculator": INTEGRAL_CALCULATOR_PORT_SPEC,
+  "calculus:integration-by-parts": INTEGRATION_BY_PARTS_PORT_SPEC,
+  "calculus:limits": LIMITS_PORT_SPEC,
+  "calculus:lhopital": LHOPITAL_PORT_SPEC,
+  "calculus:partial-fractions": PARTIAL_FRACTIONS_PORT_SPEC,
+  "calculus:trigonometric-substitution": TRIG_SUBSTITUTION_PORT_SPEC,
+  "calculus:u-substitution": U_SUBSTITUTION_PORT_SPEC,
   "calculus:riemann-sums": RIEMANN_SUMS_PORT_SPEC,
   "numerical:bisection": BISECTION_PORT_SPEC,
   "numerical:false-position": FALSE_POSITION_PORT_SPEC,

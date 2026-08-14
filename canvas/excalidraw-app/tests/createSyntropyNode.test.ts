@@ -60,8 +60,8 @@ describe("createSyntropyNode", () => {
 
     createSyntropyNode(fakeAPI, {
       engineId: "calculus",
-      methodId: "limits",
-      name: "Limits",
+      methodId: "not-a-real-method",
+      name: "Unregistered Method",
     });
 
     const element = (updated!.elements[0] ?? {}) as Record<string, unknown>;
