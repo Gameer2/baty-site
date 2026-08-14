@@ -20,6 +20,19 @@ importScripts(
   "./calculus-symbolic.js",
   "./integration-advanced.js",
   "./ode-symbolic.js",
+  // ODE/PDE solver cores — worker-safe UMD factories (root-detected via `self`, no DOM), so they
+  // load fine here. Order matters: algorithms.js sets root.Algorithms; linalg-algorithms.js
+  // consumes it and sets root.LinAlg; ode-solver.js sets root.ODESolver; ode-systems.js consumes
+  // ODESolver + LinAlg; laplace-engine.js consumes ODESolver + Algorithms; ode-poisson.js
+  // consumes LinAlg; series-solution-fallback.js consumes ODESolver. All four symbolic solvers
+  // reach SympyClient (loaded below) and so return Promises the async-aware onmessage awaits.
+  "./algorithms.js",
+  "./linalg-algorithms.js",
+  "./ode-solver.js",
+  "./ode-systems.js",
+  "./laplace-engine.js",
+  "./ode-poisson.js",
+  "./series-solution-fallback.js",
   "./complex-symbolic.js",
   // Complex Analysis shared cores — pure/DOM-free UMD factories (root-detected via `self`, so
   // worker-safe). Order matters: complex.js is dependency-free; complex-residues.js needs
@@ -285,6 +298,176 @@ const OPS = Object.assign(Object.create(null), {
   // just a finite trig sum) and so runs safely on the main thread.
   solveHeatEquation: (args) => ODESymbolic.solveHeatEquation(args[0]),
   solveWaveEquation: (args) => ODESymbolic.solveWaveEquation(args[0]),
+
+  // ODE/PDE solvers — four thin routes to the worker-safe cores (each returns a Promise that the
+  // async-aware onmessage awaits) plus three Field-orchestration ops that turn a series-solution
+  // or finite-difference solve into a sampled 2D field grid the Syntropy FieldNode can plot. The
+  // orchestration ops add `ok: true` themselves because solveHeatEquation/solveWaveEquation and
+  // PoissonEngine.solveGrid return bare objects without an `ok` field (incompatible with runCas).
+  solveOde: (args) => {
+    const eq = String(args[0]);
+    const ics = args[1];
+    if (ics) {
+      // Cap the supplied derivative ICs to the equation's detected order, so a node that always
+      // sends [y0, y'0] doesn't hand a 1st-order ODE more conditions than it has (SymPy would then
+      // over-constrain). ODESolver.detectOrder is a pure string scan, no CAS.
+      const order = ODESolver.detectOrder(eq);
+      if (order === 0) return ODESolver.solve(eq, null);
+      const capped = {
+        x0: ics.x0,
+        derivValues: (ics.derivValues || []).slice(0, order),
+      };
+      return ODESolver.solve(eq, capped);
+    }
+    return ODESolver.solve(eq, null);
+  },
+  solveOdeSystems: (args) =>
+    ODESystems.solve(args[0], args[1], args[2]),
+  laplaceTransform: (args) => LaplaceEngine.transformOf(args[0]),
+  laplaceInverse: (args) => LaplaceEngine.inverseOf(args[0]),
+  seriesSolutions: (args) =>
+    SeriesSolutionFallback.solve(args[0], args[1], args[2]),
+
+  // heatField: solve the heat equation (separation of variables → bn), then sample u(x,t) =
+  // Σ bn·sin(nπx/L)·exp(-k(nπ/L)²t) over x ∈ [0,L], t ∈ [0,T] into a heatmap grid. Pure numeric
+  // (no SymPy), so this op is SYNC — solveHeatEquation returns a bare box; we add `ok` and the
+  // classification/general-solution text the node shows beside the field. cols×rows is the field
+  // resolution (kept modest — a live preview, not the page's full animation).
+  heatField: (args) => {
+    const cfg = args[0] || {};
+    const L = Number(cfg.L), k = Number(cfg.k), N = Math.round(Number(cfg.N) || 8), T = Number(cfg.T);
+    const fxExpr = String(cfg.fxExpr || "0");
+    if (![L, k, T].every(Number.isFinite) || L <= 0 || k <= 0 || T <= 0) {
+      return { ok: false, error: "L, k and T must be positive numbers." };
+    }
+    const box = ODESymbolic.solveHeatEquation({ L, k, fxExpr, N, T });
+    const cols = Math.max(8, Math.min(60, Math.round(Number(cfg.cols) || 32)));
+    const rows = Math.max(6, Math.min(40, Math.round(Number(cfg.rows) || 20)));
+    const grid = [];
+    for (let r = 0; r < rows; r++) {
+      const t = T * r / (rows - 1);
+      const row = [];
+      for (let c = 0; c < cols; c++) {
+        const x = L * c / (cols - 1);
+        row.push({ x, y: t, value: ODESymbolic.heatSeriesValue(box.bn, box.L, box.k, x, t) });
+      }
+      grid.push(row);
+    }
+    return {
+      ok: true, grid, xLo: 0, xHi: L, yLo: 0, yHi: T, variant: "heatmap",
+      classification: box.classificationLine,
+      generalSolution: box.generalSolution,
+      bn: box.bn,
+    };
+  },
+
+  // waveField: solve the wave equation (→ An, Bn), then sample u(x,t) over x ∈ [0,L], t ∈ [0,T].
+  waveField: (args) => {
+    const cfg = args[0] || {};
+    const L = Number(cfg.L), c = Number(cfg.c), N = Math.round(Number(cfg.N) || 8), T = Number(cfg.T);
+    const fxExpr = String(cfg.fxExpr || "0");
+    const gxExpr = String(cfg.gxExpr || "0");
+    if (![L, c, T].every(Number.isFinite) || L <= 0 || c <= 0 || T <= 0) {
+      return { ok: false, error: "L, c and T must be positive numbers." };
+    }
+    const box = ODESymbolic.solveWaveEquation({ L, c, fxExpr, gxExpr, N, T });
+    const cols = Math.max(8, Math.min(60, Math.round(Number(cfg.cols) || 32)));
+    const rows = Math.max(6, Math.min(40, Math.round(Number(cfg.rows) || 20)));
+    const grid = [];
+    for (let r = 0; r < rows; r++) {
+      const t = T * r / (rows - 1);
+      const row = [];
+      for (let c = 0; c < cols; c++) {
+        const x = L * c / (cols - 1);
+        row.push({ x, y: t, value: ODESymbolic.waveSeriesValue(box.An, box.Bn, box.L, box.c, x, t) });
+      }
+      grid.push(row);
+    }
+    return {
+      ok: true, grid, xLo: 0, xHi: L, yLo: 0, yHi: T, variant: "heatmap",
+      classification: box.classificationLine,
+      generalSolution: box.generalSolution,
+    };
+  },
+
+  // solveLaplacePoisson: assemble the finite-difference grid system for Laplace (edge boundary
+  // values, no source) or Poisson (zero boundary, a source f(x,y)), solve it iteratively, and
+  // reshape the flat solution vector into a (M+1)×(M+1) grid mapped to a heatmap over [0,a]×[0,b].
+  // Mirrors laplace-poisson-page.js's grid assembly/reshape. mode "laplace" uses the four edge
+  // expressions; mode "poisson" uses the source expression with zeroed boundaries.
+  solveLaplacePoisson: (args) => {
+    const cfg = args[0] || {};
+    const mode = String(cfg.mode || "laplace").toLowerCase();
+    const a = Number(cfg.a), b = Number(cfg.b), M = Math.round(Number(cfg.M) || 12);
+    if (![a, b].every(Number.isFinite) || a <= 0 || b <= 0) {
+      return { ok: false, error: "a and b must be positive numbers." };
+    }
+    if (!Number.isInteger(M) || M < 3 || M > 40) {
+      return { ok: false, error: "M must be an integer from 3 to 40." };
+    }
+    const compileEdge = (text) => {
+      try { return math.parse(String(text || "0")).compile(); }
+      catch (e) { return null; }
+    };
+    const bottom = compileEdge(cfg.bottom), top = compileEdge(cfg.top);
+    const left = compileEdge(cfg.left), right = compileEdge(cfg.right);
+    const source = compileEdge(cfg.source);
+    if (mode === "laplace") {
+      if (!bottom || !top || !left || !right) {
+        return { ok: false, error: "Couldn't parse one of the boundary expressions." };
+      }
+    } else if (!source) {
+      return { ok: false, error: "Couldn't parse the source f(x,y)." };
+    }
+    const boundaryFn = mode === "laplace"
+      ? ((x, y) => {
+          if (Math.abs(y) < 1e-9) return bottom.evaluate({ x });
+          if (Math.abs(y - b) < 1e-9) return top.evaluate({ x });
+          if (Math.abs(x) < 1e-9) return left.evaluate({ y });
+          if (Math.abs(x - a) < 1e-9) return right.evaluate({ y });
+          return 0;
+        })
+      : (() => 0);
+    const sourceFn = mode === "laplace"
+      ? (() => 0)
+      : ((x, y) => source.evaluate({ x, y }));
+    const { A, b: rhs } = PoissonEngine.buildGridSystem({ a, b, M, boundaryFn, sourceFn });
+    const { U: flat, converged } = PoissonEngine.solveGrid(A, rhs, "gauss-seidel");
+    // Reshape flat → (M+1)×(M+1): interior from the flat vector, boundaries from boundaryFn.
+    // `full` starts zeroed, so the Poisson (zero-boundary) case needs no edge fill at all.
+    const full = Array.from({ length: M + 1 }, () => new Array(M + 1).fill(0));
+    for (let i = 1; i <= M - 1; i++) {
+      for (let j = 1; j <= M - 1; j++) {
+        full[i][j] = flat[PoissonEngine.flatIndex(i, j, M)];
+      }
+    }
+    if (mode === "laplace") {
+      for (let j = 0; j <= M; j++) {
+        full[0][j] = boundaryFn((j * a) / M, 0);
+        full[M][j] = boundaryFn((j * a) / M, b);
+      }
+      for (let i = 0; i <= M; i++) {
+        full[i][0] = boundaryFn(0, (i * b) / M);
+        full[i][M] = boundaryFn(a, (i * b) / M);
+      }
+    }
+    const hx = a / M, hy = b / M;
+    const grid = [];
+    for (let i = 0; i <= M; i++) {
+      const y = i * hy;
+      const row = [];
+      for (let j = 0; j <= M; j++) {
+        const x = j * hx;
+        row.push({ x, y, value: full[i][j] });
+      }
+      grid.push(row);
+    }
+    return {
+      ok: true, grid, xLo: 0, xHi: a, yLo: 0, yHi: b, variant: "heatmap",
+      converged: converged ? 1 : 0,
+      mode,
+    };
+  },
 
   cauchyRiemann: (args) => ComplexSymbolic.cauchyRiemann(args[0], args[1]),
   harmonicConjugate: (args) => ComplexSymbolic.harmonicConjugate(args[0], args[1]),

@@ -273,6 +273,36 @@
     return CAS.call("solveWaveEquation", [params], opts);
   };
 
+  // ODE/PDE solvers. The four symbolic solvers (solveOde, solveOdeSystems, laplaceTransform,
+  // laplaceInverse, seriesSolutions) route through SymPy and so are async. The three Field
+  // orchestration ops (heatField, waveField, solveLaplacePoisson) build a sampled 2D grid from a
+  // numeric solve and are sync. ics for solveOde is {x0, derivValues:[]}; for solveOdeSystems it
+  // is a flat number[] (one IC per component) or null for the general solution.
+  CAS.solveOde = function (equation, ics, opts) {
+    return CAS.call("solveOde", [equation, ics], opts);
+  };
+  CAS.solveOdeSystems = function (matrixRows, gExprList, ics, opts) {
+    return CAS.call("solveOdeSystems", [matrixRows, gExprList, ics], opts);
+  };
+  CAS.laplaceTransform = function (f, opts) {
+    return CAS.call("laplaceTransform", [f], opts);
+  };
+  CAS.laplaceInverse = function (F, opts) {
+    return CAS.call("laplaceInverse", [F], opts);
+  };
+  CAS.seriesSolutions = function (equation, point, order, opts) {
+    return CAS.call("seriesSolutions", [equation, point, order], opts);
+  };
+  CAS.heatField = function (cfg, opts) {
+    return CAS.call("heatField", [cfg], opts);
+  };
+  CAS.waveField = function (cfg, opts) {
+    return CAS.call("waveField", [cfg], opts);
+  };
+  CAS.solveLaplacePoisson = function (cfg, opts) {
+    return CAS.call("solveLaplacePoisson", [cfg], opts);
+  };
+
   CAS.cauchyRiemann = function (f, point, opts) {
     return CAS.call("cauchyRiemann", [f, point], opts);
   };

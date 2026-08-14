@@ -250,6 +250,42 @@ if (booted) {
        "seriesPartialSums accumulates Σ 1/n²", r && r.result && r.result.rows.length);
   }
   {
+    // heatField orchestrates solveHeatEquation + heatSeriesValue into a sampled heatmap grid.
+    // u(0,t)=u(L,t)=0 (Dirichlet); at t=0 the series reproduces f(x), so u(L/2,0)=sin(π/2)=1.
+    // cols/rows are clamped to a minimum (8/6), so request 9/6 and index the midpoint column.
+    const r = send({ id: 40, op: "heatField", args: [{ L: Math.PI, k: 1, fxExpr: "sin(x)", N: 4, T: 1, cols: 9, rows: 6 }] });
+    ok(r && r.ok && r.result.ok && r.result.grid.length === 6 && r.result.grid[0].length === 9 &&
+       r.result.variant === "heatmap" && Math.abs(r.result.grid[0][4].value - 1) < 1e-6 &&
+       Math.abs(r.result.grid[0][0].value) < 1e-9,
+       "heatField samples the heat solution into a heatmap grid (u(0,t)=0, u(L/2,0)=f=1)",
+       r && r.result && r.result.grid && r.result.grid.length);
+  }
+  {
+    // waveField orchestrates solveWaveEquation + waveSeriesValue. At t=0 it reproduces f(x).
+    const r = send({ id: 41, op: "waveField", args: [{ L: Math.PI, c: 1, fxExpr: "sin(x)", gxExpr: "0", N: 4, T: 1, cols: 9, rows: 6 }] });
+    ok(r && r.ok && r.result.ok && r.result.grid.length === 6 && r.result.grid[0].length === 9 &&
+       Math.abs(r.result.grid[0][4].value - 1) < 1e-6,
+       "waveField samples the wave solution into a heatmap grid (u(L/2,0)=f=1)",
+       r && r.result && r.result.grid && r.result.grid.length);
+  }
+  {
+    // solveLaplacePoisson (Laplace mode, all-zero edges → flat zero solution, converged).
+    const r = send({ id: 42, op: "solveLaplacePoisson", args: [{ mode: "laplace", a: 1, b: 1, M: 6, bottom: "0", top: "0", left: "0", right: "0" }] });
+    ok(r && r.ok && r.result.ok && r.result.grid.length === 7 && r.result.grid[0].length === 7 &&
+       r.result.converged === 1 && r.result.variant === "heatmap",
+       "solveLaplacePoisson (Laplace, zero edges) returns a converged (M+1)×(M+1) heatmap grid",
+       r && r.result && r.result.grid && r.result.grid.length);
+  }
+  {
+    // solveLaplacePoisson (Poisson mode, constant source, zero boundary → non-trivial interior).
+    // The engine solves ∇²u = source; a negative source drives a positive interior bowl.
+    const r = send({ id: 43, op: "solveLaplacePoisson", args: [{ mode: "poisson", a: 1, b: 1, M: 6, source: "-10" }] });
+    ok(r && r.ok && r.result.ok && r.result.grid.length === 7 &&
+       Math.abs(r.result.grid[0][0].value) < 1e-9 && r.result.grid[3][3].value > 0.3,
+       "solveLaplacePoisson (Poisson, source −10) relaxes to a non-zero interior with zero edges",
+       r && r.result && r.result.grid && r.result.grid.length);
+  }
+  {
     // The op table is a whitelist, so an unexpected name is refused rather than reaching
     // anything on the worker's global scope.
     const r = send({ id: 3, op: "constructor", args: [] });
