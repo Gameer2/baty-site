@@ -12,6 +12,11 @@ import { RIEMANN_SUMS_PORT_SPEC } from "../syntropy/portSpecs/riemannSums";
 
 import type { ArrowLike } from "../syntropy/wiring";
 import type { NodeState } from "../syntropy/wiring";
+import type {
+  PortInputKind,
+  PortOutputKind,
+  PortSpec,
+} from "../syntropy/portSpecs/types";
 
 const node = (
   id: string,
@@ -130,6 +135,50 @@ describe("compatibleTargetInputKeys", () => {
       NEWTON_RAPHSON_PORT_SPEC,
     );
     expect(keys).toEqual([]);
+  });
+
+  // The rich kinds (matrix/field/distribution/point) don't appear on any registered spec's OUTPUTS
+  // yet — they land with the per-archetype renderer migrations. These cases use minimal fake specs
+  // to lock in the kind-equal rule forward-looking, so the migration is a no-op for wiring. Note
+  // distribution/field/point are output-only kinds (not in PORT_INPUT_KINDS), so only number and
+  // matrix form a real same-kind input/output pair today; the other wireable output kinds are
+  // accepted as wireable sources but match no target input.
+  const fakeSpec = (
+    outputKind: PortOutputKind,
+    inputKinds: PortInputKind[],
+  ): PortSpec => ({
+    engineId: "linear-algebra",
+    methodId: "fake",
+    inputs: inputKinds.map((kind, i) => ({
+      key: `in${i}`,
+      label: `in${i}`,
+      kind,
+      default: "",
+    })),
+    outputs: [{ key: "out", label: "out", kind: outputKind }],
+    compute: () => ({ outputs: {} }),
+    executionMode: "live",
+    pagePath: "",
+    pageStoreKey: "",
+  });
+
+  it("matches a matrix output only to matrix-kind inputs (kind-equal)", () => {
+    const source = fakeSpec("matrix", []);
+    const target = fakeSpec("number", ["number", "matrix", "vector"]);
+    expect(compatibleTargetInputKeys(source, "out", target)).toEqual(["in1"]);
+  });
+
+  it("does not match a number output to a matrix input (kind-equal is strict)", () => {
+    const source = fakeSpec("number", []);
+    const target = fakeSpec("number", ["matrix", "number"]);
+    expect(compatibleTargetInputKeys(source, "out", target)).toEqual(["in1"]);
+  });
+
+  it("yields nothing when no target input shares the source output's kind", () => {
+    // matrix is wireable, but this target has only number/vector inputs — kind-equal finds none.
+    const source = fakeSpec("matrix", []);
+    const target = fakeSpec("number", ["number", "vector"]);
+    expect(compatibleTargetInputKeys(source, "out", target)).toEqual([]);
   });
 });
 

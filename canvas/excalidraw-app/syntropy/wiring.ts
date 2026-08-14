@@ -106,20 +106,34 @@ export const extractWireConnections = (
 };
 
 /**
- * v1 compatibility rule: only a "number"-kind output can feed a "number"-kind input. Composite
- * kinds (expression/points/coeffs/vector/matrix/expressions) and curve outputs aren't wireable
- * targets/sources yet — there's no single meaningful value to hand across for those.
+ * Wire compatibility is kind-equal among the wireable kinds: an output of kind K can feed an input
+ * of the same kind K, and only if K is one of the kinds that carry a single meaningful value
+ * across a wire. Composite kinds (expression/points/coeffs/vector/expressions) and rich display
+ * kinds (trace/curve/eigenpairs/text) aren't wireable — there's no single value to hand across, or
+ * the result is a visualization rather than a value. This is forward-looking: today only "number"
+ * outputs exist on registered specs, but matrix/distribution/field/point outputs land with the
+ * per-archetype renderer migrations, and this rule already accepts them.
  */
+const WIREABLE_KINDS = new Set([
+  "number",
+  "matrix",
+  "distribution",
+  "field",
+  "point",
+]);
+
 export const compatibleTargetInputKeys = (
   sourceSpec: PortSpec,
   sourceOutputKey: string,
   targetSpec: PortSpec,
 ): string[] => {
   const output = sourceSpec.outputs.find((o) => o.key === sourceOutputKey);
-  if (!output || output.kind !== "number") {
+  if (!output || !WIREABLE_KINDS.has(output.kind)) {
     return [];
   }
-  return targetSpec.inputs.filter((i) => i.kind === "number").map((i) => i.key);
+  return targetSpec.inputs
+    .filter((i) => i.kind === output.kind)
+    .map((i) => i.key);
 };
 
 export type NodeState = {
