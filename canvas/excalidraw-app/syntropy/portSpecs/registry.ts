@@ -2,6 +2,7 @@ import { ADAPTIVE_QUADRATURE_PORT_SPEC } from "./adaptiveQuadrature";
 import { ALGEBRAIC_SUBSTITUTION_PORT_SPEC } from "./algebraicSubstitution";
 import { ARC_LENGTH_SURFACE_AREA_PORT_SPEC } from "./arcLengthSurfaceArea";
 import { ANOVA_F_TEST_PORT_SPEC } from "./anovaFTest";
+import { APPLIED_OPTIMIZATION_PORT_SPEC } from "./appliedOptimization";
 import { BISECTION_PORT_SPEC } from "./bisection";
 import { BROYDENS_METHOD_PORT_SPEC } from "./broydensMethod";
 import { CHEBYSHEV_ECON_PORT_SPEC } from "./chebyshevEcon";
@@ -45,6 +46,7 @@ import { INVERSE_POWER_METHOD_PORT_SPEC } from "./inversePowerMethod";
 import { ITERATIVE_SOLVERS_PORT_SPEC } from "./iterativeSolvers";
 import { JACOBI_SYMBOL_PORT_SPEC } from "./jacobiSymbol";
 import { LAGRANGE_INTERPOLATION_PORT_SPEC } from "./lagrangeInterpolation";
+import { LAGRANGE_MULTIPLIERS_PORT_SPEC } from "./lagrangeMultipliers";
 import { LEAST_SQUARES_PORT_SPEC } from "./leastSquares";
 import { LEAST_SQUARES_LINALG_PORT_SPEC } from "./leastSquaresLinalg";
 import { LHOPITAL_PORT_SPEC } from "./lhopital";
@@ -61,6 +63,7 @@ import { MOBIUS_FUNCTION_PORT_SPEC } from "./mobiusFunction";
 import { MODULAR_ARITHMETIC_PORT_SPEC } from "./modularArithmetic";
 import { MODULAR_EXPONENTIATION_PORT_SPEC } from "./modularExponentiation";
 import { MULLERS_METHOD_PORT_SPEC } from "./mullersMethod";
+import { MULTIPLE_INTEGRALS_PORT_SPEC } from "./multipleIntegrals";
 import { MULTIPLE_REGRESSION_PORT_SPEC } from "./multipleRegression";
 import { NEVILLE_PORT_SPEC } from "./neville";
 import { NEWTON_DD_PORT_SPEC } from "./newtonDD";
@@ -80,6 +83,7 @@ import { PROBABILITY_COMBINATORICS_PORT_SPEC } from "./probabilityCombinatorics"
 import { QR_ALGORITHM_PORT_SPEC } from "./qrAlgorithm";
 import { QUADRATIC_RECIPROCITY_PORT_SPEC } from "./quadraticReciprocity";
 import { QUADRATIC_RESIDUES_PORT_SPEC } from "./quadraticResidues";
+import { RELATED_RATES_PORT_SPEC } from "./relatedRates";
 import { RICHARDSON_DIFF_PORT_SPEC } from "./richardsonDiff";
 import { RIEMANN_SUMS_PORT_SPEC } from "./riemannSums";
 import { ROMBERG_INTEGRATION_PORT_SPEC } from "./rombergIntegration";
@@ -97,6 +101,7 @@ import { TRAPEZOIDAL_RULE_PORT_SPEC } from "./trapezoidalRule";
 import { TRIG_SUBSTITUTION_PORT_SPEC } from "./trigSubstitution";
 import { TWO_SAMPLE_PAIRED_TESTS_PORT_SPEC } from "./twoSamplePairedTests";
 import { U_SUBSTITUTION_PORT_SPEC } from "./uSubstitution";
+import { VOLUME_OF_REVOLUTION_PORT_SPEC } from "./volumeOfRevolution";
 import { WILSONS_THEOREM_PORT_SPEC } from "./wilsonsTheorem";
 
 import type { EngineId } from "../engineAccents";
@@ -106,17 +111,22 @@ import type { PortSpec } from "./types";
 // onboard a new method beyond adding its spec here.
 const REGISTRY: Record<string, PortSpec> = {
   "calculus:algebraic-substitution": ALGEBRAIC_SUBSTITUTION_PORT_SPEC,
+  "calculus:applied-optimization": APPLIED_OPTIMIZATION_PORT_SPEC,
   "calculus:arc-length-surface-area": ARC_LENGTH_SURFACE_AREA_PORT_SPEC,
   "calculus:completing-the-square": COMPLETE_THE_SQUARE_PORT_SPEC,
   "calculus:improper-integrals": IMPROPER_INTEGRALS_PORT_SPEC,
   "calculus:integral-calculator": INTEGRAL_CALCULATOR_PORT_SPEC,
   "calculus:integration-by-parts": INTEGRATION_BY_PARTS_PORT_SPEC,
+  "calculus:lagrange-multipliers": LAGRANGE_MULTIPLIERS_PORT_SPEC,
   "calculus:limits": LIMITS_PORT_SPEC,
   "calculus:lhopital": LHOPITAL_PORT_SPEC,
+  "calculus:multiple-integrals": MULTIPLE_INTEGRALS_PORT_SPEC,
   "calculus:partial-fractions": PARTIAL_FRACTIONS_PORT_SPEC,
+  "calculus:related-rates": RELATED_RATES_PORT_SPEC,
   "calculus:trigonometric-substitution": TRIG_SUBSTITUTION_PORT_SPEC,
   "calculus:u-substitution": U_SUBSTITUTION_PORT_SPEC,
   "calculus:riemann-sums": RIEMANN_SUMS_PORT_SPEC,
+  "calculus:volumes-of-revolution": VOLUME_OF_REVOLUTION_PORT_SPEC,
   "numerical:bisection": BISECTION_PORT_SPEC,
   "numerical:false-position": FALSE_POSITION_PORT_SPEC,
   "numerical:fixed-point-iteration": FIXED_POINT_ITERATION_PORT_SPEC,
