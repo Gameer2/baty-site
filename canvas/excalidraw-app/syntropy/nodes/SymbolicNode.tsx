@@ -3,8 +3,8 @@ import { useState } from "react";
 import { openMethodPage } from "../portalPrefill";
 
 import { NodeShell, PortDot } from "./NodeShell";
-import { NodeStatus } from "./NodeStatus";
-import { useNodeCompute, type RunResult } from "./useNodeCompute";
+import { NodeRunBar } from "./NodeRunBar";
+import { useNodeCompute, type RunStoreEntry } from "./useNodeCompute";
 
 import "./SymbolicNode.scss";
 
@@ -27,7 +27,7 @@ type SymbolicNodeProps = {
     outputKey: string,
     event: React.PointerEvent<HTMLSpanElement>,
   ) => void;
-  onRunResult?: (nodeId: string, result: RunResult) => void;
+  onRunResult?: (nodeId: string, entry: RunStoreEntry) => void;
   readOnly?: boolean;
 };
 
@@ -75,6 +75,7 @@ export const SymbolicNode = ({
     error: localError,
     pending,
     stale,
+    run,
   } = useNodeCompute(nodeId, spec, effectiveLocalInputs, onRunResult);
   // Suppress a stale error while a run is in flight so "running…" is the only status shown.
   const displayError = pending ? undefined : error ?? localError;
@@ -152,7 +153,12 @@ export const SymbolicNode = ({
 
       {displayError && <p className="NodeShell__error">{displayError}</p>}
 
-      <NodeStatus pending={pending} stale={stale} />
+      <NodeRunBar
+        executionMode={spec.executionMode}
+        run={run}
+        pending={pending}
+        stale={stale}
+      />
 
       {!displayError && expr && (
         <div className="SymbolicNode__expr" data-syntropy-symbolic>

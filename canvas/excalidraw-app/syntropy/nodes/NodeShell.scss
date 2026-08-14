@@ -227,3 +227,37 @@
   background: var(--color-surface-low);
   border: 1px solid var(--input-border-color);
 }
+
+// Run-mode action row — the Run button next to the status chip, shown only for executionMode
+// "run" specs. Mounted unconditionally by every renderer; NodeRunBar renders just the (usually
+// null) chip for live nodes.
+.NodeRunBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.NodeRunBar__run {
+  appearance: none;
+  border: 1px solid color-mix(in srgb, var(--node-accent) 55%, transparent);
+  background: color-mix(in srgb, var(--node-accent) 16%, transparent);
+  color: var(--node-accent);
+  border-radius: 6px;
+  padding: 3px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--node-accent) 26%, transparent);
+    border-color: var(--node-accent);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+}

@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   useNodeCompute,
-  type RunResult,
+  type RunStoreEntry,
 } from "../../syntropy/nodes/useNodeCompute";
 
 import type { ComputeResult, PortSpec } from "../../syntropy/portSpecs/types";
@@ -82,16 +82,24 @@ describe("useNodeCompute — run mode", () => {
     expect(result.current.pending).toBe(false);
     expect(result.current.stale).toBe(true);
 
-    // Fire run() — pending goes true; stale suppressed while pending; outputs still empty.
+    // Fire run() — pending goes true; stale suppressed while pending; outputs still empty. The
+    // host is notified immediately with a pending start entry (carrying the previous — here empty
+    // — outputs and the run's input snapshot) so its runStore can flag downstream nodes pending.
     act(() => {
       result.current.run();
     });
     expect(result.current.pending).toBe(true);
     expect(result.current.stale).toBe(false);
     expect(result.current.outputs).toEqual({});
-    expect(onRunResult).not.toHaveBeenCalled();
+    expect(onRunResult).toHaveBeenCalledTimes(1);
+    expect(onRunResult.mock.calls[0][0]).toBe(NODE_ID);
+    const startEntry = onRunResult.mock.calls[0][1] as RunStoreEntry;
+    expect(startEntry.pending).toBe(true);
+    expect(startEntry.outputs).toEqual({});
+    expect(startEntry.inputs).toEqual({ x: 1 });
 
-    // Resolve the async compute — pending clears, outputs land, no longer stale; host is notified.
+    // Resolve the async compute — pending clears, outputs land, no longer stale; host is notified
+    // with the ready entry.
     await act(async () => {
       resolveRun({ outputs: { y: 42 } });
       // Flush the microtask so the .then setState lands before we read result.
@@ -100,10 +108,11 @@ describe("useNodeCompute — run mode", () => {
     expect(result.current.pending).toBe(false);
     expect(result.current.stale).toBe(false);
     expect(result.current.outputs).toEqual({ y: 42 });
-    expect(onRunResult).toHaveBeenCalledTimes(1);
-    expect(onRunResult.mock.calls[0][0]).toBe(NODE_ID);
-    const reported = onRunResult.mock.calls[0][1] as RunResult;
-    expect(reported.outputs).toEqual({ y: 42 });
+    expect(onRunResult).toHaveBeenCalledTimes(2);
+    const readyEntry = onRunResult.mock.calls[1][1] as RunStoreEntry;
+    expect(readyEntry.outputs).toEqual({ y: 42 });
+    expect(readyEntry.pending).toBe(false);
+    expect(readyEntry.inputs).toEqual({ x: 1 });
 
     // Edit an input — stale goes true, but the last-run result is kept (stable between runs).
     rerender({ inputs: { x: 2 } });
@@ -130,6 +139,8 @@ describe("useNodeCompute — run mode", () => {
       result.current.run();
     });
     expect(result.current.pending).toBe(true);
+    // Start report fires before the rejection resolves.
+    expect(onRunResult).toHaveBeenCalledTimes(1);
 
     await act(async () => {
       rejectRun(new Error("CAS worker died"));
@@ -137,8 +148,9 @@ describe("useNodeCompute — run mode", () => {
     });
     expect(result.current.pending).toBe(false);
     expect(result.current.error).toBe("CAS worker died");
-    expect(onRunResult).toHaveBeenCalledTimes(1);
-    const reported = onRunResult.mock.calls[0][1] as RunResult;
+    expect(onRunResult).toHaveBeenCalledTimes(2);
+    const reported = onRunResult.mock.calls[1][1] as RunStoreEntry;
     expect(reported.error).toBe("CAS worker died");
+    expect(reported.pending).toBe(false);
   });
 });

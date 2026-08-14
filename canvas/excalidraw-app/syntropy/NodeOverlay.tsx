@@ -13,8 +13,15 @@ import {
   extractWireConnections,
 } from "./wiring";
 
+import type { PortSpec } from "./portSpecs/types";
 import type { SyntropyNodeData } from "./syntropyWire";
-import type { ArrowLike, NodeState, WiredComputeResult } from "./wiring";
+import type {
+  ArrowLike,
+  NodeState,
+  RunStore,
+  RunStoreEntry,
+  WiredComputeResult,
+} from "./wiring";
 
 type OverlayElement = {
   id: string;
@@ -69,6 +76,11 @@ type NodeOverlayProps = {
    *  anyway. Gating input-editing and wire creation/deletion here (rather than leaving it to that
    *  eventual no-op) keeps the mirror from looking interactive when it isn't. */
   readOnly?: boolean;
+  /** Resolves a node to its PortSpec. Defaults to the real registry; tests inject a fake so they
+   *  can exercise run-mode nodes (no real run spec is registered yet — registering one would trip
+   *  the output-shape contract test that iterates ALL_PORT_SPECS). The same testability seam
+   *  wiring.ts's computeWiredResults exposes via its 4th arg. */
+  resolveSpec?: (engineId: EngineId, methodId: string) => PortSpec | undefined;
 };
 
 const EMPTY_RESULT: WiredComputeResult = {
@@ -110,6 +122,7 @@ export const NodeOverlay = ({
   onCreateWire,
   onDeleteWire,
   readOnly = false,
+  resolveSpec,
 }: NodeOverlayProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [portPositions, setPortPositions] = useState<Map<string, Point>>(
@@ -122,6 +135,27 @@ export const NodeOverlay = ({
   } | null>(null);
   const [dragPoint, setDragPoint] = useState<Point | null>(null);
   const [selectedWireId, setSelectedWireId] = useState<string | null>(null);
+
+  // The host-owned runStore: each run-mode node's latest run state (outputs/error/pending/inputs),
+  // updated when the node's Run action fires (via the onRunResult callback threaded through
+  // NodeBody → the renderer → useNodeCompute). computeWiredResults reads this so a downstream wired
+  // node sees its upstream run node's ready output and pending/stale state — the synchronous pass
+  // result for a run node is only a placeholder. Live nodes never touch this.
+  const [runStore, setRunStore] = useState<RunStore>(new Map());
+  const handleRunResult = useCallback(
+    (nodeId: string, entry: RunStoreEntry) => {
+      setRunStore((prev) => {
+        const next = new Map(prev);
+        next.set(nodeId, entry);
+        return next;
+      });
+    },
+    [],
+  );
+  const resolve =
+    resolveSpec ??
+    ((engineId: EngineId, methodId: string) =>
+      getPortSpec(engineId, methodId) ?? undefined);
 
   const liveElements = elements.filter((el) => !el.isDeleted);
   const liveArrows = arrows.filter((a) => !a.isDeleted);
@@ -149,7 +183,12 @@ export const NodeOverlay = ({
   }
 
   const connections = extractWireConnections(liveArrows, resolveNode);
-  const wiredResults = computeWiredResults(nodeStates, connections);
+  const wiredResults = computeWiredResults(
+    nodeStates,
+    connections,
+    runStore,
+    resolve,
+  );
 
   // Re-measure every port dot's screen-space center whenever the scene (nodes, wires, or the
   // viewport transform) changes — after layout, before paint, so the connector curves never
@@ -200,9 +239,7 @@ export const NodeOverlay = ({
     [readOnly],
   );
 
-  const specByNodeId = useRef(
-    new Map<string, ReturnType<typeof getPortSpec>>(),
-  );
+  const specByNodeId = useRef(new Map<string, PortSpec | undefined>());
   specByNodeId.current = new Map(
     liveElements.map((el) => {
       const nodeData = el.customData?.syntropyNode as
@@ -210,7 +247,7 @@ export const NodeOverlay = ({
         | undefined;
       return [
         el.id,
-        nodeData ? getPortSpec(nodeData.engineId, nodeData.methodId) : null,
+        nodeData ? resolve(nodeData.engineId, nodeData.methodId) : undefined,
       ];
     }),
   );
@@ -292,7 +329,7 @@ export const NodeOverlay = ({
         if (!nodeData) {
           return null;
         }
-        const spec = getPortSpec(nodeData.engineId, nodeData.methodId);
+        const spec = resolve(nodeData.engineId, nodeData.methodId);
         const rect = computeNodeScreenRect(element, appState);
         const accent = ENGINE_ACCENTS[nodeData.engineId as EngineId];
         // Excalidraw rotates elements around their center, so the overlay card must too. The rect's
@@ -328,6 +365,7 @@ export const NodeOverlay = ({
                 onOutputPortPointerDown={(outputKey, e) =>
                   handleOutputPortPointerDown(element.id, outputKey, accent, e)
                 }
+                onRunResult={handleRunResult}
                 readOnly={readOnly}
               />
             ) : (
