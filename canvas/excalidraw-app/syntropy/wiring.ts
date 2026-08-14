@@ -4,6 +4,42 @@ import type { EngineId } from "./engineAccents";
 import type { PortSpec } from "./portSpecs/types";
 import type { WireCandidate } from "./syntropyWire";
 
+/** A run-mode node's cached run result, owned by the host (NodeOverlay) and populated when the
+ *  node's Run action fires (via useNodeCompute's onRunResult callback). wiring reads this to
+ *  propagate a run node's ready output to downstream wired nodes — the synchronous pass result
+ *  for a run node is only a pending placeholder, so the real value must come from here. `pending`
+ *  is true while the node's own async compute (computeRun) is in flight; `inputs` is the snapshot
+ *  the last run used, so wiring can flag `stale` when the current effective inputs differ. */
+export type RunStoreEntry = {
+  outputs: Record<string, unknown>;
+  error?: string;
+  pending: boolean;
+  inputs: Record<string, unknown>;
+};
+
+export type RunStore = Map<string, RunStoreEntry>;
+
+/** Shallow input equality — values are primitives (numbers/strings) carried across a wire or
+ *  typed into a scrub well, so `===` per key is exact. A fresh object with the same values reads
+ *  as equal. Mirrors useNodeCompute's inputsEqual (kept local here to avoid inverting the
+ *  wiring→nodes layer dependency). */
+const inputsEqual = (
+  a: Record<string, unknown>,
+  b: Record<string, unknown>,
+): boolean => {
+  const ak = Object.keys(a);
+  const bk = Object.keys(b);
+  if (ak.length !== bk.length) {
+    return false;
+  }
+  for (const k of ak) {
+    if (a[k] !== b[k]) {
+      return false;
+    }
+  }
+  return true;
+};
+
 /**
  * Real wire config carried on an arrow's customData once a user (or the auto-default in
  * App.tsx) has picked which specific output feeds which specific input. This replaces the old
@@ -172,6 +208,15 @@ export type WiredComputeResult = {
 export const computeWiredResults = (
   nodes: ReadonlyArray<NodeState>,
   connections: ReadonlyArray<WireConnection>,
+  runStore?: RunStore,
+  /** Resolves a node to its PortSpec. Defaults to the real registry; tests inject a fake so they
+   *  can exercise run-mode propagation without registering a real run spec (which would break the
+   *  output-shape contract test that iterates ALL_PORT_SPECS). */
+  resolveSpec: (
+    engineId: EngineId,
+    methodId: string,
+  ) => PortSpec | undefined = (engineId, methodId) =>
+    getPortSpec(engineId, methodId) ?? undefined,
 ): Map<string, WiredComputeResult> => {
   const nodeById = new Map(nodes.map((n) => [n.id, n]));
 
@@ -224,7 +269,7 @@ export const computeWiredResults = (
 
   for (const id of order) {
     const node = nodeById.get(id)!;
-    const spec = getPortSpec(node.engineId, node.methodId);
+    const spec = resolveSpec(node.engineId, node.methodId);
     if (!spec) {
       results.set(id, {
         outputs: {},
@@ -235,25 +280,75 @@ export const computeWiredResults = (
     }
     const effectiveInputs: Record<string, unknown> = { ...node.inputs };
     const wiredInputKeys = new Set<string>();
+    let waitingOnUpstream = false;
     for (const c of incoming.get(id) ?? []) {
-      const upstream = results.get(c.sourceNodeId);
       const targetHasInput = spec.inputs.some(
         (i) => i.key === c.targetInputKey,
       );
-      if (upstream && !upstream.error && targetHasInput) {
-        effectiveInputs[c.targetInputKey] = upstream.outputs[c.sourceOutputKey];
+      if (!targetHasInput) {
+        continue;
+      }
+      // The upstream's value: a run-mode upstream's ready result lives in runStore (its pass
+      // result here is just a pending placeholder); a live upstream's result is in `results`.
+      // Prefer a ready runStore entry, fall back to the synchronous pass result.
+      const upstreamPass = results.get(c.sourceNodeId);
+      const upstreamRun = runStore?.get(c.sourceNodeId);
+      const upstreamOutputs =
+        upstreamRun && !upstreamRun.pending
+          ? upstreamRun.outputs
+          : upstreamPass?.outputs ?? {};
+      const upstreamNode = nodeById.get(c.sourceNodeId);
+      const upstreamSpec =
+        upstreamNode &&
+        resolveSpec(upstreamNode.engineId, upstreamNode.methodId);
+      const upstreamIsRun = upstreamSpec?.executionMode === "run";
+      const upstreamReady = upstreamIsRun
+        ? upstreamRun != null && !upstreamRun.pending
+        : upstreamPass != null && !upstreamPass.error;
+      if (!upstreamReady) {
+        waitingOnUpstream = true;
+      }
+      if (upstreamPass && !upstreamPass.error) {
+        effectiveInputs[c.targetInputKey] = upstreamOutputs[c.sourceOutputKey];
         wiredInputKeys.add(c.targetInputKey);
       }
     }
-    // wiring stays synchronous (the render path can't await), so a run-mode node — whose real
-    // async result lives in the host's runStore, populated when its Run action fires via
-    // computeRun — gets a pending placeholder here rather than invoking compute. Task 7's
-    // runStore propagation reads the cached result back into this slot once the run resolves.
-    // Live nodes compute synchronously.
     if (spec.executionMode === "run") {
+      // A run node's real result lives in runStore; wiring never invokes computeRun (the render
+      // path is synchronous). Flag state so the host knows what to show: pending while waiting on
+      // an upstream that isn't ready or while the node's own run is in flight; stale once the
+      // inputs are present but don't match the last run's snapshot; ready otherwise. The node's own
+      // renderer also tracks this via useNodeCompute — these flags are the propagation layer's
+      // view (and feed downstream effectiveInputs).
+      const ownRun = runStore?.get(id);
+      let pending: boolean;
+      let stale: boolean;
+      let outputs: Record<string, unknown>;
+      if (waitingOnUpstream) {
+        pending = true;
+        stale = false;
+        outputs = ownRun?.outputs ?? {};
+      } else if (ownRun == null) {
+        pending = false;
+        stale = true;
+        outputs = {};
+      } else if (ownRun.pending) {
+        pending = true;
+        stale = false;
+        outputs = ownRun.outputs;
+      } else if (!inputsEqual(ownRun.inputs, effectiveInputs)) {
+        pending = false;
+        stale = true;
+        outputs = ownRun.outputs;
+      } else {
+        pending = false;
+        stale = false;
+        outputs = ownRun.outputs;
+      }
       results.set(id, {
-        outputs: {},
-        pending: true,
+        outputs,
+        pending,
+        stale,
         wiredInputKeys,
         effectiveInputs,
       });

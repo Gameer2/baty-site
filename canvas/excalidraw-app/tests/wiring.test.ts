@@ -11,7 +11,8 @@ import { NEWTON_RAPHSON_PORT_SPEC } from "../syntropy/portSpecs/newtonRaphson";
 import { RIEMANN_SUMS_PORT_SPEC } from "../syntropy/portSpecs/riemannSums";
 
 import type { ArrowLike } from "../syntropy/wiring";
-import type { NodeState } from "../syntropy/wiring";
+import type { NodeState, RunStore } from "../syntropy/wiring";
+import type { EngineId } from "../syntropy/engineAccents";
 import type {
   PortInputKind,
   PortOutputKind,
@@ -347,5 +348,151 @@ describe("computeWiredResults", () => {
       wiredInputKeys: new Set(),
       effectiveInputs: {},
     });
+  });
+});
+
+// Run-mode propagation: a run node's real result lives in the host's runStore (populated when its
+// Run action fires), not in the synchronous pass result. computeWiredResults reads the runStore so
+// a downstream node's wired input sees the upstream's ready output, and carries pending/stale
+// flags reflecting run state. No real run-mode spec is registered yet, so these tests inject a
+// fake spec resolver (the 4th arg) — wiring's default resolver is the real registry. See
+// docs/superpowers/specs/2026-08-14-syntropy-async-run-and-symbolic-design.md §4.
+describe("computeWiredResults — run-mode runStore propagation", () => {
+  const runSpec = (methodId: string): PortSpec => ({
+    engineId: "calculus",
+    methodId,
+    inputs: [{ key: "in", label: "in", kind: "number", default: 0 }],
+    outputs: [{ key: "out", label: "out", kind: "number" }],
+    compute: () => ({ outputs: {} }),
+    computeRun: async () => ({ outputs: {} }),
+    executionMode: "run",
+    pagePath: "",
+    pageStoreKey: "",
+  });
+  const A_SPEC = runSpec("run-a");
+  const B_SPEC = runSpec("run-b");
+  const resolveSpec = (
+    _engineId: EngineId,
+    methodId: string,
+  ): PortSpec | undefined =>
+    methodId === "run-a" ? A_SPEC : methodId === "run-b" ? B_SPEC : undefined;
+
+  const nodes: NodeState[] = [
+    { id: "A", engineId: "calculus", methodId: "run-a", inputs: { in: 1 } },
+    { id: "B", engineId: "calculus", methodId: "run-b", inputs: { in: 0 } },
+  ];
+  const connections = [
+    {
+      arrowId: "w",
+      sourceNodeId: "A",
+      sourceOutputKey: "out",
+      targetNodeId: "B",
+      targetInputKey: "in",
+    },
+  ];
+
+  it("both un-run: A is stale (needs its first run); B waits (pending) on an undefined wired input", () => {
+    const results = computeWiredResults(
+      nodes,
+      connections,
+      new Map(),
+      resolveSpec,
+    );
+    // A has no upstream and has never run → stale (press Run), not pending.
+    expect(results.get("A")?.pending).toBe(false);
+    expect(results.get("A")?.stale).toBe(true);
+    // B's upstream A isn't ready yet → B waits, wired input undefined.
+    expect(results.get("B")?.pending).toBe(true);
+    expect(results.get("B")?.effectiveInputs.in).toBeUndefined();
+    expect(results.get("B")?.wiredInputKeys.has("in")).toBe(true);
+  });
+
+  it("after A runs: B sees A's value but is stale (not pending) until B runs", () => {
+    const runStore: RunStore = new Map([
+      ["A", { outputs: { out: 7 }, pending: false, inputs: { in: 1 } }],
+    ]);
+    const results = computeWiredResults(
+      nodes,
+      connections,
+      runStore,
+      resolveSpec,
+    );
+    expect(results.get("A")?.pending).toBe(false);
+    expect(results.get("A")?.outputs.out).toBe(7);
+    expect(results.get("B")?.effectiveInputs.in).toBe(7);
+    expect(results.get("B")?.pending).toBe(false);
+    expect(results.get("B")?.stale).toBe(true);
+    expect(results.get("B")?.outputs).toEqual({});
+  });
+
+  it("after B runs with A's value: B is ready", () => {
+    const runStore: RunStore = new Map([
+      ["A", { outputs: { out: 7 }, pending: false, inputs: { in: 1 } }],
+      ["B", { outputs: { out: 14 }, pending: false, inputs: { in: 7 } }],
+    ]);
+    const results = computeWiredResults(
+      nodes,
+      connections,
+      runStore,
+      resolveSpec,
+    );
+    expect(results.get("B")?.pending).toBe(false);
+    expect(results.get("B")?.stale).toBe(false);
+    expect(results.get("B")?.outputs.out).toBe(14);
+    expect(results.get("B")?.effectiveInputs.in).toBe(7);
+  });
+
+  it("a live node downstream of a run node computes with the run node's ready output", () => {
+    const liveSpec: PortSpec = {
+      engineId: "calculus",
+      methodId: "live-doubler",
+      inputs: [{ key: "in", label: "in", kind: "number", default: 0 }],
+      outputs: [{ key: "out", label: "out", kind: "number" }],
+      compute: (inputs) => ({ outputs: { out: Number(inputs.in) * 2 } }),
+      executionMode: "live",
+      pagePath: "",
+      pageStoreKey: "",
+    };
+    const resolve = (
+      _engineId: EngineId,
+      methodId: string,
+    ): PortSpec | undefined =>
+      methodId === "run-a"
+        ? A_SPEC
+        : methodId === "live-doubler"
+        ? liveSpec
+        : undefined;
+    const wiredNodes: NodeState[] = [
+      { id: "A", engineId: "calculus", methodId: "run-a", inputs: { in: 1 } },
+      {
+        id: "C",
+        engineId: "calculus",
+        methodId: "live-doubler",
+        inputs: { in: 0 },
+      },
+    ];
+    const wiredConns = [
+      {
+        arrowId: "w",
+        sourceNodeId: "A",
+        sourceOutputKey: "out",
+        targetNodeId: "C",
+        targetInputKey: "in",
+      },
+    ];
+    const runStore: RunStore = new Map([
+      ["A", { outputs: { out: 7 }, pending: false, inputs: { in: 1 } }],
+    ]);
+    const results = computeWiredResults(
+      wiredNodes,
+      wiredConns,
+      runStore,
+      resolve,
+    );
+    // C is live and computed synchronously using A's ready run output (7 → 14).
+    expect(results.get("C")?.effectiveInputs.in).toBe(7);
+    expect(results.get("C")?.outputs.out).toBe(14);
+    expect(results.get("C")?.pending).toBeUndefined();
+    expect(results.get("C")?.stale).toBeUndefined();
   });
 });
