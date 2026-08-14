@@ -231,7 +231,11 @@ export const MatrixNode = ({
 
       {!displayError && matrixOutputs.length > 0 && (
         <div className="MatrixNode__factors">
-          {matrixInput && (
+          {/* The "{A} =" relation prefix is only correct for a factorization — 2+ matrix
+              outputs that multiply back to the input (A = L·U, A = Q·R, A = U·Σ·V). A single
+              matrix output (Cholesky's L, an RREF, an inverse, a solution vector) is just the
+              labeled grid alone; "A = A⁻¹" would read wrong. */}
+          {matrixInput && matrixOutputs.length >= 2 && (
             <span className="MatrixNode__relation">{matrixInput.key} =</span>
           )}
           {matrixOutputs.map((o, i) => (
