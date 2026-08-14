@@ -1,3 +1,4 @@
+import { DistributionNode } from "./DistributionNode";
 import { MatrixNode } from "./MatrixNode";
 import { ScalarNode } from "./ScalarNode";
 import { TraceNode } from "./TraceNode";
@@ -56,17 +57,19 @@ export type NodeBodyProps = {
 };
 
 // The per-archetype renderers land in their follow-on plans. MatrixNode (factor grids,
-// eigenpairs, solution vectors) and TraceNode (step table + convergence plot) have shipped. The
-// remaining archetypes (real-line, field, distribution) still route to ScalarNode until their
-// renderers land; ScalarNode renders number/text/curve outputs exactly as the old single card
-// did, so those nodes keep their appearance. When a renderer lands, replace the matching branch
-// here with it.
+// eigenpairs, solution vectors), TraceNode (step table + convergence plot), and DistributionNode
+// (pdf curve + shaded region) have shipped. The remaining archetypes (real-line, field) still
+// route to ScalarNode until their renderers land; ScalarNode renders number/text/curve outputs
+// exactly as the old single card did, so those nodes keep their appearance. When a renderer
+// lands, replace the matching branch here with it.
 const renderBody = (props: NodeBodyProps) => {
   switch (archetypeFromSpec(props.spec)) {
     case "matrix":
       return <MatrixNode {...props} />;
     case "trace":
       return <TraceNode {...props} />;
+    case "distribution":
+      return <DistributionNode {...props} />;
     default:
       return <ScalarNode {...props} />;
   }

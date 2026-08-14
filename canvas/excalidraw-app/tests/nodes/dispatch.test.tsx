@@ -36,6 +36,42 @@ const TRACE_FIXTURE: PortSpec = {
   }),
 };
 
+// A minimal distribution spec proving the dispatcher routes the distribution archetype to
+// DistributionNode before any real spec is migrated (Task 19). Mirrors DistributionNode.test.tsx.
+const DISTRIBUTION_FIXTURE: PortSpec = {
+  engineId: "statistics",
+  methodId: "dispatch-distribution-fixture",
+  inputs: [
+    { key: "mean", label: "mean", kind: "number", default: 0 },
+    { key: "sd", label: "sd", kind: "number", default: 1 },
+    { key: "x", label: "x", kind: "number", default: 1 },
+  ],
+  outputs: [
+    { key: "distribution", label: "pdf", kind: "distribution" },
+    { key: "probability", label: "P(X<=x)", kind: "number" },
+  ],
+  executionMode: "live",
+  pagePath:
+    "/math-lab/engines/statistics/methods/continuous-distributions.html",
+  pageStoreKey: "engine-lab:statistics:continuous",
+  compute: () => ({
+    outputs: {
+      distribution: {
+        points: [
+          { x: -2, pdf: 0.054, cdf: 0.023 },
+          { x: -1, pdf: 0.242, cdf: 0.159 },
+          { x: 0, pdf: 0.399, cdf: 0.5 },
+          { x: 1, pdf: 0.242, cdf: 0.841 },
+          { x: 2, pdf: 0.054, cdf: 0.977 },
+        ],
+        lo: -2,
+        hi: 1,
+      },
+      probability: 0.84,
+    },
+  }),
+};
+
 const DEFAULT_RIEMANN = { fx: "x", a: 0, b: 2, n: 2 };
 const resultFor = (inputs: Record<string, unknown>): WiredComputeResult => ({
   ...RIEMANN_SUMS_PORT_SPEC.compute(inputs),
@@ -139,5 +175,34 @@ describe("NodeBody dispatcher", () => {
       '[data-syntropy-port="output"][data-port-key="root"]',
     );
     expect(out).toBeTruthy();
+  });
+
+  it("routes the distribution archetype to DistributionNode (renders the pdf plot, not the scalar card)", () => {
+    const { container } = render(
+      <NodeBody
+        nodeId="n"
+        spec={DISTRIBUTION_FIXTURE}
+        name="Continuous Distributions"
+        accent="#c99a3c"
+        inputs={{ mean: 0, sd: 1, x: 1 }}
+        onInputsChange={() => {}}
+        computedResult={{
+          ...DISTRIBUTION_FIXTURE.compute({ mean: 0, sd: 1, x: 1 }),
+          wiredInputKeys: new Set(),
+          effectiveInputs: { mean: 0, sd: 1, x: 1 },
+        }}
+        onOutputPortPointerDown={() => {}}
+      />,
+    );
+    // DistributionNode renders the pdf curve as an inline SVG; ScalarNode does not.
+    expect(
+      container.querySelector('svg[aria-label*="distribution"]'),
+    ).toBeTruthy();
+    // The scalar `probability` output still gets its output port dot under either renderer.
+    expect(
+      container.querySelector(
+        '[data-syntropy-port="output"][data-port-key="probability"]',
+      ),
+    ).toBeTruthy();
   });
 });
