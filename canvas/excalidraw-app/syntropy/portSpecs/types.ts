@@ -39,6 +39,12 @@ export const PORT_OUTPUT_KINDS = [
   // than a display heuristic on the value's type, since a method that legitimately returns
   // digits-as-a-string (e.g. a large BigInt rendered for exact display) still wants text formatting.
   "text",
+  // "expression": a symbolic form — an antiderivative, a series, a transform, a factorization, a
+  // congruence-class set — the product of the Symbolic archetype methods. Carries an
+  // ExpressionOutput (a display-ready math string + optional structured form). Promoted from an
+  // input-only kind; see
+  // docs/superpowers/specs/2026-08-14-syntropy-async-run-and-symbolic-design.md §2.
+  "expression",
 ] as const;
 
 export type PortOutputKind = typeof PORT_OUTPUT_KINDS[number];
@@ -73,6 +79,24 @@ export type CurveOutput = {
   fillArea?: boolean;
 };
 
+/** The value carried by an `expression` (Symbolic) output: a display-ready math string from the
+ *  core (e.g. `"12 = 2^2 · 3"`, `"[1; 2, 2, ...]"`, `"x ≡ 2, 5 (mod 6)"`) plus an optional structured
+ *  form the SymbolicNode renders with archetype-specific formatting (factor bases bold with
+ *  superscript exponents, a continued-fraction period under an overline, a congruence set mod
+ *  clause). compute() assembles it from the form the core already returns — no new math. See spec
+ *  §3. */
+export type ExpressionOutput = {
+  /** Display-ready math string, e.g. "2*x^2 + 3" or "[1; 1, 2]". */
+  display: string;
+  /** Optional structured form for richer rendering (factors, convergents, solution set). */
+  structured?:
+    | { kind: "factorization"; factors: { base: string; exponent: number }[] }
+    | { kind: "continuedFraction"; a0: string; period: string[] }
+    | { kind: "congruenceSet"; modulus: string; solutions: string[] }
+    | { kind: "series"; coefficients: string[]; center?: string }
+    | { kind: "plain" };
+};
+
 export type PortInput = {
   key: string;
   label: string;
@@ -105,12 +129,15 @@ export type PortSpec = {
   compute: (inputs: Record<string, unknown>) => ComputeResult;
   executionMode: "live";
   /**
-   * Opt-in hint for the Matrix archetype's output layout. `"factorization"` means the
-   * matrix outputs are factors whose product reconstructs the single matrix input (LU's
-   * L·U, Gram-Schmidt's Q·R, SVD's U·Σ·V), so MatrixNode renders them on one line joined by
-   * "·" with an "{A} =" prefix. Omit it for any spec whose matrix outputs are not a product
-   * (four-subspaces' bases, an RREF, an inverse, a solution vector) — those render as
-   * stacked labeled grids, since "A = A⁻¹" or "A = col · row · null" would read wrong.
+   * Opt-in hint for a factorization-shaped output layout. On the Matrix archetype `"factorization"`
+   * means the matrix outputs are factors whose product reconstructs the single matrix input (LU's
+   * L·U, Gram-Schmidt's Q·R, SVD's U·Σ·V), so MatrixNode renders them on one line joined by "·"
+   * with an "{A} =" prefix; omit it for any spec whose matrix outputs are not a product
+   * (four-subspaces' bases, an RREF, an inverse, a solution vector) — those render as stacked
+   * labeled grids, since "A = A⁻¹" or "A = col · row · null" would read wrong. On the Symbolic
+   * archetype the number-theory methods (prime-factorisation, continued-fractions,
+   * linear-congruences) carry it so SymbolicNode renders the decomposition centered with an
+   * equals/bracket (e.g. `12 = 2²·3`, `[1; 2, 2, …]`, `x ≡ 2, 5 (mod 6)`).
    */
   relation?: "factorization";
   /** The method's real page on math-lab, opened by the node's portal tab. */

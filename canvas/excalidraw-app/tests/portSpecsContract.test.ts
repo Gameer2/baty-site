@@ -44,6 +44,13 @@ describe("port spec contract", () => {
     expect(OUTPUT_KINDS.has("plot2d" as never)).toBe(false);
   });
 
+  // "expression" is promoted from an input-only kind to also an output kind carrying a symbolic
+  // form (the Symbolic archetype — number-theory factorizations, CAS antiderivatives, …). See
+  // docs/superpowers/specs/2026-08-14-syntropy-async-run-and-symbolic-design.md §2.
+  it("expression is a declared output kind (Symbolic archetype)", () => {
+    expect(OUTPUT_KINDS.has("expression")).toBe(true);
+  });
+
   it("point is a declared input kind", () => {
     expect(INPUT_KINDS.has("point")).toBe(true);
   });
