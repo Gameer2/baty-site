@@ -1,6 +1,5 @@
 import { useState } from "react";
 
-import { RiemannPlot } from "../RiemannPlot";
 import { openMethodPage } from "../portalPrefill";
 
 import { NodeShell, PortDot } from "./NodeShell";
@@ -25,10 +24,10 @@ type ScalarNodeProps = {
   readOnly?: boolean;
 };
 
-/** The scalar archetype: inputs-as-wells + a plot (curve output, via RiemannPlot) + number/text
- *  output stat rows. This is the literal body of the old SyntropyNodeCard, re-homed behind the
- *  shared NodeShell + PortDot — behavior and appearance unchanged. v1 routes EVERY archetype
- *  here until the per-archetype renderers land in their follow-on plans. */
+/** The scalar archetype: inputs-as-wells + number/text output stat rows. This is the literal
+ *  body of the old SyntropyNodeCard, re-homed behind the shared NodeShell + PortDot — behavior
+ *  and appearance unchanged. Curve outputs route to RealLineNode, so a spec that reaches here
+ *  carries only number/text outputs. */
 export const ScalarNode = ({
   nodeId,
   spec,
@@ -66,7 +65,6 @@ export const ScalarNode = ({
   const { outputs, error: localError } = spec.compute(effectiveLocalInputs);
   const displayError = error ?? localError;
 
-  const plotOutput = spec.outputs.find((o) => o.kind === "curve");
   const scalarOutputs = spec.outputs.filter(
     (o) => o.kind === "number" || o.kind === "text",
   );
@@ -134,15 +132,6 @@ export const ScalarNode = ({
       })}
 
       {displayError && <p className="NodeShell__error">{displayError}</p>}
-
-      {!displayError && plotOutput && (
-        <div className="ScalarNode__plot">
-          <RiemannPlot
-            rectangles={(outputs[plotOutput.key] as never[] | undefined) ?? []}
-            accent={accent}
-          />
-        </div>
-      )}
 
       {!displayError && (
         <div className="ScalarNode__output">

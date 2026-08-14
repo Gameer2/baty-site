@@ -24,7 +24,9 @@ describe("RIEMANN_SUMS_PORT_SPEC", () => {
     });
     expect(result.error).toBeUndefined();
     expect(result.outputs.total).toBeCloseTo(2, 10);
-    const rectangles = result.outputs.rectangles as unknown[];
+    // The partition rectangles now ride inside the real-line `curve` CurveOutput.
+    const rectangles = (result.outputs.curve as { rectangles: unknown[] })
+      .rectangles;
     expect(rectangles).toHaveLength(2);
   });
 
