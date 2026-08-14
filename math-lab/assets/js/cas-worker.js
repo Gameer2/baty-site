@@ -24,13 +24,25 @@ importScripts(
   // Complex Analysis shared cores — pure/DOM-free UMD factories (root-detected via `self`, so
   // worker-safe). Order matters: complex.js is dependency-free; complex-residues.js needs
   // Complex + CalcCore; complex-contour-theorems.js needs Complex + ComplexSymbolic + CalcCore
-  // + ComplexResidues. Only the pure-numeric functions (cauchyIntegralFormula, argumentPrinciple,
-  // rouche) are routed below — the SymPy-dependent residue functions (contourIntegral,
-  // realIntegralByResidues, findSingularitiesWithResidues) stay main-thread via SympyClient.
+  // + ComplexResidues. sympy-client.js wraps the separate sympy-worker.js (Pyodide); its default
+  // workerUrl uses document.currentScript (main-thread-only), so it's configured from
+  // self.location below. The pure-numeric theorem functions run inline; the SymPy-dependent
+  // residue functions (contourIntegral, realIntegralByResidues, classify/laurent) await the
+  // nested sympy-worker — the async-aware onmessage at the bottom of this file handles that.
   "./complex.js",
   "./complex-residues.js",
-  "./complex-contour-theorems.js"
+  "./complex-contour-theorems.js",
+  "./sympy-client.js"
 );
+
+// sympy-client.js couldn't derive its workerUrl from document.currentScript (no document in a
+// worker), so point it at sympy-worker.js in this worker's own directory. The first residue op
+// then lazily boots the nested sympy-worker (Pyodide, ~4-5s cold); later calls reuse it.
+if (self.SympyClient && self.SympyClient.configure && self.location && self.location.href) {
+  self.SympyClient.configure({
+    workerUrl: self.location.href.replace(/[^/]*$/, "sympy-worker.js"),
+  });
+}
 
 /* Symbolic kernel (assets/js/kernel/ — see docs/kernel/04_BUILD_PHASES.md Phase 1/2/2b/2d).
    Loaded from bundle.generated.js, NOT the individual kernel files: every kernel file does
@@ -393,6 +405,50 @@ const OPS = Object.assign(Object.create(null), {
       abs: Complex.abs(val),
       verified: true,
     };
+  },
+
+  // Complex residue ops — these go through SymPy (complex-residues.js → SympyClient → the nested
+  // sympy-worker), so they return Promises; the async-aware onmessage below awaits them. Variable
+  // is "z" throughout these pages. The first call pays Pyodide's cold boot; the node surfaces that
+  // as a long-running state.
+  contourIntegration: (args) => ComplexResidues.contourIntegral(args[0], "z", args[1]),
+  realIntegralsResidues: (args) =>
+    ComplexResidues.realIntegralByResidues(args[0], "z", args[1]),
+  laurentSingularities: (args) => {
+    const f = args[0];
+    const point = args[1];
+    const order = Number(args[2]);
+    if (!point || !Number.isFinite(point.re) || !Number.isFinite(point.im)) {
+      return Promise.resolve({
+        ok: false,
+        reason: "z₀ needs numeric Re and Im parts.",
+      });
+    }
+    // SymPy point syntax (matches laurent-singularities.js's sympyPoint): "I" for the imaginary
+    // unit, "re+im*I" / "re-im*I".
+    const ptStr =
+      point.im === 0
+        ? String(point.re)
+        : point.re === 0
+        ? point.im === 1
+          ? "I"
+          : point.im === -1
+          ? "-I"
+          : point.im + "*I"
+        : point.re + (point.im >= 0 ? "+" : "-") + Math.abs(point.im) + "*I";
+    return Promise.all([
+      ComplexResidues.classifySingularity(f, "z", ptStr),
+      ComplexResidues.laurentSeries(f, "z", ptStr, order),
+    ]).then(([c, s]) => {
+      if (!c.ok) return c;
+      if (!s.ok) return s;
+      return {
+        ok: true,
+        classification: c.classification,
+        series: s.series,
+        verified: true,
+      };
+    });
   }
 });
 
@@ -406,12 +462,34 @@ self.onmessage = function (e) {
     return;
   }
 
+  // Most ops return a plain JSON-shaped object (see calculus-symbolic.js) that crosses the
+  // structured-clone boundary unchanged. The complex residue ops return Promises (they await the
+  // nested sympy-worker), so handle both shapes: a sync value is posted immediately (the common
+  // case — keeps replies synchronous for the existing boot/dispatch tests), a real Promise is
+  // awaited. A throw (sync) or rejection (async) becomes the error reply.
+  let result;
   try {
-    // Results are plain JSON-shaped objects by design (see calculus-symbolic.js), so they
-    // cross the structured-clone boundary unchanged.
-    self.postMessage({ id, ok: true, result: op(msg.args || []) });
+    result = op(msg.args || []);
   } catch (err) {
-    self.postMessage({ id, ok: false, error: err && err.message ? err.message : String(err) });
+    self.postMessage({
+      id,
+      ok: false,
+      error: err && err.message ? err.message : String(err),
+    });
+    return;
+  }
+  if (result && typeof result.then === "function") {
+    result.then(
+      (r) => self.postMessage({ id, ok: true, result: r }),
+      (err) =>
+        self.postMessage({
+          id,
+          ok: false,
+          error: err && err.message ? err.message : String(err),
+        }),
+    );
+  } else {
+    self.postMessage({ id, ok: true, result });
   }
 };
 

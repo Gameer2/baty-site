@@ -307,6 +307,21 @@
     return CAS.call("complexTrigHyperbolic", [fn, z], opts);
   };
 
+  // Complex residue ops — these route through SymPy inside the worker (complex-residues.js → the
+  // nested sympy-worker). The first call pays Pyodide's cold boot; callers should allow ~30s.
+  // contourIntegration: f(z) + contour = { type:"circle", center:{re,im}, radius } → ∮ f dz.
+  CAS.contourIntegration = function (f, contour, opts) {
+    return CAS.call("contourIntegration", [f, contour], opts);
+  };
+  // realIntegralsResidues: f(x) + mode ("infinite" | "semicircle" | …) → the real integral value.
+  CAS.realIntegralsResidues = function (f, mode, opts) {
+    return CAS.call("realIntegralsResidues", [f, mode], opts);
+  };
+  // laurentSingularities: f(z) + z0 = {re, im} + series order → classification + Laurent series.
+  CAS.laurentSingularities = function (f, point, order, opts) {
+    return CAS.call("laurentSingularities", [f, point, order], opts);
+  };
+
   // Exposed for tests and for pages that want to reset after a timeout.
   CAS._reset = function () { kill(); failAll("reset"); seq = 0; mode = "worker"; };
 
