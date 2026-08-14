@@ -1,3 +1,5 @@
+import "./RiemannPlot.scss";
+
 type Rectangle = {
   x0: number;
   x1: number;
