@@ -15,8 +15,23 @@ export async function sampleFieldOutput(
   if (!r.ok) {
     return { ok: false, error: r.error };
   }
-  const grid = r.result.grid as { x: number; y: number; value: number }[][];
-  const flat = r.result.vectors as
+  return fieldOutputFromResult(r.result as Record<string, unknown>);
+}
+
+// Map a worker field-op result (already carrying a row-grouped `grid` and optional flat
+// `vectors`) into the FieldOutput FieldNode expects — the same shaping sampleFieldOutput does
+// after its own CAS call. Used by the ODE/PDE Field orchestration ops (heatField, waveField,
+// solveLaplacePoisson) whose grids are heatmap-only (no vectors), so the regroup path is a no-op.
+export function fieldOutputFromResult(
+  result: Record<string, unknown>,
+): { ok: true; field: FieldOutput } | { ok: false; error?: string } {
+  const grid = result.grid as
+    | { x: number; y: number; value: number }[][]
+    | undefined;
+  if (!grid) {
+    return { ok: false, error: "No field grid in the result." };
+  }
+  const flat = result.vectors as
     | Array<{ x: number; y: number; dx: number; dy: number }>
     | undefined;
   const vectors: { x: number; y: number; dx: number; dy: number }[][] = [];
@@ -41,11 +56,11 @@ export async function sampleFieldOutput(
     field: {
       grid,
       vectors,
-      xLo: Number(r.result.xLo),
-      xHi: Number(r.result.xHi),
-      yLo: Number(r.result.yLo),
-      yHi: Number(r.result.yHi),
-      variant: (r.result.variant as FieldOutput["variant"]) ?? "arrows",
+      xLo: Number(result.xLo),
+      xHi: Number(result.xHi),
+      yLo: Number(result.yLo),
+      yHi: Number(result.yHi),
+      variant: (result.variant as FieldOutput["variant"]) ?? "heatmap",
     },
   };
 }

@@ -121,6 +121,15 @@ import { VECTOR_CALCULUS_PORT_SPEC } from "./vectorCalculus";
 import { VECTORS_IN_SPACE_PORT_SPEC } from "./vectorsInSpace";
 import { VOLUME_OF_REVOLUTION_PORT_SPEC } from "./volumeOfRevolution";
 import { WILSONS_THEOREM_PORT_SPEC } from "./wilsonsTheorem";
+import { DIRECTION_FIELDS_PORT_SPEC } from "./directionFields";
+import { HEAT_EQUATION_PORT_SPEC } from "./heatEquation";
+import { LAPLACE_POISSON_PORT_SPEC } from "./laplacePoisson";
+import { LAPLACE_TRANSFORM_PORT_SPEC } from "./laplaceTransform";
+import { ODE_FOURIER_SERIES_PORT_SPEC } from "./odeFourierSeries";
+import { ODE_SOLVER_PORT_SPEC } from "./odeSolver";
+import { ODE_SYSTEMS_PORT_SPEC } from "./odeSystems";
+import { SERIES_SOLUTIONS_PORT_SPEC } from "./seriesSolutions";
+import { WAVE_EQUATION_PORT_SPEC } from "./waveEquation";
 
 import type { EngineId } from "../engineAccents";
 import type { PortSpec } from "./types";
@@ -163,6 +172,21 @@ const REGISTRY: Record<string, PortSpec> = {
   "complex:cauchy-integral-formula": CAUCHY_INTEGRAL_FORMULA_PORT_SPEC,
   "complex:real-integrals-residues": REAL_INTEGRALS_RESIDUES_PORT_SPEC,
   "complex:argument-rouche": ARGUMENT_ROUCHE_PORT_SPEC,
+
+  // ODE/PDE engine — 9 run-mode methods. Archetype split: Symbolic 4 (ode-solver, systems,
+  // laplace-transform, series-solutions — symbolic solution strings), Real-line 1 (fourier-series,
+  // reusing the shared fourierSeries op), Field 4 (direction-fields reusing sampleField; heat/wave
+  // via the heatField/waveField orchestration ops; laplace-poisson via solveLaplacePoisson).
+  "ode:ode-solver": ODE_SOLVER_PORT_SPEC,
+  "ode:systems": ODE_SYSTEMS_PORT_SPEC,
+  "ode:laplace-transform": LAPLACE_TRANSFORM_PORT_SPEC,
+  "ode:series-solutions": SERIES_SOLUTIONS_PORT_SPEC,
+  "ode:fourier-series": ODE_FOURIER_SERIES_PORT_SPEC,
+  "ode:direction-fields": DIRECTION_FIELDS_PORT_SPEC,
+  "ode:heat-equation": HEAT_EQUATION_PORT_SPEC,
+  "ode:wave-equation": WAVE_EQUATION_PORT_SPEC,
+  "ode:laplace-poisson": LAPLACE_POISSON_PORT_SPEC,
+
   "numerical:bisection": BISECTION_PORT_SPEC,
   "numerical:false-position": FALSE_POSITION_PORT_SPEC,
   "numerical:fixed-point-iteration": FIXED_POINT_ITERATION_PORT_SPEC,
