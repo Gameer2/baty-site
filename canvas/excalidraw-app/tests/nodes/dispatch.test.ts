@@ -51,8 +51,10 @@ describe("archetypeFromSpec", () => {
     expect(archetypeFromSpec(specWith(["number", "trace"]))).toBe("trace");
   });
 
-  it("riemann (curve) is real-line, newton-raphson (number-only) is scalar", () => {
+  it("riemann (curve) is real-line, newton-raphson (trace) is trace", () => {
     expect(archetypeFromSpec(RIEMANN_SUMS_PORT_SPEC)).toBe("real-line");
-    expect(archetypeFromSpec(NEWTON_RAPHSON_PORT_SPEC)).toBe("scalar");
+    // newton-raphson migrated to the trace archetype — its compute() builds the runNewton
+    // iteration array and now surfaces it as a `trace` output.
+    expect(archetypeFromSpec(NEWTON_RAPHSON_PORT_SPEC)).toBe("trace");
   });
 });

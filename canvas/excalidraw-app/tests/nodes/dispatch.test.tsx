@@ -44,36 +44,32 @@ const resultFor = (inputs: Record<string, unknown>): WiredComputeResult => ({
 });
 
 describe("NodeBody dispatcher", () => {
-  it("renders the scalar archetype body for a number-only spec (newton-raphson)", () => {
+  it("routes the migrated newton-raphson spec to TraceNode (convergence plot renders)", () => {
+    const inputs = { fx: "x^3 - x - 2", x0: 1.5, tol: 0.000001, maxIter: 30 };
     const r: WiredComputeResult = {
-      ...NEWTON_RAPHSON_PORT_SPEC.compute({
-        fx: "x^3 - x - 2",
-        x0: 1.5,
-        tol: 0.000001,
-        maxIter: 30,
-      }),
+      ...NEWTON_RAPHSON_PORT_SPEC.compute(inputs),
       wiredInputKeys: new Set(),
-      effectiveInputs: {
-        fx: "x^3 - x - 2",
-        x0: 1.5,
-        tol: 0.000001,
-        maxIter: 30,
-      },
+      effectiveInputs: inputs,
     };
-    render(
+    const { container } = render(
       <NodeBody
         nodeId="n"
         spec={NEWTON_RAPHSON_PORT_SPEC}
         name="Newton–Raphson"
         accent="#5c939f"
-        inputs={{ fx: "x^3 - x - 2", x0: 1.5, tol: 0.000001, maxIter: 30 }}
+        inputs={inputs}
         onInputsChange={() => {}}
         computedResult={r}
         onOutputPortPointerDown={() => {}}
       />,
     );
+    // newton-raphson now declares a `trace` output, so the dispatcher routes it to TraceNode:
+    // the name + f(x) scrub input render as before, plus the convergence plot (err column).
     expect(screen.getByText("Newton–Raphson")).toBeTruthy();
     expect(screen.getByLabelText("f(x)")).toBeTruthy();
+    expect(
+      container.querySelector('svg[aria-label*="convergence"]'),
+    ).toBeTruthy();
   });
 
   it("renders ScalarNode (v1 fallback) for a curve spec too, preserving port-dot attributes", () => {
