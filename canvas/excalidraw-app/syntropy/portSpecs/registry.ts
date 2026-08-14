@@ -15,6 +15,7 @@ import { CONFIDENCE_INTERVALS_PORT_SPEC } from "./confidenceIntervals";
 import { CONJUGATE_GRADIENT_PORT_SPEC } from "./conjugateGradient";
 import { CONTINUED_FRACTIONS_PORT_SPEC } from "./continuedFractions";
 import { CONTINUOUS_DISTRIBUTIONS_PORT_SPEC } from "./continuousDistributions";
+import { CURVE_SKETCHING_PORT_SPEC } from "./curveSketching";
 import { DESCRIPTIVE_STATISTICS_PORT_SPEC } from "./descriptiveStatistics";
 import { DETERMINANT_PORT_SPEC } from "./determinant";
 import { DIAGONALIZATION_PORT_SPEC } from "./diagonalization";
@@ -31,6 +32,7 @@ import { EXTENDED_EUCLIDEAN_PORT_SPEC } from "./extendedEuclidean";
 import { FALSE_POSITION_PORT_SPEC } from "./falsePosition";
 import { FERMAT_EULER_THEOREM_PORT_SPEC } from "./fermatEulerTheorem";
 import { FOUR_SUBSPACES_PORT_SPEC } from "./fourSubspaces";
+import { FOURIER_SERIES_PORT_SPEC } from "./fourierSeries";
 import { FINITE_DIFFERENCE_BVP_PORT_SPEC } from "./finiteDifferenceBVP";
 import { FIXED_POINT_ITERATION_PORT_SPEC } from "./fixedPointIteration";
 import { FROBENIUS_COIN_PORT_SPEC } from "./frobeniusCoin";
@@ -73,9 +75,11 @@ import { NEWTON_RAPHSON_PORT_SPEC } from "./newtonRaphson";
 import { NUMERICAL_DIFF_PORT_SPEC } from "./numericalDiff";
 import { ONE_SAMPLE_T_TEST_PORT_SPEC } from "./oneSampleTTest";
 import { ORDER_OF_ELEMENT_PORT_SPEC } from "./orderOfElement";
+import { PARAMETRIC_AND_POLAR_PORT_SPEC } from "./parametricAndPolar";
 import { PARTIAL_FRACTIONS_PORT_SPEC } from "./partialFractions";
 import { PELLS_EQUATION_PORT_SPEC } from "./pellsEquation";
 import { POWER_METHOD_PORT_SPEC } from "./powerMethod";
+import { POWER_SERIES_PORT_SPEC } from "./powerSeries";
 import { PRIMALITY_TESTING_PORT_SPEC } from "./primalityTesting";
 import { PRIME_FACTORISATION_PORT_SPEC } from "./primeFactorisation";
 import { PRIMITIVE_ROOTS_PORT_SPEC } from "./primitiveRoots";
@@ -97,6 +101,7 @@ import { SIMPSONS_RULE_PORT_SPEC } from "./simpsonsRule";
 import { SPECTRAL_THEOREM_PORT_SPEC } from "./spectralTheorem";
 import { STEFFENSEN_PORT_SPEC } from "./steffensen";
 import { SVD_PORT_SPEC } from "./svd";
+import { TAYLOR_SERIES_PORT_SPEC } from "./taylorSeries";
 import { TRAPEZOIDAL_RULE_PORT_SPEC } from "./trapezoidalRule";
 import { TRIG_SUBSTITUTION_PORT_SPEC } from "./trigSubstitution";
 import { TWO_SAMPLE_PAIRED_TESTS_PORT_SPEC } from "./twoSamplePairedTests";
@@ -114,6 +119,8 @@ const REGISTRY: Record<string, PortSpec> = {
   "calculus:applied-optimization": APPLIED_OPTIMIZATION_PORT_SPEC,
   "calculus:arc-length-surface-area": ARC_LENGTH_SURFACE_AREA_PORT_SPEC,
   "calculus:completing-the-square": COMPLETE_THE_SQUARE_PORT_SPEC,
+  "calculus:curve-sketching": CURVE_SKETCHING_PORT_SPEC,
+  "calculus:fourier-series": FOURIER_SERIES_PORT_SPEC,
   "calculus:improper-integrals": IMPROPER_INTEGRALS_PORT_SPEC,
   "calculus:integral-calculator": INTEGRAL_CALCULATOR_PORT_SPEC,
   "calculus:integration-by-parts": INTEGRATION_BY_PARTS_PORT_SPEC,
@@ -121,8 +128,11 @@ const REGISTRY: Record<string, PortSpec> = {
   "calculus:limits": LIMITS_PORT_SPEC,
   "calculus:lhopital": LHOPITAL_PORT_SPEC,
   "calculus:multiple-integrals": MULTIPLE_INTEGRALS_PORT_SPEC,
+  "calculus:parametric-and-polar": PARAMETRIC_AND_POLAR_PORT_SPEC,
   "calculus:partial-fractions": PARTIAL_FRACTIONS_PORT_SPEC,
+  "calculus:power-series": POWER_SERIES_PORT_SPEC,
   "calculus:related-rates": RELATED_RATES_PORT_SPEC,
+  "calculus:taylor-series": TAYLOR_SERIES_PORT_SPEC,
   "calculus:trigonometric-substitution": TRIG_SUBSTITUTION_PORT_SPEC,
   "calculus:u-substitution": U_SUBSTITUTION_PORT_SPEC,
   "calculus:riemann-sums": RIEMANN_SUMS_PORT_SPEC,
