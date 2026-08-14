@@ -97,6 +97,26 @@ export type ExpressionOutput = {
     | { kind: "plain" };
 };
 
+/** The value carried by a `field` output: a sampled 2D field over the rectangular domain
+ *  `[xLo, xHi] × [yLo, yHi]`. `grid` is rows of points each carrying a scalar `value` (a heatmap's
+ *  temperature, a contour's potential, a domain-coloring's magnitude); `vectors` is an optional
+ *  vector field (direction-field arrows, a gradient, a curl) sampled on the same domain. `variant`
+ *  is the render style FieldNode picks from. compute() samples the method's existing core over the
+ *  domain — display sampling, not new math; the method's real result (a zero count, a residue, a
+ *  steady-state value) stays as the spec's `number`/`text` outputs. See spec §3. */
+export type FieldOutput = {
+  /** Grid of sampled points over the domain, rows × cols. `value` is the scalar field at (x, y). */
+  grid: { x: number; y: number; value: number }[][];
+  /** Optional vector field (direction fields, gradient, div/curl) sampled over the domain. */
+  vectors?: { x: number; y: number; dx: number; dy: number }[][];
+  xLo: number;
+  xHi: number;
+  yLo: number;
+  yHi: number;
+  /** Render variant the FieldNode picks from. */
+  variant: "arrows" | "heatmap" | "contour" | "domainColor";
+};
+
 export type PortInput = {
   key: string;
   label: string;

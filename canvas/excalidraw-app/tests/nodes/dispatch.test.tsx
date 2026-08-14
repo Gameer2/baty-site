@@ -140,6 +140,70 @@ const SYMBOLIC_FIXTURE: PortSpec = {
   }),
 };
 
+// A minimal field spec proving the dispatcher routes the field archetype to FieldNode before any
+// real spec is migrated (Task 5). Mirrors FieldNode.test.tsx's fixture — a 3×3 arrows grid over
+// [-1, 1] × [-1, 1] plus a scalar `magnitude` output.
+const FIELD_FIXTURE: PortSpec = {
+  engineId: "ode",
+  methodId: "dispatch-field-fixture",
+  inputs: [
+    { key: "fx", label: "f(x,y)", kind: "expression", default: "-y, x" },
+  ],
+  outputs: [
+    { key: "field", label: "field", kind: "field" },
+    { key: "magnitude", label: "max |v|", kind: "number" },
+  ],
+  executionMode: "live",
+  pagePath: "/math-lab/engines/ode/methods/direction-fields.html",
+  pageStoreKey: "engine-lab:ode-direction-fields",
+  compute: () => ({
+    outputs: {
+      field: {
+        grid: [
+          [
+            { x: -1, y: -1, value: 0 },
+            { x: 0, y: -1, value: 0 },
+            { x: 1, y: -1, value: 0 },
+          ],
+          [
+            { x: -1, y: 0, value: 0 },
+            { x: 0, y: 0, value: 0 },
+            { x: 1, y: 0, value: 0 },
+          ],
+          [
+            { x: -1, y: 1, value: 0 },
+            { x: 0, y: 1, value: 0 },
+            { x: 1, y: 1, value: 0 },
+          ],
+        ],
+        vectors: [
+          [
+            { x: -1, y: -1, dx: 1, dy: 1 },
+            { x: 0, y: -1, dx: 1, dy: 0 },
+            { x: 1, y: -1, dx: 1, dy: -1 },
+          ],
+          [
+            { x: -1, y: 0, dx: 0, dy: 1 },
+            { x: 0, y: 0, dx: 0, dy: 0 },
+            { x: 1, y: 0, dx: 0, dy: -1 },
+          ],
+          [
+            { x: -1, y: 1, dx: -1, dy: 1 },
+            { x: 0, y: 1, dx: -1, dy: 0 },
+            { x: 1, y: 1, dx: -1, dy: -1 },
+          ],
+        ],
+        xLo: -1,
+        xHi: 1,
+        yLo: -1,
+        yHi: 1,
+        variant: "arrows",
+      },
+      magnitude: 1.414,
+    },
+  }),
+};
+
 describe("NodeBody dispatcher", () => {
   it("routes the migrated newton-raphson spec to TraceNode (convergence plot renders)", () => {
     const inputs = { fx: "x^3 - x - 2", x0: 1.5, tol: 0.000001, maxIter: 30 };
@@ -297,6 +361,33 @@ describe("NodeBody dispatcher", () => {
     expect(
       container.querySelector(
         '[data-syntropy-port="output"][data-port-key="factorCount"]',
+      ),
+    ).toBeTruthy();
+  });
+
+  it("routes the field archetype to FieldNode (renders the field plot, not the scalar card)", () => {
+    const { container } = render(
+      <NodeBody
+        nodeId="n"
+        spec={FIELD_FIXTURE}
+        name="Direction Fields"
+        accent="#4f8fc0"
+        inputs={{ fx: "-y, x" }}
+        onInputsChange={() => {}}
+        computedResult={{
+          ...FIELD_FIXTURE.compute({ fx: "-y, x" }),
+          wiredInputKeys: new Set(),
+          effectiveInputs: { fx: "-y, x" },
+        }}
+        onOutputPortPointerDown={() => {}}
+      />,
+    );
+    // FieldNode renders the field as an inline SVG; ScalarNode does not.
+    expect(container.querySelector('svg[aria-label*="field"]')).toBeTruthy();
+    // The scalar `magnitude` output still gets its output port dot under either renderer.
+    expect(
+      container.querySelector(
+        '[data-syntropy-port="output"][data-port-key="magnitude"]',
       ),
     ).toBeTruthy();
   });
