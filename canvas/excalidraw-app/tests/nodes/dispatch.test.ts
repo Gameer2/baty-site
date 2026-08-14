@@ -11,12 +11,16 @@ const specWith = (kinds: string[]): PortSpec =>
     engineId: "numerical",
     methodId: "x",
     inputs: [],
-    outputs: kinds.map((k, i) => ({ key: `o${i}`, label: `o${i}`, kind: k as never })),
+    outputs: kinds.map((k, i) => ({
+      key: `o${i}`,
+      label: `o${i}`,
+      kind: k as never,
+    })),
     compute: () => ({ outputs: {} }),
     executionMode: "live",
     pagePath: "/x",
     pageStoreKey: "x",
-  }) as PortSpec;
+  } as PortSpec);
 
 describe("archetypeFromSpec", () => {
   it("derives trace from a trace output", () => {
