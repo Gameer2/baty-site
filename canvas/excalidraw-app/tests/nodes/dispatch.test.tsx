@@ -2,7 +2,6 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { NodeBody } from "../../syntropy/nodes/dispatch";
-import { RIEMANN_SUMS_PORT_SPEC } from "../../syntropy/portSpecs/riemannSums";
 import { NEWTON_RAPHSON_PORT_SPEC } from "../../syntropy/portSpecs/newtonRaphson";
 import { LU_DECOMPOSITION_PORT_SPEC } from "../../syntropy/portSpecs/luDecomposition";
 
@@ -72,12 +71,42 @@ const DISTRIBUTION_FIXTURE: PortSpec = {
   }),
 };
 
-const DEFAULT_RIEMANN = { fx: "x", a: 0, b: 2, n: 2 };
-const resultFor = (inputs: Record<string, unknown>): WiredComputeResult => ({
-  ...RIEMANN_SUMS_PORT_SPEC.compute(inputs),
-  wiredInputKeys: new Set(),
-  effectiveInputs: inputs,
-});
+// A minimal real-line spec proving the dispatcher routes the real-line (curve) archetype to
+// RealLineNode before any real spec is migrated (Task 22). Mirrors the fixture in
+// RealLineNode.test.tsx.
+const CURVE_FIXTURE: PortSpec = {
+  engineId: "calculus",
+  methodId: "dispatch-real-line-fixture",
+  inputs: [
+    { key: "fx", label: "f(x)", kind: "expression", default: "sin(x)+2" },
+    { key: "a", label: "a", kind: "number", default: 0 },
+    { key: "b", label: "b", kind: "number", default: 6 },
+  ],
+  outputs: [
+    { key: "curve", label: "plot", kind: "curve" },
+    { key: "total", label: "total", kind: "number" },
+  ],
+  executionMode: "live",
+  pagePath: "/math-lab/engines/calculus/methods/riemann-sums.html",
+  pageStoreKey: "engine-lab:calculus-riemann-sums",
+  compute: () => ({
+    outputs: {
+      curve: {
+        points: [
+          { x: 0, y: 0.5 },
+          { x: 1, y: 0.9 },
+          { x: 2, y: 0.1 },
+          { x: 3, y: -0.3 },
+          { x: 4, y: 0.2 },
+          { x: 5, y: 0.8 },
+          { x: 6, y: 0.4 },
+        ],
+        fillArea: true,
+      },
+      total: 3.14,
+    },
+  }),
+};
 
 describe("NodeBody dispatcher", () => {
   it("routes the migrated newton-raphson spec to TraceNode (convergence plot renders)", () => {
@@ -108,26 +137,33 @@ describe("NodeBody dispatcher", () => {
     ).toBeTruthy();
   });
 
-  it("renders ScalarNode (v1 fallback) for a curve spec too, preserving port-dot attributes", () => {
+  it("routes the real-line archetype to RealLineNode (renders the curve plot, not the scalar card)", () => {
     const { container } = render(
       <NodeBody
         nodeId="n"
-        spec={RIEMANN_SUMS_PORT_SPEC}
+        spec={CURVE_FIXTURE}
         name="Riemann Sums"
         accent="#4f9e82"
-        inputs={DEFAULT_RIEMANN}
+        inputs={{ fx: "sin(x)+2", a: 0, b: 6 }}
         onInputsChange={() => {}}
-        computedResult={resultFor(DEFAULT_RIEMANN)}
+        computedResult={{
+          ...CURVE_FIXTURE.compute({ fx: "sin(x)+2", a: 0, b: 6 }),
+          wiredInputKeys: new Set(),
+          effectiveInputs: { fx: "sin(x)+2", a: 0, b: 6 },
+        }}
         onOutputPortPointerDown={() => {}}
       />,
     );
-    // curve archetype is "real-line" but no RealLineNode exists yet — v1 falls back to ScalarNode,
-    // which still renders the output port dot with the wiring contract attributes intact.
-    const out = container.querySelector(
-      '[data-syntropy-port="output"][data-port-key="total"]',
-    );
-    expect(out).toBeTruthy();
-    expect(out?.getAttribute("data-port-node-id")).toBe("n");
+    // RealLineNode renders the curve as an inline SVG; ScalarNode does not.
+    expect(
+      container.querySelector('svg[aria-label*="real-line"]'),
+    ).toBeTruthy();
+    // The scalar `total` output still gets its output port dot under either renderer.
+    expect(
+      container.querySelector(
+        '[data-syntropy-port="output"][data-port-key="total"]',
+      ),
+    ).toBeTruthy();
   });
 
   it("routes the matrix archetype to MatrixNode (renders the A = L · U factor row)", () => {
