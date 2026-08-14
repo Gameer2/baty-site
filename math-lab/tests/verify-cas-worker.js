@@ -200,6 +200,56 @@ if (booted) {
        "dispatches harmonicConjugate and returns the verified conjugate", r && r.result && r.result.v);
   }
   {
+    // Display-sampling ops (sampleCurve / sampleField / seriesPartialSums). These evaluate an
+    // expression via CalcCore.compileFn — the same path the engines use for numeric probes —
+    // so a sampled point agrees with the symbolic result. Pure display sampling, no new math.
+    const r = send({ id: 30, op: "sampleCurve", args: [{ mode: "function", expr: "x^2", variable: "x", a: -1, b: 1, n: 4 }] });
+    ok(r && r.ok && r.result.ok && r.result.points.length === 5 &&
+       Math.abs(r.result.points[2].x) < 1e-9 && Math.abs(r.result.points[2].y) < 1e-9 &&
+       Math.abs(r.result.points[4].y - 1) < 1e-9,
+       "sampleCurve (function) evaluates f(x)=x^2 at sample points", r && r.result && r.result.points.length);
+  }
+  {
+    const r = send({ id: 31, op: "sampleCurve", args: [{ mode: "parametric", xExpr: "cos(t)", yExpr: "sin(t)", variable: "t", a: 0, b: 2 * Math.PI, n: 8 }] });
+    ok(r && r.ok && r.result.ok && r.result.points.length === 9 &&
+       Math.abs(r.result.points[0].x - 1) < 1e-9 && Math.abs(r.result.points[0].y) < 1e-9,
+       "sampleCurve (parametric) traces x=cos(t), y=sin(t)", r && r.result && r.result.points.length);
+  }
+  {
+    const r = send({ id: 32, op: "sampleCurve", args: [{ mode: "polar", rExpr: "1", variable: "t", a: 0, b: 2 * Math.PI, n: 8 }] });
+    ok(r && r.ok && r.result.ok && r.result.points.length === 9 &&
+       Math.abs(r.result.points[0].x - 1) < 1e-9 && Math.abs(r.result.points[0].y) < 1e-9,
+       "sampleCurve (polar) traces the unit circle r=1", r && r.result && r.result.points.length);
+  }
+  {
+    // Σ_{k=0}^{2} 1·(x−0)^k = 1 + x + x^2; at x=2 that is 7.
+    const r = send({ id: 33, op: "sampleCurve", args: [{ mode: "series", coeffsExpr: "1", indexVar: "n", center: 0, degree: 2, variable: "x", a: 0, b: 2, n: 2 }] });
+    ok(r && r.ok && r.result.ok && r.result.points.length === 3 &&
+       Math.abs(r.result.points[2].x - 2) < 1e-9 && Math.abs(r.result.points[2].y - 7) < 1e-9,
+       "sampleCurve (series) sums Σ c_k (x−a)^k from numeric coefficients", r && r.result && r.result.points.length);
+  }
+  {
+    const r = send({ id: 34, op: "sampleField", args: [{ variant: "arrows", pExpr: "-y", qExpr: "x", vars: ["x", "y"], xLo: -1, xHi: 1, yLo: -1, yHi: 1, cols: 3, rows: 3 }] });
+    ok(r && r.ok && r.result.ok && r.result.grid.length === 3 && r.result.grid[0].length === 3 &&
+       r.result.vectors.length > 0 && Math.abs(r.result.vectors[0].dx - 1) < 1e-9 && Math.abs(r.result.vectors[0].dy + 1) < 1e-9,
+       "sampleField (arrows) samples the rotation field ⟨−y, x⟩", r && r.result && r.result.vectors.length);
+  }
+  {
+    const r = send({ id: 35, op: "sampleField", args: [{ variant: "heatmap", expr: "x+y", vars: ["x", "y"], xLo: 0, xHi: 1, yLo: 0, yHi: 1, cols: 2, rows: 2 }] });
+    ok(r && r.ok && r.result.ok && r.result.grid.length === 2 &&
+       Math.abs(r.result.grid[0][0].value) < 1e-9 && Math.abs(r.result.grid[1][1].value - 2) < 1e-9,
+       "sampleField (heatmap) evaluates the scalar field x+y", r && r.result && r.result.grid.length);
+  }
+  {
+    // 1/n^2: partial sums 1, 1.25, 1.3611…
+    const r = send({ id: 36, op: "seriesPartialSums", args: [{ termExpr: "1/n^2", indexVar: "n", count: 3 }] });
+    ok(r && r.ok && r.result.ok && r.result.rows.length === 3 &&
+       Math.abs(r.result.rows[0].partialSum - 1) < 1e-9 &&
+       Math.abs(r.result.rows[1].partialSum - 1.25) < 1e-9 &&
+       Math.abs(r.result.rows[2].partialSum - (1 + 0.25 + 1 / 9)) < 1e-9,
+       "seriesPartialSums accumulates Σ 1/n²", r && r.result && r.result.rows.length);
+  }
+  {
     // The op table is a whitelist, so an unexpected name is refused rather than reaching
     // anything on the worker's global scope.
     const r = send({ id: 3, op: "constructor", args: [] });
