@@ -115,13 +115,12 @@ import {
   type EngineId,
 } from "./syntropy/engineAccents";
 import {
-  computeLinkedAccent,
-  getSyntropyWireStyling,
-  stampLinkedAccent,
-  styleSyntropyWire,
-} from "./syntropy/syntropyWire";
+  createSyntropyWire,
+  deleteSyntropyWire,
+} from "./syntropy/createSyntropyWire";
 import { LibraryPanel } from "./syntropy/LibraryPanel";
 import { ChromeRail } from "./syntropy/ChromeRail";
+import { PenPresets } from "./syntropy/PenPresets";
 import { NodeOverlay } from "./syntropy/NodeOverlay";
 
 import "./syntropy/boardChrome.scss";
@@ -421,6 +420,13 @@ const ExcalidrawWrapper = () => {
     appState: AppState;
   } | null>(null);
   const overlaySyncRafRef = useRef<number | null>(null);
+  // Tracks whether the scene held any Syntropy node on the last sync, so onChange can skip
+  // scheduling overlay work entirely while there's nothing for the overlay to show. Without this,
+  // a scene with zero Syntropy nodes still pays for a NodeOverlay re-render (incl. its
+  // getBoundingClientRect port re-measure) on every animation frame during an ordinary freehand
+  // stroke — pencil input is the highest-frequency onChange source there is, so that per-frame
+  // forced-layout cost was landing exactly where it stutters most.
+  const hadSyntropyNodesRef = useRef(false);
   // Syntropy Canvas: no collaboration server is configured for v0 (deprioritized —
   // see docs/superpowers/specs/2026-08-04-math-canvas-design.md), so this is
   // unconditionally disabled rather than only inside an iframe.
@@ -753,47 +759,6 @@ const ExcalidrawWrapper = () => {
       )
       .find((engineId): engineId is EngineId => Boolean(engineId));
     setActiveEngineId(selectedSyntropyEngine ?? null);
-
-    // Auto-style arrows wired between Syntropy nodes (dashed, diamond port
-    // markers, source-engine accent) and mark the target node's first scrub
-    // chip as linked to the source engine's accent. Idempotent: once an
-    // arrow carries customData.syntropyWire it's never re-forced, so a user
-    // can still restyle a wire by hand afterward. CaptureUpdateAction.NEVER
-    // so this auto-styling isn't a separate undo step.
-    if (excalidrawAPI) {
-      const byId = new Map<string, typeof elements[number]>();
-      for (const el of elements) {
-        byId.set(el.id, el);
-      }
-      const resolveNode = (id: string) => byId.get(id);
-      const arrows = elements.filter(isArrowElement);
-      let wireChanged = false;
-      const nextElements = elements.map((el) => {
-        if (isArrowElement(el)) {
-          const accent = getSyntropyWireStyling(el, resolveNode);
-          if (accent) {
-            wireChanged = true;
-            return newElementWith(el, styleSyntropyWire(el, accent));
-          }
-          return el;
-        }
-        if (el.customData?.syntropyNode) {
-          const linked = computeLinkedAccent(el.id, arrows, resolveNode);
-          const cur = el.customData.syntropyNode.linkedAccent ?? null;
-          if (linked !== cur) {
-            wireChanged = true;
-            return newElementWith(el, stampLinkedAccent(el, linked));
-          }
-        }
-        return el;
-      });
-      if (wireChanged) {
-        excalidrawAPI.updateScene({
-          elements: nextElements,
-          captureUpdate: CaptureUpdateAction.NEVER,
-        });
-      }
-    }
   };
 
   useEffect(() => {
@@ -809,9 +774,20 @@ const ExcalidrawWrapper = () => {
     appState: AppState,
     files: BinaryFiles,
   ) => {
-    pendingOverlaySyncRef.current = { elements, appState };
-    if (overlaySyncRafRef.current === null) {
-      overlaySyncRafRef.current = requestAnimationFrame(flushOverlaySync);
+    const hasSyntropyNodes = elements.some(
+      (el) =>
+        (el.customData as { syntropyNode?: unknown } | undefined)?.syntropyNode,
+    );
+    // Nothing to position/recompute and there wasn't a moment ago either — skip the overlay sync
+    // entirely rather than scheduling a rAF flush that will just re-render an unchanged empty
+    // overlay. Once a node exists (or existed last frame, so its removal still gets synced once),
+    // this falls through to the normal coalesced path below.
+    if (hasSyntropyNodes || hadSyntropyNodesRef.current) {
+      hadSyntropyNodesRef.current = hasSyntropyNodes;
+      pendingOverlaySyncRef.current = { elements, appState };
+      if (overlaySyncRafRef.current === null) {
+        overlaySyncRafRef.current = requestAnimationFrame(flushOverlaySync);
+      }
     }
 
     if (collabAPI?.isCollaborating()) {
@@ -887,6 +863,66 @@ const ExcalidrawWrapper = () => {
         elements: next,
         captureUpdate: CaptureUpdateAction.NEVER,
       });
+    },
+    [excalidrawAPI],
+  );
+
+  // NodeOverlay (auto-fit): a node's rendered content outgrew its last-committed box — grow the
+  // underlying embeddable element to match (see NodeOverlay.tsx's scrollWidth/scrollHeight
+  // effect). captureUpdate: NEVER for the same reason as handleNodeInputsChange above — this
+  // fires from content measurement, not a deliberate user action, so it shouldn't cost its own
+  // undo step.
+  const handleNodeResize = useCallback(
+    (elementId: string, width: number, height: number) => {
+      if (!excalidrawAPI) {
+        return;
+      }
+      const elements = excalidrawAPI.getSceneElements();
+      const next = elements.map((el) => {
+        if (el.id !== elementId || !el.customData?.syntropyNode) {
+          return el;
+        }
+        return newElementWith(el, { width, height });
+      });
+      excalidrawAPI.updateScene({
+        elements: next,
+        captureUpdate: CaptureUpdateAction.NEVER,
+      });
+    },
+    [excalidrawAPI],
+  );
+
+  // NodeOverlay: a drag from an output port dot was released over a compatible input port dot —
+  // create the real connection. CaptureUpdateAction.IMMEDIATELY (createSyntropyWire's own
+  // default) since this is a discrete, deliberate action — same as adding a node — not a
+  // per-keystroke live edit, so it should be its own undo step.
+  const handleCreateWire = useCallback(
+    (
+      sourceNodeId: string,
+      sourceOutputKey: string,
+      targetNodeId: string,
+      targetInputKey: string,
+    ) => {
+      if (!excalidrawAPI) {
+        return;
+      }
+      createSyntropyWire(excalidrawAPI, {
+        sourceNodeId,
+        sourceOutputKey,
+        targetNodeId,
+        targetInputKey,
+      });
+    },
+    [excalidrawAPI],
+  );
+
+  // NodeOverlay: the user clicked a connection curve (selecting it) and pressed Delete/Backspace.
+  const handleDeleteWire = useCallback(
+    (arrowId: string) => {
+      if (!excalidrawAPI) {
+        return;
+      }
+      deleteSyntropyWire(excalidrawAPI, arrowId);
     },
     [excalidrawAPI],
   );
@@ -1080,6 +1116,17 @@ const ExcalidrawWrapper = () => {
       })}
     >
       {isLibraryPanelOpen && <LibraryPanel excalidrawAPI={excalidrawAPI} />}
+      {/* Mobile-only scrim behind the library drawer (see LibraryPanel.scss):
+          display:none above 900px, so this is a no-op on desktop. On phone/tablet
+          a tap on the exposed canvas closes the drawer. */}
+      {isLibraryPanelOpen && (
+        <button
+          type="button"
+          aria-label="Close library"
+          className="LibraryPanel__scrim"
+          onClick={() => setIsLibraryPanelOpen(false)}
+        />
+      )}
       <ChromeRail
         excalidrawAPI={excalidrawAPI}
         libraryOpen={isLibraryPanelOpen}
@@ -1090,11 +1137,16 @@ const ExcalidrawWrapper = () => {
         appTheme={appTheme}
         onThemeChange={setAppTheme}
       />
+      <PenPresets excalidrawAPI={excalidrawAPI} />
       {overlayAppState && (
         <NodeOverlay
           elements={overlayElements}
+          arrows={overlayElements.filter(isArrowElement)}
           appState={overlayAppState}
           onNodeInputsChange={handleNodeInputsChange}
+          onCreateWire={handleCreateWire}
+          onDeleteWire={handleDeleteWire}
+          onNodeResize={handleNodeResize}
         />
       )}
       <div
@@ -1172,8 +1224,17 @@ const ExcalidrawWrapper = () => {
                   : undefined,
               },
             },
+            // Only compensate for the library column's width when it's actually mounted and
+            // stealing that space (isLibraryPanelOpen — see LIBRARY_PANEL_WIDTH above). Adding it
+            // unconditionally, even while the panel is closed and Excalidraw's container already
+            // spans the full window, was inflating editorWidth on every iPad-width screen and
+            // permanently locking in the "desktop" form factor — which is what native Excalidraw
+            // uses to decide when its own panels reflow to avoid colliding on a small screen.
             getFormFactor: (editorWidth, editorHeight) =>
-              getFormFactor(editorWidth + LIBRARY_PANEL_WIDTH, editorHeight),
+              getFormFactor(
+                editorWidth + (isLibraryPanelOpen ? LIBRARY_PANEL_WIDTH : 0),
+                editorHeight,
+              ),
           }}
           langCode={langCode}
           renderCustomStats={renderCustomStats}

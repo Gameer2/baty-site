@@ -234,3 +234,81 @@ describe("NodeOverlay — run trigger + status UX", () => {
     expect(true).toBe(true);
   });
 });
+
+describe("NodeOverlay — auto-fit", () => {
+  // jsdom never lays out real content, so scrollWidth/scrollHeight stay 0 unless stubbed —
+  // these tests stub them on the rendered NodeShell root (found via its `data-node-id`) to
+  // simulate content that has outgrown, or comfortably fits inside, the element's committed box.
+  const props = (
+    onNodeResize: (id: string, w: number, h: number) => void,
+    els: unknown[],
+  ) => ({
+    elements: els as never,
+    arrows: [] as never,
+    appState: appState() as never,
+    onNodeInputsChange: () => {},
+    onCreateWire: () => {},
+    onDeleteWire: () => {},
+    onNodeResize,
+    resolveSpec: resolveSpec as never,
+  });
+
+  it("grows a node's element to fit content that overflows its allocated box", () => {
+    const resizeCalls: Array<[string, number, number]> = [];
+    const els = [element("n", "calculus", "double-fixture", { x: 5 })];
+    const { rerender } = render(
+      <NodeOverlay {...props((id, w, h) => resizeCalls.push([id, w, h]), els)} />,
+    );
+
+    const shell = document.querySelector('[data-node-id="n"]') as HTMLElement;
+    expect(shell).toBeTruthy();
+    Object.defineProperty(shell, "scrollWidth", {
+      value: 400,
+      configurable: true,
+    });
+    Object.defineProperty(shell, "scrollHeight", {
+      value: 500,
+      configurable: true,
+    });
+
+    // Force the layout effect (deliberately un-keyed, see NodeOverlay.tsx) to run again against
+    // the now-stubbed measurements.
+    rerender(
+      <NodeOverlay {...props((id, w, h) => resizeCalls.push([id, w, h]), els)} />,
+    );
+
+    // element() sizes the node at 300x240 — 400x500 exceeds both dimensions and is within
+    // MIN/MAX_NODE_* bounds, so it should pass through clampNodeSize unchanged. (StrictMode may
+    // double-invoke the layout effect, so assert on content rather than exact call count.)
+    expect(resizeCalls.length).toBeGreaterThanOrEqual(1);
+    for (const call of resizeCalls) {
+      expect(call).toEqual(["n", 400, 500]);
+    }
+  });
+
+  it("never shrinks a node below its currently-committed size", () => {
+    const resizeCalls: Array<[string, number, number]> = [];
+    const els = [element("n", "calculus", "double-fixture", { x: 5 })];
+    const { rerender } = render(
+      <NodeOverlay {...props((id, w, h) => resizeCalls.push([id, w, h]), els)} />,
+    );
+
+    const shell = document.querySelector('[data-node-id="n"]') as HTMLElement;
+    // Content that would need less space than the 300x240 the element already has — a user who
+    // manually enlarged this node shouldn't have it auto-shrunk back down.
+    Object.defineProperty(shell, "scrollWidth", {
+      value: 100,
+      configurable: true,
+    });
+    Object.defineProperty(shell, "scrollHeight", {
+      value: 50,
+      configurable: true,
+    });
+
+    rerender(
+      <NodeOverlay {...props((id, w, h) => resizeCalls.push([id, w, h]), els)} />,
+    );
+
+    expect(resizeCalls).toEqual([]);
+  });
+});

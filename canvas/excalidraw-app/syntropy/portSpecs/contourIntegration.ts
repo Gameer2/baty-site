@@ -1,4 +1,8 @@
-import { complexDisplay, runCas } from "./casRunHelpers";
+import {
+  complexDisplay,
+  runCas,
+  SYMPY_CAS_TIMEOUT_MS,
+} from "./casRunHelpers";
 
 import type { ComputeResult, PortSpec } from "./types";
 
@@ -26,6 +30,7 @@ export const CONTOUR_INTEGRATION_PORT_SPEC: PortSpec = {
     { key: "residues", label: "interior poles", kind: "text" },
   ],
   executionMode: "run",
+  casTier: "sympy",
   pagePath: "/math-lab/engines/complex/methods/contour-integration.html",
   pageStoreKey: "engine-lab:complex-contour-integration",
   compute: (): ComputeResult => ({ outputs: {} }),
@@ -49,7 +54,11 @@ export const CONTOUR_INTEGRATION_PORT_SPEC: PortSpec = {
       };
     }
     const contour = { type: "circle" as const, center, radius };
-    const r = await runCas("contourIntegration", [f, contour]);
+    const r = await runCas(
+      "contourIntegration",
+      [f, contour],
+      SYMPY_CAS_TIMEOUT_MS,
+    );
     if (!r.ok) {
       return { outputs: {}, error: r.error };
     }

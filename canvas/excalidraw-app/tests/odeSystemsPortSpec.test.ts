@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { archetypeFromSpec } from "../syntropy/nodes/dispatch";
+import { SYMPY_CAS_TIMEOUT_MS } from "../syntropy/portSpecs/casRunHelpers";
 import { ODE_SYSTEMS_PORT_SPEC } from "../syntropy/portSpecs/odeSystems";
 
 const { casCallMock } = vi.hoisted(() => ({ casCallMock: vi.fn() }));
@@ -24,6 +25,7 @@ describe("ODE_SYSTEMS_PORT_SPEC", () => {
     expect(ODE_SYSTEMS_PORT_SPEC.engineId).toBe("ode");
     expect(ODE_SYSTEMS_PORT_SPEC.methodId).toBe("systems");
     expect(ODE_SYSTEMS_PORT_SPEC.executionMode).toBe("run");
+    expect(ODE_SYSTEMS_PORT_SPEC.casTier).toBe("sympy");
     expect(ODE_SYSTEMS_PORT_SPEC.pageStoreKey).toBe("engine-lab:ode-systems");
   });
 
@@ -42,14 +44,18 @@ describe("ODE_SYSTEMS_PORT_SPEC", () => {
       g: "0;0",
       ics: "1,0",
     });
-    expect(casCallMock).toHaveBeenCalledWith("solveOdeSystems", [
+    expect(casCallMock).toHaveBeenCalledWith(
+      "solveOdeSystems",
       [
-        [0, 1],
-        [-1, 0],
+        [
+          [0, 1],
+          [-1, 0],
+        ],
+        ["0", "0"],
+        [1, 0],
       ],
-      ["0", "0"],
-      [1, 0],
-    ]);
+      SYMPY_CAS_TIMEOUT_MS,
+    );
     expect(result?.error).toBeUndefined();
     expect((result?.outputs.result as { display: string }).display).toBe(
       "x1(t) = cos(t)\nx2(t) = -sin(t)",
@@ -64,14 +70,18 @@ describe("ODE_SYSTEMS_PORT_SPEC", () => {
       g: "0;0",
       ics: "1",
     });
-    expect(casCallMock).toHaveBeenCalledWith("solveOdeSystems", [
+    expect(casCallMock).toHaveBeenCalledWith(
+      "solveOdeSystems",
       [
-        [0, 1],
-        [-1, 0],
+        [
+          [0, 1],
+          [-1, 0],
+        ],
+        ["0", "0"],
+        null,
       ],
-      ["0", "0"],
-      null,
-    ]);
+      SYMPY_CAS_TIMEOUT_MS,
+    );
   });
 
   it("rejects a non-square matrix", async () => {

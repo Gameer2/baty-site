@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { archetypeFromSpec } from "../syntropy/nodes/dispatch";
+import { SYMPY_CAS_TIMEOUT_MS } from "../syntropy/portSpecs/casRunHelpers";
 import { ODE_SOLVER_PORT_SPEC } from "../syntropy/portSpecs/odeSolver";
 
 const { casCallMock } = vi.hoisted(() => ({ casCallMock: vi.fn() }));
@@ -41,10 +42,11 @@ describe("ODE_SOLVER_PORT_SPEC", () => {
       y0: 0,
       yp0: 1,
     });
-    expect(casCallMock).toHaveBeenCalledWith("solveOde", [
-      "y'' + y = 0",
-      { x0: 0, derivValues: [0, 1] },
-    ]);
+    expect(casCallMock).toHaveBeenCalledWith(
+      "solveOde",
+      ["y'' + y = 0", { x0: 0, derivValues: [0, 1] }],
+      SYMPY_CAS_TIMEOUT_MS,
+    );
     expect(result?.error).toBeUndefined();
     expect((result?.outputs.result as { display: string }).display).toBe(
       "sin(x)",

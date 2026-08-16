@@ -1,4 +1,8 @@
-import { complexDisplay, runCas } from "./casRunHelpers";
+import {
+  complexDisplay,
+  runCas,
+  SYMPY_CAS_TIMEOUT_MS,
+} from "./casRunHelpers";
 
 import type { ComputeResult, ExpressionOutput, PortSpec } from "./types";
 
@@ -21,6 +25,7 @@ export const LAURENT_SINGULARITIES_PORT_SPEC: PortSpec = {
     { key: "residue", label: "residue", kind: "text" },
   ],
   executionMode: "run",
+  casTier: "sympy",
   pagePath: "/math-lab/engines/complex/methods/laurent-singularities.html",
   pageStoreKey: "engine-lab:complex-laurent-singularities",
   compute: (): ComputeResult => ({ outputs: {} }),
@@ -34,7 +39,11 @@ export const LAURENT_SINGULARITIES_PORT_SPEC: PortSpec = {
     if (!Number.isFinite(point.re) || !Number.isFinite(point.im)) {
       return { outputs: {}, error: "Re(z₀) and Im(z₀) must be numbers." };
     }
-    const r = await runCas("laurentSingularities", [f, point, order]);
+    const r = await runCas(
+      "laurentSingularities",
+      [f, point, order],
+      SYMPY_CAS_TIMEOUT_MS,
+    );
     if (!r.ok) {
       return { outputs: {}, error: r.error };
     }

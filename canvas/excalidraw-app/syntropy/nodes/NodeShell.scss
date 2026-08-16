@@ -204,6 +204,9 @@
 
 // Run-mode status chip — "running…" / "stale — press Run". Shared by every archetype renderer
 // (mounted unconditionally; renders nothing when a run node is ready or for live nodes).
+// No pointer-events here: this is a plain status chip with no click handler — the label reads
+// "running…" / "stale — press Run" but there's nothing to interact with, so it should pass
+// clicks through to the canvas underneath like the rest of a node's non-interactive chrome.
 .NodeStatus {
   display: inline-block;
   margin-top: 4px;
@@ -213,7 +216,6 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   font-weight: 600;
-  pointer-events: auto;
 }
 
 .NodeStatus--pending {
@@ -250,6 +252,10 @@
   letter-spacing: 0.04em;
   cursor: pointer;
   transition: background 0.12s ease, border-color 0.12s ease;
+  // NodeShell sets pointer-events: none on the whole card and expects every interactive child
+  // to re-enable it for itself — this one was missed, so the button never received real clicks
+  // (jsdom's fireEvent.click bypasses hit-testing, which is why the tests didn't catch it).
+  pointer-events: auto;
 
   &:hover:not(:disabled) {
     background: color-mix(in srgb, var(--node-accent) 26%, transparent);

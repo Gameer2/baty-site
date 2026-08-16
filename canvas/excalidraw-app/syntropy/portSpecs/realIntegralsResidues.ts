@@ -1,4 +1,4 @@
-import { runCas } from "./casRunHelpers";
+import { runCas, SYMPY_CAS_TIMEOUT_MS } from "./casRunHelpers";
 
 import type { ComputeResult, PortSpec } from "./types";
 
@@ -20,6 +20,7 @@ export const REAL_INTEGRALS_RESIDUES_PORT_SPEC: PortSpec = {
     { key: "poles", label: "poles used", kind: "text" },
   ],
   executionMode: "run",
+  casTier: "sympy",
   pagePath: "/math-lab/engines/complex/methods/real-integrals-residues.html",
   pageStoreKey: "engine-lab:complex-real-integrals-residues",
   compute: (): ComputeResult => ({ outputs: {} }),
@@ -32,7 +33,11 @@ export const REAL_INTEGRALS_RESIDUES_PORT_SPEC: PortSpec = {
         error: 'mode must be "whole" (∫_{-∞}^{∞}) or "half" (∫_{0}^{∞}).',
       };
     }
-    const r = await runCas("realIntegralsResidues", [f, mode]);
+    const r = await runCas(
+      "realIntegralsResidues",
+      [f, mode],
+      SYMPY_CAS_TIMEOUT_MS,
+    );
     if (!r.ok) {
       return { outputs: {}, error: r.error };
     }

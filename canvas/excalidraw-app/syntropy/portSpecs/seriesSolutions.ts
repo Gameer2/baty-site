@@ -1,4 +1,4 @@
-import { runCas } from "./casRunHelpers";
+import { runCas, SYMPY_CAS_TIMEOUT_MS } from "./casRunHelpers";
 
 import type { ComputeResult, ExpressionOutput, PortSpec } from "./types";
 
@@ -26,6 +26,7 @@ export const SERIES_SOLUTIONS_PORT_SPEC: PortSpec = {
     { key: "verified", label: "verified (1/0)", kind: "number" },
   ],
   executionMode: "run",
+  casTier: "sympy",
   pagePath: "/math-lab/engines/ode/methods/series-solutions.html",
   pageStoreKey: "engine-lab:ode-series-solutions",
   compute: (): ComputeResult => ({ outputs: {} }),
@@ -42,7 +43,11 @@ export const SERIES_SOLUTIONS_PORT_SPEC: PortSpec = {
         error: "The term count must be a positive integer.",
       };
     }
-    const r = await runCas("seriesSolutions", [equation, point, order]);
+    const r = await runCas(
+      "seriesSolutions",
+      [equation, point, order],
+      SYMPY_CAS_TIMEOUT_MS,
+    );
     if (!r.ok) {
       return { outputs: {}, error: r.error };
     }

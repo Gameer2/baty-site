@@ -43,11 +43,19 @@
   // selected-shape-actions panel (the second child) in the left column where it belongs. An earlier
   // attempt moved the whole .App-menu_top__left column and dragged the shape-actions panel off with
   // it — "this one cant be seen, you made it much worse".
-  .excalidraw-ui-top-left {
-    position: fixed;
-    top: 16px;
-    right: 16px;
-    z-index: 20;
+  //
+  // Scoped to min-width: 901px (this file had NO responsive rules at all before, applying this
+  // fixed desktop offset at every screen size). Below that, Excalidraw's own form-factor-driven
+  // mobile layout — now correctly triggered since App.tsx's getFormFactor no longer lies about
+  // available width — is what's supposed to keep the menu trigger clear of the toolbar. Forcing it
+  // to top-right unconditionally fought that on narrow screens instead of deferring to it.
+  @media (min-width: 901px) {
+    .excalidraw-ui-top-left {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 20;
+    }
   }
 
   // Syntropy nodes carry a syntropy:// link only so validateEmbeddable accepts them; the native
@@ -75,9 +83,12 @@
   // (see .excalidraw-ui-top-left above), the selected-shape-actions panel would rise to the very
   // top of the left column and collide with the Library toggle chip (also top-left, position: fixed
   // at top:16px / ~36px tall). Push it down past the toggle (note-taker: "it should be a little
-  // down so it isnt overlap with anything").
-  .App-menu_top > .App-menu_top__left {
-    padding-top: 60px;
+  // down so it isnt overlap with anything"). Same min-width gate as .excalidraw-ui-top-left above —
+  // this offset only makes sense once the menu is actually pinned top-right.
+  @media (min-width: 901px) {
+    .App-menu_top > .App-menu_top__left {
+      padding-top: 60px;
+    }
   }
 
   // Excalidraw's whole chrome layer (.layer-ui__wrapper — the toolbar, main menu, shape-actions

@@ -6,6 +6,10 @@
   margin-bottom: 6px;
 }
 
+// No pointer-events here: this wraps BOTH the editable input grid and the read-only output
+// grids. Only the editable case has anything to interact with, and `.MatrixNode__cellInput`
+// re-enables pointer-events for itself — so a read-only grid (bases, RREF, eigenvector list)
+// passes clicks through to select the node instead of blocking most of its body.
 .MatrixNode__grid {
   box-sizing: border-box;
   border-radius: 8px;
@@ -15,7 +19,6 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  pointer-events: auto;
 }
 
 .MatrixNode__gridLabel {
@@ -61,6 +64,7 @@
   padding: 4px 2px;
   cursor: text;
   font-variant-numeric: tabular-nums;
+  pointer-events: auto;
 }
 
 .MatrixNode__cellInput:disabled {
@@ -76,7 +80,6 @@
   align-items: center;
   gap: 6px;
   margin-top: 4px;
-  pointer-events: auto;
 }
 
 .MatrixNode__relation {
@@ -107,11 +110,11 @@
   gap: 8px;
 }
 
+// Read-only (λ, v) rows — plain text, nothing to interact with — so no pointer-events here.
 .MatrixNode__eigenpairs {
   margin-top: 4px;
   display: grid;
   gap: 1px;
-  pointer-events: auto;
 }
 
 .MatrixNode__eigenpair {

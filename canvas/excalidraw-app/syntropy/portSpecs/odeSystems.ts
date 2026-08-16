@@ -1,5 +1,9 @@
-import { runCas } from "./casRunHelpers";
-import { parseExpressionList, parseMatrix, parseNumberList } from "./parseComposite";
+import { runCas, SYMPY_CAS_TIMEOUT_MS } from "./casRunHelpers";
+import {
+  parseExpressionList,
+  parseMatrix,
+  parseNumberList,
+} from "./parseComposite";
 
 import type { ComputeResult, ExpressionOutput, PortSpec } from "./types";
 
@@ -24,6 +28,7 @@ export const ODE_SYSTEMS_PORT_SPEC: PortSpec = {
     { key: "verified", label: "verified (1/0)", kind: "number" },
   ],
   executionMode: "run",
+  casTier: "sympy",
   pagePath: "/math-lab/engines/ode/methods/systems.html",
   pageStoreKey: "engine-lab:ode-systems",
   compute: (): ComputeResult => ({ outputs: {} }),
@@ -35,7 +40,11 @@ export const ODE_SYSTEMS_PORT_SPEC: PortSpec = {
       return { outputs: {}, error: "A must be a square matrix." };
     }
     const ics = icsArr.length === A.length ? icsArr : null;
-    const r = await runCas("solveOdeSystems", [A, gList, ics]);
+    const r = await runCas(
+      "solveOdeSystems",
+      [A, gList, ics],
+      SYMPY_CAS_TIMEOUT_MS,
+    );
     if (!r.ok) {
       return { outputs: {}, error: r.error };
     }
@@ -44,7 +53,9 @@ export const ODE_SYSTEMS_PORT_SPEC: PortSpec = {
       display: components.map((c, i) => `x${i + 1}(t) = ${c}`).join("\n"),
       structured: { kind: "plain" },
     };
-    const classification = (r.result.classification as { type?: string; stability?: string } | undefined);
+    const classification = r.result.classification as
+      | { type?: string; stability?: string }
+      | undefined;
     return {
       outputs: {
         result,

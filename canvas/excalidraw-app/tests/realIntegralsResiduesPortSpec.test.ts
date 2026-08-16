@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { archetypeFromSpec } from "../syntropy/nodes/dispatch";
+import { SYMPY_CAS_TIMEOUT_MS } from "../syntropy/portSpecs/casRunHelpers";
 import { REAL_INTEGRALS_RESIDUES_PORT_SPEC } from "../syntropy/portSpecs/realIntegralsResidues";
 
 const { casCallMock } = vi.hoisted(() => ({ casCallMock: vi.fn() }));
@@ -50,10 +51,11 @@ describe("REAL_INTEGRALS_RESIDUES_PORT_SPEC", () => {
       f: "1/(1+x^2)",
       mode: "whole",
     });
-    expect(casCallMock).toHaveBeenCalledWith("realIntegralsResidues", [
-      "1/(1+x^2)",
-      "whole",
-    ]);
+    expect(casCallMock).toHaveBeenCalledWith(
+      "realIntegralsResidues",
+      ["1/(1+x^2)", "whole"],
+      SYMPY_CAS_TIMEOUT_MS,
+    );
     expect(result?.error).toBeUndefined();
     expect(result?.outputs.value).toBeCloseTo(Math.PI, 6);
     expect(result?.outputs.poles).toBe("i");
@@ -64,10 +66,11 @@ describe("REAL_INTEGRALS_RESIDUES_PORT_SPEC", () => {
       f: "1/(1+x^2)",
       mode: "half",
     });
-    expect(casCallMock).toHaveBeenCalledWith("realIntegralsResidues", [
-      "1/(1+x^2)",
-      "half",
-    ]);
+    expect(casCallMock).toHaveBeenCalledWith(
+      "realIntegralsResidues",
+      ["1/(1+x^2)", "half"],
+      SYMPY_CAS_TIMEOUT_MS,
+    );
     expect(result?.outputs.value).toBeCloseTo(Math.PI / 2, 6);
   });
 

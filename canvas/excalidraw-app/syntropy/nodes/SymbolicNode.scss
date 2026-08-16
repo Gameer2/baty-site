@@ -71,6 +71,8 @@
 // The symbolic expression. A factorization relation renders the structured form (superscript
 // exponents, an overlined continued-fraction period, a mod clause) in the node accent; otherwise
 // the display string renders as a monospace math line.
+// Purely decorative — a rendered expression string, no drag/click handlers — so it shouldn't
+// block clicks meant to select the node.
 .SymbolicNode__expr {
   margin-top: 4px;
   border-radius: 8px;
@@ -78,7 +80,6 @@
   background: var(--color-surface-low);
   padding: 14px 10px;
   text-align: center;
-  pointer-events: auto;
 }
 
 .SymbolicNode__exprLine {

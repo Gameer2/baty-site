@@ -261,3 +261,59 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Mobile / tablet (≤ 900px): the 300px library column would starve a phone
+// (or iPad) canvas, so the panel becomes a full-height overlay drawer from the
+// left and Excalidraw's container re-expands to the full window width
+// underneath. `position: fixed` here removes it from the flex flow it shares
+// with <Excalidraw> in App.tsx, so no React/prop changes are needed to free
+// the canvas. A scrim (rendered in App.tsx, where the open/close state lives)
+// sits behind the drawer so a tap on the exposed canvas closes the library.
+// 900px covers real iPad portrait widths (744-834px CSS px); 768px did not.
+// ---------------------------------------------------------------------------
+@media (max-width: 900px) {
+  .LibraryPanel {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: min(300px, 85vw);
+    height: 100%;
+    border-right: 1px solid var(--input-border-color);
+    z-index: 30;
+    border-radius: 0;
+  }
+
+  // 16px prevents iOS Safari from auto-zooming the page on focus.
+  .LibraryPanel__searchInput {
+    font-size: 16px;
+    padding: 11px 13px;
+  }
+
+  .LibraryPanel__method,
+  .LibraryPanel__engine-head {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+}
+
+// Mobile-only scrim behind the drawer. Rendered as a real <button> in App.tsx
+// (where isLibraryPanelOpen lives) so it has a genuine click target to close —
+// a ::after pseudo-element can't carry an onClick. `display:none` on desktop
+// means zero impact above 900px.
+.LibraryPanel__scrim {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .LibraryPanel__scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 29;
+    padding: 0;
+    border: 0;
+    background: rgba(0, 0, 0, 0.45);
+    cursor: pointer;
+  }
+}

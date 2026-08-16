@@ -83,3 +83,27 @@
   gap: 2px;
   padding: 3px;
 }
+
+// ---------------------------------------------------------------------------
+// Mobile / tablet (≤ 900px): dock the rail to the bottom-left. At the top it
+// collides with Excalidraw's own toolbar pill (top-center) and the main-menu
+// trigger (top-right, fixed by boardChrome.scss); the bottom edge is clear.
+// The library is now an overlay drawer (see LibraryPanel.scss) rather than a
+// pushing side column, so the `.shifted` slide-right is neutralized — the rail
+// stays put and the drawer simply opens above it.
+// 900px, not 768px: real iPads in portrait run 744-834px CSS px (mini/Air/
+// 10th-gen/Pro 11"), so a 768px cutoff left every iPad except mini above the
+// line and never docked the rail — it stayed pinned top-left, colliding with
+// the toolbar/menu exactly as described above, on the exact devices this was
+// meant to protect.
+// ---------------------------------------------------------------------------
+@media (max-width: 900px) {
+  .ChromeRail {
+    top: auto;
+    bottom: 16px;
+  }
+
+  .ChromeRail.shifted {
+    left: 16px;
+  }
+}

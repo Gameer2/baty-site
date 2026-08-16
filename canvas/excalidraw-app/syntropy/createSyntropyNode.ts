@@ -7,6 +7,7 @@ import {
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 
 import { computeInitialNodeSize, computeSpawnPoint } from "./nodeGeometry";
+import { warmSympyTier } from "./portSpecs/casRunHelpers";
 import { getPortSpec } from "./portSpecs/registry";
 
 import type { EngineId } from "./engineAccents";
@@ -81,4 +82,11 @@ export const createSyntropyNode = (
     elements,
     captureUpdate: CaptureUpdateAction.IMMEDIATELY,
   });
+
+  // Kick off the nested Pyodide/SymPy worker's cold boot now, in the background, instead of
+  // waiting for the user's first Run click — by the time they've read the node and typed real
+  // inputs, the engine has a head start (or is already warm). No-op for every other spec.
+  if (spec) {
+    warmSympyTier(spec);
+  }
 };

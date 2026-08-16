@@ -48,6 +48,25 @@ describe("createSyntropyNode", () => {
     });
   });
 
+  it("doesn't throw when spawning a casTier: sympy method (warm-start fires in the background)", () => {
+    const fakeAPI = {
+      getSceneElements: () => [],
+      getAppState: fakeAppState,
+      updateScene: () => {},
+    } as unknown as Parameters<typeof createSyntropyNode>[0];
+
+    // No CAS worker is configured in this test environment, so the warm call's casCall rejects
+    // immediately with "unavailable" — warmSympyTier swallows that, so this must not throw or
+    // leave an unhandled rejection.
+    expect(() =>
+      createSyntropyNode(fakeAPI, {
+        engineId: "ode",
+        methodId: "systems",
+        name: "Systems of ODEs",
+      }),
+    ).not.toThrow();
+  });
+
   it("creates a placeholder-sized element with no inputs for a method with no port spec", () => {
     let updated: { elements: readonly unknown[] } | null = null;
     const fakeAPI = {

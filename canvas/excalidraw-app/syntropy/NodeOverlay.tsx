@@ -3,7 +3,7 @@ import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import "./NodeOverlay.scss";
 
 import { ENGINE_ACCENTS, type EngineId } from "./engineAccents";
-import { computeNodeScreenRect } from "./nodeGeometry";
+import { clampNodeSize, computeNodeScreenRect } from "./nodeGeometry";
 import { getPortSpec } from "./portSpecs/registry";
 import { SyntropyNode } from "./SyntropyNode";
 import { NodeBody } from "./nodes/dispatch";
@@ -69,6 +69,11 @@ type NodeOverlayProps = {
   ) => void;
   /** The user selected a connection (clicked its curve) and pressed Delete/Backspace. */
   onDeleteWire: (arrowId: string) => void;
+  /** A node's rendered content no longer fits its last-committed box (a matrix factorization's
+   *  side-by-side grids, a fresh eigenpair row, an error line) — grow the underlying element to
+   *  `width`/`height` so NodeShell's `overflow: hidden` stops clipping it. See the auto-fit effect
+   *  below for the measurement this is derived from. */
+  onNodeResize?: (elementId: string, width: number, height: number) => void;
   /** Presentation-mode mirror view (see syntropy/presentation.ts): node cards still render so the
    *  mirrored board shows real content, but nothing on this layer should be able to mutate the
    *  scene — the mirror has no `excalidrawAPI` calls of its own wired to anything meaningful, it's
@@ -121,6 +126,7 @@ export const NodeOverlay = ({
   onNodeInputsChange,
   onCreateWire,
   onDeleteWire,
+  onNodeResize,
   readOnly = false,
   resolveSpec,
 }: NodeOverlayProps) => {
@@ -219,6 +225,44 @@ export const NodeOverlay = ({
     setPortPositions(next);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [elements, arrows, appState]);
+
+  // Auto-fit: grow a node's underlying element to match content that no longer fits its
+  // last-committed box — a factorization rendering a second grid, a fresh eigenpair row, an
+  // error line appearing. NodeShell keeps `data-node-id` and `overflow: hidden` on its root, so
+  // `scrollWidth`/`scrollHeight` report the true (currently clipped) content extent regardless of
+  // the box's allocated size — the same DOM-query technique the port-position effect above uses.
+  // Deliberately grow-only and un-keyed (runs after every commit): a run result, a wired value,
+  // or a new input can all change content shape without the `elements` array itself changing, and
+  // never shrinking means a node the user has manually resized bigger is left alone.
+  useLayoutEffect(() => {
+    if (!onNodeResize) {
+      return;
+    }
+    const container = containerRef.current;
+    if (!container) {
+      return;
+    }
+    const shells = container.querySelectorAll<HTMLElement>("[data-node-id]");
+    shells.forEach((shell) => {
+      const nodeId = shell.dataset.nodeId;
+      const element = nodeId ? byId.get(nodeId) : undefined;
+      if (!nodeId || !element) {
+        return;
+      }
+      const needsWidth = shell.scrollWidth > element.width + 2;
+      const needsHeight = shell.scrollHeight > element.height + 2;
+      if (!needsWidth && !needsHeight) {
+        return;
+      }
+      const fitted = clampNodeSize(
+        Math.max(shell.scrollWidth, element.width),
+        Math.max(shell.scrollHeight, element.height),
+      );
+      if (fitted.width !== element.width || fitted.height !== element.height) {
+        onNodeResize(nodeId, fitted.width, fitted.height);
+      }
+    });
+  });
 
   const handleOutputPortPointerDown = useCallback(
     (

@@ -1,4 +1,4 @@
-import { runCas } from "./casRunHelpers";
+import { runCas, SYMPY_CAS_TIMEOUT_MS } from "./casRunHelpers";
 
 import type { ComputeResult, ExpressionOutput, PortSpec } from "./types";
 
@@ -29,6 +29,7 @@ export const ODE_SOLVER_PORT_SPEC: PortSpec = {
     { key: "verified", label: "verified (1/0)", kind: "number" },
   ],
   executionMode: "run",
+  casTier: "sympy",
   pagePath: "/math-lab/engines/ode/methods/ode-solver.html",
   pageStoreKey: "engine-lab:ode-ode-solver",
   compute: (): ComputeResult => ({ outputs: {} }),
@@ -40,10 +41,11 @@ export const ODE_SOLVER_PORT_SPEC: PortSpec = {
     if (!Number.isFinite(x0) || !Number.isFinite(y0) || !Number.isFinite(yp0)) {
       return { outputs: {}, error: "x₀, y(x₀) and y'(x₀) must be numbers." };
     }
-    const r = await runCas("solveOde", [
-      equation,
-      { x0, derivValues: [y0, yp0] },
-    ]);
+    const r = await runCas(
+      "solveOde",
+      [equation, { x0, derivValues: [y0, yp0] }],
+      SYMPY_CAS_TIMEOUT_MS,
+    );
     if (!r.ok) {
       return { outputs: {}, error: r.error };
     }

@@ -82,9 +82,11 @@
   transition: border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
     transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 
-  &:hover {
-    border-color: var(--color-gray-40);
-    transform: translateY(-2px);
+  @media (hover: hover) {
+    &:hover {
+      border-color: var(--color-gray-40);
+      transform: translateY(-2px);
+    }
   }
 
   &--active {
@@ -174,8 +176,10 @@
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 
-  &:hover {
-    transform: scale(1.14);
+  @media (hover: hover) {
+    &:hover {
+      transform: scale(1.14);
+    }
   }
 
   &--active {
@@ -225,8 +229,10 @@
   border: 1px solid var(--color-gray-40);
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 
-  &:hover {
-    transform: scale(1.12);
+  @media (hover: hover) {
+    &:hover {
+      transform: scale(1.12);
+    }
   }
 
   &__chip {
@@ -321,5 +327,37 @@
     border-radius: 50%;
     background: var(--color-primary);
     border: 2px solid var(--island-bg-color);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Mobile / tablet (≤ 900px): the 252px picker fits at most phone widths, but
+// cap it to the viewport with side gutters so it never clips. The library is
+// now an overlay drawer (not a pushing column), so `.shifted` is neutralized
+// — the picker stays at the left edge and the drawer opens above it. 16px on
+// the hex field stops iOS from auto-zooming on focus.
+// 900px covers real iPad portrait widths (744-834px CSS px); 768px did not.
+//
+// The trigger (ChromeRail's "Paper" segment) docks to the bottom at this same
+// breakpoint (see ChromeRail.scss) — the panel has to follow it there too.
+// Anchoring stayed at `top: 66px` here previously, so on a phone or iPad mini
+// the panel opened floating near the top of the screen while its own trigger
+// button had already moved to the bottom — same 66px gap, mirrored: 16px
+// bottom inset + 38px rail height + 12px gap.
+// ---------------------------------------------------------------------------
+@media (max-width: 900px) {
+  .PaperPanel {
+    width: min(252px, calc(100vw - 32px));
+    top: auto;
+    bottom: 66px;
+    max-height: calc(100vh - 82px);
+  }
+
+  .PaperPanel.shifted {
+    left: 16px;
+  }
+
+  .PaperHex {
+    font-size: 16px;
   }
 }

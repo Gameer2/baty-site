@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { archetypeFromSpec } from "../syntropy/nodes/dispatch";
+import { SYMPY_CAS_TIMEOUT_MS } from "../syntropy/portSpecs/casRunHelpers";
 import { SERIES_SOLUTIONS_PORT_SPEC } from "../syntropy/portSpecs/seriesSolutions";
 
 const { casCallMock } = vi.hoisted(() => ({ casCallMock: vi.fn() }));
@@ -42,11 +43,11 @@ describe("SERIES_SOLUTIONS_PORT_SPEC", () => {
       point: 0,
       order: 6,
     });
-    expect(casCallMock).toHaveBeenCalledWith("seriesSolutions", [
-      "(1-x^2)y'' - 2xy' + 2y = 0",
-      0,
-      6,
-    ]);
+    expect(casCallMock).toHaveBeenCalledWith(
+      "seriesSolutions",
+      ["(1-x^2)y'' - 2xy' + 2y = 0", 0, 6],
+      SYMPY_CAS_TIMEOUT_MS,
+    );
     expect(result?.error).toBeUndefined();
     expect((result?.outputs.result as { display: string }).display).toBe(
       "x + (1/3)*x^3 + (2/15)*x^5",

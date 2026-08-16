@@ -71,6 +71,8 @@
 // The pdf/pmf curve with its shaded region. Faint fill under the whole curve, denser fill over
 // the shaded [lo, hi] tail/interval; bars for a discrete pmf.
 .DistributionNode__plot {
+  // Purely decorative — a static SVG plot, no drag/click handlers — so it shouldn't
+  // block clicks meant to select the node.
   margin-top: 4px;
   border-radius: 8px;
   border: 1px solid var(--input-border-color);
@@ -79,7 +81,6 @@
   width: 100%;
   height: auto;
   color: var(--color-gray-60);
-  pointer-events: auto;
 }
 
 .DistributionNode__output {

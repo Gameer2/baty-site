@@ -2,15 +2,18 @@ import type { PortSpec } from "./portSpecs/types";
 
 /**
  * The node's current inputs ARE the page's saveState() shape for Riemann Sums — both keyed by
- * the same fx/a/b/n names (math-lab/assets/js/riemann-sums.js's own snapshot()). This function
- * exists as its own step (rather than passing `inputs` straight to localStorage) because a
- * future port spec's input keys will not always match its page's storage keys one-to-one; this
- * is the seam where that mapping would go without touching the caller.
+ * the same fx/a/b/n names (math-lab/assets/js/riemann-sums.js's own snapshot()). This is the
+ * default for every spec that doesn't declare `toPageState` — a spec whose input keys don't map
+ * 1:1 onto its page's storage shape provides that mapping itself instead (see PortSpec.toPageState
+ * in portSpecs/types.ts for when that's needed).
  */
 export const buildPageState = (
   spec: PortSpec,
   inputs: Record<string, unknown>,
 ): Record<string, unknown> => {
+  if (spec.toPageState) {
+    return spec.toPageState(inputs);
+  }
   const state: Record<string, unknown> = {};
   for (const input of spec.inputs) {
     state[input.key] = inputs[input.key];

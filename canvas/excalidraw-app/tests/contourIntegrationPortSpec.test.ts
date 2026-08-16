@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { archetypeFromSpec } from "../syntropy/nodes/dispatch";
+import { SYMPY_CAS_TIMEOUT_MS } from "../syntropy/portSpecs/casRunHelpers";
 import { CONTOUR_INTEGRATION_PORT_SPEC } from "../syntropy/portSpecs/contourIntegration";
 
 const { casCallMock } = vi.hoisted(() => ({ casCallMock: vi.fn() }));
@@ -48,10 +49,11 @@ describe("CONTOUR_INTEGRATION_PORT_SPEC", () => {
       centerIm: 0,
       radius: 2,
     });
-    expect(casCallMock).toHaveBeenCalledWith("contourIntegration", [
-      "1/z",
-      { type: "circle", center: { re: 0, im: 0 }, radius: 2 },
-    ]);
+    expect(casCallMock).toHaveBeenCalledWith(
+      "contourIntegration",
+      ["1/z", { type: "circle", center: { re: 0, im: 0 }, radius: 2 }],
+      SYMPY_CAS_TIMEOUT_MS,
+    );
     expect(result?.error).toBeUndefined();
     expect(result?.outputs.value).toBe("6.2832i");
     expect(result?.outputs.residues).toContain("0 → residue 1");

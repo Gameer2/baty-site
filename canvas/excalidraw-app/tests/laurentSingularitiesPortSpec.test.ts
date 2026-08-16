@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { archetypeFromSpec } from "../syntropy/nodes/dispatch";
+import { SYMPY_CAS_TIMEOUT_MS } from "../syntropy/portSpecs/casRunHelpers";
 import { LAURENT_SINGULARITIES_PORT_SPEC } from "../syntropy/portSpecs/laurentSingularities";
 
 const { casCallMock } = vi.hoisted(() => ({ casCallMock: vi.fn() }));
@@ -44,11 +45,11 @@ describe("LAURENT_SINGULARITIES_PORT_SPEC", () => {
       pointIm: 0,
       order: 4,
     });
-    expect(casCallMock).toHaveBeenCalledWith("laurentSingularities", [
-      "1/(z^2-1)",
-      { re: 1, im: 0 },
-      4,
-    ]);
+    expect(casCallMock).toHaveBeenCalledWith(
+      "laurentSingularities",
+      ["1/(z^2-1)", { re: 1, im: 0 }, 4],
+      SYMPY_CAS_TIMEOUT_MS,
+    );
     expect(result?.error).toBeUndefined();
     const display = (result?.outputs.result as { display: string }).display;
     expect(display).toContain("pole (order 1)");

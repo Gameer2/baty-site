@@ -71,6 +71,8 @@
 // The 2D field plot: a domain box with the variant (arrows / heatmap cells / contour isolines /
 // domain-color cells) drawn inside it.
 .FieldNode__plot {
+  // Purely decorative — a static SVG plot, no drag/click handlers — so it shouldn't
+  // block clicks meant to select the node.
   margin-top: 4px;
   border-radius: 8px;
   border: 1px solid var(--input-border-color);
@@ -79,7 +81,6 @@
   width: 100%;
   height: auto;
   color: var(--color-gray-60);
-  pointer-events: auto;
 }
 
 .FieldNode__output {

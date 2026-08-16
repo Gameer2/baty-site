@@ -1,4 +1,4 @@
-import { runCas } from "./casRunHelpers";
+import { runCas, SYMPY_CAS_TIMEOUT_MS } from "./casRunHelpers";
 
 import type { ComputeResult, ExpressionOutput, PortSpec } from "./types";
 
@@ -17,12 +17,13 @@ export const LAPLACE_TRANSFORM_PORT_SPEC: PortSpec = {
     { key: "verified", label: "verified (1/0)", kind: "number" },
   ],
   executionMode: "run",
+  casTier: "sympy",
   pagePath: "/math-lab/engines/ode/methods/laplace-transform.html",
   pageStoreKey: "engine-lab:ode-laplace-transform",
   compute: (): ComputeResult => ({ outputs: {} }),
   computeRun: async (inputs): Promise<ComputeResult> => {
     const f = String(inputs.f ?? "");
-    const r = await runCas("laplaceTransform", [f]);
+    const r = await runCas("laplaceTransform", [f], SYMPY_CAS_TIMEOUT_MS);
     if (!r.ok) {
       return { outputs: {}, error: r.error };
     }

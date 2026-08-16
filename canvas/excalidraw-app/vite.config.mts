@@ -6,7 +6,6 @@ import { ViteEjsPlugin } from "vite-plugin-ejs";
 import { VitePWA } from "vite-plugin-pwa";
 import checker from "vite-plugin-checker";
 import { createHtmlPlugin } from "vite-plugin-html";
-import Sitemap from "vite-plugin-sitemap";
 import { woff2BrowserPlugin } from "../scripts/woff2/woff2-vite-plugins";
 export default defineConfig(({ mode }) => {
   // To load .env variables
@@ -152,13 +151,6 @@ export default defineConfig(({ mode }) => {
       assetsInlineLimit: 0,
     },
     plugins: [
-      Sitemap({
-        hostname: "https://excalidraw.com",
-        outDir: "../dist",
-        changefreq: "monthly",
-        // its static in public folder
-        generateRobotsTxt: false,
-      }),
       woff2BrowserPlugin(),
       react(),
       checker({
@@ -239,6 +231,45 @@ export default defineConfig(({ mode }) => {
                 expiration: {
                   maxEntries: 50,
                   maxAgeSeconds: 60 * 60 * 24 * 90, // <== 90 days
+                },
+              },
+            },
+            {
+              // Pyodide's own CDN-hosted WASM runtime + packages (see math-lab's
+              // sympy-worker.js) — multi-megabyte and version-pinned in the URL, so caching it
+              // forever is safe: a version bump changes the URL, the cached copy never goes
+              // stale. Without this, every user's first ODE-system/residue/series-solution/
+              // Laplace run-mode node re-downloads it from scratch.
+              urlPattern: new RegExp("^https://cdn\\.jsdelivr\\.net/pyodide/"),
+              handler: "CacheFirst",
+              options: {
+                cacheName: "pyodide",
+                expiration: {
+                  maxEntries: 60,
+                  maxAgeSeconds: 60 * 60 * 24 * 180, // 180 days
+                },
+                cacheableResponse: {
+                  // 0 to cache "opaque" responses from cross-origin requests (i.e. CDN), same
+                  // as the fonts rule above.
+                  statuses: [0, 200],
+                },
+              },
+            },
+            {
+              // math-lab's own CAS worker scripts (cas-worker.js, sympy-worker.js, and
+              // everything they importScripts) — same-origin, but math-lab is a sibling
+              // directory outside this app's own build, so only runtime caching (not the
+              // precache manifest) ever reaches them. StaleWhileRevalidate rather than
+              // CacheFirst: unlike the CDN-hosted Pyodide runtime, this code ships with the
+              // site's own deploys, so a cached copy answers instantly while a fresh one is
+              // fetched in the background for next time.
+              urlPattern: new RegExp("/math-lab/assets/js/.*\\.js$"),
+              handler: "StaleWhileRevalidate",
+              options: {
+                cacheName: "math-lab-cas",
+                expiration: {
+                  maxEntries: 30,
+                  maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
                 },
               },
             },

@@ -158,8 +158,17 @@ const spawn = (): CasWorkerLike | null => {
 
 /** Runs one CAS operation. Rejects with a user-showable message on timeout or worker error — the
  *  node layer surfaces it as the run's status, because "this input hangs the CAS" is real
- *  information about the input, not just an internal failure. Never leaves a caller pending. */
-export const casCall = (op: string, args: unknown[] = []): Promise<unknown> => {
+ *  information about the input, not just an internal failure. Never leaves a caller pending.
+ *
+ *  `timeoutMs` overrides the configured default for this one call — the nested Pyodide/SymPy ops
+ *  (see casRunHelpers.ts's SYMPY_CAS_TIMEOUT_MS) pay a multi-second cold boot on top of the
+ *  computation itself, so the flat default (tuned for the fast in-process nerdamer ops) is too
+ *  short for them specifically. */
+export const casCall = (
+  op: string,
+  args: unknown[] = [],
+  timeoutMsOverride?: number,
+): Promise<unknown> => {
   const w = spawn();
   if (!w) {
     return Promise.reject(
@@ -168,6 +177,7 @@ export const casCall = (op: string, args: unknown[] = []): Promise<unknown> => {
       ),
     );
   }
+  const effectiveTimeoutMs = timeoutMsOverride ?? timeoutMs;
   return new Promise((resolve, reject) => {
     const id = ++seq;
     const timer = setTimeout(() => {
@@ -176,16 +186,16 @@ export const casCall = (op: string, args: unknown[] = []): Promise<unknown> => {
       kill();
       failAll("Cancelled: another symbolic computation had to be stopped.");
       const howLong =
-        timeoutMs >= 1000
-          ? `${Math.round(timeoutMs / 1000)}s`
-          : `${timeoutMs}ms`;
+        effectiveTimeoutMs >= 1000
+          ? `${Math.round(effectiveTimeoutMs / 1000)}s`
+          : `${effectiveTimeoutMs}ms`;
       reject(
         new Error(
           `The symbolic engine took longer than ${howLong} on this input and was stopped. ` +
             "Some expressions send the CAS into a loop it cannot return from — try a simpler form.",
         ),
       );
-    }, timeoutMs);
+    }, effectiveTimeoutMs);
     pending.set(id, { resolve, reject, timer });
     try {
       w.postMessage({ id, op, args });

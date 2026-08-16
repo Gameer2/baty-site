@@ -1,0 +1,111 @@
+// Mirrors ChromeRail's top-left placement on the opposite corner: top:16 (main-menu-trigger,
+// boardChrome.scss, desktop-only) + ~38px trigger height + 12px gap = 70px, same convention
+// PaperPicker already uses under ChromeRail. Vertical stack (not a horizontal row like ChromeRail)
+// so it doesn't need its own width negotiation against the main-menu trigger sitting right above it.
+.PenPresets {
+  position: fixed;
+  top: 70px;
+  right: 16px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 18px;
+  background: var(--island-bg-color);
+  border: 1px solid var(--input-border-color);
+  box-shadow: var(--shadow-island);
+}
+
+.PenPresets__swatch {
+  all: unset;
+  box-sizing: border-box;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  cursor: pointer;
+  background: var(--swatch-color, var(--color-on-surface));
+  border: 2px solid var(--island-bg-color);
+  box-shadow: 0 0 0 1px var(--input-border-color);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+
+  @media (hover: hover) {
+    &:hover {
+      transform: scale(1.12);
+    }
+  }
+
+  &:active {
+    transform: scale(0.94);
+  }
+}
+
+// The "Ink" preset has no forced color (theme-default), so its swatch shows a
+// split black/white disc rather than a single flat fill that would look wrong
+// against whichever paper theme currently applies.
+.PenPresets__swatch--ink {
+  background: linear-gradient(135deg, #0a0a0a 50%, #f5f5f5 50%);
+}
+
+// Highlighters are the same freedraw tool at low opacity/wide stroke — a flat
+// (not circular) swatch is the only visual cue distinguishing them from the
+// solid pens in the same rail, echoing a highlighter cap's shape.
+.PenPresets__swatch--highlighter {
+  border-radius: 6px;
+  opacity: 0.55;
+}
+
+// Handwriting-smoothing intensity — same track/thumb language as PaperPicker's spacing slider
+// (.PaperSlider), so the two "drag to dial in a pen feel" controls in the app read as one system.
+.PenPresets__smoothing {
+  padding-top: 8px;
+  margin-top: 2px;
+  border-top: 1px solid var(--input-border-color);
+
+  input[type="range"] {
+    all: unset;
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    width: 90px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--color-gray-30);
+    cursor: pointer;
+
+    &::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      border: 2px solid var(--island-bg-color);
+      box-shadow: 0 0 8px
+        color-mix(in srgb, var(--color-primary) 50%, transparent);
+    }
+    &::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      border: 2px solid var(--island-bg-color);
+    }
+  }
+}
+
+@media (max-width: 900px) {
+  .PenPresets {
+    top: auto;
+    bottom: 16px;
+    flex-direction: row;
+  }
+
+  .PenPresets__smoothing {
+    padding-top: 0;
+    margin-top: 0;
+    border-top: none;
+    padding-left: 8px;
+    border-left: 1px solid var(--input-border-color);
+  }
+}

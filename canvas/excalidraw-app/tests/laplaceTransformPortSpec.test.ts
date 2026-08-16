@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { archetypeFromSpec } from "../syntropy/nodes/dispatch";
+import { SYMPY_CAS_TIMEOUT_MS } from "../syntropy/portSpecs/casRunHelpers";
 import { LAPLACE_TRANSFORM_PORT_SPEC } from "../syntropy/portSpecs/laplaceTransform";
 
 const { casCallMock } = vi.hoisted(() => ({ casCallMock: vi.fn() }));
@@ -39,7 +40,11 @@ describe("LAPLACE_TRANSFORM_PORT_SPEC", () => {
     const result = await LAPLACE_TRANSFORM_PORT_SPEC.computeRun?.({
       f: "sin(t)",
     });
-    expect(casCallMock).toHaveBeenCalledWith("laplaceTransform", ["sin(t)"]);
+    expect(casCallMock).toHaveBeenCalledWith(
+      "laplaceTransform",
+      ["sin(t)"],
+      SYMPY_CAS_TIMEOUT_MS,
+    );
     expect(result?.error).toBeUndefined();
     expect((result?.outputs.result as { display: string }).display).toBe(
       "1/(s^2 + 1)",

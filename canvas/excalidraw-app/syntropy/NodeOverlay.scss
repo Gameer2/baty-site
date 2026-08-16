@@ -12,4 +12,108 @@
 .NodeOverlay__node {
   position: absolute;
   transform-origin: center center;
+  // Above .NodeOverlay__wires (z-index 4) so a curve visually terminates at a card's edge port
+  // instead of drawing over the card's own content.
+  z-index: 5;
+}
+
+// Full-viewport SVG layer for the n8n-style connection curves — sits over the node cards
+// (z-index above .NodeOverlay__node) since a wire should read as touching a card's edge, not
+// disappearing behind it. `pointer-events: none` on the <svg> itself so it never blocks
+// dragging/selecting nodes underneath; each <path> re-enables pointer-events individually so
+// only the curve itself (not the empty space around it) is clickable to select.
+.NodeOverlay__wires {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 4;
+}
+
+.NodeOverlay__wire {
+  --wire-accent: #ffffff;
+  fill: none;
+  stroke: var(--wire-accent);
+  stroke-width: 2.5;
+  pointer-events: stroke;
+  cursor: pointer;
+  opacity: 0.85;
+}
+
+.NodeOverlay__wire:hover {
+  opacity: 1;
+  stroke-width: 3;
+}
+
+.NodeOverlay__wire--selected {
+  stroke-width: 3.5;
+  filter: drop-shadow(0 0 4px var(--wire-accent));
+}
+
+.NodeOverlay__wire--error {
+  stroke-dasharray: 6 4;
+  opacity: 0.6;
+}
+
+.NodeOverlay__wire--dragging {
+  stroke-dasharray: 5 5;
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+// Touch: a finger-dragged wire must NOT pan the canvas underneath. The port dots
+// are the only place a wire drag begins, so pinning touch-action there is enough
+// to keep the gesture exclusive to the wire (Pointer Events still fire on move).
+// Un-gated — harmless on desktop, where touch-action has no effect.
+[data-syntropy-port] {
+  touch-action: none;
+}
+
+// A transparent 28px-fat copy of each wire, painted UNDER the visible 2.5px
+// stroke. The visible wire stays the tap target for precision on desktop; this
+// fat path is what a finger actually hits on touch (a 2.5px stroke is thinner
+// than a fingertip). Both share the select handler; the fat one sits first in
+// source order so the thin visible path paints over it.
+.NodeOverlay__wire-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 28;
+  pointer-events: stroke;
+  cursor: pointer;
+}
+
+// Floating "Delete wire" control shown when a wire is selected. On touch there's
+// no keyboard for the existing Delete/Backspace handler; this button is the
+// touch path, and it's more discoverable on desktop too. Positioned in screen
+// space by NodeOverlay.tsx at the selected wire's midpoint, above the SVG layer.
+.NodeOverlay__wireDelete {
+  all: unset;
+  position: fixed;
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--island-bg-color);
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
+  font-family: var(--ui-font);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: var(--shadow-island);
+  // Translate by -50%/-50% so the inline left/top set in JS lands as the center.
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+
+  &:hover {
+    background: var(--color-primary);
+    color: #ffffff;
+  }
 }

@@ -159,6 +159,15 @@ export type PortSpec = {
   computeRun?: (inputs: Record<string, unknown>) => Promise<ComputeResult>;
   executionMode: "live" | "run";
   /**
+   * Marks a `"run"` spec whose `computeRun` is backed by the nested Pyodide/SymPy worker (see
+   * casRunHelpers.ts) rather than the fast in-process nerdamer engine — solving ODEs, ODE
+   * systems, series solutions, Laplace transforms, and the residue-calculus Complex Analysis
+   * methods. Pyodide's cold boot alone runs several seconds, so these get a longer CAS timeout
+   * and are eligible for the canvas's warm-start (spawning the worker as soon as the node is
+   * placed, instead of waiting for the user's first Run click). Omitted for every other spec.
+   */
+  casTier?: "sympy";
+  /**
    * Opt-in hint for a factorization-shaped output layout. On the Matrix archetype `"factorization"`
    * means the matrix outputs are factors whose product reconstructs the single matrix input (LU's
    * L·U, Gram-Schmidt's Q·R, SVD's U·Σ·V), so MatrixNode renders them on one line joined by "·"

@@ -99,6 +99,19 @@ describe("casClient", () => {
     );
   });
 
+  it("a per-call timeout override replaces the configured default", async () => {
+    const fake = new FakeWorker();
+    fake.respond = () => null; // never answers
+    configureCas({
+      workerUrl: "stub.js",
+      workerFactory: () => fake,
+      timeoutMs: 5000, // would not fire within this test's lifetime
+    });
+    await expect(
+      casCall("solveOdeSystems", [[[0]]], 20),
+    ).rejects.toThrow(/longer than 20ms/);
+  });
+
   it("rejects when no worker is configured", async () => {
     // No workerUrl/factory configured → spawn returns null and casCall rejects immediately
     // rather than leaving the caller pending.

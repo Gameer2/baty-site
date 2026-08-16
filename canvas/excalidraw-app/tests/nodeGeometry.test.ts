@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  clampNodeSize,
   computeInitialNodeSize,
   computeNodeScreenRect,
   computeSpawnPoint,
+  MAX_NODE_HEIGHT,
+  MAX_NODE_WIDTH,
+  MIN_NODE_HEIGHT,
+  MIN_NODE_WIDTH,
   viewportCoordsToSceneCoords,
 } from "../syntropy/nodeGeometry";
 import { RIEMANN_SUMS_PORT_SPEC } from "../syntropy/portSpecs/riemannSums";
@@ -19,6 +24,30 @@ describe("computeInitialNodeSize", () => {
   it("falls back to the placeholder shell size when there is no spec", () => {
     const size = computeInitialNodeSize(null);
     expect(size).toEqual({ width: 260, height: 200 });
+  });
+});
+
+describe("clampNodeSize", () => {
+  it("passes through a size already inside the allowed range", () => {
+    expect(clampNodeSize(300, 250)).toEqual({ width: 300, height: 250 });
+  });
+
+  it("floors a size below the minimum", () => {
+    expect(clampNodeSize(50, 20)).toEqual({
+      width: MIN_NODE_WIDTH,
+      height: MIN_NODE_HEIGHT,
+    });
+  });
+
+  it("caps a size above the maximum, e.g. a large matrix factorization", () => {
+    expect(clampNodeSize(2000, 3000)).toEqual({
+      width: MAX_NODE_WIDTH,
+      height: MAX_NODE_HEIGHT,
+    });
+  });
+
+  it("rounds fractional measurements", () => {
+    expect(clampNodeSize(300.4, 250.6)).toEqual({ width: 300, height: 251 });
   });
 });
 
@@ -107,8 +136,25 @@ describe("computeSpawnPoint", () => {
   it("fans consecutive drops so they don't stack on the same spot", () => {
     const first = computeSpawnPoint(baseAppState, 260, 200, 0);
     const second = computeSpawnPoint(baseAppState, 260, 200, 1);
-    expect(second.x).toBe(first.x + 24);
-    expect(second.y).toBe(first.y + 24);
+    // Step = half the larger dimension (260), clamped to [80, 220] → 130.
+    expect(second.x).toBe(first.x + 130);
+    expect(second.y).toBe(first.y + 130);
+  });
+
+  it("scales the fan step up for a bigger node so drops don't nearly overlap", () => {
+    const small = computeSpawnPoint(baseAppState, 260, 200, 1);
+    const big = computeSpawnPoint(baseAppState, 500, 400, 1);
+    const smallBase = computeSpawnPoint(baseAppState, 260, 200, 0);
+    const bigBase = computeSpawnPoint(baseAppState, 500, 400, 0);
+    const smallStep = small.x - smallBase.x;
+    const bigStep = big.x - bigBase.x;
+    expect(bigStep).toBeGreaterThan(smallStep);
+  });
+
+  it("clamps the fan step so a very large node doesn't send the fan off-screen", () => {
+    const base = computeSpawnPoint(baseAppState, 2000, 2000, 0);
+    const next = computeSpawnPoint(baseAppState, 2000, 2000, 1);
+    expect(next.x - base.x).toBe(220);
   });
 
   it("wraps the fan every 5 drops", () => {

@@ -26,6 +26,28 @@ export const computeInitialNodeSize = (
   return { width: PLACEHOLDER_WIDTH, height };
 };
 
+export const MIN_NODE_WIDTH = 200;
+export const MIN_NODE_HEIGHT = 90;
+export const MAX_NODE_WIDTH = 640;
+export const MAX_NODE_HEIGHT = 720;
+
+/**
+ * Clamp a measured content size into the range a node may auto-grow within — wide enough for a
+ * multi-grid matrix factorization or a stack of eigenpairs, capped so one outlier doesn't swallow
+ * the canvas (content beyond the cap is still clipped by NodeShell's own `overflow: hidden`, same
+ * as today).
+ */
+export const clampNodeSize = (
+  width: number,
+  height: number,
+): { width: number; height: number } => ({
+  width: Math.min(MAX_NODE_WIDTH, Math.max(MIN_NODE_WIDTH, Math.round(width))),
+  height: Math.min(
+    MAX_NODE_HEIGHT,
+    Math.max(MIN_NODE_HEIGHT, Math.round(height)),
+  ),
+});
+
 type SceneRectLike = { x: number; y: number; width: number; height: number };
 type ScreenMappingAppState = {
   scrollX: number;
@@ -62,7 +84,7 @@ export const viewportCoordsToSceneCoords = (
  * Where a newly added node should land: the scene point under the center of the visible canvas,
  * centered on that point, with a small diagonal fan so consecutive drops don't stack on top of
  * each other (the old `100 + cascade*30` always landed in the same top-left spot). The fan wraps
- * every 5 drops and stays modest (24px steps) so a quick run of additions stays on-screen.
+ * every 5 drops.
  */
 export const computeSpawnPoint = (
   appState: SpawnAppState,
@@ -74,9 +96,16 @@ export const computeSpawnPoint = (
   const centerY = appState.offsetTop + appState.height / 2;
   const scene = viewportCoordsToSceneCoords(centerX, centerY, appState);
   const fan = cascadeIndex % 5;
+  // Scale the step to the node's own footprint rather than a flat 24px: a fixed step that's
+  // small relative to real node sizes (150-700px) leaves a quick run of library adds landing
+  // almost fully on top of each other — cards, ports, and inputs from five different nodes all
+  // stacked within a few px of one another. Half the larger dimension gives each drop a clean
+  // step away from the last; clamped so one huge auto-fit-grown node doesn't send the fan
+  // wildly off-screen.
+  const step = Math.max(80, Math.min(220, Math.max(nodeWidth, nodeHeight) * 0.5));
   return {
-    x: scene.x - nodeWidth / 2 + fan * 24,
-    y: scene.y - nodeHeight / 2 + fan * 24,
+    x: scene.x - nodeWidth / 2 + fan * step,
+    y: scene.y - nodeHeight / 2 + fan * step,
   };
 };
 
