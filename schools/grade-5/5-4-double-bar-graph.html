@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Double Bar Graph Representation — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:26px 20px 30px; display:flex; flex-direction:column; align-items:center; gap:16px; }
+  .bars-wrap{ display:flex; align-items:flex-end; gap:26px; height:200px; width:100%; max-width:460px; justify-content:center; direction:ltr; }
+  .cat-group{ display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer; }
+  .cat-bars{ display:flex; align-items:flex-end; gap:4px; height:170px; }
+  .bar{ width:26px; border-radius:4px 4px 0 0; position:relative; transition:height .25s ease; }
+  .bar.series1{ background:var(--electric-teal); }
+  .bar.series2{ background:var(--infrared); }
+  .cat-label{ font-family:var(--mono); font-size:11px; color:var(--pulse-ash); }
+  .gap-badge{ position:absolute; top:-22px; left:50%; transform:translateX(-50%); font-family:var(--mono); font-size:10.5px; color:var(--validation-green); white-space:nowrap; opacity:0; }
+
+  .sliders{ display:flex; flex-direction:column; gap:10px; width:100%; max-width:460px; }
+  .slider-row{ display:flex; align-items:center; gap:10px; }
+  .slider-row .tag{ font-family:var(--mono); font-size:11px; width:70px; color:var(--pulse-ash); }
+  .slider-row input[type="range"]{ flex:1; }
+  .slider-row .val{ font-family:var(--mono); font-size:12px; width:28px; text-align:right; color:var(--off-white); }
+
+  .legend{ display:flex; gap:18px; font-family:var(--mono); font-size:11.5px; color:var(--neural-fog); }
+  .legend span.dot{ display:inline-block; width:9px; height:9px; border-radius:2px; margin-inline-end:5px; }
+  .dot.s1{ background:var(--electric-teal); } .dot.s2{ background:var(--infrared); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 5 · LESSON 4</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Double Bar Graph Representation</h1>
+    <span class="title-secondary ar-display" id="titleAr">تمثيل البيانات بعمودين</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I represent and compare two related data series across the same categories using a double bar graph.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">tap a category to see the gap</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="legend">
+        <span><span class="dot s1"></span><span data-role="ui" id="legS1"></span></span>
+        <span><span class="dot s2"></span><span data-role="ui" id="legS2"></span></span>
+      </div>
+      <div class="bars-wrap" id="barsWrap" data-el="barsWrap"></div>
+      <div class="sliders" id="sliders" data-el="sliders"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">A double bar graph puts two related values side by side within each category, making it easy to compare two data series at once — both within a category and across categories.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="5-3-line-graph.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">5.3 · Line Graph Representation</b></a>
+    <a class="nav-pill next" href="../grade-5/6-1-thousandths.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">6.1 · Thousandths</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const CATS_EN = ["Mon", "Tue", "Wed", "Thu"];
+  const CATS_AR = ["اثنين", "ثلاثاء", "أربعاء", "خميس"];
+  const MAXVAL = 20;
+
+  let series1 = [8, 14, 6, 12];
+  let series2 = [12, 9, 15, 10];
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 5 · LESSON 4",
+      objectiveLabel: "Objective —",
+      objectiveText: "I represent and compare two related data series across the same categories using a double bar graph.",
+      eqSub: "tap a category to see the gap",
+      explainBtn: "Explain this",
+      legS1: "books read — class A", legS2: "books read — class B",
+      gapLabel: (g) => `gap: ${g}`,
+      navPrevLabel: "—", navPrevText: "5.3 · Line Graph Representation",
+      navNextLabel: "next", navNext: "6.1 · Representing Decimals",
+      teachLabel: "What this teaches:",
+      teachBody: "A double bar graph puts two related values side by side within each category, making it easy to compare two data series at once — both within a category and across categories.",
+      tour: [
+        { elKey: "barsWrap", label: "One category, one bar", body: "Start simple: each category shows one series' value as a single bar's height." },
+        { elKey: "barsWrap", label: "Add a second series", body: "A second, differently colored bar sits right beside the first in every category — same category, two related values." },
+        { elKey: "barsWrap", label: "Compare the gap", body: "Tap any category to reveal the exact numeric gap between its two bars." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٥ · الدرس ٤",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أُمثّل وأقارن سلسلتَي بيانات مترابطتين عبر الفئات نفسها باستخدام تمثيل بعمودين.",
+      eqSub: "انقر على فئة لترى الفجوة",
+      explainBtn: "اشرح هذا",
+      legS1: "كتب مقروءة — الصف A", legS2: "كتب مقروءة — الصف B",
+      gapLabel: (g) => `الفجوة: ${g}`,
+      navPrevLabel: "—", navPrevText: "٥.٣ · تمثيل البيانات بخط بياني",
+      navNextLabel: "التالي", navNext: "٦.١ · تمثيل الكسور العشرية",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "يضع التمثيل بعمودين قيمتين مترابطتين جنبًا إلى جنب داخل كل فئة، ممّا يسهّل مقارنة سلسلتَي بيانات في آنٍ واحد — داخل الفئة الواحدة وعبر الفئات.",
+      tour: [
+        { elKey: "barsWrap", label: "فئة واحدة، عمود واحد", body: "ابدأ ببساطة: تُظهر كل فئة قيمة سلسلة واحدة كارتفاع عمود واحد." },
+        { elKey: "barsWrap", label: "أضف سلسلة ثانية", body: "يقف عمود ثانٍ بلون مختلف مباشرة بجانب الأول في كل فئة — الفئة نفسها، قيمتان مترابطتان." },
+        { elKey: "barsWrap", label: "قارن الفجوة", body: "انقر على أي فئة لتكشف الفجوة العددية الدقيقة بين عموديها." }
+      ]
+    }
+  };
+
+  const eqLine = document.getElementById("eqLine");
+  const barsWrap = document.getElementById("barsWrap");
+  const sliders = document.getElementById("sliders");
+  const legS1 = document.getElementById("legS1"), legS2 = document.getElementById("legS2");
+
+  function buildBars() {
+    const t = T[i18n.lang];
+    const cats = i18n.lang === "ar" ? CATS_AR : CATS_EN;
+    barsWrap.innerHTML = "";
+    cats.forEach((cat, idx) => {
+      const group = document.createElement("div");
+      group.className = "cat-group";
+      const catBars = document.createElement("div");
+      catBars.className = "cat-bars";
+
+      const bar1 = document.createElement("div");
+      bar1.className = "bar series1";
+      bar1.style.height = (series1[idx] / MAXVAL * 170) + "px";
+      const badge = document.createElement("div");
+      badge.className = "gap-badge";
+      bar1.appendChild(badge);
+
+      const bar2 = document.createElement("div");
+      bar2.className = "bar series2";
+      bar2.style.height = (series2[idx] / MAXVAL * 170) + "px";
+
+      catBars.appendChild(bar1);
+      catBars.appendChild(bar2);
+      const label = document.createElement("div");
+      label.className = "cat-label";
+      label.textContent = cat;
+      group.appendChild(catBars);
+      group.appendChild(label);
+
+      group.addEventListener("click", () => {
+        document.querySelectorAll(".gap-badge").forEach(b => gsap.to(b, { opacity: 0, duration: .2 }));
+        const gap = Math.abs(series1[idx] - series2[idx]);
+        badge.textContent = t.gapLabel(digits(gap, i18n.lang));
+        gsap.to(badge, { opacity: 1, duration: .3 });
+      });
+
+      barsWrap.appendChild(group);
+    });
+  }
+
+  function buildSliders() {
+    const t = T[i18n.lang];
+    const cats = i18n.lang === "ar" ? CATS_AR : CATS_EN;
+    sliders.innerHTML = "";
+    cats.forEach((cat, idx) => {
+      [["series1", series1], ["series2", series2]].forEach(([key, arr]) => {
+        const row = document.createElement("div");
+        row.className = "slider-row";
+        const tag = document.createElement("span");
+        tag.className = "tag";
+        tag.textContent = cat + " " + (key === "series1" ? "A" : "B");
+        const input = document.createElement("input");
+        input.type = "range"; input.min = 0; input.max = MAXVAL; input.value = arr[idx];
+        const val = document.createElement("span");
+        val.className = "val";
+        val.textContent = digits(arr[idx], i18n.lang);
+        input.addEventListener("input", () => {
+          arr[idx] = parseInt(input.value, 10);
+          val.textContent = digits(arr[idx], i18n.lang);
+          buildBars();
+        });
+        row.appendChild(tag); row.appendChild(input); row.appendChild(val);
+        sliders.appendChild(row);
+      });
+    });
+  }
+
+  function render() {
+    const t = T[i18n.lang];
+    legS1.textContent = t.legS1; legS2.textContent = t.legS2;
+    buildBars();
+    buildSliders();
+    renderEquation(eqLine, `\\text{max gap} = ${Math.max(...series1.map((v,i)=>Math.abs(v-series2[i])))}`);
+  }
+
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

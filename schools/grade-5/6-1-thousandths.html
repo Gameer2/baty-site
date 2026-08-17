@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Thousandths — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ position:relative; height:auto; padding:38px 24px 30px; display:flex; flex-direction:column; align-items:center; gap:22px; overflow:visible; }
+  .periods{ display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap; justify-content:center; direction:ltr; }
+  .period{ display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .period-label{ font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; padding:3px 10px; border-radius:100px; }
+  .period-label.ar-ui{ letter-spacing:0; text-transform:none; }
+  .period[data-period="whole"] .period-label{ color:#8fbec6; background:rgba(143,190,198,.1); }
+  .period[data-period="decimal"] .period-label{ color:var(--electric-teal); background:rgba(92,147,159,.12); }
+  .cells{ display:flex; gap:6px; }
+  .decimal-dot{ font-family:var(--mono); font-size:40px; font-weight:700; color:var(--infrared); padding-bottom:8px; }
+  .cell{ width:52px; height:64px; border-radius:10px; background:var(--core-black); border:1px solid rgba(255,255,255,.1); display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; transition:border-color .2s ease, background .2s ease, transform .2s ease; }
+  .cell:hover{ border-color:rgba(255,255,255,.3); }
+  .cell.selected{ background:rgba(237,109,64,.14); border-color:var(--infrared); transform:translateY(-4px); }
+  .cell-digit{ font-family:var(--mono); font-size:26px; font-weight:700; color:var(--off-white); direction:ltr; }
+  .cell-place{ font-family:var(--mono); font-size:8.5px; letter-spacing:.03em; color:var(--pulse-ash); margin-top:3px; text-transform:uppercase; }
+
+  .steppers{ display:flex; align-items:center; gap:10px; }
+  .stepper-btn{ font-family:var(--mono); font-size:16px; font-weight:700; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.18); border-radius:8px; width:34px; height:34px; cursor:pointer; }
+
+  .readout{ font-family:var(--mono); font-size:14px; color:var(--neural-fog); text-align:center; display:flex; flex-direction:column; gap:6px; }
+  .readout-line{ direction:ltr; unicode-bidi:isolate; }
+  .readout-line[dir="rtl"]{ direction:rtl; unicode-bidi:isolate; }
+  .readout b{ color:var(--infrared); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 6 · LESSON 1</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Thousandths</h1>
+    <span class="title-secondary ar-display" id="titleAr">جزء من ألف</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I extend the place-value chart past the decimal point through tenths, hundredths, and thousandths.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">the value of the digit you select below</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabel">place</label>
+      <input type="range" id="placeSlider" min="-3" max="2" step="1" value="2" />
+      <span class="control-val" id="placeReadout"></span>
+      <div class="steppers">
+        <button class="stepper-btn" id="stepDown">−</button>
+        <button class="stepper-btn" id="stepUp">+</button>
+      </div>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="periods" id="periods"></div>
+      <div class="readout" id="readout"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">The same place-value pattern continues past the decimal point in the other direction: each place is one-tenth the value of the place to its left, all the way through tenths, hundredths, and thousandths.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="../grade-5/5-4-double-bar-graph.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">5.4 · Double Bar Graph Representation</b></a>
+    <a class="nav-pill next" href="6-2-fractions-decimals.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">6.2 · Converting Between Fractions and Decimals</b></a>
+  </div>
+</div>
+
+<script>
+  const { digitsDecimal, groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 6 · LESSON 1",
+      objectiveLabel: "Objective —",
+      objectiveText: "I extend the place-value chart past the decimal point through tenths, hundredths, and thousandths.",
+      eqSub: "the value of the digit you select below",
+      explainBtn: "Explain this",
+      controlLabel: "place",
+      periodNames: { whole: "whole number", decimal: "decimal" },
+      placeNames: { 2: "hundreds", 1: "tens", 0: "ones", "-1": "tenths", "-2": "hundredths", "-3": "thousandths" },
+      selected: "You selected",
+      standard: "Standard form",
+      expanded: "Expanded form",
+      navPrevLabel: "—", navPrevText: "5.4 · Double Bar Graph Representation",
+      navNextLabel: "next", navNext: "6.2 · Converting Between Fractions and Decimals",
+      teachLabel: "What this teaches:",
+      teachBody: "The same place-value pattern continues past the decimal point in the other direction: each place is one-tenth the value of the place to its left, all the way through tenths, hundredths, and thousandths.",
+      tour: [
+        { ids: ["periodWhole", "periodDecimal"], label: "The pattern continues", body: "Past the decimal point, the exact same tens-based pattern keeps going — just shrinking instead of growing." },
+        { elKey: "cellActive", label: "Pick a digit", body: "Click any cell, or use the slider, to select a digit and see exactly what it's worth." },
+        { ids: ["stepUp", "stepDown"], label: "Change that digit", body: "The steppers change the selected digit itself (0–9) — watch the number and its value update live." },
+        { elKey: "readout", label: "Expanded form", body: "Every nonzero place, including the decimal ones, adds up to the full number." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٦ · الدرس ١",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أُوسِّع جدول القيمة المنزلية بعد الفاصلة العشرية ليشمل الأعشار والأجزاء من مئة والأجزاء من ألف.",
+      eqSub: "قيمة الرقم الذي تختاره أدناه",
+      explainBtn: "اشرح هذا",
+      controlLabel: "المنزلة",
+      periodNames: { whole: "العدد الصحيح", decimal: "الجزء العشري" },
+      placeNames: { 2: "مئات", 1: "عشرات", 0: "آحاد", "-1": "أعشار", "-2": "أجزاء من مئة", "-3": "أجزاء من ألف" },
+      selected: "اخترت",
+      standard: "الصيغة القياسية",
+      expanded: "الصيغة التحليلية",
+      navPrevLabel: "—", navPrevText: "٥.٤ · تمثيل البيانات بعمودين",
+      navNextLabel: "التالي", navNext: "٦.٢ · التحويل بين الكسور والكسور العشرية",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "يستمرّ النمط نفسه للقيمة المنزلية بعد الفاصلة العشرية في الاتجاه الآخر: كل منزلة تساوي عُشر قيمة المنزلة التي تسبقها، وصولًا إلى الأعشار والأجزاء من مئة والأجزاء من ألف.",
+      tour: [
+        { ids: ["periodWhole", "periodDecimal"], label: "يستمرّ النمط", body: "بعد الفاصلة العشرية، يستمرّ نمط الأساس عشرة نفسه — لكنّه يتقلّص بدلًا من أن يكبر." },
+        { elKey: "cellActive", label: "اختر رقمًا", body: "انقر أي خانة، أو استخدم شريط التمرير، لتختار رقمًا وترى قيمته بالضبط." },
+        { ids: ["stepUp", "stepDown"], label: "غيّر ذلك الرقم", body: "تغيّر أزرار الزيادة والنقصان الرقم المُختار نفسه (٠-٩) — راقب العدد وقيمته يتحدّثان مباشرة." },
+        { elKey: "readout", label: "الصيغة التحليلية", body: "مجموع كل المنازل غير الصفرية، بما فيها العشرية، يساوي العدد الكامل." }
+      ]
+    }
+  };
+
+  // digits[pos] for pos in [-3..2], stored directly (no floating point involved anywhere)
+  let digitsAt = { 2: 2, 1: 1, 0: 4, "-1": 6, "-2": 7, "-3": 9 }; // 214.679
+  const WHOLE_POS = [2, 1, 0];
+  const DEC_POS = [-1, -2, -3];
+
+  function valueStringAt(pos) {
+    const d = digitsAt[pos];
+    if (pos >= 0) return String(d * Math.pow(10, pos));
+    return "0." + "0".repeat(-pos - 1) + d;
+  }
+
+  function fullNumberString() {
+    const whole = WHOLE_POS.map(p => digitsAt[p]).join("");
+    const dec = DEC_POS.map(p => digitsAt[p]).join("");
+    return whole.replace(/^0+(?=\d)/, "") + "." + dec;
+  }
+
+  const periodsEl = document.getElementById("periods");
+  const cellsByPos = {};
+  let selectedPos = 2;
+
+  function buildChart() {
+    const t = T[i18n.lang];
+    periodsEl.innerHTML = "";
+
+    const wholeWrap = document.createElement("div");
+    wholeWrap.className = "period";
+    wholeWrap.dataset.period = "whole";
+    wholeWrap.id = "periodWhole";
+    const wholeLabel = document.createElement("div");
+    wholeLabel.className = "period-label";
+    wholeLabel.dataset.role = "ui";
+    wholeLabel.textContent = t.periodNames.whole;
+    wholeWrap.appendChild(wholeLabel);
+    const wholeCells = document.createElement("div");
+    wholeCells.className = "cells";
+    WHOLE_POS.forEach(pos => wholeCells.appendChild(makeCell(pos)));
+    wholeWrap.appendChild(wholeCells);
+    periodsEl.appendChild(wholeWrap);
+
+    const dot = document.createElement("div");
+    dot.className = "decimal-dot";
+    dot.textContent = ".";
+    periodsEl.appendChild(dot);
+
+    const decWrap = document.createElement("div");
+    decWrap.className = "period";
+    decWrap.dataset.period = "decimal";
+    decWrap.id = "periodDecimal";
+    const decLabel = document.createElement("div");
+    decLabel.className = "period-label";
+    decLabel.dataset.role = "ui";
+    decLabel.textContent = t.periodNames.decimal;
+    decWrap.appendChild(decLabel);
+    const decCells = document.createElement("div");
+    decCells.className = "cells";
+    DEC_POS.forEach(pos => decCells.appendChild(makeCell(pos)));
+    decWrap.appendChild(decCells);
+    periodsEl.appendChild(decWrap);
+  }
+
+  function makeCell(pos) {
+    const cell = document.createElement("div");
+    cell.className = "cell dimmable";
+    cell.dataset.el = pos === selectedPos ? "cellActive" : "";
+    const digitEl = document.createElement("div");
+    digitEl.className = "cell-digit";
+    digitEl.textContent = digitsAt[pos];
+    const placeEl = document.createElement("div");
+    placeEl.className = "cell-place";
+    placeEl.textContent = "10^" + pos;
+    cell.appendChild(digitEl);
+    cell.appendChild(placeEl);
+    cell.addEventListener("click", () => selectPlace(pos));
+    cellsByPos[pos] = cell;
+    return cell;
+  }
+
+  const slider = document.getElementById("placeSlider");
+  const placeReadout = document.getElementById("placeReadout");
+  const readout = document.getElementById("readout");
+  const eqLine = document.getElementById("eqLine");
+  const stepUp = document.getElementById("stepUp");
+  const stepDown = document.getElementById("stepDown");
+
+  function selectPlace(pos) {
+    selectedPos = pos;
+    slider.value = pos;
+    render(true);
+  }
+
+  function changeDigit(delta) {
+    digitsAt[selectedPos] = ((digitsAt[selectedPos] + delta) % 10 + 10) % 10;
+    buildChart();
+    render(true);
+  }
+
+  function render(animate) {
+    const t = T[i18n.lang];
+    Object.keys(cellsByPos).forEach(pos => {
+      const cell = cellsByPos[pos];
+      const isActive = Number(pos) === selectedPos;
+      cell.classList.toggle("selected", isActive);
+      cell.dataset.el = isActive ? "cellActive" : "";
+      if (animate && isActive) gsap.fromTo(cell, { y: -8 }, { y: 0, duration: .4, ease: "back.out(1.7)" });
+    });
+
+    placeReadout.textContent = t.placeNames[selectedPos];
+
+    const valStr = valueStringAt(selectedPos);
+    const eqSource = `${digitsAt[selectedPos]} \\times 10^{${selectedPos}} = \\color{#ed6d40}{${valStr}}`;
+    renderEquation(eqLine, eqSource);
+
+    const parts = [...WHOLE_POS, ...DEC_POS]
+      .filter(pos => digitsAt[pos] > 0)
+      .map(pos => digitsDecimal(parseFloat(valueStringAt(pos)), i18n.lang, pos < 0 ? -pos : 0));
+    const dir = i18n.lang === "ar" ? "rtl" : "ltr";
+    readout.innerHTML =
+      `<div class="readout-line" dir="ltr"><b data-role="ui">${t.standard}:</b> ${fullNumberString()}</div>` +
+      `<div class="readout-line" dir="${dir}"><b data-role="ui">${t.expanded}:</b> ${parts.join(" + ")}</div>`;
+  }
+
+  slider.addEventListener("input", () => selectPlace(parseInt(slider.value, 10)));
+  stepUp.addEventListener("click", () => changeDigit(1));
+  stepDown.addEventListener("click", () => changeDigit(-1));
+
+  const i18n = initI18n(T, { onLangChange: () => { buildChart(); render(false); } });
+  buildChart();
+  render(false);
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

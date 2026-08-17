@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Percentage — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:30px 24px 30px; display:flex; flex-direction:column; align-items:center; gap:22px; }
+  .grid100{ display:grid; grid-template-columns:repeat(10, 16px); grid-gap:2px; direction:ltr; user-select:none; }
+  .g-cell{ width:16px; height:16px; border-radius:2px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); cursor:pointer; }
+  .g-cell.on{ background:var(--electric-teal); border-color:rgba(92,147,159,.7); }
+
+  .readouts{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
+  .readout-card{ display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 18px; border-radius:10px; background:var(--urban-smoke); border:1px solid rgba(255,255,255,.1); min-width:100px; }
+  .readout-card .cap{ font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash); }
+  .readout-card .val{ font-family:var(--mono); font-size:17px; font-weight:700; color:var(--infrared); direction:ltr; }
+
+  .slider-row{ display:flex; align-items:center; gap:10px; width:100%; max-width:320px; }
+  .slider-row input[type="range"]{ flex:1; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 6 · LESSON 8</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Percentage</h1>
+    <span class="title-secondary ar-display" id="titleAr">النسبة المئوية</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I represent the same quantity as a fraction, a decimal, and a percent, all at once.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">percent means "out of 100"</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="slider-row">
+        <label data-role="ui" data-i18n="controlLabel">shade</label>
+        <input type="range" id="pctSlider" min="0" max="100" step="1" value="35" />
+        <span class="control-val" id="pctReadout"></span>
+      </div>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="grid100" id="grid100" data-el="grid100"></div>
+      <div class="readouts" id="readouts" data-el="readouts">
+        <div class="readout-card"><span class="cap" id="capFrac"></span><span class="val" id="valFrac"></span></div>
+        <div class="readout-card"><span class="cap" id="capDec"></span><span class="val" id="valDec"></span></div>
+        <div class="readout-card"><span class="cap" id="capPct"></span><span class="val" id="valPct"></span></div>
+      </div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">A percent is just a fraction out of 100 — shading cells on a 100-cell grid makes the fraction, decimal, and percent forms of the same quantity visible together, all changing in sync.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="6-7-multiplying-dividing-decimals-powers-ten.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">6.7 · Multiplying and Dividing by Powers of Ten</b></a>
+    <a class="nav-pill next" href="../grade-5/7-1-evaluating-algebraic-expression.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">7.1 · Evaluating an Algebraic Expression</b></a>
+  </div>
+</div>
+
+<script>
+  const { groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 6 · LESSON 8",
+      objectiveLabel: "Objective —",
+      objectiveText: "I represent the same quantity as a fraction, a decimal, and a percent, all at once.",
+      eqSub: "percent means \"out of 100\"",
+      explainBtn: "Explain this",
+      controlLabel: "shade",
+      capFrac: "fraction", capDec: "decimal", capPct: "percent",
+      navPrevLabel: "—", navPrevText: "6.7 · Multiplying and Dividing by Powers of Ten",
+      navNextLabel: "next", navNext: "7.1 · Evaluating an Algebraic Expression",
+      teachLabel: "What this teaches:",
+      teachBody: "A percent is just a fraction out of 100 — shading cells on a 100-cell grid makes the fraction, decimal, and percent forms of the same quantity visible together, all changing in sync.",
+      tour: [
+        { elKey: "grid100", label: "100 cells, 100 percent", body: "The whole grid is 100 equal cells — shading any number of them shows that many hundredths." },
+        { ids: ["pctSlider"], label: "Shade or drag", body: "Click cells directly, or drag the slider — both control the exact same shaded amount." },
+        { elKey: "readouts", label: "Three forms, one value", body: "Fraction, decimal, and percent are just three different ways of writing the exact same shaded amount." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٦ · الدرس ٨",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أُمثّل الكمّية نفسها ككسر، وكسر عشري، ونسبة مئوية، في آنٍ واحد.",
+      eqSub: "النسبة المئوية تعني «من كل مئة»",
+      explainBtn: "اشرح هذا",
+      controlLabel: "ظلّل",
+      capFrac: "الكسر", capDec: "الكسر العشري", capPct: "النسبة المئوية",
+      navPrevLabel: "—", navPrevText: "٦.٧ · الضرب والقسمة على قوى العشرة",
+      navNextLabel: "التالي", navNext: "٧.١ · تقييم مقدار جبري",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "النسبة المئوية هي ببساطة كسر من كل مئة — تظليل خلايا على شبكة من ١٠٠ خلية يُظهر صور الكسر والعشري والنسبة المئوية للكمّية نفسها معًا، وتتغيّر كلّها بتزامن.",
+      tour: [
+        { elKey: "grid100", label: "١٠٠ خلية، ١٠٠ بالمئة", body: "الشبكة كاملة هي ١٠٠ خلية متساوية — تظليل أي عدد منها يُظهر ذلك العدد من الأجزاء من مئة." },
+        { ids: ["pctSlider"], label: "ظلّل أو اسحب", body: "انقر الخلايا مباشرة، أو اسحب شريط التمرير — كلاهما يتحكّم بالكمّية المظلّلة نفسها بالضبط." },
+        { elKey: "readouts", label: "ثلاث صور، قيمة واحدة", body: "الكسر والعشري والنسبة المئوية هي ببساطة ثلاث طرق مختلفة لكتابة الكمّية المظلّلة نفسها تمامًا." }
+      ]
+    }
+  };
+
+  const pctSlider = document.getElementById("pctSlider");
+  const pctReadout = document.getElementById("pctReadout");
+  const grid100 = document.getElementById("grid100");
+  const eqLine = document.getElementById("eqLine");
+  const capFrac = document.getElementById("capFrac"), valFrac = document.getElementById("valFrac");
+  const capDec = document.getElementById("capDec"), valDec = document.getElementById("valDec");
+  const capPct = document.getElementById("capPct"), valPct = document.getElementById("valPct");
+
+  function gcdOf(a, b) { return b === 0 ? a : gcdOf(b, a % b); }
+
+  const cells = [];
+  function buildGrid() {
+    grid100.innerHTML = "";
+    for (let i = 0; i < 100; i++) {
+      const cell = document.createElement("div");
+      cell.className = "g-cell";
+      cell.addEventListener("click", () => {
+        pctSlider.value = i + 1;
+        render();
+      });
+      grid100.appendChild(cell);
+      cells.push(cell);
+    }
+  }
+
+  function render() {
+    const t = T[i18n.lang];
+    const pct = parseInt(pctSlider.value, 10);
+    pctReadout.textContent = pct + "%";
+
+    cells.forEach((cell, idx) => cell.classList.toggle("on", idx < pct));
+
+    const g = gcdOf(pct || 1, 100);
+    const simN = pct / g, simD = 100 / g;
+    const dec = (pct / 100).toFixed(2);
+
+    capFrac.textContent = t.capFrac; capDec.textContent = t.capDec; capPct.textContent = t.capPct;
+    valFrac.textContent = groupInt(simN, "en") + "/" + groupInt(simD, "en");
+    valDec.textContent = dec;
+    valPct.textContent = pct + "%";
+
+    renderEquation(eqLine, `\\dfrac{${groupInt(pct, "en")}}{100} = ${dec} = \\color{#ed6d40}{${groupInt(pct, "en")}\\%}`);
+  }
+
+  pctSlider.addEventListener("input", render);
+  buildGrid();
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

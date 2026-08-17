@@ -17,6 +17,11 @@
   const deflatedTableBody = document.querySelector("#deflatedTable tbody");
 
   let state = null;
+  const STORE_KEY = "engine-lab:numerical-horner";
+
+  function snapshot() {
+    return { coeffs: coeffsInput.value, x: xInput.value };
+  }
 
   function updatePreview() {
     const coeffs = coeffsInput.value.split(",").map((s) => s.trim()).filter((s) => s !== "");
@@ -96,8 +101,7 @@
       .join("");
   }
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+  function runCompute() {
     clearError();
 
     const coeffs = coeffsInput.value.split(",").map((s) => parseFloat(s.trim())).filter((s) => !Number.isNaN(s));
@@ -109,10 +113,23 @@
     try {
       const result = Algorithms.runHorner(coeffs, x);
       render(result);
+      Proto.saveState(STORE_KEY, snapshot());
     } catch (err) {
       showError(err.message);
     }
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    runCompute();
   });
+
+  const saved = Proto.loadState(STORE_KEY);
+  if (saved) {
+    if (saved.coeffs !== undefined) coeffsInput.value = saved.coeffs;
+    if (saved.x !== undefined) xInput.value = saved.x;
+    runCompute();
+  }
 
   updatePreview();
   updateStatus();

@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Multiplying and Dividing Decimals by Powers of Ten — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:40px 24px 34px; display:flex; flex-direction:column; align-items:center; gap:26px; }
+  .digit-strip{ position:relative; display:flex; direction:ltr; }
+  .digit-cell{ width:38px; height:52px; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:24px; font-weight:700; color:var(--off-white); border-bottom:1px solid rgba(255,255,255,.1); }
+  .digit-cell.pad{ color:var(--pulse-ash); }
+  .point-marker{ position:absolute; top:-14px; width:4px; height:80px; background:var(--infrared); border-radius:2px; transition:left .6s cubic-bezier(.4,0,.2,1); }
+  .point-marker::after{ content:"."; position:absolute; bottom:-6px; left:50%; transform:translateX(-50%); font-family:var(--mono); font-size:26px; font-weight:900; color:var(--infrared); }
+
+  .op-toggle{ display:flex; gap:6px; flex-wrap:wrap; justify-content:center; }
+  .mode-btn{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--pulse-ash); background:var(--core-black); border:1px solid rgba(255,255,255,.14); border-radius:100px; padding:6px 14px; cursor:pointer; }
+  .mode-btn.active{ color:var(--off-white); border-color:var(--electric-teal); background:rgba(92,147,159,.12); }
+
+  .input-group{ display:flex; align-items:center; gap:10px; }
+  .input-group label{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash); }
+  .input-group input{ font-family:var(--mono); font-size:15px; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.16); border-radius:8px; padding:7px 10px; width:110px; direction:ltr; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 6 · LESSON 7</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Multiplying and Dividing Decimals by 10, 100, 1000</h1>
+    <span class="title-secondary ar-display" id="titleAr">الضرب والقسمة على ١٠، ١٠٠، ١٠٠٠</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I multiply or divide a decimal by 10, 100, or 1000 by moving its decimal point.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">the point jumps, the digits don't move</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="input-group"><label data-role="ui" data-i18n="labelVal">value</label><input type="text" id="valInput" value="3.4" /></div>
+    </div>
+
+    <div class="control-row">
+      <div class="op-toggle" id="opToggle" data-el="opToggle">
+        <button class="mode-btn active" data-op="mul10">×10</button>
+        <button class="mode-btn" data-op="mul100">×100</button>
+        <button class="mode-btn" data-op="mul1000">×1000</button>
+        <button class="mode-btn" data-op="div10">÷10</button>
+        <button class="mode-btn" data-op="div100">÷100</button>
+        <button class="mode-btn" data-op="div1000">÷1000</button>
+      </div>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="digit-strip" id="digitStrip" data-el="digitStrip"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Multiplying or dividing a decimal by a power of ten never changes its digits — only the decimal point's position, which jumps right for multiplication and left for division, one place per zero in the power of ten.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="6-6-adding-subtracting-decimals.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">6.6 · Adding and Subtracting Decimals</b></a>
+    <a class="nav-pill next" href="6-8-percentage.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">6.8 · Percentage</b></a>
+  </div>
+</div>
+
+<script>
+  const { initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 6 · LESSON 7",
+      objectiveLabel: "Objective —",
+      objectiveText: "I multiply or divide a decimal by 10, 100, or 1000 by moving its decimal point.",
+      eqSub: "the point jumps, the digits don't move",
+      explainBtn: "Explain this",
+      labelVal: "value",
+      navPrevLabel: "—", navPrevText: "6.6 · Adding and Subtracting Decimals",
+      navNextLabel: "next", navNext: "6.8 · Percentage",
+      teachLabel: "What this teaches:",
+      teachBody: "Multiplying or dividing a decimal by a power of ten never changes its digits — only the decimal point's position, which jumps right for multiplication and left for division, one place per zero in the power of ten.",
+      tour: [
+        { elKey: "digitStrip", label: "The digits stay put", body: "Watch closely — the digits themselves never move or change." },
+        { ids: ["opToggle"], label: "Pick a power of ten", body: "Choose ×10, ÷100, or any other power of ten — the point jumps that many places." },
+        { elKey: "digitStrip", label: "Watch the point jump", body: "Multiplying moves the point right; dividing moves it left — one place for every zero." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٦ · الدرس ٧",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أضرب أو أقسم كسرًا عشريًا على ١٠ أو ١٠٠ أو ١٠٠٠ بتحريك فاصلته العشرية.",
+      eqSub: "الفاصلة تقفز، والأرقام لا تتحرّك",
+      explainBtn: "اشرح هذا",
+      labelVal: "القيمة",
+      navPrevLabel: "—", navPrevText: "٦.٦ · جمع وطرح الكسور العشرية",
+      navNextLabel: "التالي", navNext: "٦.٨ · النسبة المئوية",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "ضرب أو قسمة كسر عشري على قوة من قوى العشرة لا يغيّر أرقامه أبدًا — بل يغيّر فقط موضع فاصلته العشرية، التي تقفز يمينًا للضرب ويسارًا للقسمة، بمقدار منزلة واحدة لكل صفر في قوة العشرة.",
+      tour: [
+        { elKey: "digitStrip", label: "الأرقام تبقى في مكانها", body: "راقب جيّدًا — الأرقام نفسها لا تتحرّك ولا تتغيّر أبدًا." },
+        { ids: ["opToggle"], label: "اختر قوّة من قوى العشرة", body: "اختر ×١٠، أو ÷١٠٠، أو أي قوّة أخرى — تقفز الفاصلة بذلك العدد من المنازل." },
+        { elKey: "digitStrip", label: "راقب قفزة الفاصلة", body: "الضرب يحرّك الفاصلة يمينًا؛ والقسمة تحرّكها يسارًا — منزلة واحدة لكل صفر." }
+      ]
+    }
+  };
+
+  const valInput = document.getElementById("valInput");
+  const opToggle = document.getElementById("opToggle");
+  const digitStrip = document.getElementById("digitStrip");
+  const eqLine = document.getElementById("eqLine");
+
+  let op = "mul10";
+  const OP_SHIFT = { mul10: 1, mul100: 2, mul1000: 3, div10: -1, div100: -2, div1000: -3 };
+
+  function buildStrip() {
+    const rawStr = valInput.value.trim() || "0";
+    const [wholeStr, fracStr = ""] = rawStr.split(".");
+    const shift = OP_SHIFT[op];
+    const totalPad = Math.abs(shift) + 1;
+    const digits = (wholeStr + fracStr).split("");
+    const padLeft = shift < 0 ? totalPad : 0;
+    const padRight = shift > 0 ? totalPad : 0;
+
+    digitStrip.innerHTML = "";
+    for (let i = 0; i < padLeft; i++) {
+      const cell = document.createElement("div");
+      cell.className = "digit-cell pad";
+      cell.textContent = "0";
+      digitStrip.appendChild(cell);
+    }
+    digits.forEach(d => {
+      const cell = document.createElement("div");
+      cell.className = "digit-cell";
+      cell.textContent = d;
+      digitStrip.appendChild(cell);
+    });
+    for (let i = 0; i < padRight; i++) {
+      const cell = document.createElement("div");
+      cell.className = "digit-cell pad";
+      cell.textContent = "0";
+      digitStrip.appendChild(cell);
+    }
+
+    const marker = document.createElement("div");
+    marker.className = "point-marker";
+    marker.id = "pointMarker";
+    digitStrip.appendChild(marker);
+
+    return { wholeLen: wholeStr.length, padLeft };
+  }
+
+  function render() {
+    const rawStr = valInput.value.trim() || "0";
+    const value = parseFloat(rawStr) || 0;
+    const shift = OP_SHIFT[op];
+    const { wholeLen, padLeft } = buildStrip();
+
+    const startIndex = padLeft + wholeLen; // position right after whole-part digits, pre-shift
+    const endIndex = startIndex + shift;
+    const cellW = 38;
+
+    const marker = document.getElementById("pointMarker");
+    gsap.set(marker, { left: (startIndex * cellW) + "px" });
+    requestAnimationFrame(() => {
+      gsap.to(marker, { left: (endIndex * cellW) + "px", duration: .8, ease: "power2.inOut" });
+    });
+
+    const result = shift > 0 ? value * Math.pow(10, shift) : value / Math.pow(10, -shift);
+    const opLabel = shift > 0 ? `\\times ${Math.pow(10, shift)}` : `\\div ${Math.pow(10, -shift)}`;
+    renderEquation(eqLine, `${value} ${opLabel} = \\color{#ed6d40}{${parseFloat(result.toFixed(6))}}`);
+  }
+
+  valInput.addEventListener("input", render);
+  opToggle.addEventListener("click", (e) => {
+    const btn = e.target.closest(".mode-btn");
+    if (!btn) return;
+    op = btn.dataset.op;
+    opToggle.querySelectorAll(".mode-btn").forEach(b => b.classList.toggle("active", b === btn));
+    render();
+  });
+
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

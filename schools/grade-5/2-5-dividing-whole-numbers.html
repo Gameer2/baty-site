@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dividing Whole Numbers — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:36px 24px 30px; display:flex; flex-direction:column; align-items:center; gap:18px; }
+  .steps-col{ display:flex; flex-direction:column; gap:8px; width:100%; max-width:460px; }
+  .step-card{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 16px; border-radius:10px; background:var(--core-black); border:1px solid rgba(255,255,255,.08); opacity:.25; transition:opacity .3s ease; direction:ltr; }
+  .step-card.active{ opacity:1; border-color:rgba(92,147,159,.4); background:rgba(92,147,159,.08); }
+  .step-card .desc{ font-family:var(--mono); font-size:12.5px; color:var(--neural-fog); }
+  .step-card .qd{ font-family:var(--mono); font-size:16px; font-weight:700; color:var(--electric-teal); }
+
+  .remainder-box{ margin-top:6px; padding:16px 20px; border-radius:12px; background:var(--urban-smoke); border:1px solid rgba(255,255,255,.1); text-align:center; max-width:460px; }
+  .remainder-box .prompt{ font-size:13.5px; color:var(--neural-fog); margin-bottom:12px; line-height:1.5; }
+  .remainder-choices{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+  .rc-btn{ font-family:var(--mono); font-size:12px; color:var(--off-white); background:var(--core-black); border:1px solid rgba(255,255,255,.16); border-radius:100px; padding:8px 14px; cursor:pointer; }
+  .rc-btn.correct-picked{ border-color:var(--validation-green); color:var(--validation-green); }
+  .rc-btn.wrong-picked{ border-color:var(--infrared); color:var(--infrared); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 2 · LESSON 5</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Dividing Whole Numbers</h1>
+    <span class="title-secondary ar-display" id="titleAr">قسمة الأعداد</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I divide a whole number of up to 3 digits by a number of 1 or 2 digits, using long division; I interpret a remainder.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">divide, multiply, subtract, bring down — repeat</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabel">step</label>
+      <input type="range" id="stepSlider" min="0" max="1" step="1" value="0" />
+      <span class="control-val" id="stepReadout">1 / 1</span>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="steps-col" id="stepsCol" data-el="stepsCol"></div>
+      <div class="remainder-box" id="remainderBox" data-el="remainderBox">
+        <div class="prompt" data-role="body" id="remainderPrompt"></div>
+        <div class="remainder-choices" id="remainderChoices"></div>
+      </div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">The standard long-division algorithm (estimate the first quotient digit's place, divide, multiply, subtract, bring down, repeat), always preceded by a compatible-number estimate, and followed by interpreting what a remainder means in context.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="2-4-estimating-quotients.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">2.4 · Estimating Quotients</b></a>
+    <a class="nav-pill next" href="3-1-divisibility-4-6-9.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">3.1 · Divisibility by 4, 6, 9</b></a>
+  </div>
+</div>
+
+<script>
+  const { groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+  const DIVIDEND = 418, DIVISOR = 7; // → 59 r 5, "how many buses" style remainder
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 2 · LESSON 5",
+      objectiveLabel: "Objective —",
+      objectiveText: "I divide a whole number of up to 3 digits by a number of 1 or 2 digits, using long division; I interpret a remainder.",
+      eqSub: "divide, multiply, subtract, bring down — repeat",
+      explainBtn: "Explain this",
+      controlLabel: "step",
+      bring: "bring down", divide: "divide", noQuotientYet: "not enough yet, bring down the next digit",
+      remainderPrompt: "418 people need seats, 7 per bus. The division gives 59 remainder 5 — what do those 5 leftover people need?",
+      choiceRoundUp: "one more bus (60 buses)", choiceDiscard: "leave them behind", choiceKeep: "just note “5 left over”",
+      correctIsRoundUp: true,
+      navPrevLabel: "—", navPrevText: "2.4 · Estimating Quotients",
+      navNextLabel: "next", navNext: "3.1 · Divisibility by 4, 6, 9",
+      teachLabel: "What this teaches:",
+      teachBody: "The standard long-division algorithm (estimate the first quotient digit's place, divide, multiply, subtract, bring down, repeat), always preceded by a compatible-number estimate, and followed by interpreting what a remainder means in context.",
+      tour: [
+        { elKey: "stepsCol", label: "One digit at a time", body: "Drag the step slider — each step brings down the next digit and finds how many times the divisor fits." },
+        { ids: ["eqLine"], label: "Quotient and remainder", body: "What's left over at the very end, smaller than the divisor, is the remainder." },
+        { elKey: "remainderBox", label: "What does the remainder mean?", body: "The same remainder can mean different things depending on the real situation — sometimes you round up, sometimes you don't." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٢ · الدرس ٥",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أقسم عددًا كليًا من ٣ أرقام على عدد من رقم أو رقمين باستخدام القسمة المطوّلة؛ وأُفسِّر باقي القسمة.",
+      eqSub: "اقسم، اضرب، اطرح، أنزل — وكرِّر",
+      explainBtn: "اشرح هذا",
+      controlLabel: "الخطوة",
+      bring: "أنزل", divide: "اقسم", noQuotientYet: "غير كافٍ بعد، أنزل الرقم التالي",
+      remainderPrompt: "يحتاج ٤١٨ شخصًا إلى مقاعد، بواقع ٧ في كل حافلة. تعطي القسمة ٥٩ وباقي ٥ — ماذا يحتاج هؤلاء الخمسة الباقون؟",
+      choiceRoundUp: "حافلة إضافية (٦٠ حافلة)", choiceDiscard: "يُتركون", choiceKeep: "نكتفي بملاحظة «يتبقّى ٥»",
+      correctIsRoundUp: true,
+      navPrevLabel: "—", navPrevText: "٢.٤ · تقدير ناتج القسمة",
+      navNextLabel: "التالي", navNext: "٣.١ · قابلية القسمة على ٤، ٦، ٩",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "خوارزمية القسمة المطوّلة القياسية (تقدير منزلة أوّل رقم في خارج القسمة، ثم القسمة، الضرب، الطرح، الإنزال، وتكرار ذلك)، مسبوقة دائمًا بتقدير بأعداد متناغمة، ومتبوعة بتفسير معنى الباقي في السياق.",
+      tour: [
+        { elKey: "stepsCol", label: "رقم واحد في كل مرّة", body: "اسحب شريط الخطوات — تُنزل كل خطوة الرقم التالي وتجد كم مرّة يدخل المقسوم عليه." },
+        { ids: ["eqLine"], label: "خارج القسمة والباقي", body: "ما يتبقّى في النهاية، وهو أصغر من المقسوم عليه، هو الباقي." },
+        { elKey: "remainderBox", label: "ماذا يعني الباقي؟", body: "قد يعني الباقي نفسه أشياء مختلفة حسب الموقف الحقيقي — أحيانًا نُقرِّب لأعلى، وأحيانًا لا." }
+      ]
+    }
+  };
+
+  function longDivisionSteps(D, d) {
+    const Dstr = String(D);
+    const steps = [];
+    let remainder = 0, started = false, qDigits = [];
+    for (let i = 0; i < Dstr.length; i++) {
+      const digit = parseInt(Dstr[i], 10);
+      const current = remainder * 10 + digit;
+      const qd = Math.floor(current / d);
+      if (!started && qd === 0 && i < Dstr.length - 1) {
+        steps.push({ digit, current, qd: null, rem: current });
+        remainder = current;
+        continue;
+      }
+      started = true;
+      const sub = qd * d;
+      const newRem = current - sub;
+      qDigits.push(qd);
+      steps.push({ digit, current, qd, sub, rem: newRem });
+      remainder = newRem;
+    }
+    return { steps, quotient: parseInt(qDigits.join("") || "0", 10), remainder };
+  }
+
+  const { steps, quotient, remainder } = longDivisionSteps(DIVIDEND, DIVISOR);
+
+  const stepSlider = document.getElementById("stepSlider");
+  const stepReadout = document.getElementById("stepReadout");
+  const stepsCol = document.getElementById("stepsCol");
+  const eqLine = document.getElementById("eqLine");
+  const remainderBox = document.getElementById("remainderBox");
+  const remainderPrompt = document.getElementById("remainderPrompt");
+  const remainderChoices = document.getElementById("remainderChoices");
+
+  stepSlider.max = steps.length - 1;
+  stepSlider.value = steps.length - 1;
+
+  function buildSteps() {
+    const t = T[i18n.lang];
+    stepsCol.innerHTML = "";
+    steps.forEach((s, idx) => {
+      const card = document.createElement("div");
+      card.className = "step-card";
+      card.id = "step_" + idx;
+      const desc = document.createElement("span");
+      desc.className = "desc";
+      desc.textContent = s.qd === null
+        ? `${t.bring} ${groupInt(s.digit, "en")} → ${groupInt(s.current, "en")} — ${t.noQuotientYet}`
+        : `${t.bring} ${groupInt(s.digit, "en")} → ${groupInt(s.current, "en")} ÷ ${groupInt(DIVISOR, "en")} = ${groupInt(s.qd, "en")}, ${t.bring === "bring down" ? "remainder" : "الباقي"} ${groupInt(s.rem, "en")}`;
+      const qd = document.createElement("span");
+      qd.className = "qd";
+      qd.textContent = s.qd === null ? "—" : groupInt(s.qd, "en");
+      card.appendChild(desc);
+      card.appendChild(qd);
+      stepsCol.appendChild(card);
+    });
+  }
+
+  function render() {
+    const t = T[i18n.lang];
+    const cur = parseInt(stepSlider.value, 10);
+    stepReadout.textContent = groupInt(cur + 1, "en") + " / " + groupInt(steps.length, "en");
+    document.querySelectorAll(".step-card").forEach((c, idx) => c.classList.toggle("active", idx <= cur));
+
+    const isLast = cur === steps.length - 1;
+    const visibleRem = steps[cur].rem;
+    const partialQuotient = steps.slice(0, cur + 1).filter(s => s.qd !== null).map(s => s.qd).join("");
+
+    const eqSource = isLast
+      ? `\\color{#5c939f}{${groupInt(DIVIDEND, "en")}} \\div \\color{#5c939f}{${groupInt(DIVISOR, "en")}} = \\color{#ed6d40}{${groupInt(quotient, "en")}} \\,r\\, \\color{#ed6d40}{${groupInt(remainder, "en")}}`
+      : `\\color{#5c939f}{${groupInt(DIVIDEND, "en")}} \\div \\color{#5c939f}{${groupInt(DIVISOR, "en")}} \\;\\Rightarrow\\; ${partialQuotient || "\\,\\cdot\\,"}\\ldots`;
+    renderEquation(eqLine, eqSource);
+
+    remainderBox.style.display = isLast ? "block" : "none";
+    if (isLast) {
+      remainderPrompt.textContent = t.remainderPrompt;
+      remainderChoices.innerHTML = "";
+      [["roundup", t.choiceRoundUp, true], ["discard", t.choiceDiscard, false], ["keep", t.choiceKeep, false]].forEach(([key, label]) => {
+        const btn = document.createElement("button");
+        btn.className = "rc-btn";
+        btn.textContent = label;
+        btn.addEventListener("click", () => {
+          remainderChoices.querySelectorAll(".rc-btn").forEach(b => b.classList.remove("correct-picked", "wrong-picked"));
+          btn.classList.add(key === "roundup" ? "correct-picked" : "wrong-picked");
+        });
+        remainderChoices.appendChild(btn);
+      });
+    }
+  }
+
+  stepSlider.addEventListener("input", render);
+  const i18n = initI18n(T, { onLangChange: () => { buildSteps(); render(); } });
+  buildSteps();
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

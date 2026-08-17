@@ -1,0 +1,269 @@
+.NodeShell {
+  --node-accent: #ffffff;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  // Surfaces/text read from the theme tokens index.scss re-publishes on
+  // .syntropy-app.theme--light/dark, so the card follows the mood instead of
+  // being hard-coded dark (which left light-mode text invisible on a light
+  // card and made the "added things" ignore the theme switcher).
+  background: var(--island-bg-color);
+  border: 1px solid var(--input-border-color);
+  border-radius: 20px; // lab --radius-lg (cards/panels)
+  font-family: var(--ui-font);
+  color: var(--color-on-surface);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  isolation: isolate;
+  // Lab cards are FLAT — no drop shadow (see math-lab .card / .engine-card). Depth comes from the
+  // 1px hairline border + the accent radial glow below.
+  // Card background/border are pass-through so a mousedown here reaches Excalidraw's canvas
+  // underneath and drag-to-move / click-to-select on the real (transparent) embeddable element
+  // keeps working. Every interactive child below re-enables pointer-events itself.
+  pointer-events: none;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: -35%;
+    left: -15%;
+    width: 75%;
+    height: 75%;
+    background: radial-gradient(circle, var(--node-accent) 0%, transparent 72%);
+    opacity: 0.14;
+    filter: blur(6px);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  // Engine-identity spine — reads at a glance across many nodes on canvas, where the 6px header
+  // dot is too small to register at low zoom. Sits on top of the header's own background since
+  // it's the last-painted pseudo-element in source order.
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: var(--node-accent);
+    opacity: 0.85;
+    pointer-events: none;
+  }
+}
+
+.NodeShell__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--input-border-color);
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.NodeShell__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--node-accent);
+  flex-shrink: 0;
+}
+
+.NodeShell__title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Premium portal button — the lab's .btn--ghost fill-sweep in the node's own accent, plus a soft
+// accent glow. Replaces the old gray "Open ↗" text (note-taker: "should have a button in it that
+// look premium and consistent with the design of the lab").
+.NodeShell__portal {
+  all: unset;
+  pointer-events: auto;
+  cursor: pointer;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--ui-font);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--node-accent) 75%, var(--color-on-surface));
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--node-accent) 45%, transparent);
+  background: color-mix(in srgb, var(--node-accent) 10%, transparent);
+  overflow: hidden;
+  transition: color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+  // Lab fill-sweep: an accent fill scales in from the left on hover, text flips to near-black.
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--node-accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  // Near-black reads on the mid-tone accent fill in both themes.
+  &:hover {
+    color: #090909;
+    border-color: var(--node-accent);
+    box-shadow: 0 0 18px color-mix(in srgb, var(--node-accent) 55%, transparent);
+  }
+  &:hover::before {
+    transform: scaleX(1);
+  }
+}
+
+.NodeShell__body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  flex: 1;
+}
+
+.NodeShell__error {
+  font-size: 11px;
+  color: #ed6d40;
+  margin: 0;
+}
+
+// n8n-style connector dot — sits on the card's edge, half in/half out, so a wire visually
+// touches the card boundary rather than floating inside it. Output dots (right edge) are the
+// only draggable one (pointer-events re-enabled + a real onPointerDown); input dots (left edge)
+// are pure drop targets, identified by NodeOverlay's elementFromPoint hit-test on drop, not by
+// their own event handlers.
+.NodeShell__port {
+  position: absolute;
+  top: 50%;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--node-accent);
+  border: 2px solid var(--island-bg-color);
+  transform: translateY(-50%);
+  pointer-events: auto;
+  z-index: 2;
+  // A resting glow marks these as the draggable/droppable hotspots — the one place on the card
+  // where a click starts a wire instead of selecting the node — rather than reading as plain
+  // decoration the way a flat dot does next to otherwise-flat lab UI.
+  box-shadow: 0 0 4px 1px
+    color-mix(in srgb, var(--node-accent) 65%, transparent);
+  transition: box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+  // Touch hit-area: the visible dot is 11px — under a fingertip. An invisible
+  // 25px circle (inset:-7px) centered on the dot makes it comfortably tappable
+  // for both the drag-start (output) and the drop-target (input) without
+  // changing the dot's appearance. `pointer-events` inherits `auto` from the
+  // port, so the pseudo-element is part of the same hit target; events on it
+  // target the port element itself. Un-gated — invisible on desktop too.
+  &::after {
+    content: "";
+    position: absolute;
+    inset: -7px;
+    border-radius: 50%;
+  }
+}
+
+.NodeShell__port--input {
+  left: -6px;
+  cursor: crosshair;
+}
+
+.NodeShell__port--output {
+  right: -6px;
+  cursor: grab;
+}
+
+// On touch, `:hover` states (the port scale-up + glow) stick after a tap. Guard
+// them so they only apply on devices that actually have a hover capability —
+// desktops and laptops keep the effect; phones/tablets get a clean tap.
+@media (hover: hover) {
+  .NodeShell__port:hover {
+    transform: translateY(-50%) scale(1.25);
+    box-shadow: 0 0 6px 2px var(--node-accent),
+      0 0 14px 3px color-mix(in srgb, var(--node-accent) 50%, transparent);
+  }
+}
+
+// Run-mode status chip — "running…" / "stale — press Run". Shared by every archetype renderer
+// (mounted unconditionally; renders nothing when a run node is ready or for live nodes).
+// No pointer-events here: this is a plain status chip with no click handler — the label reads
+// "running…" / "stale — press Run" but there's nothing to interact with, so it should pass
+// clicks through to the canvas underneath like the rest of a node's non-interactive chrome.
+.NodeStatus {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.NodeStatus--pending {
+  color: var(--node-accent);
+  background: color-mix(in srgb, var(--node-accent) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--node-accent) 45%, transparent);
+}
+
+.NodeStatus--stale {
+  color: var(--color-gray-60);
+  background: var(--color-surface-low);
+  border: 1px solid var(--input-border-color);
+}
+
+// Run-mode action row — the Run button next to the status chip, shown only for executionMode
+// "run" specs. Mounted unconditionally by every renderer; NodeRunBar renders just the (usually
+// null) chip for live nodes.
+.NodeRunBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.NodeRunBar__run {
+  appearance: none;
+  border: 1px solid color-mix(in srgb, var(--node-accent) 55%, transparent);
+  background: color-mix(in srgb, var(--node-accent) 16%, transparent);
+  color: var(--node-accent);
+  border-radius: 6px;
+  padding: 3px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+  // NodeShell sets pointer-events: none on the whole card and expects every interactive child
+  // to re-enable it for itself — this one was missed, so the button never received real clicks
+  // (jsdom's fireEvent.click bypasses hit-testing, which is why the tests didn't catch it).
+  pointer-events: auto;
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--node-accent) 26%, transparent);
+    border-color: var(--node-accent);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+}

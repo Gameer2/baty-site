@@ -26,6 +26,15 @@
     [1, 1, 3],
   ];
 
+  const STORE_KEY = "engine-lab:numerical-hermite-interpolation";
+
+  function snapshot() {
+    return {
+      points: getPoints().map((p) => `${p.x},${p.f},${p.fp}`).join(";"),
+      x0: queryInput.value,
+    };
+  }
+
   function updateRemoveButtonsState() {
     const rows = tbody.querySelectorAll("tr");
     const locked = rows.length <= 2;
@@ -239,8 +248,7 @@
     );
   }
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+  function runCompute() {
     clearError();
 
     const points = getPoints();
@@ -255,5 +263,25 @@
     if (Number.isNaN(x0)) return showError("Enter a numeric value to evaluate at.");
 
     render(points, x0);
+    Proto.saveState(STORE_KEY, snapshot());
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    runCompute();
   });
+
+  const saved = Proto.loadState(STORE_KEY);
+  if (saved) {
+    if (saved.points !== undefined) {
+      const triples = String(saved.points)
+        .split(";")
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .map((triple) => triple.split(",").map((v) => Number(v.trim())));
+      if (triples.length >= 2) resetPoints(triples);
+    }
+    if (saved.x0 !== undefined) queryInput.value = saved.x0;
+    runCompute();
+  }
 })();

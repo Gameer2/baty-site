@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Relationship Between Diameter and Radius — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: drag the edge point to resize the circle; radius and diameter
+     lines update, always in a 2:1 ratio. ---- */
+  .chart{ padding:26px 20px 30px; display:flex; flex-direction:column; align-items:center; gap:16px; }
+  svg#circleSvg{ direction:ltr; touch-action:none; }
+  .circle-outline{ fill:rgba(92,147,159,.08); stroke:rgba(92,147,159,.5); stroke-width:1.5; }
+  .radius-line{ stroke:var(--electric-teal); stroke-width:2.5; }
+  .diameter-line{ stroke:var(--infrared); stroke-width:2; stroke-dasharray:5 4; opacity:.7; }
+  .center-dot{ fill:var(--off-white); }
+  .handle-dot{ fill:var(--electric-teal); stroke:var(--off-white); stroke-width:1.5; cursor:grab; }
+  .len-label{ font-family:var(--mono); font-size:12px; direction:ltr; }
+  .len-label.radius{ fill:var(--electric-teal); }
+  .len-label.diameter{ fill:var(--infrared); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 4 · LESSON 4</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Relationship Between Diameter and Radius</h1>
+    <span class="title-secondary ar-display" id="titleAr">علاقة القطر بنصف القطر</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I recognize the relationship between a circle's diameter and radius.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">diameter = 2 × radius, always</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabel">radius</label>
+      <input type="range" id="radiusSlider" min="1" max="8" step="1" value="4" />
+      <span class="control-val" id="radiusReadout">4</span>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <svg id="circleSvg" width="380" height="340" viewBox="0 0 380 340" data-el="circleSvg"></svg>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Basic circle vocabulary (center, radius, diameter) and the fixed relationship diameter = 2×radius, explored via a circular garden/fountain context (equal distance from center to any point on the circle).</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="4-3-reflection.html">— <b data-role="body" id="navPrevText">4.3 · Reflection in the Coordinate Plane</b></a>
+    <a class="nav-pill next" href="4-5-geometric-constructions.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">4.5 · Geometric Constructions</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, initI18n, renderEquation, buildTour } = LessonShell;
+  const CX = 190, CY = 165, UNIT = 18;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 4 · LESSON 4",
+      objectiveLabel: "Objective —",
+      objectiveText: "I recognize the relationship between a circle's diameter and radius.",
+      eqSub: "diameter = 2 × radius, always",
+      explainBtn: "Explain this",
+      controlLabel: "radius",
+      radiusWord: "radius", diameterWord: "diameter",
+      teachLabel: "What this teaches:",
+      teachBody: "Basic circle vocabulary (center, radius, diameter) and the fixed relationship diameter = 2×radius, explored via a circular garden/fountain context (equal distance from center to any point on the circle).",
+      navPrev: "4.3 · Reflection in the Coordinate Plane",
+      navNext: "4.5 · Geometric Constructions",
+      navNextLabel: "next",
+      tour: [
+        { elKey: "handle", label: "Any point on the edge", body: "Drag this point anywhere — it always stays exactly one radius away from the center, no matter the direction." },
+        { elKey: "radius", label: "The radius", body: "The teal line is the radius — center to edge." },
+        { elKey: "diameter", label: "The diameter", body: "The dashed orange line passes straight through the center, edge to edge — that's the diameter, always twice the radius." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ٤ · الدرس ٤",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أتعرّف العلاقة بين قطر الدائرة ونصف قطرها.",
+      eqSub: "القطر = ٢ × نصف القطر، دائمًا",
+      explainBtn: "اشرح هذا",
+      controlLabel: "نصف القطر",
+      radiusWord: "نصف القطر", diameterWord: "القطر",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "مفردات الدائرة الأساسية (المركز، نصف القطر، القطر) والعلاقة الثابتة القطر = ٢×نصف القطر، تُستكشف عبر سياق حديقة أو نافورة دائرية (المسافة نفسها من المركز إلى أي نقطة على الدائرة).",
+      navPrev: "٤.٣ · الانعكاس في المستوى الإحداثي",
+      navNext: "٤.٥ · الإنشاءات الهندسية",
+      navNextLabel: "التالي",
+      tour: [
+        { elKey: "handle", label: "أي نقطة على الحافة", body: "اسحب هذه النقطة إلى أي مكان — تبقى دائمًا على بُعد نصف قطر واحد بالضبط من المركز، أيًّا كان الاتجاه." },
+        { elKey: "radius", label: "نصف القطر", body: "الخط التركوازي هو نصف القطر — من المركز إلى الحافة." },
+        { elKey: "diameter", label: "القطر", body: "الخط البرتقالي المتقطّع يمرّ مباشرة عبر المركز، من حافة إلى حافة — هذا هو القطر، ويساوي دائمًا ضعف نصف القطر." }
+      ]
+    }
+  };
+
+  const circleSvg = document.getElementById("circleSvg");
+  const eqLine = document.getElementById("eqLine");
+  const radiusSlider = document.getElementById("radiusSlider");
+  const radiusReadout = document.getElementById("radiusReadout");
+
+  let radius = 4, angle = -0.7; // radians
+
+  function render(animate) {
+    const t = T[i18n.lang];
+    circleSvg.innerHTML = "";
+    const rPx = radius * UNIT;
+    const hx = CX + rPx * Math.cos(angle), hy = CY + rPx * Math.sin(angle);
+    const ox = CX - rPx * Math.cos(angle), oy = CY - rPx * Math.sin(angle);
+
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute("cx", CX); circle.setAttribute("cy", CY); circle.setAttribute("r", rPx);
+    circle.setAttribute("class", "circle-outline");
+    circleSvg.appendChild(circle);
+
+    const diamLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    diamLine.setAttribute("x1", ox); diamLine.setAttribute("y1", oy);
+    diamLine.setAttribute("x2", hx); diamLine.setAttribute("y2", hy);
+    diamLine.setAttribute("class", "diameter-line dimmable"); diamLine.dataset.el = "diameter";
+    circleSvg.appendChild(diamLine);
+
+    const radLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    radLine.setAttribute("x1", CX); radLine.setAttribute("y1", CY);
+    radLine.setAttribute("x2", hx); radLine.setAttribute("y2", hy);
+    radLine.setAttribute("class", "radius-line dimmable"); radLine.dataset.el = "radius";
+    circleSvg.appendChild(radLine);
+
+    const center = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    center.setAttribute("cx", CX); center.setAttribute("cy", CY); center.setAttribute("r", 3.5);
+    center.setAttribute("class", "center-dot");
+    circleSvg.appendChild(center);
+
+    const handle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    handle.setAttribute("cx", hx); handle.setAttribute("cy", hy); handle.setAttribute("r", 8);
+    handle.setAttribute("class", "handle-dot dimmable"); handle.dataset.el = "handle";
+    handle.addEventListener("pointerdown", e => {
+      handle.setPointerCapture(e.pointerId);
+      const move = ev => {
+        const rect = circleSvg.getBoundingClientRect();
+        const scale = 380 / rect.width;
+        const px = (ev.clientX - rect.left) * scale, py = (ev.clientY - rect.top) * scale;
+        const dx = px - CX, dy = py - CY;
+        angle = Math.atan2(dy, dx);
+        radius = Math.max(1, Math.min(8, Math.round(Math.hypot(dx, dy) / UNIT)));
+        render(false);
+      };
+      const up = () => { circleSvg.removeEventListener("pointermove", move); circleSvg.removeEventListener("pointerup", up); };
+      circleSvg.addEventListener("pointermove", move);
+      circleSvg.addEventListener("pointerup", up);
+    });
+    circleSvg.appendChild(handle);
+
+    const rLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    rLabel.setAttribute("x", (CX + hx) / 2 + 8); rLabel.setAttribute("y", (CY + hy) / 2 - 6);
+    rLabel.setAttribute("class", "len-label radius");
+    rLabel.textContent = t.radiusWord + " = " + digits(radius, i18n.lang);
+    circleSvg.appendChild(rLabel);
+
+    radiusSlider.value = radius;
+    radiusReadout.textContent = radius;
+
+    const eqSource = `d = 2r = 2 \\times ${radius} = \\color{#ed6d40}{${2 * radius}}`;
+    renderEquation(eqLine, eqSource);
+  }
+
+  radiusSlider.addEventListener("input", () => { radius = parseInt(radiusSlider.value, 10); render(true); });
+
+  const i18n = initI18n(T, { onLangChange: () => render(false) });
+  render(false);
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

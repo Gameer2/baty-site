@@ -1,5 +1,35 @@
 # Note App Foundation Fixes — Implementation Plan
 
+> **STATUS (2026-08-18): built, but diverged from this plan on Phase 0 and Phase 3's
+> architecture — read this before executing any remaining checkbox below.**
+>
+> - **Phase 1** (strip Excalidraw's own product surface) — **done**, closely matching this
+>   plan: `ExcalidrawPlusPromoBanner.tsx`, `TTDStorage.ts`, and the community/upsell links
+>   are gone; the accessibility heading reads "Syntropy Canvas"; no Google Fonts preconnect
+>   remains.
+> - **Phase 2** (drop mermaid/cytoscape/codemirror) — **done**, closely matching this plan:
+>   the whole `TTDDialog/` directory and `mermaid.ts`/`mermaid.test.ts` are deleted.
+> - **Phase 0** (move `chrome/` out of `syntropy/`, rename `LibraryPanel`→`MethodLibrary`)
+>   — **never happened.** There is no `chrome/` folder; `ChromeRail.tsx` and friends are
+>   still under `syntropy/`; `LibraryPanel.tsx` was never renamed.
+> - **Phase 3** (the document layer) — **done, but architecturally different from what's
+>   specified below.** What's actually on disk: `excalidraw-app/data/notes.ts` uses plain
+>   `localStorage` (not IndexedDB via `idb-keyval`, even though `idb-keyval` is installed
+>   and available), and `excalidraw-app/syntropy/NotesPanel.tsx` is a side panel sharing the
+>   rail slot with the method library (mutually exclusive with it) — not the full-screen
+>   `DocumentLibrary.tsx` entry-point screen with `?note={id}` routing this plan specifies.
+>   The shipped version works: tested end-to-end this session (create/rename/delete notes,
+>   switching notes correctly isolates canvas state, migration of pre-existing single-canvas
+>   content into a first note). It just isn't what Task 3.1–3.4 below describe.
+>
+> **What this means for picking this plan back up:** Tasks 1.1–1.8 and 2.1 below are
+> already done — skip them, they're kept here only as a record of what shipped. Tasks
+> 3.1–3.4 and all of Phase 0 are **not** done as specified; before touching them, decide
+> whether to (a) leave the shipped localStorage/side-panel version alone and treat this
+> plan as superseded by what actually got built, or (b) do the Phase 0 reorg and rebuild
+> Phase 3 to match this plan's IndexedDB/full-screen-library design. Not decided as of this
+> note — pick one before resuming this file's checkboxes.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Turn `canvas/` from "an Excalidraw fork with a math-lab layer bolted on" into the actual foundation of the user's own note-taking app — strip Excalidraw's own product surface, cut dependency weight the note app doesn't need, and build the one piece of architecture currently missing entirely: a document layer, so "a note" becomes a real, separately-saved, nameable thing instead of the single shared canvas the whole app currently is.

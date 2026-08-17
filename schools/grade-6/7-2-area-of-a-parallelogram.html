@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Area of a Parallelogram — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: a parallelogram shears flat into a rectangle of the same base
+     and height — its area never changes. Base for 7.3/7.4's "combine into a known
+     shape" grammar. ---- */
+  .chart{ padding:26px 20px 30px; display:flex; flex-direction:column; align-items:center; gap:16px; }
+  svg#paraSvg{ direction:ltr; }
+  .para-shape{ fill:rgba(92,147,159,.24); stroke:var(--electric-teal); stroke-width:2.5; }
+  .height-line{ stroke:var(--infrared); stroke-width:2; stroke-dasharray:4 3; }
+  .dim-label{ font-family:var(--mono); font-size:12px; fill:var(--neural-fog); }
+  .dim-label.height{ fill:var(--infrared); }
+
+  .action-btn{ font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--electric-teal); background:none; border:1px solid rgba(92,147,159,.45); border-radius:100px; padding:8px 16px; cursor:pointer; }
+  .action-btn:hover{ background:rgba(92,147,159,.14); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 7 · LESSON 2</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Area of a Parallelogram</h1>
+    <span class="title-secondary ar-display" id="titleAr">مساحة متوازي الأضلاع</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I find the area of a parallelogram.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">area = base × height, however it's slanted</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabel">shear</label>
+      <input type="range" id="shearSlider" min="0" max="80" step="1" value="45" />
+      <span class="control-val" id="shearReadout"></span>
+      <button class="action-btn" id="straightenBtn" data-role="ui" data-i18n="straightenBtn">straighten it</button>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <svg id="paraSvg" width="320" height="220" viewBox="0 0 320 220" data-el="paraSvg"></svg>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Area = base × height, where height is the perpendicular distance between the base and its opposite side (not the slanted side length) — applied to a vegetable-cutting board shaped as a parallelogram.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="7-1-quadrilaterals.html">— <b data-role="body" id="navPrevText">7.1 · Quadrilaterals</b></a>
+    <a class="nav-pill next" href="7-3-area-of-a-triangle.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">7.3 · Area of a Triangle</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const BASE = 160, HEIGHT = 100;
+  const originX = 60, baseY = 190;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 7 · LESSON 2",
+      objectiveLabel: "Objective —",
+      objectiveText: "I find the area of a parallelogram.",
+      eqSub: "area = base × height, however it's slanted",
+      explainBtn: "Explain this",
+      controlLabel: "shear",
+      straightenBtn: "straighten it",
+      teachLabel: "What this teaches:",
+      teachBody: "Area = base × height, where height is the perpendicular distance between the base and its opposite side (not the slanted side length) — applied to a vegetable-cutting board shaped as a parallelogram.",
+      navPrev: "7.1 · Quadrilaterals",
+      navNext: "7.3 · Area of a Triangle",
+      navNextLabel: "next",
+      tour: [
+        { ids: ["paraSvg"], label: "Base and height", body: "The base is the bottom side; the height (dashed) is the perpendicular distance up to the opposite side — not the slanted edge." },
+        { ids: ["straightenBtn"], label: "Shear it flat", body: "Press straighten — the shape shears into a rectangle with the exact same base and height." },
+        { ids: ["eqLine"], label: "Same area, the whole time", body: "Shearing doesn't add or remove any area — it just slides a triangular sliver from one side to the other, so base × height always gives the right answer." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ٧ · الدرس ٢",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أجد مساحة متوازي الأضلاع.",
+      eqSub: "المساحة = القاعدة × الارتفاع، مهما كان الميل",
+      explainBtn: "اشرح هذا",
+      controlLabel: "الميل",
+      straightenBtn: "قوّمه",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "المساحة = القاعدة × الارتفاع، حيث الارتفاع هو المسافة العمودية بين القاعدة والضلع المقابل لها (لا طول الضلع المائل) — يُطبَّق ذلك على لوح تقطيع خضار على هيئة متوازي أضلاع.",
+      navPrev: "٧.١ · الأشكال الرباعية",
+      navNext: "٧.٣ · مساحة المثلث",
+      navNextLabel: "التالي",
+      tour: [
+        { ids: ["paraSvg"], label: "القاعدة والارتفاع", body: "القاعدة هي الضلع السفلي؛ والارتفاع (المتقطّع) هو المسافة العمودية حتى الضلع المقابل — لا الضلع المائل." },
+        { ids: ["straightenBtn"], label: "قوّمه بالإزاحة", body: "اضغط «قوّمه» — يتحوّل الشكل بالإزاحة إلى مستطيل بالقاعدة والارتفاع نفسيهما تمامًا." },
+        { ids: ["eqLine"], label: "المساحة نفسها، طوال الوقت", body: "الإزاحة لا تضيف أو تُزيل أي مساحة — إنّها فقط تنقل شريحة مثلثية من جهة إلى أخرى، لذا فإن القاعدة × الارتفاع يعطي الناتج الصحيح دائمًا." }
+      ]
+    }
+  };
+
+  const paraSvg = document.getElementById("paraSvg");
+  const shearSlider = document.getElementById("shearSlider");
+  const shearReadout = document.getElementById("shearReadout");
+  const straightenBtn = document.getElementById("straightenBtn");
+  const eqLine = document.getElementById("eqLine");
+
+  const state = { shear: 45 };
+
+  function render() {
+    const t = T[i18n.lang];
+    paraSvg.innerHTML = "";
+    const shear = state.shear;
+    const bl = { x: originX, y: baseY };
+    const br = { x: originX + BASE, y: baseY };
+    const tr = { x: originX + BASE + shear, y: baseY - HEIGHT };
+    const tl = { x: originX + shear, y: baseY - HEIGHT };
+
+    const poly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+    poly.setAttribute("points", [bl, br, tr, tl].map(p => p.x + "," + p.y).join(" "));
+    poly.setAttribute("class", "para-shape");
+    paraSvg.appendChild(poly);
+
+    const hLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    hLine.setAttribute("x1", tl.x); hLine.setAttribute("y1", tl.y);
+    hLine.setAttribute("x2", tl.x); hLine.setAttribute("y2", bl.y);
+    hLine.setAttribute("class", "height-line");
+    paraSvg.appendChild(hLine);
+
+    const baseLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    baseLabel.setAttribute("x", (bl.x + br.x) / 2); baseLabel.setAttribute("y", baseY + 20);
+    baseLabel.setAttribute("class", "dim-label"); baseLabel.setAttribute("text-anchor", "middle");
+    baseLabel.textContent = "b = " + digits(BASE / 10, i18n.lang);
+    paraSvg.appendChild(baseLabel);
+
+    const heightLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    heightLabel.setAttribute("x", tl.x - 22); heightLabel.setAttribute("y", (tl.y + bl.y) / 2);
+    heightLabel.setAttribute("class", "dim-label height"); heightLabel.setAttribute("text-anchor", "middle");
+    heightLabel.textContent = "h = " + digits(HEIGHT / 10, i18n.lang);
+    paraSvg.appendChild(heightLabel);
+
+    shearReadout.textContent = shear;
+
+    const b = BASE / 10, h = HEIGHT / 10;
+    const eqSource = `b \\times h = ${b} \\times ${h} = \\color{#ed6d40}{${b * h}}`;
+    renderEquation(eqLine, eqSource);
+  }
+
+  shearSlider.addEventListener("input", () => { state.shear = parseInt(shearSlider.value, 10); shearSlider.value = state.shear; render(); });
+  straightenBtn.addEventListener("click", () => {
+    gsap.to(state, { shear: state.shear > 5 ? 0 : 45, duration: .7, ease: "power2.inOut", onUpdate: () => { shearSlider.value = Math.round(state.shear); render(); } });
+  });
+
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

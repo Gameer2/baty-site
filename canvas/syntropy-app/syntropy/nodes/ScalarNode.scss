@@ -1,0 +1,129 @@
+.ScalarNode__scrub {
+  position: relative;
+  box-sizing: border-box;
+  border-radius: 8px;
+  background: var(--color-surface-low);
+  border: 1px solid var(--input-border-color);
+  overflow: hidden;
+  flex-shrink: 0;
+  // No pointer-events here: the chip background/label should pass clicks
+  // through to the canvas so the node can be selected/dragged. Only the
+  // `.ScalarNode__scrubValue` input below re-enables pointer-events for
+  // itself, so clicking the value field edits while clicking the rest selects.
+}
+
+.ScalarNode__scrubRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  padding: 0 10px;
+  gap: 8px;
+}
+
+.ScalarNode__scrubLabel {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-gray-60);
+  font-size: 9.5px;
+  flex-shrink: 0;
+}
+
+.ScalarNode__scrubValue {
+  all: unset;
+  box-sizing: border-box;
+  width: 100%;
+  text-align: right;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--color-on-surface);
+  font-weight: 600;
+  pointer-events: auto;
+  cursor: text;
+}
+
+// The field being typed into right now — a glow ring makes the active target unambiguous when a
+// node has several scrub rows stacked close together (borrowed from uiverse's neon-outline input
+// pattern, toned down to match the lab's flat-card, no-drop-shadow rule elsewhere).
+.ScalarNode__scrub:focus-within {
+  border-color: var(--node-accent);
+  box-shadow: 0 0 0 1px var(--node-accent),
+    0 0 10px 1px color-mix(in srgb, var(--node-accent) 45%, transparent);
+}
+
+// A wired input: the value is a real upstream output, not user-editable here — dim the field,
+// disable the text cursor, and let the ↦ mark in the label carry the "this comes from a wire"
+// signal so it reads at a glance, matching n8n's own visual convention for a connected input.
+.ScalarNode__scrub--wired {
+  border-color: var(--node-accent);
+  background: color-mix(
+    in srgb,
+    var(--node-accent) 10%,
+    var(--color-surface-low)
+  );
+}
+
+.ScalarNode__scrub--wired .ScalarNode__scrubValue {
+  color: var(--node-accent);
+  cursor: default;
+}
+
+.ScalarNode__wireMark {
+  color: var(--node-accent);
+  margin-right: 3px;
+}
+
+.ScalarNode__plot {
+  border-radius: 8px;
+  border: 1px solid var(--input-border-color);
+  background: var(--color-surface-low);
+  padding: 6px;
+}
+
+.ScalarNode__output {
+  margin-top: 2px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--input-border-color);
+  display: grid;
+  gap: 1px;
+  background: var(--color-surface-low);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.ScalarNode__outRow {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--island-bg-color);
+  padding: 7px 10px;
+  font-family: var(--ui-font);
+  font-size: 11px;
+}
+
+.ScalarNode__outKey {
+  color: var(--color-gray-60);
+}
+
+.ScalarNode__outVal {
+  color: var(--node-accent);
+}
+
+// ---------------------------------------------------------------------------
+// Mobile / tablet (≤ 900px): the value inputs are editable text fields, so
+// 16px stops iOS Safari from auto-zooming the whole canvas on focus. The card
+// itself is left uncapped — its width is set by NodeOverlay to match the
+// backing Excalidraw element's screen rect, and forcing a max-width would
+// detach the card from its element. On a phone the user zooms the canvas out
+// to see big nodes, the same way they already would for any Excalidraw element.
+// 900px covers real iPad portrait widths (744-834px CSS px); at 768px, tapping
+// a node's value field on an actual iPad still hit the un-scaled 15px default
+// and triggered Safari's auto-zoom.
+// ---------------------------------------------------------------------------
+@media (max-width: 900px) {
+  .ScalarNode__scrubValue {
+    font-size: 16px;
+  }
+}

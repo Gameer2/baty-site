@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Prism and Pyramid — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:16px 16px 30px; display:flex; flex-direction:column; align-items:center; gap:16px; }
+  svg#solidSvg{ direction:ltr; }
+  .face-poly{ fill:rgba(92,147,159,.24); stroke:var(--electric-teal); stroke-width:1.5; transition:fill .2s ease; cursor:pointer; }
+  .face-poly.counted{ fill:rgba(107,181,124,.4); stroke:var(--validation-green); }
+  .face-poly.inert{ cursor:default; }
+  .edge-hit{ stroke:transparent; stroke-width:10; cursor:pointer; }
+  .edge-line{ stroke:rgba(255,255,255,.4); stroke-width:2; pointer-events:none; }
+  .edge-line.counted{ stroke:var(--infrared); stroke-width:3; }
+  .vertex-dot{ fill:rgba(255,255,255,.5); stroke:rgba(0,0,0,.3); stroke-width:1; cursor:pointer; }
+  .vertex-dot.counted{ fill:var(--electric-teal); }
+
+  .type-toggle, .mode-toggle{ display:flex; gap:6px; flex-wrap:wrap; justify-content:center; }
+  .mode-btn{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--pulse-ash); background:var(--core-black); border:1px solid rgba(255,255,255,.14); border-radius:100px; padding:6px 14px; cursor:pointer; }
+  .mode-btn.active{ color:var(--off-white); border-color:var(--electric-teal); background:rgba(92,147,159,.12); }
+
+  .tally-row{ display:flex; gap:14px; }
+  .tally-card{ display:flex; flex-direction:column; align-items:center; gap:2px; padding:8px 16px; border-radius:10px; background:var(--urban-smoke); border:1px solid rgba(255,255,255,.1); }
+  .tally-card .cap{ font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash); }
+  .tally-card .val{ font-family:var(--mono); font-size:16px; font-weight:700; color:var(--off-white); direction:ltr; }
+  .hint-text{ font-family:var(--mono); font-size:11.5px; color:var(--pulse-ash); text-align:center; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 8 · LESSON 7</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Prism and Pyramid</h1>
+    <span class="title-secondary ar-display" id="titleAr">المنشور والهرم</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I identify the faces, edges, and vertices of a prism and a pyramid by folding and unfolding their nets.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">unfold fully to count F, E, and V</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="type-toggle" id="typeToggle" data-el="typeToggle">
+        <button class="mode-btn active" data-type="prism" data-i18n="typePrism">rectangular prism</button>
+        <button class="mode-btn" data-type="pyramid" data-i18n="typePyramid">square pyramid</button>
+      </div>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabel">fold ↔ unfold</label>
+      <input type="range" id="foldSlider" min="0" max="100" step="1" value="0" />
+    </div>
+
+    <div class="scene chart" id="scene">
+      <svg id="solidSvg" width="360" height="280" viewBox="0 0 360 280" data-el="solidSvg"></svg>
+      <div class="hint-text" id="hintText" data-role="ui"></div>
+      <div class="tally-row" id="tallyRow" data-el="tallyRow">
+        <div class="tally-card"><span class="cap" id="capF"></span><span class="val" id="valF"></span></div>
+        <div class="tally-card"><span class="cap" id="capE"></span><span class="val" id="valE"></span></div>
+        <div class="tally-card"><span class="cap" id="capV"></span><span class="val" id="valV"></span></div>
+      </div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">A 3D solid's flat net is made of the exact same faces, just unfolded along their shared edges — counting faces, edges, and vertices is far easier on the flattened net than on the folded solid, and refolding confirms nothing was added or lost.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="8-6-translation.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">8.6 · Translation</b></a>
+    <a class="nav-pill next" href="../grade-5/9-1-units-of-mass.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">9.1 · Units of Mass</b></a>
+  </div>
+</div>
+
+<script>
+  const { initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 8 · LESSON 7",
+      objectiveLabel: "Objective —",
+      objectiveText: "I identify the faces, edges, and vertices of a prism and a pyramid by folding and unfolding their nets.",
+      eqSub: "unfold fully to count F, E, and V",
+      explainBtn: "Explain this",
+      typePrism: "rectangular prism", typePyramid: "square pyramid",
+      controlLabel: "fold ↔ unfold",
+      capF: "faces", capE: "edges", capV: "vertices",
+      hintUnfold: "slide fully right, then click every face, edge, and vertex",
+      hintFolded: "slide right to unfold the net",
+      navPrevLabel: "—", navPrevText: "8.6 · Translation",
+      navNextLabel: "next", navNext: "9.1 · Units of Mass",
+      teachLabel: "What this teaches:",
+      teachBody: "A 3D solid's flat net is made of the exact same faces, just unfolded along their shared edges — counting faces, edges, and vertices is far easier on the flattened net than on the folded solid, and refolding confirms nothing was added or lost.",
+      tour: [
+        { ids: ["solidSvg"], label: "The solid", body: "This is the solid in its folded, 3D form — the shape you'd actually hold." },
+        { ids: ["foldSlider"], label: "Unfold it", body: "Drag the slider — every face swings open along its shared edge until the whole solid lies flat as a net." },
+        { elKey: "tallyRow", label: "Count by clicking", body: "With the net fully open, click every face, every edge, and every vertex — the tallies confirm the solid's F, E, and V." },
+        { ids: ["foldSlider"], label: "Refold", body: "Slide back — the same net folds right back into the same solid, nothing added or removed." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٨ · الدرس ٧",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أُحدِّد أوجه ورؤوس وأحرف المنشور والهرم بطيّ وفرد نموذجيهما المسطّحين.",
+      eqSub: "افرد كاملًا لعدّ الأوجه والأحرف والرؤوس",
+      explainBtn: "اشرح هذا",
+      typePrism: "منشور مستطيل", typePyramid: "هرم رباعي",
+      controlLabel: "طيّ ↔ فرد",
+      capF: "الأوجه", capE: "الأحرف", capV: "الرؤوس",
+      hintUnfold: "اسحب لليمين كاملًا، ثم انقر كل وجه وحرف ورأس",
+      hintFolded: "اسحب لليمين لفرد النموذج المسطّح",
+      navPrevLabel: "—", navPrevText: "٨.٦ · الانسحاب",
+      navNextLabel: "التالي", navNext: "٩.١ · وحدات الكتلة",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "يتكوّن النموذج المسطّح للمجسّم من الأوجه نفسها تمامًا، مفرودة فقط على طول أحرفها المشتركة — عدّ الأوجه والأحرف والرؤوس أسهل بكثير على النموذج المسطّح منه على المجسّم المطويّ، وإعادة الطيّ تؤكّد أنّه لم يُضَف أو يُفقد شيء.",
+      tour: [
+        { ids: ["solidSvg"], label: "المجسّم", body: "هذا هو المجسّم بشكله المطويّ ثلاثي الأبعاد — الشكل الذي قد تُمسكه فعليًا." },
+        { ids: ["foldSlider"], label: "افرده", body: "اسحب شريط التمرير — ينفتح كل وجه على طول حرفه المشترك حتى يصبح المجسّم كاملًا مسطّحًا كنموذج." },
+        { elKey: "tallyRow", label: "عُدّ بالنقر", body: "مع فرد النموذج كاملًا، انقر كل وجه وكل حرف وكل رأس — تؤكّد الحصيلة عدد الأوجه والأحرف والرؤوس." },
+        { ids: ["foldSlider"], label: "أعد الطيّ", body: "اسحب للخلف — يُطوى النموذج نفسه ليعود إلى المجسّم نفسه، دون إضافة أو فقدان شيء." }
+      ]
+    }
+  };
+
+  const typeToggle = document.getElementById("typeToggle");
+  const foldSlider = document.getElementById("foldSlider");
+  const solidSvg = document.getElementById("solidSvg");
+  const hintText = document.getElementById("hintText");
+  const eqLine = document.getElementById("eqLine");
+  const capF = document.getElementById("capF"), valF = document.getElementById("valF");
+  const capE = document.getElementById("capE"), valE = document.getElementById("valE");
+  const capV = document.getElementById("capV"), valV = document.getElementById("valV");
+
+  let type = "prism";
+  let counted = { faces: new Set(), edges: new Set(), verts: new Set() };
+
+  // ---- geometry: oblique projection helper ----
+  const ORIGIN_X = 100, ORIGIN_Y = 190;
+  const K = 0.55, ANG = Math.PI / 6;
+  const DVX = -Math.cos(ANG) * K, DVY = -Math.sin(ANG) * K;
+  function P(x, y, z) { return { x: ORIGIN_X + x + z * DVX, y: ORIGIN_Y - y + z * DVY }; }
+
+  function buildPrism() {
+    const w = 70, h = 55, d = 45;
+    const FBL = P(0, 0, 0), FBR = P(w, 0, 0), FTR = P(w, h, 0), FTL = P(0, h, 0);
+    const BBL = P(0, 0, d), BBR = P(w, 0, d), BTR = P(w, h, d), BTL = P(0, h, d);
+
+    const x0 = 150, y0 = 90;
+    const net = (x, y) => ({ x: x0 + x, y: y0 + y });
+    const nFront = [net(0, 0), net(w, 0), net(w, h), net(0, h)];
+    const nBack = [net(w + d, 0), net(w + d + w, 0), net(w + d + w, h), net(w + d, h)];
+    const nLeft = [net(-d, 0), net(0, 0), net(0, h), net(-d, h)];
+    const nRight = [net(w, 0), net(w + d, 0), net(w + d, h), net(w, h)];
+    const nTop = [net(0, -d), net(w, -d), net(w, 0), net(0, 0)];
+    const nBottom = [net(0, h), net(w, h), net(w, h + d), net(0, h + d)];
+
+    const faces = [
+      { id: "front", folded: [FTL, FTR, FBR, FBL], net: nFront },
+      { id: "back", folded: [BTL, BTR, BBR, BBL], net: nBack },
+      { id: "left", folded: [BTL, FTL, FBL, BBL], net: nLeft },
+      { id: "right", folded: [FTR, BTR, BBR, FBR], net: nRight },
+      { id: "top", folded: [BTL, BTR, FTR, FTL], net: nTop },
+      { id: "bottom", folded: [FBL, FBR, BBR, BBL], net: nBottom }
+    ];
+    return { faces, counts: { F: 6, E: 12, V: 8 } };
+  }
+
+  function buildPyramid() {
+    const w = 90, d = 90, H = 75;
+    const B00 = P(0, 0, 0), B10 = P(w, 0, 0), B11 = P(w, 0, d), B01 = P(0, 0, d);
+    const Apex = P(w / 2, H, d / 2);
+
+    const x0 = 150, y0 = 70;
+    const slant = 55;
+    const net = (x, y) => ({ x: x0 + x, y: y0 + y });
+    const nBase = [net(0, 0), net(w, 0), net(w, d), net(0, d)];
+    const nFrontTri = [net(0, d), net(w, d), net(w / 2, d + slant)];
+    const nBackTri = [net(0, 0), net(w, 0), net(w / 2, -slant)];
+    const nLeftTri = [net(0, 0), net(0, d), net(-slant, d / 2)];
+    const nRightTri = [net(w, 0), net(w, d), net(w + slant, d / 2)];
+
+    const faces = [
+      { id: "base", folded: [B01, B11, B10, B00], net: nBase },
+      { id: "front", folded: [B00, B10, Apex], net: nFrontTri },
+      { id: "back", folded: [B01, B11, Apex], net: nBackTri },
+      { id: "left", folded: [B01, B00, Apex], net: nLeftTri },
+      { id: "right", folded: [B11, B10, Apex], net: nRightTri }
+    ];
+    return { faces, counts: { F: 5, E: 8, V: 5 } };
+  }
+
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function lerpPt(p, q, t) { return { x: lerp(p.x, q.x, t), y: lerp(p.y, q.y, t) }; }
+
+  function edgeKey(p) { return Math.round(p.x) + "," + Math.round(p.y); }
+
+  function render() {
+    const t = T[i18n.lang];
+    const model = type === "prism" ? buildPrism() : buildPyramid();
+    const tt = parseInt(foldSlider.value, 10) / 100;
+    const isNet = tt > 0.94;
+
+    solidSvg.innerHTML = "";
+
+    // collect unique edges (net-space, only meaningful once unfolded) and vertices for tallying
+    const netEdgeMap = new Map();
+    const netVertMap = new Map();
+
+    model.faces.forEach(face => {
+      const pts = face.folded.map((fp, i) => lerpPt(fp, face.net[i], tt));
+      const poly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+      poly.setAttribute("points", pts.map(p => `${p.x},${p.y}`).join(" "));
+      poly.setAttribute("class", "face-poly" + (counted.faces.has(face.id) ? " counted" : "") + (isNet ? "" : " inert"));
+      if (isNet) {
+        poly.addEventListener("click", () => { counted.faces.add(face.id); render(); });
+      }
+      solidSvg.appendChild(poly);
+
+      if (isNet) {
+        face.net.forEach((np, i) => {
+          const nxt = face.net[(i + 1) % face.net.length];
+          const key = [edgeKey(np), edgeKey(nxt)].sort().join("|");
+          if (!netEdgeMap.has(key)) netEdgeMap.set(key, [np, nxt]);
+          const vkey = edgeKey(np);
+          if (!netVertMap.has(vkey)) netVertMap.set(vkey, np);
+        });
+      }
+    });
+
+    if (isNet) {
+      netEdgeMap.forEach((pts, key) => {
+        const hit = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        hit.setAttribute("x1", pts[0].x); hit.setAttribute("y1", pts[0].y);
+        hit.setAttribute("x2", pts[1].x); hit.setAttribute("y2", pts[1].y);
+        hit.setAttribute("class", "edge-hit");
+        hit.addEventListener("click", () => { counted.edges.add(key); render(); });
+        solidSvg.appendChild(hit);
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", pts[0].x); line.setAttribute("y1", pts[0].y);
+        line.setAttribute("x2", pts[1].x); line.setAttribute("y2", pts[1].y);
+        line.setAttribute("class", "edge-line" + (counted.edges.has(key) ? " counted" : ""));
+        solidSvg.appendChild(line);
+      });
+      netVertMap.forEach((p, key) => {
+        const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        dot.setAttribute("cx", p.x); dot.setAttribute("cy", p.y);
+        dot.setAttribute("r", 5);
+        dot.setAttribute("class", "vertex-dot" + (counted.verts.has(key) ? " counted" : ""));
+        dot.addEventListener("click", () => { counted.verts.add(key); render(); });
+        solidSvg.appendChild(dot);
+      });
+    }
+
+    hintText.textContent = isNet ? t.hintUnfold : t.hintFolded;
+
+    capF.textContent = t.capF; capE.textContent = t.capE; capV.textContent = t.capV;
+    valF.textContent = `${counted.faces.size}/${model.counts.F}`;
+    valE.textContent = `${counted.edges.size}/${model.counts.E}`;
+    valV.textContent = `${counted.verts.size}/${model.counts.V}`;
+
+    renderEquation(eqLine, `F=${model.counts.F},\\; E=${model.counts.E},\\; V=${model.counts.V} \\;\\Rightarrow\\; F+V = \\color{#ed6d40}{${model.counts.F + model.counts.V}} = E+2`);
+  }
+
+  foldSlider.addEventListener("input", render);
+  typeToggle.addEventListener("click", (e) => {
+    const btn = e.target.closest(".mode-btn");
+    if (!btn) return;
+    type = btn.dataset.type;
+    counted = { faces: new Set(), edges: new Set(), verts: new Set() };
+    foldSlider.value = 0;
+    typeToggle.querySelectorAll(".mode-btn").forEach(b => b.classList.toggle("active", b === btn));
+    render();
+  });
+
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

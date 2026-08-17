@@ -111,6 +111,56 @@ export const FONT_METADATA: Record<number, FontMetadata> = {
     },
     private: true,
   },
+  // Metrics read directly from each downloaded woff2's head/hhea tables (fontkit), same method
+  // the file-level comment above prescribes (fontdrop.info reads the same tables by hand).
+  [FONT_FAMILY.Caveat]: {
+    metrics: {
+      unitsPerEm: 1000,
+      ascender: 960,
+      descender: -300,
+      lineHeight: 1.25,
+    },
+  },
+  [FONT_FAMILY.Kalam]: {
+    metrics: {
+      unitsPerEm: 1000,
+      ascender: 1063,
+      descender: -531,
+      lineHeight: 1.6,
+    },
+  },
+  [FONT_FAMILY["Shadows Into Light"]]: {
+    metrics: {
+      unitsPerEm: 1024,
+      ascender: 1203,
+      descender: -442,
+      lineHeight: 1.6,
+    },
+  },
+  [FONT_FAMILY["Indie Flower"]]: {
+    metrics: {
+      unitsPerEm: 1024,
+      ascender: 994,
+      descender: -500,
+      lineHeight: 1.45,
+    },
+  },
+  [FONT_FAMILY["Patrick Hand"]]: {
+    metrics: {
+      unitsPerEm: 1000,
+      ascender: 1042,
+      descender: -312,
+      lineHeight: 1.35,
+    },
+  },
+  [FONT_FAMILY["Architects Daughter"]]: {
+    metrics: {
+      unitsPerEm: 1024,
+      ascender: 1010,
+      descender: -413,
+      lineHeight: 1.4,
+    },
+  },
   [FONT_FAMILY_FALLBACKS.Xiaolai]: {
     metrics: {
       unitsPerEm: 1000,

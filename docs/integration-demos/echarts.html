@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ECharts — integration demo</title>
+<style>
+@font-face{font-family:'Roc Grotesk';src:url('../../math-lab/assets/fonts/roc-grotesk-regular.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'Roc Grotesk';src:url('../../math-lab/assets/fonts/roc-grotesk-medium.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:'Azeret Mono';src:url('../../math-lab/assets/fonts/azeret-mono-regular.otf') format('opentype');font-weight:400;font-display:swap}
+@font-face{font-family:'Fraunces';src:url('../../math-lab/assets/fonts/fraunces-variable.woff2') format('woff2');font-weight:300 600;font-display:swap}
+</style>
+<script src="vendor/echarts.min.js"></script>
+<style>
+:root{--core-black:#090909;--rich-carbon:#111;--urban-smoke:#1b1b1b;--pulse-ash:#7d858c;--off-white:#e7e7e7;--neural-fog:#dadada;--electric-teal:#5c939f;--infrared:#ed6d40;--validation-green:#59a993;--validation-red:#cb3500;--font-display:"Roc Grotesk","Helvetica Neue",Arial,sans-serif;--font-mono:"Azeret Mono",ui-monospace,monospace;--font-serif:"Fraunces",Georgia,serif;--radius-sm:4px;--radius-md:8px;--radius-lg:20px;--container-w:1280px}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{background:var(--core-black);color:var(--off-white);font-family:var(--font-display);line-height:1.55}
+.container{max-width:var(--container-w);margin:0 auto;padding:0 24px}
+header.top{position:fixed;top:20px;left:0;right:0;z-index:50}
+.top-inner{max-width:var(--container-w);margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:12px;font-family:var(--font-mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase}
+.brand{display:inline-flex;align-items:center;gap:8px;color:var(--off-white);text-decoration:none}.brand .dot{width:8px;height:8px;border-radius:50%;background:var(--infrared)}
+.top-inner a.lk{color:var(--pulse-ash);text-decoration:none;margin-left:auto}.top-inner a.lk:hover{color:var(--electric-teal)}
+.hero{padding:120px 0 20px}
+.eyebrow{font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--electric-teal);display:inline-flex;align-items:center;gap:8px;margin-bottom:16px}
+.eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.h1{font-family:var(--font-serif);font-weight:350;font-size:clamp(38px,5.6vw,72px);line-height:.98;letter-spacing:-.02em;margin:0 0 14px}
+.p1{font-size:17px;color:var(--neural-fog);max-width:640px;margin:0}
+.section{padding:24px 0 80px}
+.card{background:var(--rich-carbon);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-lg);padding:24px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.tab{font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--neural-fog);background:var(--urban-smoke);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius-sm);padding:8px 14px;cursor:pointer;transition:.3s}
+.tab:hover{color:var(--off-white);border-color:rgba(255,255,255,.3)}
+.tab.active{color:var(--core-black);background:var(--electric-teal);border-color:var(--electric-teal)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-md);overflow:hidden;margin-bottom:18px}
+.kpi{background:var(--rich-carbon);padding:16px}
+.kpi .k{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--pulse-ash)}
+.kpi .v{font-family:var(--font-mono);font-size:24px;color:var(--off-white);margin-top:4px}
+.kpi .d{font-family:var(--font-mono);font-size:11px;margin-top:2px}
+.kpi .d.up{color:var(--validation-green)}.kpi .d.down{color:var(--validation-red)}
+#chart{width:100%;height:440px}
+.callout{margin-top:24px;font-size:14px;color:var(--neural-fog);line-height:1.6}.callout b{color:var(--off-white)}
+code{font-family:var(--font-mono);font-size:12px;color:var(--electric-teal)}
+footer{padding:30px 0 60px;color:var(--pulse-ash);font-size:13px;font-family:var(--font-mono)}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-inner"><a class="brand" href="./index.html"><span class="dot"></span>BACK · DEMOS</a><a class="lk" href="./echarts.html">echarts</a></div></header>
+
+<section class="hero">
+  <div class="container">
+    <span class="eyebrow">Charts</span>
+    <h1 class="h1">One theme, every chart.</h1>
+    <p class="p1">ECharts with a single dark theme built from your tokens — switch chart types with the tabs and watch every axis, label, tooltip, and series color stay consistent. The same "one accent variable" idea you use for the site, applied to charts.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="card">
+      <div class="kpis">
+        <div class="kpi"><div class="k">Mean</div><div class="v">24.6</div><div class="d up">↑ 1.2</div></div>
+        <div class="kpi"><div class="k">σ</div><div class="v">4.8</div><div class="d down">↓ 0.3</div></div>
+        <div class="kpi"><div class="k">n</div><div class="v">512</div><div class="d" style="color:var(--pulse-ash)">—</div></div>
+        <div class="kpi" style="background:var(--infrared)"><div class="k" style="color:rgba(9,9,9,.7)">Skew</div><div class="v" style="color:var(--core-black)">+0.21</div><div class="d" style="color:rgba(9,9,9,.7)">right-tailed</div></div>
+      </div>
+      <div class="tabs" id="tabs">
+        <div class="tab active" data-t="line">Line</div>
+        <div class="tab" data-t="hist">Histogram</div>
+        <div class="tab" data-t="scatter">Scatter</div>
+        <div class="tab" data-t="box">Boxplot</div>
+        <div class="tab" data-t="radar">Radar</div>
+      </div>
+      <div id="chart"></div>
+      <div class="callout">
+        <b>What this shows.</b> A real themed dashboard: KPI strip (with the one accent tile, per your stat-tile pattern), tabbed chart types, all colors from <code>--electric-teal</code>/<code>--infrared</code>/etc. ECharts' theming is one registered object, so every chart in the statistics engine would read from it automatically — the same trick your site already uses with <code>var(--electric-teal)</code>. Plotly stays fine; this is the alternative if you want richer interaction (data-zoom, brush, linked charts) out of the box.
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer><div class="container">ECharts · themable charting</div></footer>
+
+<script>
+const TEAL='#5c939f',INFRARED='#ed6d40',GREEN='#59a993',AMBER='#d9a24e',VIOLET='#9b8bd9',ASH='#7d858c',FOG='#dadada',BLACK='#090909',CARBON='#111';
+echarts.registerTheme('mathlab',{background:'transparent',
+  textStyle:{fontFamily:'Azeret Mono, monospace',color:FOG},
+  title:{textStyle:{color:FOG,fontFamily:'Fraunces, serif'}},
+  legend:{textStyle:{color:FOG}},
+  tooltip:{backgroundColor:CARBON,borderColor:'rgba(255,255,255,.15)',textStyle:{color:FOG}},
+  color:[TEAL,INFRARED,GREEN,AMBER,VIOLET],
+  categoryAxis:{axisLine:{lineStyle:{color:'rgba(255,255,255,.18)'}},axisLabel:{color:ASH},splitLine:{lineStyle:{color:'rgba(255,255,255,.05)'}}},
+  valueAxis:{axisLine:{lineStyle:{color:'rgba(255,255,255,.18)'}},axisLabel:{color:ASH},splitLine:{lineStyle:{color:'rgba(255,255,255,.05)'}}},
+});
+const chart=echarts.init(document.getElementById('chart'),'mathlab',{renderer:'canvas'});
+
+// sample data
+const N=80,xs=Array.from({length:N},(_,i)=>i);
+const lineA=xs.map(x=>24+3*Math.sin(x/8)+Math.random()*2);
+const lineB=xs.map(x=>20+1.5*Math.cos(x/6)+Math.random()*2);
+const histBins=Array.from({length:14},(_,i)=>12+i*2);
+const histVals=[3,7,14,22,34,48,55,49,38,26,15,8,4,2];
+const scatter=Array.from({length:120},()=>{const x=Math.random()*100;return [x, 0.5*x+Math.random()*30-15];});
+const box=[{name:'A',vals:[18,22,24,25,27,30,34]},{name:'B',vals:[20,24,26,28,29,32,35]},{name:'C',vals:[15,19,23,24,26,28,30]}];
+const radar=[
+  {value:[88,72,65,90,78,60],name:'Group A'},
+  {value:[70,85,80,60,72,88],name:'Group B'},
+];
+
+const opts={
+  line:{title:{text:'Two series · sampled',left:10,top:4,textStyle:{fontSize:16}},
+    legend:{data:['model','observed'],right:10,top:6},
+    tooltip:{trigger:'axis'},
+    xAxis:{type:'category',data:xs},yAxis:{type:'value'},
+    series:[{name:'model',type:'line',data:lineA,smooth:true,lineStyle:{width:2},areaStyle:{color:'rgba(92,147,159,.12)'}},
+            {name:'observed',type:'line',data:lineB,smooth:false,symbol:'none',lineStyle:{width:1.5}}]},
+  hist:{title:{text:'Histogram · distribution',left:10,top:4,textStyle:{fontSize:16}},
+    tooltip:{},xAxis:{type:'category',data:histBins.map(String)},yAxis:{type:'value'},
+    series:[{type:'bar',data:histVals,itemStyle:{color:INFRARED},barWidth:'70%'}]},
+  scatter:{title:{text:'Scatter · correlation',left:10,top:4,textStyle:{fontSize:16}},
+    tooltip:{},xAxis:{type:'value',name:'x',min:0,max:100},yAxis:{type:'value',name:'y'},
+    series:[{type:'scatter',data:scatter,symbolSize:7,itemStyle:{color:TEAL,opacity:.7}}]},
+  box:{title:{text:'Boxplot · 3 groups',left:10,top:4,textStyle:{fontSize:16}},
+    tooltip:{},xAxis:{type:'category',data:box.map(b=>b.name)},yAxis:{type:'value'},
+    series:[{type:'boxplot',data:box.map(b=>[Math.min(...b.vals),q1(b.vals),med(b.vals),q3(b.vals),Math.max(...b.vals)]),itemStyle:{color:'rgba(92,147,159,.25)',borderColor:TEAL}}]},
+  radar:{title:{text:'Radar · profiles',left:10,top:4,textStyle:{fontSize:16}},
+    tooltip:{},
+    radar:{indicator:[{name:'Speed',max:100},{name:'Power',max:100},{name:'Range',max:100},{name:'Agility',max:100},{name:'Focus',max:100},{name:'Stamina',max:100}],
+      splitLine:{lineStyle:{color:'rgba(255,255,255,.1)'}},splitArea:{areaStyle:{color:['rgba(255,255,255,.02)','rgba(255,255,255,.04)']}},axisLine:{lineStyle:{color:'rgba(255,255,255,.15)'}},axisName:{color:ASH}},
+    series:[{type:'radar',data:radar,areaStyle:{opacity:.18}}]}
+};
+function q1(a){a=[...a].sort((x,y)=>x-y);return a[Math.floor(a.length*0.25)];}
+function med(a){a=[...a].sort((x,y)=>x-y);return a[Math.floor(a.length*0.5)];}
+function q3(a){a=[...a].sort((x,y)=>x-y);return a[Math.floor(a.length*0.75)];}
+
+function show(t){chart.setOption(opts[t],true);}
+document.getElementById('tabs').addEventListener('click',e=>{
+  const t=e.target.closest('.tab');if(!t)return;
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');show(t.dataset.t);
+});
+show('line');
+window.addEventListener('resize',()=>chart.resize());
+</script>
+</body>
+</html>

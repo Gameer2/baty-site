@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>School Math Engines — 3 Architecture Proposals</title>
+<style>
+  @font-face{font-family:"Roc Grotesk";src:url("../math-lab/assets/fonts/roc-grotesk-regular.woff2") format("woff2"),url("../math-lab/assets/fonts/roc-grotesk-regular.woff") format("woff");font-weight:400;font-display:swap}
+  @font-face{font-family:"Roc Grotesk";src:url("../math-lab/assets/fonts/roc-grotesk-medium.woff2") format("woff2"),url("../math-lab/assets/fonts/roc-grotesk-medium.woff") format("woff");font-weight:500;font-display:swap}
+  @font-face{font-family:"Azeret Mono";src:url("../math-lab/assets/fonts/azeret-mono-regular.otf") format("opentype");font-weight:400 700;font-display:swap}
+  @font-face{font-family:"Fraunces";src:url("../math-lab/assets/fonts/fraunces-variable.woff2") format("woff2");font-weight:300 600;font-display:swap}
+  :root{
+    --core-black:#090909; --rich-carbon:#111111; --urban-smoke:#1b1b1b;
+    --pulse-ash:#7d858c; --off-white:#e7e7e7; --neural-fog:#dadada;
+    --electric-teal:#5c939f; --electric-teal-rgb:92,147,159;
+    --infrared:#ed6d40; --infrared-rgb:237,109,64;
+    --validation-green:#59a993; --accent-violet:#9b8bd9; --accent-amber:#d9a24e; --accent-blue:#4f8fc0;
+    --font-display:"Roc Grotesk","Helvetica Neue",Arial,sans-serif;
+    --font-mono:"Azeret Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --font-serif:"Fraunces",Georgia,"Times New Roman",serif;
+    --radius-sm:4px; --radius-md:8px; --radius-lg:20px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--core-black);color:var(--off-white);font-family:var(--font-display);line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:56px 24px 120px}
+  .eyebrow{font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--electric-teal);display:inline-flex;align-items:center;gap:8px}
+  .eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+  h1{font-family:var(--font-serif);font-weight:350;font-size:clamp(38px,6vw,72px);line-height:1;letter-spacing:-.02em;margin:16px 0 14px;text-wrap:balance}
+  .lede{color:var(--neural-fog);font-size:18px;max-width:66ch;margin:0 0 8px}
+  .lede .mono{font-family:var(--font-mono);font-size:14px;color:var(--pulse-ash)}
+
+  .legend{display:flex;gap:18px;flex-wrap:wrap;margin:28px 0 8px;padding:14px 18px;background:var(--rich-carbon);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-md)}
+  .legend .grp{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:12px;color:var(--pulse-ash);text-transform:uppercase;letter-spacing:.06em}
+  .legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .b46{background:var(--accent-blue)} .b78{background:var(--electric-teal)} .b910{background:var(--infrared)}
+
+  .proposal{margin-top:64px;scroll-margin-top:40px}
+  .prop-head{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;margin-bottom:6px}
+  .prop-num{font-family:var(--font-mono);font-size:13px;color:var(--infrared);letter-spacing:.1em}
+  .prop-title{font-family:var(--font-serif);font-weight:400;font-size:clamp(28px,4vw,42px);line-height:1.05;letter-spacing:-.01em;margin:0}
+  .prop-phil{color:var(--neural-fog);font-size:17px;max-width:70ch;margin:8px 0 22px}
+  .prop-phil em{font-family:var(--font-serif);font-style:italic;color:var(--off-white)}
+
+  .trade{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:22px 0}
+  .trade .col{background:var(--rich-carbon);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-md);padding:16px 18px}
+  .trade h4{font-family:var(--font-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;margin:0 0 10px}
+  .trade .pro h4{color:var(--validation-green)} .trade .con h4{color:var(--infrared)}
+  .trade ul{margin:0;padding-left:18px;color:var(--neural-fog);font-size:14px}
+  .trade li{margin-bottom:5px}
+
+  /* ---- shared engine card ---- */
+  .eng{background:var(--rich-carbon);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-lg);padding:22px;position:relative;overflow:hidden}
+  .eng::before{content:"";position:absolute;top:-30%;left:-12%;width:70%;height:70%;background:radial-gradient(circle,var(--electric-teal) 0%,transparent 72%);opacity:.12;filter:blur(6px);pointer-events:none}
+  .eng-name{font-family:var(--font-serif);font-weight:450;font-size:22px;color:var(--off-white);margin:0 0 4px;position:relative}
+  .eng-tag{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--electric-teal);margin-bottom:14px;display:block;position:relative}
+  .eng-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;position:relative}
+  .eng-list li{font-family:var(--font-mono);font-size:12.5px;color:var(--neural-fog);display:flex;gap:8px;align-items:flex-start}
+  .eng-list li::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--pulse-ash);margin-top:7px;flex:0 0 5px}
+  .chip{display:inline-block;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.04em;padding:3px 8px;border-radius:100px;border:1px solid rgba(255,255,255,.14);color:var(--pulse-ash);white-space:nowrap}
+  .chip.g46{border-color:rgba(79,143,192,.5);color:var(--accent-blue)} .chip.g78{border-color:rgba(92,147,159,.5);color:var(--electric-teal)} .chip.g910{border-color:rgba(237,109,64,.5);color:var(--infrared)}
+
+  /* ===== Proposal A: pillars ===== */
+  .pillars{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+  .pillars .eng{min-height:340px}
+  .pillars .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:12px;position:relative}
+  @media(max-width:1000px){.pillars{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:560px){.pillars{grid-template-columns:1fr}}
+
+  /* ===== Proposal B: staircase ===== */
+  .stair{display:flex;flex-direction:column;gap:14px}
+  .band{background:var(--rich-carbon);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-lg);padding:22px 24px;position:relative;overflow:hidden}
+  .band:nth-child(1){margin-left:0} .band:nth-child(2){margin-left:7%} .band:nth-child(3){margin-left:14%}
+  .band::before{content:"";position:absolute;top:-30%;right:-12%;width:60%;height:80%;background:radial-gradient(circle,var(--bc) 0%,transparent 72%);opacity:.14;filter:blur(6px);pointer-events:none}
+  .band:nth-child(1){--bc:var(--accent-blue)} .band:nth-child(2){--bc:var(--electric-teal)} .band:nth-child(3){--bc:var(--infrared)}
+  .band-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:14px;position:relative}
+  .band-name{font-family:var(--font-serif);font-weight:450;font-size:24px;color:var(--off-white);margin:0}
+  .band-grades{font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--bc)}
+  .band-domains{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;position:relative}
+  .dom{background:var(--core-black);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-md);padding:12px 14px}
+  .dom .d-tag{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--pulse-ash);margin-bottom:6px}
+  .dom .d-body{font-size:12.5px;color:var(--neural-fog);line-height:1.45}
+  @media(max-width:680px){.band{margin-left:0!important}}
+
+  /* ===== Proposal C: hub ===== */
+  .hubwrap{display:grid;grid-template-columns:1fr;gap:24px}
+  .hubsvg{width:100%;max-width:760px;height:auto;margin:0 auto;display:block}
+  .instruments{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+  .instruments .eng-name{font-size:19px}
+  .verb{font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--infrared);margin-bottom:8px;display:block;position:relative}
+  .grades-served{margin-top:12px;padding-top:12px;border-top:1px dashed rgba(255,255,255,.1);position:relative}
+  .grades-served .gs-l{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--pulse-ash);margin-bottom:6px}
+  .grades-served .chips{display:flex;gap:5px;flex-wrap:wrap}
+
+  /* ===== hybrid ===== */
+  .hybrid{margin-top:72px;border-top:2px solid var(--electric-teal);padding-top:40px}
+  .hybrid h2{font-family:var(--font-serif);font-weight:400;font-size:clamp(28px,4vw,42px);margin:0 0 8px;letter-spacing:-.01em}
+  .hybrid .lede{margin-bottom:28px}
+  .layer{background:var(--rich-carbon);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-lg);padding:20px 22px;margin-bottom:14px;position:relative}
+  .layer-tag{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--electric-teal);margin-bottom:6px}
+  .layer-title{font-family:var(--font-serif);font-weight:450;font-size:20px;color:var(--off-white);margin:0 0 10px}
+  .layer p{color:var(--neural-fog);font-size:14.5px;margin:0 0 12px;max-width:72ch}
+  .filterbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .filterbar .fkey{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--pulse-ash);margin-right:6px}
+  .seg{display:inline-flex;background:var(--core-black);border:1px solid rgba(255,255,255,.12);border-radius:var(--radius-sm);padding:3px;flex-wrap:wrap}
+  .seg .s{font-family:var(--font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--pulse-ash);padding:6px 11px;border-radius:3px}
+  .seg .s.on{background:var(--electric-teal);color:var(--core-black)}
+  .seg.g .s.on{background:var(--infrared)}
+  .core-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:6px}
+  .core-row .ci{background:var(--core-black);border:1px solid rgba(92,147,159,.35);border-left:3px solid var(--electric-teal);border-radius:var(--radius-md);padding:12px;font-family:var(--font-mono);font-size:12px;color:var(--neural-fog);text-align:center}
+  @media(max-width:720px){.core-row{grid-template-columns:repeat(2,1fr)}}
+
+  .pick{margin-top:30px;padding:18px 20px;background:var(--urban-smoke);border:1px solid rgba(237,109,64,.4);border-left:3px solid var(--infrared);border-radius:var(--radius-md)}
+  .pick .pt{font-family:var(--font-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--infrared);margin-bottom:8px}
+  .pick p{margin:0;color:var(--neural-fog);font-size:15px;max-width:74ch}
+  .pick em{font-family:var(--font-serif);font-style:italic;color:var(--off-white)}
+
+  footer{margin-top:64px;border-top:1px solid rgba(255,255,255,.08);padding-top:18px;color:var(--pulse-ash);font-family:var(--font-mono);font-size:12px;letter-spacing:.04em}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="eyebrow">Schools Product · Engine Architecture</span>
+  <h1>Three ways to merge every topic into engines</h1>
+  <p class="lede">All math topics, grades 4–10, both systems (Jordan national + Cambridge) — collapsed into a set of math-lab <span class="mono">engines</span>. Three philosophies, each with a different center of gravity. Pick one, or run the hybrid at the bottom.</p>
+
+  <div class="legend">
+    <span class="grp"><i class="b46"></i> Grade 4–6 band</span>
+    <span class="grp"><i class="b78"></i> Grade 7–8 band</span>
+    <span class="grp"><i class="b910"></i> Grade 9–10 band</span>
+    <span class="grp" style="margin-left:auto">chip colour = first grade the topic appears</span>
+  </div>
+
+  <!-- ============ PROPOSAL A ============ -->
+  <section class="proposal" id="a">
+    <div class="prop-head"><span class="prop-num">PROPOSAL A</span></div>
+    <h2 class="prop-title">By math domain — the “strand” engines</h2>
+    <p class="prop-phil">One engine per curriculum strand. The structure mirrors the syllabus itself, so a teacher or parent can point at a pillar and say <em>“this is the Number engine.”</em> Five pillars, every topic lives in exactly one.</p>
+
+    <div class="pillars">
+      <div class="eng">
+        <h3 class="eng-name">Number &amp; Arithmetic</h3>
+        <span class="eng-tag">Engine 01 · N</span>
+        <ul class="eng-list">
+          <li>Place value · four operations</li>
+          <li>Fractions · decimals · percentages</li>
+          <li>Ratio &amp; proportion (direct/inverse)</li>
+          <li>Integers · rationals · reals</li>
+          <li>Indices · standard form · surds</li>
+          <li>Commercial math · sets · bounds</li>
+        </ul>
+        <div class="chips"><span class="chip g46">G4</span><span class="chip g46">G5</span><span class="chip g46">G6</span><span class="chip g78">G7</span><span class="chip g78">G8</span><span class="chip g910">G9</span></div>
+      </div>
+      <div class="eng">
+        <h3 class="eng-name">Algebra &amp; Equations</h3>
+        <span class="eng-tag">Engine 02 · A</span>
+        <ul class="eng-list">
+          <li>Expressions · expand · factorise</li>
+          <li>Linear · simultaneous · quadratic eqns</li>
+          <li>Inequalities (1 &amp; 2 variable)</li>
+          <li>Algebraic fractions</li>
+          <li>Sequences · nth term · changing subject</li>
+          <li>Functions intro · differentiation intro</li>
+        </ul>
+        <div class="chips"><span class="chip g46">G6</span><span class="chip g78">G7</span><span class="chip g78">G8</span><span class="chip g910">G9</span><span class="chip g910">G10</span></div>
+      </div>
+      <div class="eng">
+        <h3 class="eng-name">Geometry &amp; Measurement</h3>
+        <span class="eng-tag">Engine 03 · G</span>
+        <ul class="eng-list">
+          <li>Angles · polygons · circles · theorems</li>
+          <li>Congruence · similarity · constructions</li>
+          <li>Transformations · symmetry · bearings</li>
+          <li>Area · volume · surface area</li>
+          <li>Pythagoras · 3D space · vectors</li>
+        </ul>
+        <div class="chips"><span class="chip g46">G4</span><span class="chip g46">G5</span><span class="chip g46">G6</span><span class="chip g78">G7</span><span class="chip g78">G8</span><span class="chip g910">G9</span><span class="chip g910">G10</span></div>
+      </div>
+      <div class="eng">
+        <h3 class="eng-name">Statistics &amp; Probability</h3>
+        <span class="eng-tag">Engine 04 · S</span>
+        <ul class="eng-list">
+          <li>Data · sampling · charts (all types)</li>
+          <li>Averages · range · quartiles · IQR</li>
+          <li>Comparing distributions · dispersion</li>
+          <li>Probability scale · combined events</li>
+          <li>Tree/Venn · conditional · std deviation</li>
+        </ul>
+        <div class="chips"><span class="chip g46">G6</span><span class="chip g78">G7</span><span class="chip g78">G8</span><span class="chip g910">G9</span><span class="chip g910">G10</span></div>
+      </div>
+      <div class="eng">
+        <h3 class="eng-name">Functions · Trig · Analytic</h3>
+        <span class="eng-tag">Engine 05 · F</span>
+        <ul class="eng-list">
+          <li>Coordinate &amp; analytic geometry</li>
+          <li>Linear · quadratic · polynomial fns</li>
+          <li>Trig ratios · sine/cosine rules · exact vals</li>
+          <li>Identities · equations · 3D trig</li>
+          <li>Periodic fns · radians · composition</li>
+        </ul>
+        <div class="chips"><span class="chip g78">G8</span><span class="chip g910">G9</span><span class="chip g910">G10</span></div>
+      </div>
+    </div>
+
+    <div class="trade">
+      <div class="col pro"><h4>+ Strengths</h4><ul>
+        <li>Direct syllabus map — instantly legible to teachers &amp; parents</li>
+        <li>Every topic has one home — no ambiguity where something lives</li>
+        <li>Matches how textbooks &amp; exams are organised</li>
+      </ul></div>
+      <div class="col con"><h4>− Trade-offs</h4><ul>
+        <li>Borderline topics straddle pillars (linear functions = Algebra or Functions?)</li>
+        <li>Grade progression is invisible — you can’t see “what order to learn”</li>
+        <li>5 engines to build &amp; maintain; little reuse across pillars</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <!-- ============ PROPOSAL B ============ -->
+  <section class="proposal" id="b">
+    <div class="prop-head"><span class="prop-num">PROPOSAL B</span></div>
+    <h2 class="prop-title">By grade band — the “staircase” engines</h2>
+    <p class="prop-phil">Three engines, one per cognitive stage. A student climbs the staircase: <em>Foundations → Transition → Advanced.</em> Each band spans all domains but only at that maturity level — fewer top-level engines, and “what year am I in?” is answered by design.</p>
+
+    <div class="stair">
+      <div class="band">
+        <div class="band-head"><h3 class="band-name">Foundations</h3><span class="band-grades">Grades 4–6 · ages 9–12</span></div>
+        <div class="band-domains">
+          <div class="dom"><div class="d-tag">Number</div><div class="d-body">Place value, four operations, fractions, decimals, %, ratio, primes/LCM/GCD</div></div>
+          <div class="dom"><div class="d-tag">Algebra</div><div class="d-body">First algebraic expressions</div></div>
+          <div class="dom"><div class="d-tag">Geometry</div><div class="d-body">Shapes, angles, area/perimeter, first measurement</div></div>
+          <div class="dom"><div class="d-tag">Statistics</div><div class="d-body">Mean &amp; range, simple charts, chance language</div></div>
+        </div>
+      </div>
+      <div class="band">
+        <div class="band-head"><h3 class="band-name">Transition</h3><span class="band-grades">Grades 7–8 · ages 12–14</span></div>
+        <div class="band-domains">
+          <div class="dom"><div class="d-tag">Number</div><div class="d-body">Integers, rationals, reals, indices, commercial math, sets</div></div>
+          <div class="dom"><div class="d-tag">Algebra</div><div class="d-body">Linear equations, expressions, factorising, simultaneous eqns</div></div>
+          <div class="dom"><div class="d-tag">Geometry</div><div class="d-body">Congruence/similarity, Pythagoras, solids, constructions</div></div>
+          <div class="dom"><div class="d-tag">Stats &amp; Prob</div><div class="d-body">Probability scale, combined events, data handling</div></div>
+          <div class="dom"><div class="d-tag">Functions/Trig</div><div class="d-body">First trig ratios, first functions</div></div>
+        </div>
+      </div>
+      <div class="band">
+        <div class="band-head"><h3 class="band-name">Advanced</h3><span class="band-grades">Grades 9–10 · ages 14–16</span></div>
+        <div class="band-domains">
+          <div class="dom"><div class="d-tag">Algebra</div><div class="d-body">Quadratics, inequalities, algebraic fractions, sequences</div></div>
+          <div class="dom"><div class="d-tag">Functions/Trig</div><div class="d-body">Trig identities &amp; rules, analytic geometry, periodic fns, poly division</div></div>
+          <div class="dom"><div class="d-tag">Geometry</div><div class="d-body">Circle theorems, vectors, 3D space geometry</div></div>
+          <div class="dom"><div class="d-tag">Statistics</div><div class="d-body">Cumulative freq, histograms, IQR, std deviation, conditional prob</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="trade">
+      <div class="col pro"><h4>+ Strengths</h4><ul>
+        <li>Age-appropriate by construction — assign a student their band</li>
+        <li>Cognitive progression is the whole point — visible &amp; motivating</li>
+        <li>Only 3 top-level engines to navigate</li>
+      </ul></div>
+      <div class="col con"><h4>− Trade-offs</h4><ul>
+        <li>Topics repeat across bands (fractions in all three) — duplication risk</li>
+        <li>A bright G6 student can’t easily reach ahead; remediation crosses bands</li>
+        <li>Doesn’t match the lab’s existing “instrument” identity — feels like a textbook</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <!-- ============ PROPOSAL C ============ -->
+  <section class="proposal" id="c">
+    <div class="prop-head"><span class="prop-num">PROPOSAL C</span></div>
+    <h2 class="prop-title">By capability — the “instrument” engines</h2>
+    <p class="prop-phil">One engine per <em>verb</em> — what the student is doing, not which strand they’re in. A G4 pupil and a G10 pupil both use the <em>Compute</em> engine; one feeds it arithmetic, the other feeds it quadratics. Maximum reuse, and it matches the lab you’ve already built.</p>
+
+    <div class="hubwrap">
+      <svg class="hubsvg" viewBox="0 0 760 320" role="img" aria-label="Five instrument engines around a central math lab hub">
+        <defs>
+          <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#5c939f" stop-opacity=".5"/><stop offset="100%" stop-color="#5c939f" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <g stroke="rgba(125,133,140,.5)" stroke-width="1" fill="none">
+          <line x1="380" y1="160" x2="380" y2="46"/>
+          <line x1="380" y1="160" x2="660" y2="100"/>
+          <line x1="380" y1="160" x2="610" y2="280"/>
+          <line x1="380" y1="160" x2="150" y2="280"/>
+          <line x1="380" y1="160" x2="100" y2="100"/>
+        </g>
+        <circle cx="380" cy="160" r="150" fill="url(#glow)"/>
+        <circle cx="380" cy="160" r="46" fill="#111" stroke="#5c939f" stroke-width="1.5"/>
+        <text x="380" y="155" text-anchor="middle" fill="#e7e7e7" font-family="Fraunces,Georgia,serif" font-size="16">Math Lab</text>
+        <text x="380" y="174" text-anchor="middle" fill="#7d858c" font-family="Azeret Mono,monospace" font-size="9" letter-spacing="1.5">5 INSTRUMENTS</text>
+        <!-- nodes -->
+        <g font-family="Azeret Mono,monospace" font-size="11" fill="#e7e7e7">
+          <circle cx="380" cy="46" r="30" fill="#1b1b1b" stroke="#ed6d40" stroke-width="1.5"/>
+          <text x="380" y="50" text-anchor="middle" fill="#ed6d40" font-size="9" letter-spacing="1">COMPUTE</text>
+          <circle cx="660" cy="100" r="30" fill="#1b1b1b" stroke="#5c939f" stroke-width="1.5"/>
+          <text x="660" y="104" text-anchor="middle" fill="#5c939f" font-size="9" letter-spacing="1">VISUALIZE</text>
+          <circle cx="610" cy="280" r="30" fill="#1b1b1b" stroke="#59a993" stroke-width="1.5"/>
+          <text x="610" y="277" text-anchor="middle" fill="#59a993" font-size="8" letter-spacing=".5">MEASURE</text>
+          <text x="610" y="289" text-anchor="middle" fill="#59a993" font-size="8" letter-spacing=".5">&amp; BUILD</text>
+          <circle cx="150" cy="280" r="30" fill="#1b1b1b" stroke="#9b8bd9" stroke-width="1.5"/>
+          <text x="150" y="277" text-anchor="middle" fill="#9b8bd9" font-size="8" letter-spacing=".5">ANALYZE</text>
+          <text x="150" y="289" text-anchor="middle" fill="#9b8bd9" font-size="8" letter-spacing=".5">DATA</text>
+          <circle cx="100" cy="100" r="30" fill="#1b1b1b" stroke="#d9a24e" stroke-width="1.5"/>
+          <text x="100" y="104" text-anchor="middle" fill="#d9a24e" font-size="9" letter-spacing="1">REASON</text>
+        </g>
+      </svg>
+
+      <div class="instruments">
+        <div class="eng">
+          <span class="verb">Calculate</span>
+          <h3 class="eng-name">Compute</h3>
+          <span class="eng-tag">Instrument 01</span>
+          <ul class="eng-list">
+            <li>Arithmetic · number theory ops</li>
+            <li>Equation solving (linear→quadratic)</li>
+            <li>Indices · standard form · surds</li>
+            <li>Commercial math · bounds</li>
+          </ul>
+          <div class="grades-served"><div class="gs-l">Serves</div><div class="chips"><span class="chip g46">G4</span><span class="chip g46">G6</span><span class="chip g78">G7</span><span class="chip g910">G9</span><span class="chip g910">G10</span></div></div>
+        </div>
+        <div class="eng">
+          <span class="verb">See it</span>
+          <h3 class="eng-name">Visualize</h3>
+          <span class="eng-tag">Instrument 02</span>
+          <ul class="eng-list">
+            <li>Function graphs · plotting</li>
+            <li>Coordinate &amp; analytic geometry</li>
+            <li>Transformations · trig graphs</li>
+            <li>Data charts</li>
+          </ul>
+          <div class="grades-served"><div class="gs-l">Serves</div><div class="chips"><span class="chip g46">G4</span><span class="chip g78">G8</span><span class="chip g910">G9</span><span class="chip g910">G10</span></div></div>
+        </div>
+        <div class="eng">
+          <span class="verb">Quantify space</span>
+          <h3 class="eng-name">Measure &amp; Build</h3>
+          <span class="eng-tag">Instrument 03</span>
+          <ul class="eng-list">
+            <li>Area · volume · surface area</li>
+            <li>Constructions · bearings · scale</li>
+            <li>Pythagoras · 3D space geometry</li>
+            <li>Vectors</li>
+          </ul>
+          <div class="grades-served"><div class="gs-l">Serves</div><div class="chips"><span class="chip g46">G5</span><span class="chip g78">G7</span><span class="chip g78">G8</span><span class="chip g910">G10</span></div></div>
+        </div>
+        <div class="eng">
+          <span class="verb">Reason from data</span>
+          <h3 class="eng-name">Analyze Data</h3>
+          <span class="eng-tag">Instrument 04</span>
+          <ul class="eng-list">
+            <li>Statistics · distributions</li>
+            <li>Probability · combined events</li>
+            <li>Sampling · dispersion · IQR</li>
+            <li>Conditional probability</li>
+          </ul>
+          <div class="grades-served"><div class="gs-l">Serves</div><div class="chips"><span class="chip g46">G6</span><span class="chip g78">G7</span><span class="chip g910">G9</span><span class="chip g910">G10</span></div></div>
+        </div>
+        <div class="eng">
+          <span class="verb">Justify</span>
+          <h3 class="eng-name">Reason</h3>
+          <span class="eng-tag">Instrument 05</span>
+          <ul class="eng-list">
+            <li>Trig identities &amp; equations</li>
+            <li>Set theory · logic</li>
+            <li>Inequalities · proof</li>
+            <li>“Why it works”</li>
+          </ul>
+          <div class="grades-served"><div class="gs-l">Serves</div><div class="chips"><span class="chip g78">G8</span><span class="chip g910">G9</span><span class="chip g910">G10</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="trade">
+      <div class="col pro"><h4>+ Strengths</h4><ul>
+        <li>Maximum reuse — one Compute engine serves G4 arithmetic &amp; G10 quadratics</li>
+        <li>Matches the lab you’ve already built (instruments, not chapters)</li>
+        <li>Teaches transferable skills; an instrument survives curriculum changes</li>
+      </ul></div>
+      <div class="col con"><h4>− Trade-offs</h4><ul>
+        <li>Less legible to teachers — “do you cover quadratics?” has no single home</li>
+        <li>Each instrument must handle all grade levels from day one (harder first build)</li>
+        <li>Syllabus-mapping becomes a separate index you maintain on top</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <!-- ============ HYBRID ============ -->
+  <section class="hybrid" id="hybrid">
+    <span class="eyebrow">Recommendation</span>
+    <h2>Build instruments once. Present them three ways.</h2>
+    <p class="lede">You don’t have to pick. Use <strong>Proposal C (instruments)</strong> as the <em>engine architecture</em> — that’s what gets built and what matches your lab. Then layer <strong>A (strands)</strong> and <strong>B (grade bands)</strong> on top as <em>views</em> — filters a teacher or student toggles. One codebase, three front doors.</p>
+
+    <div class="layer">
+      <div class="layer-tag">View layer · filter 1</div>
+      <h3 class="layer-title">By strand — the teacher’s view</h3>
+      <p>A teacher opens the lab and filters to the “Algebra” strand to see every algebra topic across all grades, regardless of which instrument renders it.</p>
+      <div class="filterbar"><span class="fkey">Strand</span>
+        <div class="seg"><span class="s on">All</span><span class="s">Number</span><span class="s">Algebra</span><span class="s">Geometry</span><span class="s">Stats</span><span class="s">Functions/Trig</span></div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="layer-tag">View layer · filter 2</div>
+      <h3 class="layer-title">By grade band — the student’s view</h3>
+      <p>A grade-7 student opens the lab and it scopes to the Transition band — only topics at their maturity, drawn from whichever instruments apply.</p>
+      <div class="filterbar"><span class="fkey">Grade</span>
+        <div class="seg g"><span class="s">G4–6 Foundations</span><span class="s on">G7–8 Transition</span><span class="s">G9–10 Advanced</span></div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="layer-tag">Core · what actually gets built</div>
+      <h3 class="layer-title">The five instruments — built once, queried many ways</h3>
+      <p>Underneath both filters sit the same five instrument engines. Each topic in the curriculum is tagged with <em>(strand, grade band, instrument)</em> — three labels, one piece of content. Build the instruments; the views are just queries.</p>
+      <div class="core-row">
+        <div class="ci">Compute</div><div class="ci">Visualize</div><div class="ci">Measure &amp; Build</div><div class="ci">Analyze Data</div><div class="ci">Reason</div>
+      </div>
+    </div>
+
+    <div class="pick">
+      <div class="pt">Why this wins</div>
+      <p>You get <em>C’s reuse and identity-match</em> (build five instruments, not fifteen chapter-pages), plus <em>A’s teacher-legibility</em> and <em>B’s student-assignment</em> as cheap view layers on top. The only real cost is tagging each topic with three labels instead of one — and you already have the strand and grade data from the curriculum-scope doc. The instruments are the durable asset; the filters are swappable when Jordan updates its syllabus or you add IB.</p>
+    </div>
+  </section>
+
+  <footer>Mocked in the project’s own design language (electric-teal / infrared on core-black, Roc Grotesk + Azeret Mono + Fraunces). Open via file:// so the self-hosted fonts load from ../math-lab/assets/fonts/.</footer>
+</div>
+</body>
+</html>

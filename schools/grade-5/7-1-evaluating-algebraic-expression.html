@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Evaluating an Algebraic Expression — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:30px 24px 30px; display:flex; flex-direction:column; align-items:center; gap:24px; }
+  .tile-row{ display:flex; align-items:center; gap:8px; direction:ltr; flex-wrap:wrap; justify-content:center; }
+  .x-tile{ height:40px; border-radius:8px; background:var(--electric-teal); border:1px solid rgba(92,147,159,.7); transition:width .35s ease; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-weight:700; color:var(--core-black); font-size:13px; }
+  .unit-tile{ width:26px; height:26px; border-radius:5px; background:var(--infrared); border:1px solid rgba(237,109,64,.7); }
+  .plus-sym{ font-family:var(--mono); font-size:20px; color:var(--neural-fog); }
+
+  .expand-row{ display:flex; flex-wrap:wrap; gap:4px; max-width:440px; justify-content:center; direction:ltr; }
+  .expand-row .unit-tile{ width:16px; height:16px; }
+  .expand-note{ font-family:var(--mono); font-size:12px; color:var(--pulse-ash); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 7 · LESSON 1</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Evaluating an Algebraic Expression</h1>
+    <span class="title-secondary ar-display" id="titleAr">تقييم مقدار جبري</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I evaluate an algebraic expression by substituting a value for its variable.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">substitute a value for x</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabel">x =</label>
+      <input type="range" id="xSlider" min="0" max="10" step="1" value="3" />
+      <span class="control-val" id="xReadout"></span>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="tile-row" id="tileRow" data-el="tileRow"></div>
+      <div class="expand-note" id="expandNote" data-role="ui"></div>
+      <div class="expand-row" id="expandRow" data-el="expandRow"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">An algebra tile stands for the unknown x, whatever value it takes; substituting a specific value for x turns the expression into a number you can compute, the same way each x-tile expands into that many unit tiles.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="../grade-5/6-8-percentage.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">6.8 · Percentage</b></a>
+    <a class="nav-pill next" href="7-2-addition-subtraction-equations.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">7.2 · Addition and Subtraction Equations</b></a>
+  </div>
+</div>
+
+<script>
+  const { groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+  const COEFF = 2, CONST = 5; // expression: 2x + 5
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 7 · LESSON 1",
+      objectiveLabel: "Objective —",
+      objectiveText: "I evaluate an algebraic expression by substituting a value for its variable.",
+      eqSub: "substitute a value for x",
+      explainBtn: "Explain this",
+      controlLabel: "x =",
+      expandNote: (total) => `expanded: ${total} unit tiles`,
+      navPrevLabel: "—", navPrevText: "6.8 · Percentage",
+      navNextLabel: "next", navNext: "7.2 · Addition and Subtraction Equations",
+      teachLabel: "What this teaches:",
+      teachBody: "An algebra tile stands for the unknown x, whatever value it takes; substituting a specific value for x turns the expression into a number you can compute, the same way each x-tile expands into that many unit tiles.",
+      tour: [
+        { elKey: "tileRow", label: "The expression as tiles", body: "Each long tile is one x, worth whatever x currently is; each small square is a fixed constant unit." },
+        { ids: ["xSlider"], label: "Substitute a value", body: "Drag the slider to set x — the x-tiles' width grows or shrinks to show the substitution happening." },
+        { elKey: "expandRow", label: "The computed result", body: "Expanding every x-tile into unit squares and counting them all gives the expression's value for this x." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٧ · الدرس ١",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أُقيّم مقدارًا جبريًا بتعويض قيمة عن متغيّره.",
+      eqSub: "عوّض قيمة عن x",
+      explainBtn: "اشرح هذا",
+      controlLabel: "x =",
+      expandNote: (total) => `بعد التوسيع: ${total} وحدة مربّعة`,
+      navPrevLabel: "—", navPrevText: "٦.٨ · النسبة المئوية",
+      navNextLabel: "التالي", navNext: "٧.٢ · معادلات الجمع والطرح",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "تمثّل قطعة الجبر المتغيّر المجهول x، مهما كانت قيمته؛ وتعويض قيمة محدّدة عن x يحوّل المقدار إلى عدد يمكن حسابه، تمامًا كما تتوسّع كل قطعة x إلى ذلك العدد من الوحدات المربّعة.",
+      tour: [
+        { elKey: "tileRow", label: "المقدار كقطع", body: "كل قطعة طويلة تمثّل x واحدًا، بقيمة x الحالية؛ وكل مربّع صغير هو وحدة ثابتة." },
+        { ids: ["xSlider"], label: "عوّض قيمة", body: "اسحب شريط التمرير لتحديد x — يكبر عرض قطع x أو يصغر ليُظهر التعويض وهو يحدث." },
+        { elKey: "expandRow", label: "الناتج المحسوب", body: "توسيع كل قطعة x إلى وحدات مربّعة وعدّها كلّها يعطي قيمة المقدار عند x هذه." }
+      ]
+    }
+  };
+
+  const xSlider = document.getElementById("xSlider");
+  const xReadout = document.getElementById("xReadout");
+  const tileRow = document.getElementById("tileRow");
+  const expandRow = document.getElementById("expandRow");
+  const expandNote = document.getElementById("expandNote");
+  const eqLine = document.getElementById("eqLine");
+
+  function render() {
+    const t = T[i18n.lang];
+    const x = parseInt(xSlider.value, 10);
+    xReadout.textContent = x;
+
+    tileRow.innerHTML = "";
+    for (let i = 0; i < COEFF; i++) {
+      const tile = document.createElement("div");
+      tile.className = "x-tile";
+      tile.style.width = (30 + x * 12) + "px";
+      tile.textContent = "x";
+      tileRow.appendChild(tile);
+    }
+    const plus = document.createElement("div");
+    plus.className = "plus-sym";
+    plus.textContent = "+";
+    tileRow.appendChild(plus);
+    for (let i = 0; i < CONST; i++) {
+      const tile = document.createElement("div");
+      tile.className = "unit-tile";
+      tileRow.appendChild(tile);
+    }
+
+    const total = COEFF * x + CONST;
+    expandNote.textContent = t.expandNote(total);
+    expandRow.innerHTML = "";
+    const renderCap = 60;
+    for (let i = 0; i < Math.min(total, renderCap); i++) {
+      const u = document.createElement("div");
+      u.className = "unit-tile";
+      expandRow.appendChild(u);
+    }
+
+    renderEquation(eqLine, `${groupInt(COEFF, "en")}x + ${groupInt(CONST, "en")} \\;\\Rightarrow\\; ${groupInt(COEFF, "en")}(${groupInt(x, "en")}) + ${groupInt(CONST, "en")} = \\color{#ed6d40}{${groupInt(total, "en")}}`);
+  }
+
+  xSlider.addEventListener("input", render);
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

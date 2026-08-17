@@ -62,5 +62,15 @@
     if (!NumberTheory.millerRabin(p).prime) return showError(`${p} is not prime — Diffie–Hellman needs a prime modulus.`);
     if (a < 0n || b < 0n) return showError("Private exponents must be non-negative.");
     render(p, g, a, b);
+    Proto.saveState("engine-lab:number-theory-diffie-hellman", { p: pInput.value, g: gInput.value, a: aInput.value, b: bInput.value });
   });
+
+  const saved = Proto.loadState("engine-lab:number-theory-diffie-hellman");
+  if (saved) {
+    if (saved.p !== undefined) pInput.value = saved.p;
+    if (saved.g !== undefined) gInput.value = saved.g;
+    if (saved.a !== undefined) aInput.value = saved.a;
+    if (saved.b !== undefined) bInput.value = saved.b;
+    form.requestSubmit();
+  }
 })();

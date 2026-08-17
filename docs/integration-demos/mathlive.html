@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MathLive — integration demo</title>
+<style>
+@font-face{font-family:'Roc Grotesk';src:url('../../math-lab/assets/fonts/roc-grotesk-regular.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'Roc Grotesk';src:url('../../math-lab/assets/fonts/roc-grotesk-medium.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:'Azeret Mono';src:url('../../math-lab/assets/fonts/azeret-mono-regular.otf') format('opentype');font-weight:400;font-display:swap}
+@font-face{font-family:'Fraunces';src:url('../../math-lab/assets/fonts/fraunces-variable.woff2') format('woff2');font-weight:300 600;font-display:swap}
+</style>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css">
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<script src="../../math-lab/assets/vendor/math.min.js"></script>
+<script src="vendor/mathlive.min.js"></script>
+<style>
+:root{--core-black:#090909;--rich-carbon:#111;--urban-smoke:#1b1b1b;--pulse-ash:#7d858c;--off-white:#e7e7e7;--neural-fog:#dadada;--electric-teal:#5c939f;--infrared:#ed6d40;--validation-green:#59a993;--validation-red:#cb3500;--font-display:"Roc Grotesk","Helvetica Neue",Arial,sans-serif;--font-mono:"Azeret Mono",ui-monospace,monospace;--font-serif:"Fraunces",Georgia,serif;--radius-sm:4px;--radius-md:8px;--radius-lg:20px;--container-w:1280px}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{background:var(--core-black);color:var(--off-white);font-family:var(--font-display);line-height:1.55}
+.container{max-width:var(--container-w);margin:0 auto;padding:0 24px}
+header.top{position:fixed;top:20px;left:0;right:0;z-index:50}
+.top-inner{max-width:var(--container-w);margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:12px;font-family:var(--font-mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase}
+.brand{display:inline-flex;align-items:center;gap:8px;color:var(--off-white);text-decoration:none}
+.brand .dot{width:8px;height:8px;border-radius:50%;background:var(--infrared)}
+.top-inner a.lk{color:var(--pulse-ash);text-decoration:none;margin-left:auto}.top-inner a.lk:hover{color:var(--electric-teal)}
+.hero{padding:120px 0 30px}
+.eyebrow{font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--electric-teal);display:inline-flex;align-items:center;gap:8px;margin-bottom:16px}
+.eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.h1{font-family:var(--font-serif);font-weight:350;font-size:clamp(38px,5.6vw,72px);line-height:.98;letter-spacing:-.02em;margin:0 0 14px}
+.p1{font-size:17px;color:var(--neural-fog);max-width:640px;margin:0}
+.section{padding:30px 0 80px}
+.card{background:var(--rich-carbon);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-lg);padding:30px}
+.grid{display:grid;gap:22px;grid-template-columns:1.1fr .9fr}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+label{font-family:var(--font-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--pulse-ash);display:block;margin-bottom:10px}
+math-field{ --keyboard-zindex: 100; display:block;width:100%;background:var(--core-black);border:1px solid rgba(255,255,255,.16);border-radius:var(--radius-md);padding:14px 16px;font-size:26px;color:var(--off-white); }
+math-field:focus{outline:none;border-color:var(--electric-teal)}
+math-field::part(virtual-keyboard-toggle){color:var(--infrared)}
+.preview{background:var(--core-black);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-md);padding:24px;min-height:90px;overflow-x:auto}
+.preview .katex{color:var(--off-white);font-size:24px}
+.preview.empty{display:flex;align-items:center;color:var(--pulse-ash);font-family:var(--font-mono);font-size:13px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.chip{font-family:var(--font-mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--neural-fog);background:var(--urban-smoke);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius-sm);padding:8px 12px;cursor:pointer;transition:.3s cubic-bezier(.16,1,.3,1)}
+.chip:hover{color:var(--core-black);background:var(--electric-teal);border-color:var(--electric-teal)}
+.result{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-md);overflow:hidden;margin-top:18px}
+.stat{background:var(--rich-carbon);padding:18px 20px}
+.stat .k{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--pulse-ash)}
+.stat .v{font-family:var(--font-mono);font-size:22px;color:var(--off-white);margin-top:6px;word-break:break-all}
+.stat.accent{background:var(--infrared)}
+.stat.accent .k,.stat.accent .v{color:var(--core-black)}
+.status{font-family:var(--font-mono);font-size:13px;margin-top:16px;display:flex;align-items:center;gap:8px}
+.status .d{width:8px;height:8px;border-radius:50%;background:var(--validation-green)}
+.status.bad .d{background:var(--validation-red)}
+.status.bad{color:var(--validation-red)}
+.status.ok{color:var(--validation-green)}
+.callout{margin-top:24px;font-size:14px;color:var(--neural-fog);line-height:1.6}
+.callout b{color:var(--off-white)}
+code{font-family:var(--font-mono);font-size:12px;color:var(--electric-teal)}
+footer{padding:30px 0 60px;color:var(--pulse-ash);font-size:13px;font-family:var(--font-mono)}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-inner"><a class="brand" href="./index.html"><span class="dot"></span>BACK · DEMOS</a><a class="lk" href="./mathlive.html">mathlive</a></div></header>
+
+<section class="hero">
+  <div class="container">
+    <span class="eyebrow">Math input</span>
+    <h1 class="h1">Type math, not LaTeX.</h1>
+    <p class="p1">A real MathLive math field — click it, type <code>sin(x)/x</code> or <code>\int_0^\pi</code>, use the on-screen keyboard. The page reads the LaTeX, renders it with KaTeX (what you already use), and evaluates it with math.js (what you already use). This is the exact pipeline your engine pages would get.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="card">
+      <div class="grid">
+        <div>
+          <label>Math field · type or use the keyboard</label>
+          <math-field id="mf" virtual-keyboard-mode="manual">\frac{1}{1+x^{2}}</math-field>
+          <div class="chips">
+            <span class="chip" data-latex="\sin(x)+\cos(x)">sin + cos</span>
+            <span class="chip" data-latex="\int_{0}^{\pi}\sin(x)\,dx">integral</span>
+            <span class="chip" data-latex="e^{i\pi}+1">Euler</span>
+            <span class="chip" data-latex="\sum_{n=1}^{5}\frac{1}{n^{2}}">series</span>
+            <span class="chip" data-latex="\begin{bmatrix}1&2\\3&4\end{bmatrix}">matrix</span>
+          </div>
+        </div>
+        <div>
+          <label>Rendered (KaTeX)</label>
+          <div class="preview" id="render"></div>
+        </div>
+      </div>
+
+      <div class="result">
+        <div class="stat"><div class="k">LaTeX out</div><div class="v" id="latexOut" style="font-size:15px">—</div></div>
+        <div class="stat accent"><div class="k">math.js value · x=1.5</div><div class="v" id="valueOut">—</div></div>
+        <div class="stat"><div class="k">Variable</div><div class="v" id="varOut">x</div></div>
+      </div>
+
+      <div class="status ok" id="status"><span class="d"></span><span id="statusText">evaluated at x = 1.5</span></div>
+    </div>
+
+    <div class="callout">
+      <b>What this shows.</b> The math field gives you a WYSIWYG equation editor with a mobile-friendly virtual keyboard, smart-fraction rendering, and LaTeX in/out — none of which a plain <code>&lt;input&gt;</code> gives you. It drops into any existing engine page: replace the text box, read <code>mf.getValue('latex')</code>, and pipe it to the KaTeX render + math.js <code>evaluate</code> you already run. <b>Cost:</b> one ~120 KB script, self-hostable like your other vendor libs.
+    </div>
+  </div>
+</section>
+
+<footer><div class="container">MathLive · KaTeX · math.js — all loaded from CDN for this preview; in the project they'd be self-hosted in <code>math-lab/assets/vendor/</code></div></footer>
+
+<script>
+const mf = document.getElementById('mf');
+const renderEl = document.getElementById('render');
+const latexOut = document.getElementById('latexOut');
+const valueOut = document.getElementById('valueOut');
+const statusEl = document.getElementById('status');
+const statusText = document.getElementById('statusText');
+
+function update(){
+  const latex = mf.getValue('latex');
+  latexOut.textContent = latex || '—';
+  // render with katex
+  renderEl.innerHTML = '';
+  renderEl.classList.remove('empty');
+  try {
+    katex.render(latex, renderEl, {throwOnError:false, displayMode:true});
+  } catch(e){
+    renderEl.classList.add('empty');
+    renderEl.textContent = '— render error —';
+  }
+  // detect variable & evaluate with math.js
+  let expr = mf.getValue('math-latex') || latexToMathjs(latex);
+  const xVal = 1.5;
+  try {
+    const node = math.parse(expr);
+    const code = node.compile();
+    const val = code.evaluate({x: xVal});
+    let shown;
+    if (typeof val === 'number' || (val && val.re !== undefined)) {
+      shown = math.format(val, {precision: 6});
+      ok('evaluated at x = ' + xVal);
+    } else if (val && val.size) {
+      shown = 'matrix ' + val.size().join('×');
+      ok('matrix expression');
+    } else {
+      shown = 'symbolic';
+      ok('symbolic — no numeric value');
+    }
+    valueOut.textContent = shown;
+  } catch(e){
+    valueOut.textContent = '—';
+    bad('not numeric: ' + (e.message||''));
+  }
+}
+
+function ok(t){ statusEl.classList.remove('bad'); statusEl.classList.add('ok'); statusText.textContent = t; }
+function bad(t){ statusEl.classList.remove('ok'); statusEl.classList.add('bad'); statusText.textContent = t; }
+
+// very small latex->mathjs fallback (MathLive already exports math-latex via getValue('math-latex'))
+function latexToMathjs(lat){
+  if(!lat) return '';
+  return lat
+    .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g,'($1)/($2)')
+    .replace(/\\cdot|\\,/g,'*')
+    .replace(/\\pi/g,'pi')
+    .replace(/\\sqrt\{([^}]*)\}/g,'sqrt($1)')
+    .replace(/\\sin/g,'sin').replace(/\\cos/g,'cos').replace(/\\tan/g,'tan')
+    .replace(/\\log/g,'log').replace(/\\ln/g,'log')
+    .replace(/\\exp/g,'exp')
+    .replace(/\^{([^}]*)}/g,'^($1)')
+    .replace(/\\begin\{[^}]*\}.*?\\end\{[^}]*\}/gs,'matrix')
+    .replace(/\\[a-zA-Z]+/g,'');
+}
+
+mf.addEventListener('input', update);
+document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => { mf.setValue(c.dataset.latex,'latex'); update(); }));
+update();
+</script>
+</body>
+</html>

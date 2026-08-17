@@ -1,0 +1,8 @@
+{
+  "name": "math-lab",
+  "private": true,
+  "description": "Correctness verification suites for the math engines (see tests/run-all.js). The site itself ships as plain static files with no build step; this dependency is test-only.",
+  "devDependencies": {
+    "pyodide": "0.26.4"
+  }
+}

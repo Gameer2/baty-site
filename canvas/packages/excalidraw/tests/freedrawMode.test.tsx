@@ -22,14 +22,15 @@ describe("freedraw mode action", () => {
   });
 
   it("applies currentItemStrokeVariability to newly drawn freedraw elements", () => {
-    // default app state draws constant-width strokes
-    expect(h.state.currentItemStrokeVariability).toBe("constant");
+    // default app state draws pressure-variable strokes, matching upstream Excalidraw's
+    // original pen (no constant-width mode exists there at all)
+    expect(h.state.currentItemStrokeVariability).toBe("variable");
 
     UI.createElement("freedraw", { x: 0, y: 0 });
 
     expect(
       (h.elements[0] as ExcalidrawFreeDrawElement).strokeOptions?.variability,
-    ).toBe("constant");
+    ).toBe("variable");
     expect(
       (h.elements[0] as ExcalidrawFreeDrawElement).strokeOptions?.streamline,
     ).toBe(0.5);

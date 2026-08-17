@@ -1,4 +1,4 @@
-import { type ExcalidrawFontFaceDescriptor } from "../Fonts";
+import { type SyntropyFontFaceDescriptor } from "../Fonts";
 
 import _5 from "./Excalifont-Regular-349fac6ca4700ffec595a7150a0d1e1d.woff2";
 import _4 from "./Excalifont-Regular-3f2c5db56cc93c5a6873b1361d730c16.woff2";
@@ -119,7 +119,7 @@ preferredFamily: Excalifont
 preferredSubfamily: Regular
  */
 
-export const ExcalifontFontFaces: ExcalidrawFontFaceDescriptor[] = [
+export const ExcalifontFontFaces: SyntropyFontFaceDescriptor[] = [
   {
     uri: _0,
     descriptors: {

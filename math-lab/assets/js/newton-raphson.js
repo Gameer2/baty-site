@@ -27,6 +27,16 @@
 
   let state = null; // { iterations, bounds }
   const TRACE = { curve: 0, zero: 1, points: 2, tangent: 3, current: 4, next: 5 };
+  const STORE_KEY = "engine-lab:numerical-newton-raphson";
+
+  function snapshot() {
+    return {
+      fx: fxInput.value,
+      x0: x0Input.value,
+      tol: tolInput.value,
+      maxIter: maxIterInput.value,
+    };
+  }
 
   function updatePreview() {
     Engine.renderKatex(fxPreview, `f(x) = ${Engine.toLatex(fxInput.value)}`, false);
@@ -216,8 +226,7 @@
 
   stepSlider.addEventListener("input", (e) => updateStep(Number(e.target.value)));
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+  function runCompute() {
     clearError();
 
     const compiled = Engine.compileFx(fxInput.value);
@@ -242,11 +251,26 @@
     }
 
     render(iterations, compiled, deriv, x0);
+    Proto.saveState(STORE_KEY, snapshot());
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    runCompute();
   });
 
   Engine.attachMathKeypad(fxInput, document.getElementById("fxKeypad"));
   Engine.attachKeypadToggle(document.getElementById("keypadToggle"), document.getElementById("fxKeypad"));
 
+  const saved = Proto.loadState(STORE_KEY);
+  if (saved) {
+    if (saved.fx !== undefined) fxInput.value = saved.fx;
+    if (saved.x0 !== undefined) x0Input.value = saved.x0;
+    if (saved.tol !== undefined) tolInput.value = saved.tol;
+    if (saved.maxIter !== undefined) maxIterInput.value = saved.maxIter;
+  }
+
   updatePreview();
   updateDerivCheck();
+  if (saved) runCompute();
 })();

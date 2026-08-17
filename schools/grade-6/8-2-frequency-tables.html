@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Frequency Tables — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: reveal raw values one at a time; a tally table and matching
+     bar chart grow live. Base for 8.3's interval grouping. ---- */
+  .chart{ padding:26px 22px 30px; display:flex; flex-direction:column; align-items:center; gap:20px; }
+  .raw-row{ display:flex; gap:6px; flex-wrap:wrap; justify-content:center; max-width:520px; direction:ltr; }
+  .raw-chip{ font-family:var(--mono); font-size:13px; font-weight:700; color:var(--pulse-ash); background:var(--core-black); border:1px solid rgba(255,255,255,.14); border-radius:6px; padding:5px 10px; }
+  .raw-chip.done{ color:var(--core-black); background:var(--electric-teal); border-color:var(--electric-teal); }
+  .raw-chip.current{ border-color:var(--infrared); color:var(--infrared); }
+
+  .tally-table{ display:flex; flex-direction:column; gap:6px; width:100%; max-width:420px; direction:ltr; }
+  .tally-row{ display:flex; align-items:center; gap:10px; }
+  .tally-val{ font-family:var(--mono); font-size:13px; color:var(--neural-fog); width:70px; }
+  .tally-bar-track{ flex:1; height:18px; background:rgba(255,255,255,.05); border-radius:5px; overflow:hidden; }
+  .tally-bar-fill{ height:100%; background:var(--electric-teal); border-radius:5px; width:0%; transition:width .3s ease; }
+  .tally-count{ font-family:var(--mono); font-size:12px; color:var(--off-white); width:20px; text-align:center; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 8 · LESSON 2</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Frequency Tables</h1>
+    <span class="title-secondary ar-display" id="titleAr">الجداول التكرارية</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I organize data in a frequency table.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">goals scored per match — tally as you go</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabel">values tallied</label>
+      <input type="range" id="stepSlider" min="0" max="12" step="1" value="0" />
+      <span class="control-val" id="stepReadout">0 / 12</span>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="raw-row dimmable" data-el="raw" id="rawRow"></div>
+      <div class="tally-table dimmable" data-el="tally" id="tallyTable"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Tally/count how often each distinct value occurs in a raw data list (e.g. goals scored per match) and organize into a frequency table, the basis for further graphical representation.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="8-1-collecting-data.html">— <b data-role="body" id="navPrevText">8.1 · Collecting Data</b></a>
+    <a class="nav-pill next" href="8-3-frequency-class-intervals.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">8.3 · Frequency with Class Intervals</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const RAW_DATA = [2, 1, 3, 2, 0, 1, 2, 3, 1, 2, 0, 3];
+  const VALUES = [0, 1, 2, 3];
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 8 · LESSON 2",
+      objectiveLabel: "Objective —",
+      objectiveText: "I organize data in a frequency table.",
+      eqSub: "goals scored per match — tally as you go",
+      explainBtn: "Explain this",
+      controlLabel: "values tallied",
+      teachLabel: "What this teaches:",
+      teachBody: "Tally/count how often each distinct value occurs in a raw data list (e.g. goals scored per match) and organize into a frequency table, the basis for further graphical representation.",
+      navPrev: "8.1 · Collecting Data",
+      navNext: "8.3 · Frequency with Class Intervals",
+      navNextLabel: "next",
+      tour: [
+        { elKey: "raw", label: "The raw list", body: "This is the data exactly as collected, one match at a time, in no particular order." },
+        { ids: ["stepSlider"], label: "Tally one at a time", body: "Slide right — each value revealed increments its row in the table below." },
+        { elKey: "tally", label: "The table becomes a chart", body: "Each row's bar grows with its count — a frequency table is really a bar chart in table form." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ٨ · الدرس ٢",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أُنظِّم بيانات في جدول تكراري.",
+      eqSub: "أهداف مُسجَّلة في كل مباراة — عُدّ تباعًا",
+      explainBtn: "اشرح هذا",
+      controlLabel: "القيم المعدودة",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "عُدّ عدد مرّات تكرار كل قيمة مميّزة في قائمة بيانات خام (كأهداف مُسجَّلة في كل مباراة) ونظّمها في جدول تكراري، وهو الأساس لتمثيل بياني لاحق.",
+      navPrev: "٨.١ · جمع البيانات",
+      navNext: "٨.٣ · الجداول والمخططات التكرارية ذات الفئات",
+      navNextLabel: "التالي",
+      tour: [
+        { elKey: "raw", label: "القائمة الخام", body: "هذه البيانات كما جُمعت تمامًا، مباراة تلو الأخرى، دون ترتيب معيّن." },
+        { ids: ["stepSlider"], label: "عُدّ واحدة تلو الأخرى", body: "اسحب لليمين — تزيد كل قيمة تُكشف عدّاد صفّها في الجدول أدناه." },
+        { elKey: "tally", label: "الجدول يصبح مخططًا", body: "ينمو شريط كل صفّ مع عدده — الجدول التكراري هو في الحقيقة مخطط أعمدة بصورة جدول." }
+      ]
+    }
+  };
+
+  const stepSlider = document.getElementById("stepSlider");
+  const stepReadout = document.getElementById("stepReadout");
+  const rawRow = document.getElementById("rawRow");
+  const tallyTable = document.getElementById("tallyTable");
+  const eqLine = document.getElementById("eqLine");
+
+  function render() {
+    const cur = parseInt(stepSlider.value, 10);
+    stepReadout.textContent = cur + " / " + RAW_DATA.length;
+
+    rawRow.innerHTML = "";
+    RAW_DATA.forEach((v, i) => {
+      const chip = document.createElement("div");
+      chip.className = "raw-chip" + (i < cur ? " done" : i === cur ? " current" : "");
+      chip.textContent = v;
+      rawRow.appendChild(chip);
+    });
+
+    const counts = {};
+    VALUES.forEach(v => counts[v] = 0);
+    for (let i = 0; i < cur; i++) counts[RAW_DATA[i]]++;
+    const maxCount = Math.max(1, ...Object.values(counts));
+
+    tallyTable.innerHTML = "";
+    VALUES.forEach(v => {
+      const row = document.createElement("div");
+      row.className = "tally-row";
+      const valLabel = document.createElement("span");
+      valLabel.className = "tally-val";
+      valLabel.textContent = digits(v, i18n.lang) + " goals";
+      const track = document.createElement("div");
+      track.className = "tally-bar-track";
+      const fill = document.createElement("div");
+      fill.className = "tally-bar-fill";
+      fill.style.width = (counts[v] / maxCount * 100) + "%";
+      track.appendChild(fill);
+      const countLabel = document.createElement("span");
+      countLabel.className = "tally-count";
+      countLabel.textContent = digits(counts[v], i18n.lang);
+      row.appendChild(valLabel); row.appendChild(track); row.appendChild(countLabel);
+      tallyTable.appendChild(row);
+    });
+
+    const lastVal = cur > 0 ? RAW_DATA[cur - 1] : null;
+    const eqSource = lastVal !== null
+      ? `f(${lastVal}) = \\color{#ed6d40}{${counts[lastVal]}}`
+      : `f(x) = \\text{count of } x`;
+    renderEquation(eqLine, eqSource);
+  }
+
+  stepSlider.addEventListener("input", render);
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

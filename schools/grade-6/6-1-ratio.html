@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ratio — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: a mixing jar — concentrate and water stacked in proportion,
+     with the live ratio in three notations. ---- */
+  .chart{ padding:28px 24px 30px; display:flex; flex-direction:column; align-items:center; gap:20px; }
+  .jar{ width:90px; height:200px; border:2px solid rgba(255,255,255,.2); border-radius:0 0 14px 14px; position:relative; overflow:hidden; background:rgba(255,255,255,.03); }
+  .jar-water{ position:absolute; left:0; right:0; bottom:0; background:linear-gradient(to top, #5c939f, rgba(92,147,159,.55)); }
+  .jar-concentrate{ position:absolute; left:0; right:0; bottom:0; background:linear-gradient(to top, #ed6d40, rgba(237,109,64,.65)); }
+  .jar-line{ position:absolute; left:0; right:0; height:1px; background:rgba(9,9,9,.4); }
+
+  .notations{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
+  .not-card{ display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 18px; border-radius:10px; background:var(--urban-smoke); border:1px solid rgba(255,255,255,.1); min-width:90px; }
+  .not-card .cap{ font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash); }
+  .not-card .val{ font-family:var(--mono); font-size:16px; font-weight:700; color:var(--infrared); direction:ltr; }
+
+  .inputs{ display:flex; gap:20px; align-items:center; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 6 · LESSON 1</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Ratio</h1>
+    <span class="title-secondary ar-display" id="titleAr">النسبة</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I write and simplify a ratio.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">concentrate compared to water</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="labelConc">concentrate</label>
+      <input type="range" id="concSlider" min="1" max="10" step="1" value="2" />
+      <span class="control-val" id="concReadout">2</span>
+    </div>
+    <div class="control-row">
+      <label data-role="ui" data-i18n="labelWater">water</label>
+      <input type="range" id="waterSlider" min="1" max="10" step="1" value="6" />
+      <span class="control-val" id="waterReadout">6</span>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="jar dimmable" data-el="jar" id="jar">
+        <div class="jar-water" id="jarWater"></div>
+        <div class="jar-concentrate" id="jarConcentrate"></div>
+      </div>
+      <div class="notations dimmable" data-el="notations">
+        <div class="not-card"><span class="cap" id="capColon"></span><span class="val" id="valColon"></span></div>
+        <div class="not-card"><span class="cap" id="capFrac"></span><span class="val" id="valFrac"></span></div>
+        <div class="not-card"><span class="cap" id="capWords"></span><span class="val" id="valWords"></span></div>
+      </div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">A ratio compares one quantity to another, written three equivalent ways (a:b, a/b, "a to b"); simplified like a fraction by dividing both terms by their GCF. Applied to a juice-concentrate-to-water mixing scenario.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="5-6-sequences.html">— <b data-role="body" id="navPrevText">5.6 · Sequences</b></a>
+    <a class="nav-pill next" href="6-2-equivalent-ratios.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">6.2 · Equivalent Ratios</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 6 · LESSON 1",
+      objectiveLabel: "Objective —",
+      objectiveText: "I write and simplify a ratio.",
+      eqSub: "concentrate compared to water",
+      explainBtn: "Explain this",
+      labelConc: "concentrate", labelWater: "water",
+      capColon: "colon form", capFrac: "fraction form", capWords: "words",
+      wordsForm: (a, b) => `${a} to ${b}`,
+      teachLabel: "What this teaches:",
+      teachBody: "A ratio compares one quantity to another, written three equivalent ways (a:b, a/b, \"a to b\"); simplified like a fraction by dividing both terms by their GCF. Applied to a juice-concentrate-to-water mixing scenario.",
+      navPrev: "5.6 · Sequences",
+      navNext: "6.2 · Equivalent Ratios",
+      navNextLabel: "next",
+      tour: [
+        { elKey: "jar", label: "Two parts of a mixture", body: "The jar's fill heights show the actual proportion of concentrate to water." },
+        { elKey: "notations", label: "Three ways to write it", body: "Colon form, fraction form, and words — all three say exactly the same thing." },
+        { ids: ["eqLine"], label: "Simplify like a fraction", body: "Divide both terms by their greatest common factor to reach the simplest form of the ratio." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ٦ · الدرس ١",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أكتب نسبة وأبسّطها.",
+      eqSub: "التركيز مقارنةً بالماء",
+      explainBtn: "اشرح هذا",
+      labelConc: "التركيز", labelWater: "الماء",
+      capColon: "صيغة النقطتين", capFrac: "صيغة الكسر", capWords: "بالكلمات",
+      wordsForm: (a, b) => `${a} إلى ${b}`,
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "النسبة تقارن كمّية بأخرى، وتُكتب بثلاث صيغ متكافئة (a:b، a/b، «a إلى b»)؛ وتُبسَّط كالكسر بقسمة الحدّين على العامل المشترك الأكبر. تُطبَّق على سيناريو مزج تركيز عصير مع الماء.",
+      navPrev: "٥.٦ · المتتاليات",
+      navNext: "٦.٢ · النسب المتكافئة",
+      navNextLabel: "التالي",
+      tour: [
+        { elKey: "jar", label: "جزآن من مزيج", body: "ارتفاعا الامتلاء في الوعاء يُظهران النسبة الفعلية بين التركيز والماء." },
+        { elKey: "notations", label: "ثلاث طرق لكتابتها", body: "صيغة النقطتين، وصيغة الكسر، وبالكلمات — الثلاث تقول الشيء نفسه بالضبط." },
+        { ids: ["eqLine"], label: "بسّط كالكسر", body: "اقسم الحدّين على العامل المشترك الأكبر بينهما للوصول إلى أبسط صورة للنسبة." }
+      ]
+    }
+  };
+
+  function gcdOf(a, b) { return b === 0 ? a : gcdOf(b, a % b); }
+
+  const concSlider = document.getElementById("concSlider"), waterSlider = document.getElementById("waterSlider");
+  const concReadout = document.getElementById("concReadout"), waterReadout = document.getElementById("waterReadout");
+  const jarWater = document.getElementById("jarWater"), jarConcentrate = document.getElementById("jarConcentrate");
+  const valColon = document.getElementById("valColon"), valFrac = document.getElementById("valFrac"), valWords = document.getElementById("valWords");
+  const capColon = document.getElementById("capColon"), capFrac = document.getElementById("capFrac"), capWords = document.getElementById("capWords");
+  const eqLine = document.getElementById("eqLine");
+
+  function render() {
+    const t = T[i18n.lang];
+    const conc = parseInt(concSlider.value, 10), water = parseInt(waterSlider.value, 10);
+    concReadout.textContent = conc; waterReadout.textContent = water;
+
+    const total = conc + water;
+    gsap.to(jarConcentrate, { height: (conc / total * 100) + "%", duration: .35 });
+    gsap.to(jarWater, { height: "100%", duration: 0 });
+
+    const g = gcdOf(conc, water);
+    const simA = conc / g, simB = water / g;
+
+    capColon.textContent = t.capColon; capFrac.textContent = t.capFrac; capWords.textContent = t.capWords;
+    valColon.textContent = digits(simA, i18n.lang) + " : " + digits(simB, i18n.lang);
+    valFrac.textContent = digits(simA, i18n.lang) + "/" + digits(simB, i18n.lang);
+    valWords.textContent = t.wordsForm(digits(simA, i18n.lang), digits(simB, i18n.lang));
+
+    const needsSimplify = g > 1;
+    const eqSource = needsSimplify
+      ? `${conc} : ${water} = \\color{#ed6d40}{${simA} : ${simB}}`
+      : `\\color{#ed6d40}{${conc} : ${water}}`;
+    renderEquation(eqLine, eqSource);
+  }
+
+  concSlider.addEventListener("input", render);
+  waterSlider.addEventListener("input", render);
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

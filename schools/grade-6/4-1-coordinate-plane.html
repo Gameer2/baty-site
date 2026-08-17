@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Coordinate Plane — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: all four quadrants, numbered counterclockwise from top-right.
+     Extends Grade 5's 5.2 first-quadrant grid. ---- */
+  .chart{ padding:26px 20px 30px; display:flex; flex-direction:column; align-items:center; gap:16px; }
+  svg#gridSvg{ direction:ltr; touch-action:none; cursor:crosshair; }
+  .grid-line{ stroke:rgba(255,255,255,.08); stroke-width:1; }
+  .axis-line{ stroke:rgba(255,255,255,.4); stroke-width:1.5; }
+  .axis-num{ font-family:var(--mono); font-size:10px; fill:var(--pulse-ash); }
+  .quad-label{ font-family:var(--mono); font-size:12px; fill:var(--pulse-ash); opacity:.6; }
+  .quad-label.active{ fill:var(--infrared); opacity:1; font-weight:700; }
+  .point-dot{ fill:var(--infrared); stroke:var(--off-white); stroke-width:1.5; cursor:grab; }
+  .point-label{ font-family:var(--mono); font-size:12px; font-weight:700; fill:var(--off-white); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 4 · LESSON 1</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">The Coordinate Plane</h1>
+    <span class="title-secondary ar-display" id="titleAr">المستوى الإحداثي</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I recognize the coordinate plane, and locate points on all four quadrants.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" id="eqSubLine">(x, y) and which quadrant it falls in</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <svg id="gridSvg" width="380" height="380" viewBox="0 0 380 380" data-el="gridSvg"></svg>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Extends grade 5's first-quadrant-only plane to all four quadrants (numbered counterclockwise from top-right), with negative coordinates now meaningful. Students read a point's coordinates and identify its quadrant (or axis, if a coordinate is zero) from a diagram, and plot given ordered pairs by moving from the origin, applied to a zoo map and city-location contexts.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="3-4-solve-a-simpler-problem.html">— <b data-role="body" id="navPrevText">3.4 · Solve a Simpler Problem</b></a>
+    <a class="nav-pill next" href="4-2-translation.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">4.2 · Translation in the Coordinate Plane</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, initI18n, renderEquation, buildTour } = LessonShell;
+  const N = 6; // grid units per half-axis
+  const PAD = 30, SIZE = 380, CELL = (SIZE - PAD * 2) / (2 * N);
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 4 · LESSON 1",
+      objectiveLabel: "Objective —",
+      objectiveText: "I recognize the coordinate plane, and locate points on all four quadrants.",
+      eqSub: "(x, y) and which quadrant it falls in",
+      explainBtn: "Explain this",
+      quadI: "I", quadII: "II", quadIII: "III", quadIV: "IV",
+      onAxis: "on an axis",
+      teachLabel: "What this teaches:",
+      teachBody: "Extends grade 5's first-quadrant-only plane to all four quadrants (numbered counterclockwise from top-right), with negative coordinates now meaningful. Students read a point's coordinates and identify its quadrant (or axis, if a coordinate is zero) from a diagram, and plot given ordered pairs by moving from the origin, applied to a zoo map and city-location contexts.",
+      navPrev: "3.4 · Solve a Simpler Problem",
+      navNext: "4.2 · Translation in the Coordinate Plane",
+      navNextLabel: "next",
+      tour: [
+        { ids: ["gridSvg"], label: "Origin and both axes", body: "x and y both start at 0 where they cross — the origin sits at the exact center now, not a corner." },
+        { ids: ["gridSvg"], label: "Four quadrants, counterclockwise", body: "Quadrant I is top-right, then II, III, IV going counterclockwise — the same convention every time." },
+        { ids: ["gridSvg"], label: "Click to plot", body: "Click anywhere — it snaps to the nearest whole point and shows its (x, y) and which quadrant (or axis) it's on." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ٤ · الدرس ١",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أتعرّف المستوى الإحداثي، وأحدّد مواقع نقاط في أرباعه الأربعة.",
+      eqSub: "(x, y) وفي أي ربع تقع",
+      explainBtn: "اشرح هذا",
+      quadI: "الأول", quadII: "الثاني", quadIII: "الثالث", quadIV: "الرابع",
+      onAxis: "على أحد المحورين",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "يوسّع المستوى المقتصر على الربع الأول في الصف الخامس إلى الأرباع الأربعة (مرقّمة عكس اتجاه عقارب الساعة بدءًا من أعلى اليمين)، وتصبح الإحداثيات السالبة ذات معنى الآن. يقرأ الطلبة إحداثيات نقطة ويحدّدون ربعها (أو أنّها على أحد المحورين إن كان أحد إحداثيَيها صفرًا) من رسم، ويرسمون أزواجًا مرتّبة معطاة بالتحرّك من نقطة الأصل، ويُطبَّق ذلك على خريطة حديقة حيوان وسياقات مواقع مدن.",
+      navPrev: "٣.٤ · خطة حل المسألة: حل مسألة أبسط",
+      navNext: "٤.٢ · الانسحاب في المستوى الإحداثي",
+      navNextLabel: "التالي",
+      tour: [
+        { ids: ["gridSvg"], label: "نقطة الأصل والمحوران", body: "يبدأ كل من x و y من ٠ عند تقاطعهما — تقع نقطة الأصل الآن في المنتصف تمامًا، لا في زاوية." },
+        { ids: ["gridSvg"], label: "أربعة أرباع، عكس عقارب الساعة", body: "الربع الأول أعلى اليمين، ثم الثاني والثالث والرابع بعكس اتجاه عقارب الساعة — الاصطلاح نفسه دائمًا." },
+        { ids: ["gridSvg"], label: "انقر لترسم", body: "انقر في أي مكان — تلتصق النقطة بأقرب نقطة صحيحة وتُظهر إحداثياتها (x, y) وفي أي ربع (أو على أي محور) تقع." }
+      ]
+    }
+  };
+
+  const gridSvg = document.getElementById("gridSvg");
+  const eqLine = document.getElementById("eqLine");
+  let point = { x: 3, y: 4 };
+
+  function gx(x) { return PAD + (x + N) * CELL; }
+  function gy(y) { return SIZE - PAD - (y + N) * CELL; }
+
+  function quadrantOf(x, y) {
+    if (x === 0 || y === 0) return "axis";
+    if (x > 0 && y > 0) return "I";
+    if (x < 0 && y > 0) return "II";
+    if (x < 0 && y < 0) return "III";
+    return "IV";
+  }
+
+  function buildGrid() {
+    const t = T[i18n.lang];
+    gridSvg.innerHTML = "";
+    for (let i = -N; i <= N; i++) {
+      const vline = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      vline.setAttribute("x1", gx(i)); vline.setAttribute("x2", gx(i));
+      vline.setAttribute("y1", gy(-N)); vline.setAttribute("y2", gy(N));
+      vline.setAttribute("class", i === 0 ? "axis-line" : "grid-line");
+      gridSvg.appendChild(vline);
+      const hline = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      hline.setAttribute("y1", gy(i)); hline.setAttribute("y2", gy(i));
+      hline.setAttribute("x1", gx(-N)); hline.setAttribute("x2", gx(N));
+      hline.setAttribute("class", i === 0 ? "axis-line" : "grid-line");
+      gridSvg.appendChild(hline);
+      if (i !== 0 && i % 2 === 0) {
+        const xn = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        xn.setAttribute("x", gx(i)); xn.setAttribute("y", gy(0) + 14);
+        xn.setAttribute("class", "axis-num"); xn.setAttribute("text-anchor", "middle");
+        xn.textContent = digits(i, i18n.lang);
+        gridSvg.appendChild(xn);
+        const yn = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        yn.setAttribute("x", gx(0) - 10); yn.setAttribute("y", gy(i) + 3);
+        yn.setAttribute("class", "axis-num"); yn.setAttribute("text-anchor", "end");
+        yn.textContent = digits(i, i18n.lang);
+        gridSvg.appendChild(yn);
+      }
+    }
+
+    const quadPositions = { I: [N / 2, N / 2], II: [-N / 2, N / 2], III: [-N / 2, -N / 2], IV: [N / 2, -N / 2] };
+    const currentQuad = quadrantOf(point.x, point.y);
+    Object.keys(quadPositions).forEach(q => {
+      const [qx, qy] = quadPositions[q];
+      const lbl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      lbl.setAttribute("x", gx(qx)); lbl.setAttribute("y", gy(qy));
+      lbl.setAttribute("class", "quad-label" + (q === currentQuad ? " active" : ""));
+      lbl.setAttribute("text-anchor", "middle");
+      lbl.textContent = t["quad" + q];
+      gridSvg.appendChild(lbl);
+    });
+  }
+
+  function snapFromEvent(evt) {
+    const rect = gridSvg.getBoundingClientRect();
+    const scaleX = SIZE / rect.width, scaleY = SIZE / rect.height;
+    const px = (evt.clientX - rect.left) * scaleX;
+    const py = (evt.clientY - rect.top) * scaleY;
+    const x = Math.round((px - PAD) / CELL) - N;
+    const y = N - Math.round((py - PAD) / CELL);
+    return { x: Math.max(-N, Math.min(N, x)), y: Math.max(-N, Math.min(N, y)) };
+  }
+
+  function drawPoint() {
+    const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    dot.setAttribute("cx", gx(point.x)); dot.setAttribute("cy", gy(point.y));
+    dot.setAttribute("r", 7); dot.setAttribute("class", "point-dot");
+    gridSvg.appendChild(dot);
+    const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    label.setAttribute("x", gx(point.x) + 10); label.setAttribute("y", gy(point.y) - 8);
+    label.setAttribute("class", "point-label");
+    label.textContent = `(${digits(point.x, i18n.lang)}, ${digits(point.y, i18n.lang)})`;
+    gridSvg.appendChild(label);
+
+    const t = T[i18n.lang];
+    const q = quadrantOf(point.x, point.y);
+    const qLabel = q === "axis" ? t.onAxis : "Q" + q;
+    renderEquation(eqLine, `(x, y) = (${point.x}, ${point.y})`);
+    document.getElementById("eqSubLine").textContent = t.eqSub + " — " + qLabel;
+  }
+
+  function render() {
+    buildGrid();
+    drawPoint();
+  }
+
+  gridSvg.addEventListener("click", (e) => {
+    point = snapFromEvent(e);
+    render();
+  });
+
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

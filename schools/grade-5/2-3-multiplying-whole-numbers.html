@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Multiplying Whole Numbers — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:36px 24px 30px; display:flex; flex-direction:column; align-items:center; gap:16px; }
+  .partial-row{ display:flex; align-items:center; gap:14px; font-family:var(--mono); direction:ltr; opacity:0; }
+  .partial-row .tag{ font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--pulse-ash); width:110px; text-align:right; }
+  .partial-row .expr{ font-size:19px; font-weight:700; color:var(--off-white); }
+  .partial-row.sum{ border-top:2px solid rgba(255,255,255,.2); padding-top:14px; margin-top:4px; }
+  .partial-row.sum .expr{ color:var(--infrared); font-size:22px; }
+  .inputs{ display:flex; gap:20px; align-items:center; flex-wrap:wrap; justify-content:center; }
+  .input-group{ display:flex; align-items:center; gap:10px; }
+  .input-group label{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash); }
+  .input-group input{ font-family:var(--mono); font-size:15px; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.16); border-radius:8px; padding:7px 10px; width:100px; direction:ltr; }
+  .estimate-line{ font-family:var(--mono); font-size:13px; color:var(--pulse-ash); text-align:center; direction:ltr; unicode-bidi:isolate; }
+  .estimate-line b{ color:var(--validation-green); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 2 · LESSON 3</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Multiplying Whole Numbers</h1>
+    <span class="title-secondary ar-display" id="titleAr">ضرب الأعداد</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I multiply a whole number by a 1-digit number; I multiply a whole number of up to 3 digits by a 2-digit number.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">two partial products, then summed</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="inputs">
+        <div class="input-group"><label data-role="ui" data-i18n="labelA">number</label><input type="number" id="inputA" value="246" /></div>
+        <div class="input-group"><label data-role="ui" data-i18n="labelB">multiplier</label><input type="number" id="inputB" value="38" /></div>
+      </div>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="partial-row" id="rowOnes"><span class="tag" data-role="ui" id="tagOnes"></span><span class="expr" id="exprOnes"></span></div>
+      <div class="partial-row" id="rowTens"><span class="tag" data-role="ui" id="tagTens"></span><span class="expr" id="exprTens"></span></div>
+      <div class="partial-row sum" id="rowSum" data-el="sumRow"><span class="tag" data-role="ui" id="tagSum"></span><span class="expr" id="exprSum"></span></div>
+      <div class="estimate-line" id="estimateLine"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">The standard multiplication algorithm, place value column by column, extended to two-digit multipliers (partial products for tens and ones, then summed). Each worked example opens with an estimate for a plausibility check against the exact answer.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="2-2-estimating-products.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">2.2 · Estimating Products</b></a>
+    <a class="nav-pill next" href="2-4-estimating-quotients.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">2.4 · Estimating Quotients</b></a>
+  </div>
+</div>
+
+<script>
+  const { groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 2 · LESSON 3",
+      objectiveLabel: "Objective —",
+      objectiveText: "I multiply a whole number by a 1-digit number; I multiply a whole number of up to 3 digits by a 2-digit number.",
+      eqSub: "two partial products, then summed",
+      explainBtn: "Explain this",
+      labelA: "number", labelB: "multiplier",
+      tagOnes: "ones ×", tagTens: "tens ×", tagSum: "sum",
+      estimate: "estimate", exact: "exact",
+      navPrevLabel: "—", navPrevText: "2.2 · Estimating Products",
+      navNextLabel: "next", navNext: "2.4 · Estimating Quotients",
+      teachLabel: "What this teaches:",
+      teachBody: "The standard multiplication algorithm, place value column by column, extended to two-digit multipliers (partial products for tens and ones, then summed). Each worked example opens with an estimate for a plausibility check against the exact answer.",
+      tour: [
+        { ids: ["rowOnes"], label: "Multiply by the ones digit", body: "First, multiply the whole number by just the ones digit of the multiplier." },
+        { ids: ["rowTens"], label: "Multiply by the tens digit", body: "Then multiply by the tens digit — this partial product is really ×10 bigger, which is why it's shifted." },
+        { elKey: "sumRow", label: "Add the partial products", body: "Adding both partial products together gives the final product." },
+        { ids: ["estimateLine"], label: "Sanity-check with an estimate", body: "A quick rounded estimate should land close to the exact answer — if it doesn't, something went wrong." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٢ · الدرس ٣",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أضرب عددًا كليًا بعدد من رقم واحد؛ وأضرب عددًا كليًا من ٣ أرقام بعدد من رقمين.",
+      eqSub: "ناتجان جزئيّان، ثم يُجمعان",
+      explainBtn: "اشرح هذا",
+      labelA: "العدد", labelB: "المضروب فيه",
+      tagOnes: "آحاد ×", tagTens: "عشرات ×", tagSum: "المجموع",
+      estimate: "التقدير", exact: "الناتج الدقيق",
+      navPrevLabel: "—", navPrevText: "٢.٢ · تقدير نواتج الضرب",
+      navNextLabel: "التالي", navNext: "٢.٤ · تقدير ناتج القسمة",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "خوارزمية الضرب القياسية، منزلة منزلة، مُوسَّعة لتشمل مضروبًا فيه من رقمين (ناتج جزئي للعشرات وآخر للآحاد، ثم يُجمعان). يبدأ كل مثال محلول بتقدير للتحقّق من معقولية الناتج الدقيق.",
+      tour: [
+        { ids: ["rowOnes"], label: "اضرب برقم الآحاد", body: "أوّلًا، اضرب العدد الكلّي برقم الآحاد فقط من المضروب فيه." },
+        { ids: ["rowTens"], label: "اضرب برقم العشرات", body: "ثم اضرب برقم العشرات — هذا الناتج الجزئي أكبر فعليًا ×١٠، ولهذا يُزاح." },
+        { elKey: "sumRow", label: "اجمع الناتجين الجزئيَّين", body: "جمع الناتجين الجزئيَّين معًا يعطي الناتج النهائي." },
+        { ids: ["estimateLine"], label: "تحقّق بالتقدير", body: "يجب أن يقترب التقدير السريع المقرَّب من الناتج الدقيق — إن لم يفعل، فهناك خطأ ما." }
+      ]
+    }
+  };
+
+  const inputA = document.getElementById("inputA");
+  const inputB = document.getElementById("inputB");
+  const eqLine = document.getElementById("eqLine");
+  const estimateLine = document.getElementById("estimateLine");
+  const rowOnes = document.getElementById("rowOnes"), exprOnes = document.getElementById("exprOnes"), tagOnes = document.getElementById("tagOnes");
+  const rowTens = document.getElementById("rowTens"), exprTens = document.getElementById("exprTens"), tagTens = document.getElementById("tagTens");
+  const rowSum = document.getElementById("rowSum"), exprSum = document.getElementById("exprSum"), tagSum = document.getElementById("tagSum");
+
+  function leadingRound(n) {
+    const s = String(Math.abs(n));
+    const mag = Math.pow(10, s.length - 1);
+    return Math.round(n / mag) * mag;
+  }
+
+  function render() {
+    const t = T[i18n.lang];
+    const A = parseInt(inputA.value, 10) || 0;
+    const B = parseInt(inputB.value, 10) || 0;
+    const ones = B % 10, tens = Math.floor(B / 10) * 10;
+    const pOnes = A * ones, pTens = A * tens, sum = A * B;
+
+    tagOnes.textContent = t.tagOnes + " " + groupInt(ones, "en");
+    tagTens.textContent = t.tagTens + " " + groupInt(tens, "en");
+    tagSum.textContent = t.tagSum;
+    exprOnes.textContent = groupInt(A, "en") + " × " + groupInt(ones, "en") + " = " + groupInt(pOnes, "en");
+    exprTens.textContent = groupInt(A, "en") + " × " + groupInt(tens, "en") + " = " + groupInt(pTens, "en");
+    exprSum.textContent = groupInt(pOnes, "en") + " + " + groupInt(pTens, "en") + " = " + groupInt(sum, "en");
+
+    gsap.to([rowOnes, rowTens, rowSum], { opacity: 0, duration: 0 });
+    gsap.to(rowOnes, { opacity: 1, duration: .35, delay: .05 });
+    gsap.to(rowTens, { opacity: 1, duration: .35, delay: .3 });
+    gsap.to(rowSum, { opacity: 1, duration: .35, delay: .6 });
+
+    const eqSource = `\\color{#5c939f}{${groupInt(A, "en")}} \\times \\color{#5c939f}{${groupInt(B, "en")}} = \\color{#ed6d40}{${groupInt(sum, "en")}}`;
+    renderEquation(eqLine, eqSource);
+
+    const roundA = leadingRound(A), roundB = leadingRound(B);
+    const estimate = roundA * roundB;
+    estimateLine.dir = "ltr";
+    estimateLine.innerHTML = `${t.estimate}: ${groupInt(roundA, "en")} × ${groupInt(roundB, "en")} ≈ <b>${groupInt(estimate, "en")}</b> &nbsp;·&nbsp; ${t.exact}: <b>${groupInt(sum, "en")}</b>`;
+  }
+
+  inputA.addEventListener("input", render);
+  inputB.addEventListener("input", render);
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

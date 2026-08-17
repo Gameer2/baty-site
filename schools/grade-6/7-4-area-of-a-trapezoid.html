@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Area of a Trapezoid — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: a rotated copy of the trapezoid combines with the original into
+     a parallelogram of base (b1+b2). Direct fork of 7.3's combine animation. ---- */
+  .chart{ padding:26px 20px 30px; display:flex; flex-direction:column; align-items:center; gap:16px; }
+  svg#trapSvg{ direction:ltr; }
+  .trap-orig{ fill:rgba(92,147,159,.28); stroke:var(--electric-teal); stroke-width:2.5; }
+  .trap-copy{ fill:rgba(237,109,64,.2); stroke:var(--infrared); stroke-width:2.5; }
+  .dim-label{ font-family:var(--mono); font-size:12px; fill:var(--neural-fog); }
+
+  .action-btn{ font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--electric-teal); background:none; border:1px solid rgba(92,147,159,.45); border-radius:100px; padding:8px 16px; cursor:pointer; }
+  .action-btn:hover{ background:rgba(92,147,159,.14); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 7 · LESSON 4</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Area of a Trapezoid</h1>
+    <span class="title-secondary ar-display" id="titleAr">مساحة شبه المنحرف</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I find the area of a trapezoid.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">two congruent trapezoids make a parallelogram, base b1+b2</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <button class="action-btn" id="combineBtn" data-role="ui" data-i18n="combineBtn">rotate &amp; combine</button>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <svg id="trapSvg" width="420" height="220" viewBox="0 0 420 220" data-el="trapSvg"></svg>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Preceded by a hands-on geometric activity deriving the formula, Area = ½ × (b1+b2) × h, where b1 and b2 are the two parallel sides. Applied to finding a building facade's visible area using a tape measure.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="7-3-area-of-a-triangle.html">— <b data-role="body" id="navPrevText">7.3 · Area of a Triangle</b></a>
+    <a class="nav-pill next" href="7-5-volume-surface-area-prism.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">7.5 · Volume &amp; Surface Area of a Prism</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const A = { x: 60, y: 190 }, B = { x: 260, y: 190 }, C = { x: 210, y: 90 }, D = { x: 110, y: 90 };
+  const B1_UNITS = 20, B2_UNITS = 10, HEIGHT_UNITS = 10;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 7 · LESSON 4",
+      objectiveLabel: "Objective —",
+      objectiveText: "I find the area of a trapezoid.",
+      eqSub: "two congruent trapezoids make a parallelogram, base b1+b2",
+      explainBtn: "Explain this",
+      combineBtn: "rotate & combine", resetBtn: "reset",
+      teachLabel: "What this teaches:",
+      teachBody: "Preceded by a hands-on geometric activity deriving the formula, Area = ½ × (b1+b2) × h, where b1 and b2 are the two parallel sides. Applied to finding a building facade's visible area using a tape measure.",
+      navPrev: "7.3 · Area of a Triangle",
+      navNext: "7.5 · Volume & Surface Area of a Prism",
+      navNextLabel: "next",
+      tour: [
+        { ids: ["trapSvg"], label: "b1 and b2, the two parallel sides", body: "The bottom side (b1) and top side (b2) are different lengths — that's what makes it a trapezoid, not a parallelogram." },
+        { ids: ["combineBtn"], label: "Rotate 180°", body: "Spin a congruent copy 180° about the midpoint of the shared leg — it attaches on the other side." },
+        { ids: ["eqLine"], label: "Base becomes b1 + b2", body: "Together they form a parallelogram whose base is b1+b2 — so one trapezoid is exactly half of (b1+b2) × h." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ٧ · الدرس ٤",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أجد مساحة شبه المنحرف.",
+      eqSub: "شبها منحرف متطابقان يُكوّنان متوازي أضلاع، قاعدته b1+b2",
+      explainBtn: "اشرح هذا",
+      combineBtn: "دوّر وادمج", resetBtn: "إعادة",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "يسبقه نشاط هندسي عملي يشتقّ الصيغة، المساحة = ½ × (ق١+ق٢) × الارتفاع، حيث ق١ و ق٢ الضلعان المتوازيان. يُطبَّق ذلك على إيجاد المساحة الظاهرة لواجهة مبنى باستخدام شريط قياس.",
+      navPrev: "٧.٣ · مساحة المثلث",
+      navNext: "٧.٥ · حجم المنشور الرباعي ومساحة سطحه",
+      navNextLabel: "التالي",
+      tour: [
+        { ids: ["trapSvg"], label: "ق١ وق٢، الضلعان المتوازيان", body: "الضلع السفلي (ق١) والضلع العلوي (ق٢) مختلفان في الطول — وهذا ما يجعله شبه منحرف، لا متوازي أضلاع." },
+        { ids: ["combineBtn"], label: "دوّر ١٨٠°", body: "أدر نسخة مطابقة ١٨٠° حول منتصف الضلع المشترك — تلتحم بالجهة الأخرى." },
+        { ids: ["eqLine"], label: "القاعدة تصبح ق١ + ق٢", body: "معًا يُكوّنان متوازي أضلاع قاعدته ق١+ق٢ — فشبه المنحرف الواحد نصف (ق١+ق٢) × الارتفاع بالضبط." }
+      ]
+    }
+  };
+
+  const trapSvg = document.getElementById("trapSvg");
+  const combineBtn = document.getElementById("combineBtn");
+  const eqLine = document.getElementById("eqLine");
+
+  const M = { x: (B.x + C.x) / 2, y: (B.y + C.y) / 2 };
+  const reflect = (P) => ({ x: 2 * M.x - P.x, y: 2 * M.y - P.y });
+  const Aprime = reflect(A), Dprime = reflect(D);
+  const startCopy = { ax: A.x, ay: A.y, bx: B.x, by: B.y, cx: C.x, cy: C.y, dx: D.x, dy: D.y };
+  const endCopy = { ax: Aprime.x, ay: Aprime.y, bx: C.x, by: C.y, cx: B.x, cy: B.y, dx: Dprime.x, dy: Dprime.y };
+  const copy = { ...startCopy };
+  let combined = false;
+
+  function render() {
+    const t = T[i18n.lang];
+    trapSvg.innerHTML = "";
+
+    const orig = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+    orig.setAttribute("points", [A, B, C, D].map(p => p.x + "," + p.y).join(" "));
+    orig.setAttribute("class", "trap-orig");
+    trapSvg.appendChild(orig);
+
+    const cop = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+    cop.setAttribute("points", `${copy.ax},${copy.ay} ${copy.bx},${copy.by} ${copy.cx},${copy.cy} ${copy.dx},${copy.dy}`);
+    cop.setAttribute("class", "trap-copy");
+    trapSvg.appendChild(cop);
+
+    const b1Label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    b1Label.setAttribute("x", (A.x + B.x) / 2); b1Label.setAttribute("y", A.y + 20);
+    b1Label.setAttribute("class", "dim-label"); b1Label.setAttribute("text-anchor", "middle");
+    b1Label.textContent = "b1 = " + digits(B1_UNITS, i18n.lang);
+    trapSvg.appendChild(b1Label);
+
+    const b2Label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    b2Label.setAttribute("x", (D.x + C.x) / 2); b2Label.setAttribute("y", D.y - 10);
+    b2Label.setAttribute("class", "dim-label"); b2Label.setAttribute("text-anchor", "middle");
+    b2Label.textContent = "b2 = " + digits(B2_UNITS, i18n.lang);
+    trapSvg.appendChild(b2Label);
+
+    combineBtn.textContent = combined ? t.resetBtn : t.combineBtn;
+
+    const b1 = B1_UNITS, b2 = B2_UNITS, h = HEIGHT_UNITS;
+    const eqSource = combined
+      ? `\\text{parallelogram} = (b_1{+}b_2) \\times h = ${b1 + b2} \\times ${h} = ${(b1 + b2) * h} \\;\\Rightarrow\\; \\text{trapezoid} = \\color{#ed6d40}{${(b1 + b2) * h / 2}}`
+      : `\\tfrac{1}{2}(b_1{+}b_2)h = \\tfrac{1}{2}(${b1}{+}${b2})(${h}) = \\color{#ed6d40}{${(b1 + b2) * h / 2}}`;
+    renderEquation(eqLine, eqSource);
+  }
+
+  combineBtn.addEventListener("click", () => {
+    const target = combined ? startCopy : endCopy;
+    gsap.to(copy, { ...target, duration: .8, ease: "power2.inOut", onUpdate: render });
+    combined = !combined;
+  });
+
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

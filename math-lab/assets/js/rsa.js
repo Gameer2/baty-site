@@ -89,5 +89,14 @@
     if (!NumberTheory.millerRabin(q).prime) return showError(`${q} is not prime.`);
     if (p === q) return showError("p and q must be distinct primes.");
     render(p, q, m);
+    Proto.saveState("engine-lab:number-theory-rsa", { p: pInput.value, q: qInput.value, m: msgInput.value });
   });
+
+  const saved = Proto.loadState("engine-lab:number-theory-rsa");
+  if (saved) {
+    if (saved.p !== undefined) pInput.value = saved.p;
+    if (saved.q !== undefined) qInput.value = saved.q;
+    if (saved.m !== undefined) msgInput.value = saved.m;
+    form.requestSubmit();
+  }
 })();

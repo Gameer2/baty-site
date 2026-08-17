@@ -23,6 +23,11 @@
   const nodeTableBody = document.querySelector("#nodeTable tbody");
 
   let state = null; // { points, order, bounds, curveX, curveY }
+  const STORE_KEY = "engine-lab:numerical-gaussian-quadrature";
+
+  function snapshot() {
+    return { fx: fxInput.value, a: aInput.value, b: bInput.value, order: currentOrder() };
+  }
 
   function currentOrder() {
     const active = modeRow.querySelector(".chip.is-active");
@@ -197,8 +202,7 @@
     state = { points, order, bounds: { xmin, xmax } };
   }
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+  function runCompute() {
     clearError();
 
     const compiled = Engine.compileFx(fxInput.value);
@@ -220,11 +224,26 @@
     }
 
     render(result, compiled, a, b);
+    Proto.saveState(STORE_KEY, snapshot());
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    runCompute();
   });
 
   Engine.attachMathKeypad(fxInput, document.getElementById("fxKeypad"));
   Engine.attachKeypadToggle(document.getElementById("keypadToggle"), document.getElementById("fxKeypad"));
 
+  const saved = Proto.loadState(STORE_KEY);
+  if (saved) {
+    if (saved.fx !== undefined) fxInput.value = saved.fx;
+    if (saved.a !== undefined) aInput.value = saved.a;
+    if (saved.b !== undefined) bInput.value = saved.b;
+    if (saved.order === 2 || saved.order === 3) setOrder(saved.order);
+  }
+
   updatePreview();
   updateStartCheck();
+  if (saved) runCompute();
 })();

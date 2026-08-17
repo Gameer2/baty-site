@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Classifying Triangles by Angle Measure — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:20px 20px 30px; display:flex; flex-direction:column; align-items:center; gap:16px; }
+  svg#triSvg{ direction:ltr; touch-action:none; }
+  .tri-fill{ fill:rgba(92,147,159,.14); stroke:var(--electric-teal); stroke-width:2.5; }
+  .vertex{ fill:var(--off-white); stroke:rgba(0,0,0,.3); stroke-width:1; cursor:grab; }
+  .angle-label{ font-family:var(--mono); font-size:12px; font-weight:700; fill:var(--infrared); }
+  .class-badge{ font-family:var(--mono); font-size:13px; font-weight:700; color:var(--core-black); padding:8px 18px; border-radius:100px; }
+  .class-badge.acute{ background:var(--validation-green); }
+  .class-badge.right{ background:var(--electric-teal); }
+  .class-badge.obtuse{ background:var(--infrared); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 8 · LESSON 4</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Classifying Triangles by Angle Measure</h1>
+    <span class="title-secondary ar-display" id="titleAr">تصنيف المثلثات حسب قياس الزوايا</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I classify a triangle as acute, right, or obtuse by its largest angle.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">drag any vertex</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <svg id="triSvg" width="340" height="260" viewBox="0 0 340 260" data-el="triSvg"></svg>
+      <div class="class-badge" id="classBadge" data-el="classBadge"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">A triangle's classification by angle depends only on its largest angle: under 90° is acute, exactly 90° is right, and over 90° is obtuse — dragging a vertex toward that boundary shows exactly where the classification flips.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="8-3-classifying-triangles-side-length.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">8.3 · Classifying Triangles by Side Length</b></a>
+    <a class="nav-pill next" href="8-5-classifying-quadrilaterals.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">8.5 · Classifying Quadrilaterals</b></a>
+  </div>
+</div>
+
+<script>
+  const { initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 8 · LESSON 4",
+      objectiveLabel: "Objective —",
+      objectiveText: "I classify a triangle as acute, right, or obtuse by its largest angle.",
+      eqSub: "drag any vertex",
+      explainBtn: "Explain this",
+      acute: "acute", right: "right", obtuse: "obtuse",
+      navPrevLabel: "—", navPrevText: "8.3 · Classifying Triangles by Side Length",
+      navNextLabel: "next", navNext: "8.5 · Classifying Quadrilaterals",
+      teachLabel: "What this teaches:",
+      teachBody: "A triangle's classification by angle depends only on its largest angle: under 90° is acute, exactly 90° is right, and over 90° is obtuse — dragging a vertex toward that boundary shows exactly where the classification flips.",
+      tour: [
+        { ids: ["triSvg"], label: "Start acute", body: "With every angle under 90°, the triangle is acute." },
+        { ids: ["triSvg"], label: "Drag toward a right angle", body: "Drag a vertex until one angle reads exactly 90° — the label flips to right." },
+        { elKey: "classBadge", label: "Cross into obtuse", body: "Keep dragging past 90°, and the label flips again to obtuse — only the single largest angle decides the classification." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٨ · الدرس ٤",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أُصنِّف مثلثًا بأنّه حاد الزوايا أو قائم الزاوية أو منفرج الزاوية بحسب أكبر زاوية فيه.",
+      eqSub: "اسحب أي رأس",
+      explainBtn: "اشرح هذا",
+      acute: "حاد الزوايا", right: "قائم الزاوية", obtuse: "منفرج الزاوية",
+      navPrevLabel: "—", navPrevText: "٨.٣ · تصنيف المثلثات حسب أطوال الأضلاع",
+      navNextLabel: "التالي", navNext: "٨.٥ · تصنيف الرباعيات",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "يعتمد تصنيف المثلث حسب الزوايا فقط على أكبر زاوية فيه: أقل من ٩٠° حاد الزوايا، وبالضبط ٩٠° قائم الزاوية، وأكثر من ٩٠° منفرج الزاوية — سحب رأس نحو تلك الحدود يُظهر بالضبط أين ينقلب التصنيف.",
+      tour: [
+        { ids: ["triSvg"], label: "ابدأ حادًّا", body: "عندما تكون كل زاوية أقل من ٩٠°، يكون المثلث حاد الزوايا." },
+        { ids: ["triSvg"], label: "اسحب نحو زاوية قائمة", body: "اسحب رأسًا حتى تصبح إحدى الزوايا ٩٠° بالضبط — يتغيّر التصنيف إلى قائم الزاوية." },
+        { elKey: "classBadge", label: "تجاوز إلى منفرج الزاوية", body: "استمرّ بالسحب متجاوزًا ٩٠°، ويتغيّر التصنيف مجدّدًا إلى منفرج الزاوية — أكبر زاوية وحدها تحدّد التصنيف." }
+      ]
+    }
+  };
+
+  const triSvg = document.getElementById("triSvg");
+  const classBadge = document.getElementById("classBadge");
+  const eqLine = document.getElementById("eqLine");
+
+  let verts = [{ x: 170, y: 40 }, { x: 60, y: 220 }, { x: 280, y: 220 }];
+
+  function dist(p, q) { return Math.hypot(p.x - q.x, p.y - q.y); }
+  function angleAt(p, q, r) {
+    // angle at vertex p, formed by rays p->q and p->r
+    const a = dist(p, q), b = dist(p, r), c = dist(q, r);
+    const cosA = (a * a + b * b - c * c) / (2 * a * b);
+    return (Math.acos(Math.max(-1, Math.min(1, cosA))) * 180) / Math.PI;
+  }
+
+  function classify(angles) {
+    const maxA = Math.max(...angles);
+    if (Math.abs(maxA - 90) < 2) return "right";
+    if (maxA > 90) return "obtuse";
+    return "acute";
+  }
+
+  function render() {
+    const t = T[i18n.lang];
+    triSvg.innerHTML = "";
+    const poly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+    poly.setAttribute("points", verts.map(v => `${v.x},${v.y}`).join(" "));
+    poly.setAttribute("class", "tri-fill");
+    triSvg.appendChild(poly);
+
+    const angles = [
+      angleAt(verts[0], verts[1], verts[2]),
+      angleAt(verts[1], verts[2], verts[0]),
+      angleAt(verts[2], verts[0], verts[1])
+    ];
+
+    verts.forEach((v, i) => {
+      const centroid = { x: (verts[0].x + verts[1].x + verts[2].x) / 3, y: (verts[0].y + verts[1].y + verts[2].y) / 3 };
+      const lx = v.x + (centroid.x - v.x) * 0.25, ly = v.y + (centroid.y - v.y) * 0.25;
+      const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      label.setAttribute("x", lx); label.setAttribute("y", ly);
+      label.setAttribute("class", "angle-label"); label.setAttribute("text-anchor", "middle");
+      label.textContent = Math.round(angles[i]) + "°";
+      triSvg.appendChild(label);
+    });
+
+    verts.forEach((v, i) => {
+      const handle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      handle.setAttribute("cx", v.x); handle.setAttribute("cy", v.y);
+      handle.setAttribute("r", 9); handle.setAttribute("class", "vertex");
+      let dragging = false;
+      handle.addEventListener("pointerdown", (e) => { dragging = true; handle.setPointerCapture(e.pointerId); });
+      handle.addEventListener("pointermove", (e) => {
+        if (!dragging) return;
+        const rect = triSvg.getBoundingClientRect();
+        const scaleX = 340 / rect.width, scaleY = 260 / rect.height;
+        v.x = Math.max(10, Math.min(330, (e.clientX - rect.left) * scaleX));
+        v.y = Math.max(10, Math.min(250, (e.clientY - rect.top) * scaleY));
+        render();
+      });
+      handle.addEventListener("pointerup", () => { dragging = false; });
+      triSvg.appendChild(handle);
+    });
+
+    const cls = classify(angles);
+    classBadge.className = "class-badge " + cls;
+    classBadge.textContent = t[cls];
+
+    const a = angles.map(x => Math.round(x));
+    renderEquation(eqLine, `${a[0]}°,\\; ${a[1]}°,\\; ${a[2]}° \\;\\Rightarrow\\; \\color{#ed6d40}{\\text{${cls}}}`);
+  }
+
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

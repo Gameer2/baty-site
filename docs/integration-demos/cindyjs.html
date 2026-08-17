@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CindyJS — integration demo</title>
+<style>
+@font-face{font-family:'Roc Grotesk';src:url('../../math-lab/assets/fonts/roc-grotesk-regular.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'Roc Grotesk';src:url('../../math-lab/assets/fonts/roc-grotesk-medium.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:'Azeret Mono';src:url('../../math-lab/assets/fonts/azeret-mono-regular.otf') format('opentype');font-weight:400;font-display:swap}
+@font-face{font-family:'Fraunces';src:url('../../math-lab/assets/fonts/fraunces-variable.woff2') format('woff2');font-weight:300 600;font-display:swap}
+</style>
+<script src="vendor/cindy.js"></script>
+<style>
+:root{--core-black:#090909;--rich-carbon:#111;--urban-smoke:#1b1b1b;--pulse-ash:#7d858c;--off-white:#e7e7e7;--neural-fog:#dadada;--electric-teal:#5c939f;--infrared:#ed6d40;--validation-green:#59a993;--validation-red:#cb3500;--font-display:"Roc Grotesk","Helvetica Neue",Arial,sans-serif;--font-mono:"Azeret Mono",ui-monospace,monospace;--font-serif:"Fraunces",Georgia,serif;--radius-sm:4px;--radius-md:8px;--radius-lg:20px;--container-w:1280px}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{background:var(--core-black);color:var(--off-white);font-family:var(--font-display);line-height:1.55}
+.container{max-width:var(--container-w);margin:0 auto;padding:0 24px}
+header.top{position:fixed;top:20px;left:0;right:0;z-index:50}
+.top-inner{max-width:var(--container-w);margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:12px;font-family:var(--font-mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase}
+.brand{display:inline-flex;align-items:center;gap:8px;color:var(--off-white);text-decoration:none}.brand .dot{width:8px;height:8px;border-radius:50%;background:var(--infrared)}
+.top-inner a.lk{color:var(--pulse-ash);text-decoration:none;margin-left:auto}.top-inner a.lk:hover{color:var(--electric-teal)}
+.hero{padding:120px 0 20px}
+.eyebrow{font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--electric-teal);display:inline-flex;align-items:center;gap:8px;margin-bottom:16px}
+.eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.h1{font-family:var(--font-serif);font-weight:350;font-size:clamp(38px,5.6vw,72px);line-height:.98;letter-spacing:-.02em;margin:0 0 14px}
+.p1{font-size:17px;color:var(--neural-fog);max-width:640px;margin:0}
+.section{padding:24px 0 80px}
+.card{background:var(--rich-carbon);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-lg);padding:24px}
+.grid{display:grid;gap:22px;grid-template-columns:1.3fr .7fr}
+@media(max-width:980px){.grid{grid-template-columns:1fr}}
+#stage{width:100%;height:480px;background:var(--core-black);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius-md);overflow:hidden;position:relative}
+#CSCanvas{width:100%;height:480px;background:var(--core-black)}
+label{font-family:var(--font-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--pulse-ash);display:block;margin-bottom:10px}
+.lead{font-family:var(--font-mono);font-size:13px;color:var(--neural-fog);line-height:1.7}
+.lead b{color:var(--off-white)}
+.lead .teal{color:var(--electric-teal)}.lead .red{color:var(--infrared)}
+.legend{display:flex;gap:18px;margin-top:14px;font-family:var(--font-mono);font-size:12px;color:var(--pulse-ash)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend .d{width:10px;height:10px;border-radius:50%}
+.btn{font-family:var(--font-mono);text-transform:uppercase;font-size:11px;letter-spacing:.1em;padding:9px 16px;border-radius:var(--radius-sm);border:1px solid var(--pulse-ash);color:var(--neural-fog);background:transparent;cursor:pointer;transition:.3s}
+.btn:hover{color:var(--core-black);border-color:var(--electric-teal);background:var(--electric-teal)}
+.btn--primary{border-color:var(--infrared);color:var(--core-black);background:var(--infrared)}
+.btn--primary:hover{background:#ff8a5c;border-color:#ff8a5c}
+.controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.callout{margin-top:24px;font-size:14px;color:var(--neural-fog);line-height:1.6}.callout b{color:var(--off-white)}
+code{font-family:var(--font-mono);font-size:12px;color:var(--electric-teal)}
+footer{padding:30px 0 60px;color:var(--pulse-ash);font-size:13px;font-family:var(--font-mono)}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-inner"><a class="brand" href="./index.html"><span class="dot"></span>BACK · DEMOS</a><a class="lk" href="./cindyjs.html">cindyjs</a></div></header>
+
+<section class="hero">
+  <div class="container">
+    <span class="eyebrow">Simulation</span>
+    <h1 class="h1">Grab it. Fling it.</h1>
+    <p class="p1">A live CindyJS physics applet. Drag the teal ball and let go to give it velocity, or drag the infrared gravity well to move where things fall. This is the constraint-based, scriptable simulation layer the Scene Builder would use for school-level demos — no game-engine weight, designed for math/physics teaching.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="card">
+      <div class="grid">
+        <div>
+          <label>Simulation · drag the points</label>
+          <div id="stage"><div id="CSCanvas"></div></div>
+          <div class="controls">
+            <button class="btn btn--primary" id="resetBtn">Reset</button>
+            <button class="btn" id="pauseBtn">Pause / play</button>
+          </div>
+        </div>
+        <div>
+          <label>How to use</label>
+          <div class="lead">
+            <b>1.</b> <span class="teal">Drag the teal ball</span> and release — it keeps your fling's velocity and orbits the well.<br><br>
+            <b>2.</b> <span class="red">Drag the infrared well</span> to relocate gravity; the ball's path changes live.<br><br>
+            <b>3.</b> Stop the ball by dragging it slowly and releasing without a flick.<br><br>
+            The physics is real inverse-square gravity integrated by CindyJS's CindyLab engine — the same engine used in published math/physics teaching applets.
+          </div>
+          <div class="legend">
+            <span><span class="d" style="background:var(--electric-teal)"></span>mass</span>
+            <span><span class="d" style="background:var(--infrared)"></span>attractor</span>
+          </div>
+        </div>
+      </div>
+      <div class="callout">
+        <b>What this shows.</b> Educational physics that's interactive by default — you drag elements and the simulation respects your input. For a Scene Builder, this is the difference between "watch a canned animation" and "manipulate the system." CindyJS is ~150 KB, no build step, scriptable in CindyScript, and renders into a plain div — it slots into a static page the same way your KaTeX/Plotly vendor libs do. Best fit: Schools/Scene Builder pendulums, springs, orbital mechanics, geometric locuses.
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer><div class="container">CindyJS · constraint-based simulation for teaching</div></footer>
+
+<script id="csdraw" type="text/x-cindyscript">
+  fillcircle((0,0), 60, color->[0.035,0.035,0.035]);
+  draw(A, B, color->[0.36,0.58,0.62], size->1, alpha->0.35);
+  fillcircle(B.xy, 0.45, color->[0.93,0.43,0.25]);
+  drawcircle(B.xy, 0.45, color->[1,0.55,0.3], size->1);
+  fillcircle(A.xy, 0.22, color->[0.36,0.58,0.62]);
+  drawcircle(A.xy, 0.22, color->[0.7,0.85,0.9], size->1);
+</script>
+
+<script>
+let cdy;
+function makeCindy(){
+  const TEAL=[0.36,0.58,0.62], RED=[0.93,0.43,0.25];
+  cdy = CindyJS({
+    ports:[{id:"CSCanvas", width:760, height:480}],
+    scripts:"cs*",
+    language:"en",
+    animation:{playing:true, speed:1, loop:true},
+    geometry:[
+      {name:"A", type:"Free", pos:[2,2], color:TEAL, size:6},
+      {name:"B", type:"Free", pos:[0,-2.5], color:RED, size:8}
+    ],
+    behavior:[
+      {type:"Environment", deltat:0.05, accuracy:12},
+      {type:"Mass", geo:["A"], vy:0},
+      {type:"Sun", geo:["B"]}
+    ]
+  });
+}
+makeCindy();
+document.getElementById('resetBtn').onclick=()=>{ if(cdy){cdy.shutdown();} makeCindy(); };
+document.getElementById('pauseBtn').onclick=()=>{ if(!cdy) return; if(cdy.playing) cdy.pauseanimation(); else cdy.playanimation(); };
+</script>
+</body>
+</html>

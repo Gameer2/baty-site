@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Mean — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:40px 24px 40px; display:flex; flex-direction:column; align-items:center; gap:14px; }
+  .track-wrap{ position:relative; width:100%; max-width:480px; height:90px; direction:ltr; touch-action:none; }
+  .track-line{ position:absolute; top:40px; left:0; right:0; height:2px; background:rgba(255,255,255,.16); }
+  .tick{ position:absolute; top:34px; width:1px; height:14px; background:rgba(255,255,255,.14); }
+  .tick-label{ position:absolute; top:52px; font-family:var(--mono); font-size:10px; color:var(--pulse-ash); transform:translateX(-50%); }
+  .value-tile{ position:absolute; top:28px; width:22px; height:22px; margin-left:-11px; border-radius:50%; background:var(--electric-teal); border:2px solid var(--off-white); cursor:grab; z-index:3; }
+  .mean-marker{ position:absolute; top:44px; width:0; height:0; margin-left:-8px; border-left:8px solid transparent; border-right:8px solid transparent; border-bottom:14px solid var(--infrared); z-index:2; }
+  .mean-label{ position:absolute; top:-4px; font-family:var(--mono); font-size:11px; font-weight:700; color:var(--infrared); transform:translateX(-50%); direction:ltr; }
+
+  .actions{ display:flex; gap:10px; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 10 · LESSON 1</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">The Mean</h1>
+    <span class="title-secondary ar-display" id="titleAr">الوسط الحسابي</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I find the mean of a data set, and see it as the balance point of the values.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">sum of values ÷ count of values</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="actions">
+        <button class="explain-btn" id="addBtn" data-role="ui" data-i18n="addBtn">add a value</button>
+        <button class="explain-btn" id="removeBtn" data-role="ui" data-i18n="removeBtn">remove a value</button>
+      </div>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="track-wrap" id="trackWrap" data-el="trackWrap"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">The mean is the value that "balances" a data set — literally the point where the total distance of values above it equals the total distance of values below it, which is exactly why one extreme outlier can pull the mean noticeably toward itself.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="../grade-5/9-4-perimeter-area-compound-shape.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">9.4 · Perimeter and Area of a Compound Shape</b></a>
+    <a class="nav-pill next" href="10-2-median-mode.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">10.2 · The Median and Mode</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, initI18n, renderEquation, buildTour } = LessonShell;
+  const MAXVAL = 20;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 10 · LESSON 1",
+      objectiveLabel: "Objective —",
+      objectiveText: "I find the mean of a data set, and see it as the balance point of the values.",
+      eqSub: "sum of values ÷ count of values",
+      explainBtn: "Explain this",
+      addBtn: "add a value", removeBtn: "remove a value",
+      navPrevLabel: "—", navPrevText: "9.4 · Perimeter and Area of a Compound Shape",
+      navNextLabel: "next", navNext: "10.2 · The Median and Mode",
+      teachLabel: "What this teaches:",
+      teachBody: "The mean is the value that “balances” a data set — literally the point where the total distance of values above it equals the total distance of values below it, which is exactly why one extreme outlier can pull the mean noticeably toward itself.",
+      tour: [
+        { elKey: "trackWrap", label: "A few values", body: "Each dot is one data value, placed by its position on the number line." },
+        { ids: ["eqLine"], label: "The mean marker", body: "The triangle marker is the mean — sum every value, divide by how many there are." },
+        { elKey: "trackWrap", label: "Drag in an outlier", body: "Drag one dot far from the others — watch the mean marker get pulled noticeably toward it." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ١٠ · الدرس ١",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أجد الوسط الحسابي لمجموعة بيانات، وأراه كنقطة توازن للقيم.",
+      eqSub: "مجموع القيم ÷ عددها",
+      explainBtn: "اشرح هذا",
+      addBtn: "أضف قيمة", removeBtn: "أزل قيمة",
+      navPrevLabel: "—", navPrevText: "٩.٤ · محيط ومساحة شكل مركّب",
+      navNextLabel: "التالي", navNext: "١٠.٢ · الوسيط والمنوال",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "الوسط الحسابي هو القيمة التي «توازن» مجموعة البيانات — حرفيًا النقطة التي يتساوى عندها إجمالي بُعد القيم فوقها مع إجمالي بُعد القيم تحتها، وهذا بالضبط سبب قدرة قيمة متطرّفة واحدة على سحب الوسط الحسابي بشكل ملحوظ نحوها.",
+      tour: [
+        { elKey: "trackWrap", label: "بضع قيم", body: "كل نقطة هي قيمة بيانات واحدة، موضوعة بحسب موقعها على خط الأعداد." },
+        { ids: ["eqLine"], label: "مؤشّر الوسط الحسابي", body: "المؤشّر المثلثي هو الوسط الحسابي — اجمع كل القيم، ثم اقسم على عددها." },
+        { elKey: "trackWrap", label: "اسحب قيمة متطرّفة", body: "اسحب نقطة بعيدًا عن البقية — راقب مؤشّر الوسط الحسابي يُسحب بشكل ملحوظ نحوها." }
+      ]
+    }
+  };
+
+  const trackWrap = document.getElementById("trackWrap");
+  const eqLine = document.getElementById("eqLine");
+  const addBtn = document.getElementById("addBtn");
+  const removeBtn = document.getElementById("removeBtn");
+
+  let values = [4, 8, 9, 12, 17];
+
+  function buildTrack() {
+    trackWrap.innerHTML = "";
+    const line = document.createElement("div");
+    line.className = "track-line";
+    trackWrap.appendChild(line);
+    const w = trackWrap.clientWidth || 460;
+
+    for (let v = 0; v <= MAXVAL; v += 2) {
+      const tick = document.createElement("div");
+      tick.className = "tick";
+      tick.style.left = (v / MAXVAL) * w + "px";
+      trackWrap.appendChild(tick);
+      const label = document.createElement("div");
+      label.className = "tick-label";
+      label.style.left = (v / MAXVAL) * w + "px";
+      label.textContent = digits(v, i18n.lang);
+      trackWrap.appendChild(label);
+    }
+
+    values.forEach((v, idx) => {
+      const tile = document.createElement("div");
+      tile.className = "value-tile";
+      tile.style.left = (v / MAXVAL) * w + "px";
+      let dragging = false;
+      tile.addEventListener("pointerdown", (e) => { dragging = true; tile.setPointerCapture(e.pointerId); });
+      tile.addEventListener("pointermove", (e) => {
+        if (!dragging) return;
+        const rect = trackWrap.getBoundingClientRect();
+        const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+        values[idx] = Math.round(ratio * MAXVAL);
+        buildTrack();
+        updateEq();
+      });
+      tile.addEventListener("pointerup", () => { dragging = false; });
+      trackWrap.appendChild(tile);
+    });
+
+    const marker = document.createElement("div");
+    marker.className = "mean-marker";
+    marker.id = "meanMarker";
+    trackWrap.appendChild(marker);
+    const meanLabel = document.createElement("div");
+    meanLabel.className = "mean-label";
+    meanLabel.id = "meanLabel";
+    trackWrap.appendChild(meanLabel);
+
+    updateEq();
+  }
+
+  function updateEq() {
+    const w = trackWrap.clientWidth || 460;
+    const sum = values.reduce((a, b) => a + b, 0);
+    const mean = sum / values.length;
+
+    const marker = document.getElementById("meanMarker");
+    const meanLabel = document.getElementById("meanLabel");
+    if (marker) marker.style.left = (mean / MAXVAL) * w + "px";
+    if (meanLabel) {
+      meanLabel.style.left = (mean / MAXVAL) * w + "px";
+      meanLabel.textContent = mean.toFixed(1);
+    }
+
+    renderEquation(eqLine, `\\dfrac{${values.join(" + ")}}{${values.length}} = \\color{#ed6d40}{${mean.toFixed(1)}}`);
+  }
+
+  addBtn.addEventListener("click", () => {
+    if (values.length >= 8) return;
+    values.push(Math.round(Math.random() * MAXVAL));
+    buildTrack();
+  });
+  removeBtn.addEventListener("click", () => {
+    if (values.length <= 2) return;
+    values.pop();
+    buildTrack();
+  });
+
+  window.addEventListener("resize", buildTrack);
+  const i18n = initI18n(T, { onLangChange: buildTrack });
+  buildTrack();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

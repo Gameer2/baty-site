@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Problem-Solving Strategy: Solve a Simpler Problem — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: a simplified (rounder) problem sits beside the real one — the same
+     method applies to both, and the gap shows how good the estimate was. ---- */
+  .chart{ padding:30px 24px 34px; display:flex; flex-direction:column; align-items:center; gap:20px; }
+  .pair-row{ display:flex; gap:20px; flex-wrap:wrap; justify-content:center; }
+  .prob-card{ width:220px; padding:18px 20px; border-radius:14px; border:1px solid rgba(255,255,255,.1); background:var(--urban-smoke); display:flex; flex-direction:column; gap:10px; }
+  .prob-card.simplified{ border-color:rgba(92,147,159,.4); }
+  .prob-card.original{ border-color:rgba(237,109,64,.3); }
+  .prob-cap{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash); }
+  .prob-line{ font-family:var(--mono); font-size:15px; color:var(--off-white); direction:ltr; }
+  .prob-line b{ color:var(--electric-teal); }
+  .prob-card.original .prob-line b{ color:var(--infrared); }
+  .prob-ans{ font-family:var(--mono); font-size:20px; font-weight:700; direction:ltr; }
+  .prob-card.simplified .prob-ans{ color:var(--electric-teal); }
+  .prob-card.original .prob-ans{ color:var(--infrared); }
+
+  .gap-line{ font-family:var(--mono); font-size:13px; color:var(--neural-fog); direction:ltr; }
+  .gap-line b{ color:var(--validation-green); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 3 · LESSON 4</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Problem-Solving Strategy: Solve a Simpler Problem</h1>
+    <span class="title-secondary ar-display" id="titleAr">خطة حل المسألة: حل مسألة أبسط</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I solve a decimal-heavy word problem by first solving a simplified version, then applying the same method to the real numbers.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">rate × time = distance, both versions</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabel">roundness</label>
+      <input type="range" id="roundSlider" min="0" max="2" step="1" value="0" />
+      <span class="control-val" id="roundReadout">coarse</span>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="pair-row">
+        <div class="prob-card simplified dimmable" data-el="simplified">
+          <span class="prob-cap" id="capSimplified">simplified</span>
+          <div class="prob-line" id="lineSimplified"></div>
+          <div class="prob-ans" id="ansSimplified"></div>
+        </div>
+        <div class="prob-card original dimmable" data-el="original">
+          <span class="prob-cap" id="capOriginal">original (real numbers)</span>
+          <div class="prob-line" id="lineOriginal"></div>
+          <div class="prob-ans" id="ansOriginal"></div>
+        </div>
+      </div>
+      <div class="gap-line dimmable" data-el="gap" id="gapLine"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Replace a decimal-heavy word problem with a simplified version using rounder numbers, solve that, then apply the same method to the original, checking via the inverse operation and via estimation. Applied to scaling a distance-traveled rate by a decimal number of hours.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="3-3-measurement-unit-problems.html">— <b data-role="body" id="navPrevText">3.3 · Problems with Different Units</b></a>
+    <a class="nav-pill next" href="4-1-coordinate-plane.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">4.1 · The Coordinate Plane</b></a>
+  </div>
+</div>
+
+<script>
+  const { initI18n, renderEquation, buildTour } = LessonShell;
+
+  const RATE = 4.3, TIME = 2.7; // km/h, hours — a cyclist's rate × time
+  const LEVELS = [1, 0.5, 0.05];
+  const LEVEL_KEYS = ["coarse", "medium", "fine"];
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 3 · LESSON 4",
+      objectiveLabel: "Objective —",
+      objectiveText: "I solve a decimal-heavy word problem by first solving a simplified version, then applying the same method to the real numbers.",
+      eqSub: "rate × time = distance, both versions",
+      explainBtn: "Explain this",
+      controlLabel: "roundness",
+      levels: { coarse: "coarse", medium: "medium", fine: "fine" },
+      capSimplified: "simplified", capOriginal: "original (real numbers)",
+      gapLine: (g) => `estimate is off by ${g} km — close enough to sanity-check the real answer`,
+      teachLabel: "What this teaches:",
+      teachBody: "Replace a decimal-heavy word problem with a simplified version using rounder numbers, solve that, then apply the same method to the original, checking via the inverse operation and via estimation. Applied to scaling a distance-traveled rate by a decimal number of hours.",
+      navPrev: "3.3 · Problems with Different Units",
+      navNext: "4.1 · The Coordinate Plane",
+      navNextLabel: "next",
+      tour: [
+        { elKey: "simplified", label: "Round to something easy", body: "Rounder numbers are much easier to multiply in your head — that's the whole point of simplifying first." },
+        { elKey: "original", label: "Same method, real numbers", body: "The exact same multiplication — rate × time — applies to the original decimal values, just with more careful arithmetic." },
+        { elKey: "gap", label: "Check with the gap", body: "The simplified answer should land close to the real one — if it's way off, that's a sign of an arithmetic mistake." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ٣ · الدرس ٤",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أحلّ مسألة لفظية كثيفة الأعداد العشرية بحل نسخة مبسّطة منها أولًا، ثم تطبيق الطريقة نفسها على الأعداد الحقيقية.",
+      eqSub: "المعدّل × الزمن = المسافة، في كلتا النسختين",
+      explainBtn: "اشرح هذا",
+      controlLabel: "درجة التقريب",
+      levels: { coarse: "خشنة", medium: "متوسّطة", fine: "دقيقة" },
+      capSimplified: "المبسّطة", capOriginal: "الأصلية (الأعداد الحقيقية)",
+      gapLine: (g) => `يبعد التقدير بمقدار ${g} كم — قريب بما يكفي للتحقّق من معقولية الناتج الحقيقي`,
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "استبدل مسألة لفظية كثيفة الأعداد العشرية بنسخة مبسّطة بأعداد أكثر استدارة، وحُلّها، ثم طبّق الطريقة نفسها على المسألة الأصلية، مع التحقّق بالعملية العكسية وبالتقدير. يُطبَّق على تحجيم معدّل مسافة مقطوعة بعدد عشري من الساعات.",
+      navPrev: "٣.٣ · مسائل بوحدات قياس مختلفة",
+      navNext: "٤.١ · المستوى الإحداثي",
+      navNextLabel: "التالي",
+      tour: [
+        { elKey: "simplified", label: "قرّب إلى شيء سهل", body: "الأعداد الأكثر استدارة أسهل بكثير في الضرب ذهنيًا — وهذا هو جوهر التبسيط أولًا." },
+        { elKey: "original", label: "الطريقة نفسها، بالأعداد الحقيقية", body: "عملية الضرب نفسها — المعدّل × الزمن — تُطبَّق على القيم العشرية الأصلية، مع حساب أكثر دقّة فقط." },
+        { elKey: "gap", label: "تحقّق بالفارق", body: "يجب أن يقترب الناتج المبسّط من الناتج الحقيقي — وإن ابتعد كثيرًا، فهذه إشارة إلى خطأ حسابي." }
+      ]
+    }
+  };
+
+  const roundSlider = document.getElementById("roundSlider");
+  const roundReadout = document.getElementById("roundReadout");
+  const capSimplified = document.getElementById("capSimplified"), capOriginal = document.getElementById("capOriginal");
+  const lineSimplified = document.getElementById("lineSimplified"), ansSimplified = document.getElementById("ansSimplified");
+  const lineOriginal = document.getElementById("lineOriginal"), ansOriginal = document.getElementById("ansOriginal");
+  const gapLine = document.getElementById("gapLine");
+  const eqLine = document.getElementById("eqLine");
+
+  function roundTo(v, step) { return Math.round(v / step) * step; }
+
+  function render() {
+    const t = T[i18n.lang];
+    const levelIdx = parseInt(roundSlider.value, 10);
+    const step = LEVELS[levelIdx];
+    roundReadout.textContent = t.levels[LEVEL_KEYS[levelIdx]];
+
+    const simRate = roundTo(RATE, step), simTime = roundTo(TIME, step);
+    const simAns = +(simRate * simTime).toFixed(2);
+    const realAns = +(RATE * TIME).toFixed(2);
+
+    capSimplified.textContent = t.capSimplified;
+    capOriginal.textContent = t.capOriginal;
+    lineSimplified.innerHTML = `<b>${simRate}</b> km/h × <b>${simTime}</b> h`;
+    lineOriginal.innerHTML = `<b>${RATE}</b> km/h × <b>${TIME}</b> h`;
+    ansSimplified.textContent = simAns + " km";
+    ansOriginal.textContent = realAns + " km";
+
+    const gap = Math.abs(realAns - simAns).toFixed(2);
+    gapLine.textContent = t.gapLine(gap);
+
+    const eqSource = `\\color{#5c939f}{${simRate} \\times ${simTime}} = \\color{#5c939f}{${simAns}} \\quad\\Rightarrow\\quad \\color{#ed6d40}{${RATE} \\times ${TIME}} = \\color{#ed6d40}{${realAns}}`;
+    renderEquation(eqLine, eqSource);
+  }
+
+  roundSlider.addEventListener("input", render);
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

@@ -2,6 +2,7 @@
 (function () {
   "use strict";
   LinAlgPage.init({
+    storeKey: "engine-lab:linear-algebra-markov-chains",
     square: true,
     example: { A: [[0.9, 0.5, 0.1], [0.05, 0.4, 0.3], [0.05, 0.1, 0.6]] },
     compute: (P) => {

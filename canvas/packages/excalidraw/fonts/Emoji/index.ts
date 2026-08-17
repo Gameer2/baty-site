@@ -1,8 +1,8 @@
 import { LOCAL_FONT_PROTOCOL } from "@excalidraw/common";
 
-import { type ExcalidrawFontFaceDescriptor } from "../Fonts";
+import { type SyntropyFontFaceDescriptor } from "../Fonts";
 
-export const EmojiFontFaces: ExcalidrawFontFaceDescriptor[] = [
+export const EmojiFontFaces: SyntropyFontFaceDescriptor[] = [
   {
     uri: LOCAL_FONT_PROTOCOL,
   },

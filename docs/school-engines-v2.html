@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>School Engines — 3 Architectures (lab-grounded)</title>
+<style>
+  @font-face{font-family:"Roc Grotesk";src:url("../math-lab/assets/fonts/roc-grotesk-regular.woff2") format("woff2"),url("../math-lab/assets/fonts/roc-grotesk-regular.woff") format("woff");font-weight:400;font-display:swap}
+  @font-face{font-family:"Roc Grotesk";src:url("../math-lab/assets/fonts/roc-grotesk-medium.woff2") format("woff2"),url("../math-lab/assets/fonts/roc-grotesk-medium.woff") format("woff");font-weight:500;font-display:swap}
+  @font-face{font-family:"Azeret Mono";src:url("../math-lab/assets/fonts/azeret-mono-regular.otf") format("opentype");font-weight:400 700;font-display:swap}
+  @font-face{font-family:"Fraunces";src:url("../math-lab/assets/fonts/fraunces-variable.woff2") format("woff2");font-weight:300 600;font-display:swap}
+  :root{
+    --core-black:#090909; --rich-carbon:#111111; --urban-smoke:#1b1b1b;
+    --pulse-ash:#7d858c; --off-white:#e7e7e7; --neural-fog:#dadada;
+    --electric-teal:#5c939f; --infrared:#ed6d40;
+    --font-display:"Roc Grotesk","Helvetica Neue",Arial,sans-serif;
+    --font-mono:"Azeret Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --font-serif:"Fraunces",Georgia,"Times New Roman",serif;
+    --radius-sm:4px; --radius-md:8px; --radius-lg:20px;
+    /* school engine accents */
+    --c-number:#5c939f; --c-algebra:#8570b3; --c-geometry:#d9a24e; --c-data:#4f8fc0; --c-func:#c15a86;
+    /* existing uni engines */
+    --u-numerical:#5c939f; --u-calc:#4f9e82; --u-linalg:#8570b3; --u-stats:#c99a3c; --u-ode:#4f8fc0; --u-nt:#a3623c; --u-complex:#b45fd0;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--core-black);color:var(--off-white);font-family:var(--font-display);line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1160px;margin:0 auto;padding:56px 24px 120px}
+  .eyebrow{font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--electric-teal);display:inline-flex;align-items:center;gap:8px}
+  .eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+  h1{font-family:var(--font-serif);font-weight:350;font-size:clamp(36px,5.6vw,66px);line-height:1;letter-spacing:-.02em;margin:16px 0 14px;text-wrap:balance}
+  .lede{color:var(--neural-fog);font-size:18px;max-width:68ch;margin:0 0 10px}
+  .ident{background:var(--rich-carbon);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-md);padding:16px 18px;margin:22px 0 8px;font-size:14.5px;color:var(--neural-fog)}
+  .ident b{color:var(--off-white);font-family:var(--font-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+  .ident code{font-family:var(--font-mono);color:var(--electric-teal)}
+
+  .proposal{margin-top:60px;scroll-margin-top:30px}
+  .prop-num{font-family:var(--font-mono);font-size:13px;color:var(--infrared);letter-spacing:.1em}
+  .prop-title{font-family:var(--font-serif);font-weight:400;font-size:clamp(26px,3.8vw,40px);line-height:1.05;letter-spacing:-.01em;margin:6px 0 10px}
+  .prop-phil{color:var(--neural-fog);font-size:16.5px;max-width:72ch;margin:0 0 22px}
+  .prop-phil em{font-family:var(--font-serif);font-style:italic;color:var(--off-white)}
+
+  .trade{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:22px 0}
+  .trade .col{background:var(--rich-carbon);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-md);padding:15px 17px}
+  .trade h4{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;margin:0 0 9px}
+  .trade .pro h4{color:#59a993} .trade .con h4{color:var(--infrared)}
+  .trade ul{margin:0;padding-left:18px;color:var(--neural-fog);font-size:13.5px}
+  .trade li{margin-bottom:5px}
+
+  /* shared chips */
+  .engchip{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;padding:7px 12px;border-radius:100px;border:1px solid;white-space:nowrap}
+  .engchip i{width:8px;height:8px;border-radius:50%}
+  .tag{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:4px 9px;border-radius:100px;border:1px solid rgba(255,255,255,.14);color:var(--pulse-ash)}
+
+  /* ===== S1 ladder ===== */
+  .ladder{position:relative;background:var(--rich-carbon);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-lg);padding:26px 22px}
+  .tier-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--pulse-ash);margin:0 0 12px}
+  .tier{display:grid;gap:12px;margin-bottom:18px}
+  .tier.uni{grid-template-columns:repeat(7,1fr)} .tier.school{grid-template-columns:repeat(5,1fr)}
+  .rung{background:var(--core-black);border:1px solid rgba(255,255,255,.1);border-top:3px solid var(--ac);border-radius:var(--radius-md);padding:12px 12px 13px;position:relative}
+  .rung .rn{font-family:var(--font-serif);font-size:15px;color:var(--off-white);line-height:1.15;margin:0 0 5px}
+  .rung .rk{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ac)}
+  .rung .rph{font-family:var(--font-mono);font-size:10px;color:var(--pulse-ash);margin-top:7px;line-height:1.4}
+  .rail{position:absolute;left:50%;top:78px;bottom:78px;width:2px;background:linear-gradient(180deg,var(--infrared),rgba(237,109,64,.1));transform:translateX(-50%);opacity:.5}
+  .rail-l{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--infrared);background:var(--rich-carbon);padding:4px 8px;border:1px solid rgba(237,109,64,.4);border-radius:100px;writing-mode:vertical-rl}
+  @media(max-width:900px){.tier.uni{grid-template-columns:repeat(3,1fr)}.tier.school{grid-template-columns:repeat(2,1fr)}.rail,.rail-l{display:none}}
+
+  /* ===== S2 journeys ===== */
+  .journey{background:var(--rich-carbon);border:1px solid rgba(255,255,255,.08);border-left:3px solid var(--jc);border-radius:var(--radius-md);padding:16px 18px;margin-bottom:14px}
+  .j-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+  .j-name{font-family:var(--font-serif);font-weight:450;font-size:21px;color:var(--off-white);margin:0}
+  .j-payoff{font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--jc)}
+  .j-track{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .j-stop{font-family:var(--font-mono);font-size:11px;color:var(--neural-fog);background:var(--core-black);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius-sm);padding:6px 9px;position:relative}
+  .j-stop .g{color:var(--pulse-ash);font-size:9px;display:block;letter-spacing:.06em}
+  .j-arrow{color:var(--pulse-ash);font-family:var(--font-mono);font-size:12px}
+  .j-payoff-node{font-family:var(--font-mono);font-size:11px;color:var(--core-black);background:var(--jc);border-radius:100px;padding:6px 12px;font-weight:700}
+  .j-link{font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--pulse-ash);border:1px dashed rgba(255,255,255,.2);border-radius:100px;padding:5px 10px}
+
+  /* ===== S3 instruments ===== */
+  .instruments{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+  .inst{background:var(--rich-carbon);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-lg);padding:18px 16px;position:relative;overflow:hidden}
+  .inst::before{content:"";position:absolute;top:-30%;left:-12%;width:70%;height:60%;background:radial-gradient(circle,var(--ic) 0%,transparent 72%);opacity:.14;filter:blur(6px);pointer-events:none}
+  .inst-name{font-family:var(--font-serif);font-weight:450;font-size:19px;color:var(--off-white);margin:0 0 3px;position:relative}
+  .inst-verb{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ic);margin-bottom:12px;display:block;position:relative}
+  .levels{display:flex;flex-direction:column;gap:6px;position:relative}
+  .lvl{display:flex;align-items:center;gap:9px;font-family:var(--font-mono);font-size:11px;color:var(--neural-fog);background:var(--core-black);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);padding:7px 9px}
+  .lvl .lg{font-size:9px;letter-spacing:.06em;color:var(--ic);font-weight:700;flex:0 0 26px}
+  .lvl .lc{color:var(--pulse-ash);font-size:9px}
+  @media(max-width:1000px){.instruments{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:560px){.instruments{grid-template-columns:1fr}}
+
+  /* hybrid / rec */
+  .rec{margin-top:64px;border-top:2px solid var(--electric-teal);padding-top:38px}
+  .rec h2{font-family:var(--font-serif);font-weight:400;font-size:clamp(26px,3.8vw,40px);margin:0 0 8px;letter-spacing:-.01em}
+  .rec .lede{margin-bottom:24px}
+  .rec-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+  .rec-card{background:var(--rich-carbon);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-md);padding:16px 18px}
+  .rec-card h3{font-family:var(--font-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--electric-teal);margin:0 0 8px}
+  .rec-card p{color:var(--neural-fog);font-size:13.5px;margin:0}
+  .pick{margin-top:26px;padding:18px 20px;background:var(--urban-smoke);border:1px solid rgba(237,109,64,.4);border-left:3px solid var(--infrared);border-radius:var(--radius-md)}
+  .pick .pt{font-family:var(--font-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--infrared);margin-bottom:8px}
+  .pick p{margin:0;color:var(--neural-fog);font-size:15px;max-width:74ch}
+  .pick em{font-family:var(--font-serif);font-style:italic;color:var(--off-white)}
+
+  footer{margin-top:60px;border-top:1px solid rgba(255,255,255,.08);padding-top:18px;color:var(--pulse-ash);font-family:var(--font-mono);font-size:12px;letter-spacing:.04em}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="eyebrow">Schools Product · Engine Architecture v2</span>
+  <h1>Three ways to grow the lab down to grade 4</h1>
+  <p class="lede">Studied the real lab first. The identity: an <em style="font-family:var(--font-serif);font-style:italic">engine</em> is a domain with its own accent; each engine runs in <em style="font-family:var(--font-serif);font-style:italic">phases</em> to a <em style="font-family:var(--font-serif);font-style:italic">payoff</em>; every <em style="font-family:var(--font-serif);font-style:italic">method</em> is a live instrument whose bespoke visualization reveals structure — not an explainer, not a calculator. The school product is the lower rungs of this same ladder.</p>
+
+  <div class="ident">
+    <b>Identity held constant in all three</b> &nbsp;·&nbsp; same shell as the 7 existing engines &nbsp;·&nbsp; one accent per engine &nbsp;·&nbsp; <code>methods.html</code> per engine, organized in phases &nbsp;·&nbsp; each method = live input → bespoke live visual &nbsp;·&nbsp; honest operation budgets &nbsp;·&nbsp; client-side, no server &nbsp;·&nbsp; every school engine <b>ladders up</b> into a university engine you already built.
+  </div>
+
+  <!-- ============ S1 ============ -->
+  <section class="proposal" id="s1">
+    <span class="prop-num">SUGGESTION 1</span>
+    <h2 class="prop-title">Domain engines that ladder up — the “Lab Ladder”</h2>
+    <p class="prop-phil">Five new domain engines, each the school-tier twin of an existing university engine, each with its own phase-arc and payoff. A student climbs: <em>Number → Algebra → Geometry → Data → Functions</em>, and each top rung hands off to a university engine. Closest to the lab you already have — just longer at the bottom.</p>
+
+    <div class="ladder">
+      <div class="rail"></div><div class="rail-l">ladder up</div>
+      <p class="tier-label">Upper rungs · existing university engines (already built)</p>
+      <div class="tier uni">
+        <div class="rung" style="--ac:var(--u-numerical)"><div class="rk">Numerical</div><div class="rn">Numerical</div><div class="rph">root-finding, interpolation</div></div>
+        <div class="rung" style="--ac:var(--u-calc)"><div class="rk">Calculus</div><div class="rn">Calculus</div><div class="rph">derivatives, integrals, series</div></div>
+        <div class="rung" style="--ac:var(--u-linalg)"><div class="rk">Linear Algebra</div><div class="rn">Linear Alg.</div><div class="rph">matrices, eigenvectors</div></div>
+        <div class="rung" style="--ac:var(--u-stats)"><div class="rk">Statistics</div><div class="rn">Statistics</div><div class="rph">distributions, tests</div></div>
+        <div class="rung" style="--ac:var(--u-ode)"><div class="rk">ODE</div><div class="rn">ODE</div><div class="rph">direction fields, RK4</div></div>
+        <div class="rung" style="--ac:var(--u-nt)"><div class="rk">Number Theory</div><div class="rn">Number Theory</div><div class="rph">divisibility → RSA</div></div>
+        <div class="rung" style="--ac:var(--u-complex)"><div class="rk">Complex</div><div class="rn">Complex</div><div class="rph">domain colouring, residues</div></div>
+      </div>
+
+      <p class="tier-label" style="margin-top:20px">Lower rungs · five new school engines (to build)</p>
+      <div class="tier school">
+        <div class="rung" style="--ac:var(--c-number)">
+          <div class="rk">Engine 01 · G4–9</div><div class="rn">Number</div>
+          <div class="rph">place value → fractions/dec/% → ratio → integers/rationals → reals &amp; indices. <b style="color:var(--c-number)">Payoff:</b> the real line as one system. → Number Theory &amp; Numerical</div>
+        </div>
+        <div class="rung" style="--ac:var(--c-algebra)">
+          <div class="rk">Engine 02 · G6–10</div><div class="rn">Algebra</div>
+          <div class="rph">expressions → linear → simultaneous → quadratics → inequalities &amp; sequences. <b style="color:var(--c-algebra)">Payoff:</b> solving = undoing; solution sets have shape. → Linear Algebra &amp; Calculus</div>
+        </div>
+        <div class="rung" style="--ac:var(--c-geometry)">
+          <div class="rk">Engine 03 · G4–10</div><div class="rn">Geometry</div>
+          <div class="rph">shapes/angles → measure → congruence/similarity → Pythagoras &amp; trig → transforms &amp; circle theorems → 3D space. <b style="color:var(--c-geometry)">Payoff:</b> space becomes algebra. → Linear Algebra &amp; Complex</div>
+        </div>
+        <div class="rung" style="--ac:var(--c-data)">
+          <div class="rk">Engine 04 · G6–10</div><div class="rn">Data &amp; Chance</div>
+          <div class="rph">charts → averages/spread → probability → distributions &amp; inference. <b style="color:var(--c-data)">Payoff:</b> reasoning under uncertainty. → Statistics</div>
+        </div>
+        <div class="rung" style="--ac:var(--c-func)">
+          <div class="rk">Engine 05 · G8–10</div><div class="rn">Functions &amp; Trig</div>
+          <div class="rph">coordinate geom → linear/quadratic fns → trig ratios → identities &amp; rules → analytic geom. <b style="color:var(--c-func)">Payoff:</b> the function is a machine; trig is geometry on a circle. → Calculus, ODE, Complex</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="trade">
+      <div class="col pro"><h4>+ Strengths</h4><ul>
+        <li>Most faithful to the existing lab — same shape, just more rungs</li>
+        <li>Every topic has one home; teachers map it to a syllabus strand instantly</li>
+        <li>The ladder is the marketing: “from grade 4 to university, one lab”</li>
+      </ul></div>
+      <div class="col con"><h4>− Trade-offs</h4><ul>
+        <li>5 new engines × ~15 methods each = a lot to build</li>
+        <li>Risk of the lower rungs feeling like “school versions” unless each method has a real bespoke visual</li>
+        <li>Domain silos hide cross-domain ideas (a function is also geometry)</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <!-- ============ S2 ============ -->
+  <section class="proposal" id="s2">
+    <span class="prop-num">SUGGESTION 2</span>
+    <h2 class="prop-title">Through-line journey engines — the “Story Engines”</h2>
+    <p class="prop-phil">Instead of domain silos, five long narrative engines — each a single spine that crosses domains, unified by one mathematical idea, walked from G4 to a payoff that hands off to a university engine. This is exactly what Number Theory already does (<em>divisibility → RSA</em>), stretched across the whole school curriculum.</p>
+
+    <div class="journey" style="--jc:var(--c-number)">
+      <div class="j-head"><h3 class="j-name">The Number Line</h3><span class="j-payoff">payoff: continuity → what a real number is</span></div>
+      <div class="j-track">
+        <span class="j-stop">counting<span class="g">G4</span></span><span class="j-arrow">→</span>
+        <span class="j-stop">fractions &amp; decimals<span class="g">G5–6</span></span><span class="j-arrow">→</span>
+        <span class="j-stop">negatives<span class="g">G7</span></span><span class="j-arrow">→</span>
+        <span class="j-stop">rationals &amp; reals<span class="g">G8–9</span></span><span class="j-arrow">→</span>
+        <span class="j-stop">indices / std form<span class="g">G9</span></span><span class="j-arrow">→</span>
+        <span class="j-payoff-node">continuity</span>
+        <span class="j-link">→ Calculus · Number Theory</span>
+      </div>
+    </div>
+
+    <div class="journey" style="--jc:var(--c-algebra)">
+      <div class="j-head"><h3 class="j-name">The Equation</h3><span class="j-payoff">payoff: solution sets have geometry</span></div>
+      <div class="j-track">
+        <span class="j-stop">balance scales<span class="g">G6</span></span><span class="j-arrow">→</span>
+        <span class="j-stop">linear<span class="g">G7</span></span><span class="j-arrow">→</span>
+        <span class="j-stop">simultaneous<span class="g">G8</span></span><span class="j-arrow">→</span>
+        <span class="j-stop">quadratic<span class="g">G9</span></span><span class="j-arrow">→</span>
+        <span class="j-stop">no-solution / infinite / complex<span class="g">G10</span></span><span class="j-arrow">→</span>
+        <span class="j-payoff-node">solution-set shape</span>
+        <span class="j-link">→ Linear Algebra · Numerical</span>
+      </div>
+    </div>
+
+    <div class="journey" style="--jc:var(--c-geometry)">
+      <div class="j-head"><h3 class="j-name">Shape &amp; Space</h3><span class="j-payoff">payoff: space = algebra (Descartes)</span></div>
+      <div class="j-track">
+        <span class="j-stop">draw shapes<span class="g">G4</span></span><span class="j-arrow">→</span>
+        <span class="j-stop">measure<span class="g">G5–7</span></span><span class="j-arrow">→</span>
+        <span class="j-stop">transform<span class="g">G8</span></span><span class="j-arrow">→</span>
+        <span class="j-stop">prove: congruence/similarity<span class="g">G7–9</span></span><span class="j-arrow">→</span>
+        <span class="j-stop">circle theorems &amp; 3D<span class="g">G9–10</span></span><span class="j-arrow">→</span>
+        <span class="j-payoff-node">space = algebra</span>
+        <span class="j-link">→ Linear Algebra · Complex</span>
+      </div>
+    </div>
+
+    <div class="journey" style="--jc:var(--c-func)">
+      <div class="j-head"><h3 class="j-name">The Function</h3><span class="j-payoff">payoff: a function is a machine; trig is a circle</span></div>
+      <div class="j-track">
+        <span class="j-stop">input→output machine<span class="g">G6–7</span></span><span class="j-arrow">→</span>
+        <span class="j-stop">graphs of lines<span class="g">G8</span></span><span class="j-arrow">→</span>
+        <span class="j-stop">quadratics &amp; curves<span class="g">G9</span></span><span class="j-arrow">→</span>
+        <span class="j-stop">trig on the unit circle<span class="g">G9–10</span></span><span class="j-arrow">→</span>
+        <span class="j-stop">identities &amp; analytic geom<span class="g">G10</span></span><span class="j-arrow">→</span>
+        <span class="j-payoff-node">the function machine</span>
+        <span class="j-link">→ Calculus · ODE · Complex</span>
+      </div>
+    </div>
+
+    <div class="journey" style="--jc:var(--c-data)">
+      <div class="j-head"><h3 class="j-name">Certainty &amp; Chance</h3><span class="j-payoff">payoff: uncertainty, quantified</span></div>
+      <div class="j-track">
+        <span class="j-stop">count things<span class="g">G4–6</span></span><span class="j-arrow">→</span>
+        <span class="j-stop">picture data<span class="g">G6–7</span></span><span class="j-arrow">→</span>
+        <span class="j-stop">centre &amp; spread<span class="g">G7–8</span></span><span class="j-arrow">→</span>
+        <span class="j-stop">chance &amp; probability<span class="g">G7–9</span></span><span class="j-arrow">→</span>
+        <span class="j-stop">distributions &amp; inference<span class="g">G9–10</span></span><span class="j-arrow">→</span>
+        <span class="j-payoff-node">uncertainty quantified</span>
+        <span class="j-link">→ Statistics</span>
+      </div>
+    </div>
+
+    <div class="trade">
+      <div class="col pro"><h4>+ Strengths</h4><ul>
+        <li>Most on-brand — each engine is a story with a payoff, like Number Theory’s arc</li>
+        <li>A student sees <em>where it’s going</em> from G4 — the payoff is the motivator</li>
+        <li>Cross-domain by design: a function is also geometry, an equation is also a set</li>
+      </ul></div>
+      <div class="col con"><h4>− Trade-offs</h4><ul>
+        <li>Harder for a teacher to find “quadratic equations” — it lives inside <em>The Equation</em></li>
+        <li>Topics still need a syllabus index layered on top for school compliance</li>
+        <li>Five long engines can feel like five novels — a lot to finish each</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <!-- ============ S3 ============ -->
+  <section class="proposal" id="s3">
+    <span class="prop-num">SUGGESTION 3</span>
+    <h2 class="prop-title">Instruments that grow — the “Growing Instruments”</h2>
+    <p class="prop-phil">Five live instruments, each a single tool that <em>gains capability levels</em> as the student climbs grades — like a synth that unlocks more oscillators. Not a calculator: each level adds a new live visualization, so the same instrument a G4 pupil uses for arithmetic is, at level 10, solving non-linear systems on a graph. The escalation is the design.</p>
+
+    <div class="instruments">
+      <div class="inst" style="--ic:var(--c-number)">
+        <h3 class="inst-name">The Counter</h3><span class="inst-verb">number, escalating</span>
+        <div class="levels">
+          <div class="lvl"><span class="lg">L4</span> arithmetic, place value</div>
+          <div class="lvl"><span class="lg">L5</span> fractions <span class="lc">+ bar visual</span></div>
+          <div class="lvl"><span class="lg">L6</span> primes, LCM/GCD <span class="lc">+ sieve</span></div>
+          <div class="lvl"><span class="lg">L7</span> integers <span class="lc">+ thermometer</span></div>
+          <div class="lvl"><span class="lg">L8</span> reals, surds <span class="lc">+ line zoom</span></div>
+          <div class="lvl"><span class="lg">L9</span> indices, std form</div>
+        </div>
+      </div>
+      <div class="inst" style="--ic:var(--c-algebra)">
+        <h3 class="inst-name">The Solver</h3><span class="inst-verb">equations, escalating</span>
+        <div class="levels">
+          <div class="lvl"><span class="lg">L6</span> one-step <span class="lc">+ balance scale</span></div>
+          <div class="lvl"><span class="lg">L7</span> linear</div>
+          <div class="lvl"><span class="lg">L8</span> simultaneous <span class="lc">+ 2 lines</span></div>
+          <div class="lvl"><span class="lg">L9</span> quadratic <span class="lc">+ parabola</span></div>
+          <div class="lvl"><span class="lg">L10</span> systems / non-linear</div>
+          <div class="lvl"><span class="lg">L10</span> inequalities <span class="lc">+ regions</span></div>
+        </div>
+      </div>
+      <div class="inst" style="--ic:var(--c-geometry)">
+        <h3 class="inst-name">The Constructor</h3><span class="inst-verb">space, escalating</span>
+        <div class="levels">
+          <div class="lvl"><span class="lg">L4</span> draw shapes</div>
+          <div class="lvl"><span class="lg">L5</span> measure <span class="lc">+ dissect</span></div>
+          <div class="lvl"><span class="lg">L7</span> construct <span class="lc">+ compass</span></div>
+          <div class="lvl"><span class="lg">L8</span> transform <span class="lc">+ matrix peek</span></div>
+          <div class="lvl"><span class="lg">L9</span> circle theorems</div>
+          <div class="lvl"><span class="lg">L10</span> 3D space <span class="lc">+ orbit</span></div>
+        </div>
+      </div>
+      <div class="inst" style="--ic:var(--c-func)">
+        <h3 class="inst-name">The Plotter</h3><span class="inst-verb">functions, escalating</span>
+        <div class="levels">
+          <div class="lvl"><span class="lg">L6</span> plot points</div>
+          <div class="lvl"><span class="lg">L7</span> linear <span class="lc">+ gradient</span></div>
+          <div class="lvl"><span class="lg">L8</span> y=mx+c</div>
+          <div class="lvl"><span class="lg">L9</span> quadratics &amp; trig</div>
+          <div class="lvl"><span class="lg">L10</span> transforms <span class="lc">+ analytic</span></div>
+          <div class="lvl"><span class="lg">L10</span> identities <span class="lc">+ unit circle</span></div>
+        </div>
+      </div>
+      <div class="inst" style="--ic:var(--c-data)">
+        <h3 class="inst-name">The Sampler</h3><span class="inst-verb">data &amp; chance, escalating</span>
+        <div class="levels">
+          <div class="lvl"><span class="lg">L6</span> charts <span class="lc">+ builder</span></div>
+          <div class="lvl"><span class="lg">L7</span> averages <span class="lc">+ tug</span></div>
+          <div class="lvl"><span class="lg">L8</span> probability <span class="lc">+ tree</span></div>
+          <div class="lvl"><span class="lg">L9</span> distributions</div>
+          <div class="lvl"><span class="lg">L10</span> inference <span class="lc">+ CI</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="trade">
+      <div class="col pro"><h4>+ Strengths</h4><ul>
+        <li>Maximum reuse — one instrument serves G4 and G10; capability unlocks are motivating</li>
+        <li>Feels like gear that levels up, not “school vs real” math</li>
+        <li>Fewest top-level surfaces (5 instruments) to maintain</li>
+      </ul></div>
+      <div class="col con"><h4>− Trade-offs</h4><ul>
+        <li>Walks closest to the “just a tool” line you warned about — only the per-level visuals save it</li>
+        <li>A teacher can’t point at one engine for “circle theorems” — it’s Constructor L9</li>
+        <li>Each instrument must be designed for all grades up front (hard first build)</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <!-- ============ RECOMMENDATION ============ -->
+  <section class="rec" id="rec">
+    <span class="eyebrow">Recommendation</span>
+    <h2>Take 1’s coverage, 2’s narrative, 3’s escalation — in layers.</h2>
+    <p class="lede">Don’t pick one. Use <strong>Suggestion 1 (domain engines)</strong> as the structure and the ladder — that’s what gets built and what teachers map to. Engineer each engine as <strong>Suggestion 2’s through-line</strong>: every engine has a phase-arc to a payoff that hands off to a university engine, so a student always sees where it’s going. Borrow <strong>Suggestion 3’s escalation</strong> <em>inside</em> methods — a single method-instrument offers grade-leveled presets/capability, so the Sieve instrument a G6 pupil uses is the same surface that, at L10, runs Pollard’s rho in the Number Theory engine.</p>
+
+    <div class="rec-grid">
+      <div class="rec-card"><h3>Structure = S1</h3><p>Five school domain engines, each with its own accent, each a lower rung under a university engine. One topic, one home. This is the lab you already have, extended downward.</p></div>
+      <div class="rec-card"><h3>Narrative = S2</h3><p>Each engine is written as a journey to a payoff (Number → “the real line”; Algebra → “solution sets have shape”; Geometry → “space = algebra”). The payoff is the hand-off to the university engine above.</p></div>
+      <div class="rec-card"><h3>Inside methods = S3</h3><p>Don’t clone a method per grade. Build one live instrument with capability levels — the same Sieve, Factoriser, Plotter, Solver surface that gains power as the student climbs. Reuse, not duplication.</p></div>
+      <div class="rec-card"><h3>Syllabus view = a filter</h3><p>Layer strand + grade-band filters on top (from the curriculum-scope doc) so a teacher can still ask “show me G7 Algebra.” The engines are the asset; the syllabus is a query over them.</p></div>
+    </div>
+
+    <div class="pick">
+      <div class="pt">Why this wins</div>
+      <p>You keep the lab’s real identity — <em>domain engines, phase-arcs to a payoff, live method-instruments with bespoke visuals</em> — and extend it downward instead of bolting on a “school site.” The school engines become the on-ramp into the 7 you already built, so the whole thing is one continuous lab from grade 4 to university. S3’s escalating instruments stop you from building thirty near-duplicate methods; S2’s payoffs stop the lower rungs from feeling basic. The only new cost is tagging each method with <em>(strand, grade, instrument-level)</em> — and you already have the strand + grade data.</p>
+    </div>
+  </section>
+
+  <footer>Mocked in the lab’s own design language (accent-per-engine on core-black, Roc Grotesk + Azeret Mono + Fraunces). Open via file:// so fonts load from ../math-lab/assets/fonts/. Built after reading index.html, number-theory/methods.html, and engine.css.</footer>
+</div>
+</body>
+</html>

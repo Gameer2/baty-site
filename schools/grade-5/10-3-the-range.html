@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Range — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:40px 24px 40px; display:flex; flex-direction:column; align-items:center; gap:14px; }
+  .track-wrap{ position:relative; width:100%; max-width:480px; height:90px; direction:ltr; touch-action:none; }
+  .track-line{ position:absolute; top:40px; left:0; right:0; height:2px; background:rgba(255,255,255,.16); }
+  .span-band{ position:absolute; top:36px; height:10px; background:rgba(237,109,64,.22); border-radius:5px; z-index:1; }
+  .tick{ position:absolute; top:34px; width:1px; height:14px; background:rgba(255,255,255,.14); }
+  .tick-label{ position:absolute; top:52px; font-family:var(--mono); font-size:10px; color:var(--pulse-ash); transform:translateX(-50%); }
+  .value-tile{ position:absolute; top:28px; width:22px; height:22px; margin-left:-11px; border-radius:50%; background:var(--electric-teal); border:2px solid var(--off-white); cursor:grab; z-index:3; }
+  .value-tile.extreme{ background:var(--infrared); }
+  .range-label{ position:absolute; top:0; font-family:var(--mono); font-size:11px; font-weight:700; color:var(--infrared); transform:translateX(-50%); direction:ltr; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 10 · LESSON 3</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">The Range</h1>
+    <span class="title-secondary ar-display" id="titleAr">المدى</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I find the range of a data set as the gap between its greatest and least values.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">greatest − least</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="track-wrap" id="trackWrap" data-el="trackWrap"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">The range measures how spread out a data set is — just the distance between its greatest and least values, found instantly once those two extremes are located on a number line.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="10-2-median-mode.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">10.2 · The Median and Mode</b></a>
+    <a class="nav-pill next" href="10-4-chances-of-occurrence.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">10.4 · Chances of Occurrence</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, initI18n, renderEquation, buildTour } = LessonShell;
+  const MAXVAL = 20;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 10 · LESSON 3",
+      objectiveLabel: "Objective —",
+      objectiveText: "I find the range of a data set as the gap between its greatest and least values.",
+      eqSub: "greatest − least",
+      explainBtn: "Explain this",
+      navPrevLabel: "—", navPrevText: "10.2 · The Median and Mode",
+      navNextLabel: "next", navNext: "10.4 · Chances of Occurrence",
+      teachLabel: "What this teaches:",
+      teachBody: "The range measures how spread out a data set is — just the distance between its greatest and least values, found instantly once those two extremes are located on a number line.",
+      tour: [
+        { elKey: "trackWrap", label: "Spread the data out", body: "Drag any dot to change the data — the highlighted band always spans from the smallest to the largest value." },
+        { ids: ["trackWrap"], label: "Find the extremes", body: "The two red dots are automatically the current minimum and maximum — everything else sits inside them." },
+        { ids: ["eqLine"], label: "The range is the gap", body: "Subtract the least value from the greatest — that distance is the range." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ١٠ · الدرس ٣",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أجد مدى مجموعة بيانات كالفجوة بين أكبر قيمة وأصغر قيمة فيها.",
+      eqSub: "الأكبر − الأصغر",
+      explainBtn: "اشرح هذا",
+      navPrevLabel: "—", navPrevText: "١٠.٢ · الوسيط والمنوال",
+      navNextLabel: "التالي", navNext: "١٠.٤ · فرص الحدوث",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "يقيس المدى مدى تشتّت مجموعة البيانات — وهو ببساطة المسافة بين أكبر قيمة وأصغرها، تُوجد فورًا بمجرّد تحديد هذين الطرفين على خط الأعداد.",
+      tour: [
+        { elKey: "trackWrap", label: "وزّع البيانات", body: "اسحب أي نقطة لتغيير البيانات — يمتدّ الشريط المُبرَز دائمًا من أصغر قيمة إلى أكبرها." },
+        { ids: ["trackWrap"], label: "أوجد الطرفين", body: "النقطتان الحمراوان هما تلقائيًا القيمتان الصغرى والكبرى الحاليتان — كل ما عداهما يقع بينهما." },
+        { ids: ["eqLine"], label: "المدى هو الفجوة", body: "اطرح أصغر قيمة من أكبر قيمة — تلك المسافة هي المدى." }
+      ]
+    }
+  };
+
+  const trackWrap = document.getElementById("trackWrap");
+  const eqLine = document.getElementById("eqLine");
+  let values = [6, 9, 13, 5, 16, 10];
+
+  function buildTrack() {
+    trackWrap.innerHTML = "";
+    const line = document.createElement("div");
+    line.className = "track-line";
+    trackWrap.appendChild(line);
+    const w = trackWrap.clientWidth || 460;
+
+    const minV = Math.min(...values), maxV = Math.max(...values);
+    const band = document.createElement("div");
+    band.className = "span-band";
+    band.style.left = (minV / MAXVAL) * w + "px";
+    band.style.width = ((maxV - minV) / MAXVAL) * w + "px";
+    trackWrap.appendChild(band);
+
+    for (let v = 0; v <= MAXVAL; v += 2) {
+      const tick = document.createElement("div");
+      tick.className = "tick";
+      tick.style.left = (v / MAXVAL) * w + "px";
+      trackWrap.appendChild(tick);
+      const label = document.createElement("div");
+      label.className = "tick-label";
+      label.style.left = (v / MAXVAL) * w + "px";
+      label.textContent = digits(v, i18n.lang);
+      trackWrap.appendChild(label);
+    }
+
+    values.forEach((v, idx) => {
+      const tile = document.createElement("div");
+      tile.className = "value-tile" + (v === minV || v === maxV ? " extreme" : "");
+      tile.style.left = (v / MAXVAL) * w + "px";
+      let dragging = false;
+      tile.addEventListener("pointerdown", (e) => { dragging = true; tile.setPointerCapture(e.pointerId); });
+      tile.addEventListener("pointermove", (e) => {
+        if (!dragging) return;
+        const rect = trackWrap.getBoundingClientRect();
+        const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+        values[idx] = Math.round(ratio * MAXVAL);
+        buildTrack();
+      });
+      tile.addEventListener("pointerup", () => { dragging = false; });
+      trackWrap.appendChild(tile);
+    });
+
+    const rangeLabel = document.createElement("div");
+    rangeLabel.className = "range-label";
+    rangeLabel.style.left = ((minV + maxV) / 2 / MAXVAL) * w + "px";
+    rangeLabel.textContent = digits(maxV - minV, i18n.lang);
+    trackWrap.appendChild(rangeLabel);
+
+    renderEquation(eqLine, `${maxV} - ${minV} = \\color{#ed6d40}{${maxV - minV}}`);
+  }
+
+  window.addEventListener("resize", buildTrack);
+  const i18n = initI18n(T, { onLangChange: buildTrack });
+  buildTrack();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

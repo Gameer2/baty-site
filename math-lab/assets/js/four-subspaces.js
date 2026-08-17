@@ -2,6 +2,7 @@
 (function () {
   "use strict";
   LinAlgPage.init({
+    storeKey: "engine-lab:linear-algebra-four-subspaces",
     square: false,
     example: { A: [[1, 2, 3], [4, 5, 6], [7, 8, 9]] },
     compute: (A) => ({

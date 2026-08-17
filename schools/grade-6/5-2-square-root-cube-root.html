@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Square Root &amp; Cube Root — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: an n×n tile grid for square roots; n layers of that same grid,
+     side by side, for cube roots. Extends Grade 5's 3.5 square/root grid. ---- */
+  .chart{ padding:26px 20px 30px; display:flex; flex-direction:column; align-items:center; gap:16px; }
+  .mode-toggle{ display:flex; gap:6px; }
+  .mode-btn{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--pulse-ash); background:var(--core-black); border:1px solid rgba(255,255,255,.14); border-radius:100px; padding:6px 14px; cursor:pointer; }
+  .mode-btn.active{ color:var(--off-white); border-color:var(--electric-teal); background:rgba(92,147,159,.12); }
+
+  .grid-wrap{ display:grid; gap:2px; }
+  .tile{ width:16px; height:16px; border-radius:2px; background:rgba(92,147,159,.22); border:1px solid rgba(92,147,159,.5); }
+  .layers-row{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
+  .layer-block{ display:flex; flex-direction:column; align-items:center; gap:5px; }
+  .layer-cap{ font-family:var(--mono); font-size:9.5px; color:var(--pulse-ash); }
+
+  .root-answer{ font-family:var(--mono); font-size:14px; color:var(--neural-fog); direction:ltr; unicode-bidi:isolate; text-align:center; }
+  .root-answer b{ color:var(--infrared); }
+
+  .inputs{ display:flex; align-items:center; gap:10px; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 5 · LESSON 2</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Square Root &amp; Cube Root</h1>
+    <span class="title-secondary ar-display" id="titleAr">الجذر التربيعي والجذر التكعيبي</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I find square roots and cube roots of numbers.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" id="eqSubLine">count the tiles</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="mode-toggle" id="rootToggle">
+        <button class="mode-btn active" data-root="square">square</button>
+        <button class="mode-btn" data-root="cube">cube</button>
+      </div>
+      <div class="mode-toggle" id="dirToggle" style="margin-inline-start:14px;">
+        <button class="mode-btn active" data-dir="forward" id="dirForward">n → power</button>
+        <button class="mode-btn" data-dir="reverse" id="dirReverse">value → n</button>
+      </div>
+    </div>
+    <div class="control-row">
+      <label data-role="ui" id="controlLabel">side length</label>
+      <input type="range" id="nSlider" min="1" max="8" step="1" value="4" />
+      <span class="control-val" id="nReadout">4</span>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div id="squareView" data-el="squareView">
+        <div class="grid-wrap" id="gridWrap"></div>
+      </div>
+      <div id="cubeView" data-el="cubeView" style="display:none;">
+        <div class="layers-row" id="layersRow"></div>
+      </div>
+      <div class="root-answer" id="rootAnswer" data-el="rootAnswer" style="display:none;"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">The square root of a perfect square is the whole number that, multiplied by itself, gives it (√9=3 since 3×3=9); the cube root of a perfect cube is the number multiplied by itself three times to give it (∛8=2 since 2×2×2=8). Applied to finding a square game board's side length from its area.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="5-1-powers-exponents.html">— <b data-role="body" id="navPrevText">5.1 · Powers &amp; Exponents</b></a>
+    <a class="nav-pill next" href="5-3-order-of-operations.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">5.3 · Order of Operations</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 5 · LESSON 2",
+      objectiveLabel: "Objective —",
+      objectiveText: "I find square roots and cube roots of numbers.",
+      explainBtn: "Explain this",
+      controlLabelSide: "side length", controlLabelValue: "area / volume",
+      eqSubForward: "count the tiles",
+      eqSubReverse: "find the side length that matches",
+      dirForward: "n → power", dirReverse: "value → n",
+      layerWord: (i) => "layer " + i,
+      rootAnswerSquare: (area, n) => `${area} tiles arrange into a perfect ${n} × ${n} square, so √${area} = ${n}`,
+      rootAnswerCube: (vol, n) => `${vol} unit cubes arrange into a perfect ${n} × ${n} × ${n} cube, so ∛${vol} = ${n}`,
+      teachLabel: "What this teaches:",
+      teachBody: "The square root of a perfect square is the whole number that, multiplied by itself, gives it (√9=3 since 3×3=9); the cube root of a perfect cube is the number multiplied by itself three times to give it (∛8=2 since 2×2×2=8). Applied to finding a square game board's side length from its area.",
+      navPrev: "5.1 · Powers & Exponents",
+      navNext: "5.3 · Order of Operations",
+      navNextLabel: "next",
+      tour: [
+        { elKey: "squareView", label: "Square: an n×n grid", body: "The grid's tile count is n² — the side length multiplied by itself." },
+        { elKey: "cubeView", label: "Cube: n layers of n×n", body: "Stack n of those grids and you get n³ — the side length multiplied by itself three times." },
+        { ids: ["dirReverse"], label: "Reverse it", body: "Switch to value → n: now you're given the total tiles (or cubes) and have to find the side length — that's the root." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ٥ · الدرس ٢",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أجد الجذر التربيعي والجذر التكعيبي لأعداد.",
+      explainBtn: "اشرح هذا",
+      controlLabelSide: "طول الضلع", controlLabelValue: "المساحة / الحجم",
+      eqSubForward: "عُدّ المربّعات الصغيرة",
+      eqSubReverse: "أوجد طول الضلع المطابق",
+      dirForward: "n ← القوة", dirReverse: "n ← القيمة",
+      layerWord: (i) => "الطبقة " + i,
+      rootAnswerSquare: (area, n) => `تترتّب ${area} مربّعًا في مربّع كامل ${n} × ${n}، إذن ${n} = √${area}`,
+      rootAnswerCube: (vol, n) => `يترتّب ${vol} مكعّبًا في مكعّب كامل ${n} × ${n} × ${n}، إذن ${n} = ∛${vol}`,
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "الجذر التربيعي لمربّع كامل هو العدد الكلّي الذي يعطيه إذا ضُرب في نفسه (٩√=٣ لأنّ ٣×٣=٩)؛ والجذر التكعيبي لمكعّب كامل هو العدد الذي يعطيه إذا ضُرب في نفسه ثلاث مرّات (٨∛=٢ لأنّ ٢×٢×٢=٨). يُطبَّق ذلك على إيجاد طول ضلع لوحة لعبة مربّعة من مساحتها.",
+      navPrev: "٥.١ · القوى والأسس",
+      navNext: "٥.٣ · أولويات العمليات الحسابية",
+      navNextLabel: "التالي",
+      tour: [
+        { elKey: "squareView", label: "المربّع: شبكة n×n", body: "عدد المربّعات الصغيرة في الشبكة هو n² — طول الضلع مضروبًا في نفسه." },
+        { elKey: "cubeView", label: "المكعّب: n طبقة من n×n", body: "كدّس n من تلك الشبكات فتحصل على n³ — طول الضلع مضروبًا في نفسه ثلاث مرّات." },
+        { ids: ["dirReverse"], label: "اعكسها", body: "بدّل إلى القيمة ← n: الآن لديك إجمالي المربّعات (أو المكعّبات) وعليك إيجاد طول الضلع — وهو الجذر." }
+      ]
+    }
+  };
+
+  const PERFECT_SQUARES = [1, 4, 9, 16, 25, 36, 49, 64];
+  const PERFECT_CUBES = [1, 8, 27, 64, 125, 216, 343, 512];
+
+  let rootType = "square", dir = "forward";
+  const rootToggle = document.getElementById("rootToggle");
+  const dirToggle = document.getElementById("dirToggle");
+  const nSlider = document.getElementById("nSlider");
+  const nReadout = document.getElementById("nReadout");
+  const controlLabel = document.getElementById("controlLabel");
+  const gridWrap = document.getElementById("gridWrap");
+  const layersRow = document.getElementById("layersRow");
+  const squareView = document.getElementById("squareView");
+  const cubeView = document.getElementById("cubeView");
+  const rootAnswer = document.getElementById("rootAnswer");
+  const eqLine = document.getElementById("eqLine");
+  const eqSubLine = document.getElementById("eqSubLine");
+
+  function buildSquareGrid(n) {
+    gridWrap.innerHTML = "";
+    gridWrap.style.gridTemplateColumns = `repeat(${n}, 16px)`;
+    for (let i = 0; i < n * n; i++) {
+      const tile = document.createElement("div");
+      tile.className = "tile";
+      gridWrap.appendChild(tile);
+    }
+  }
+  function buildCubeLayers(n) {
+    const t = T[i18n.lang];
+    layersRow.innerHTML = "";
+    for (let l = 0; l < n; l++) {
+      const block = document.createElement("div");
+      block.className = "layer-block";
+      const cap = document.createElement("span");
+      cap.className = "layer-cap";
+      cap.textContent = t.layerWord(digits(l + 1, i18n.lang));
+      const grid = document.createElement("div");
+      grid.className = "grid-wrap";
+      grid.style.gridTemplateColumns = `repeat(${n}, 12px)`;
+      for (let i = 0; i < n * n; i++) {
+        const tile = document.createElement("div");
+        tile.className = "tile";
+        tile.style.width = "12px"; tile.style.height = "12px";
+        grid.appendChild(tile);
+      }
+      block.appendChild(grid);
+      block.appendChild(cap);
+      layersRow.appendChild(block);
+    }
+  }
+
+  function render() {
+    const t = T[i18n.lang];
+    squareView.style.display = rootType === "square" ? "block" : "none";
+    cubeView.style.display = rootType === "cube" ? "block" : "none";
+    nSlider.max = rootType === "square" ? PERFECT_SQUARES.length - 1 || 8 : 8;
+
+    if (dir === "forward") {
+      controlLabel.textContent = t.controlLabelSide;
+      nSlider.min = 1; nSlider.max = rootType === "square" ? 10 : 8;
+      const n = parseInt(nSlider.value, 10);
+      nReadout.textContent = digits(n, i18n.lang);
+      eqSubLine.textContent = t.eqSubForward;
+      rootAnswer.style.display = "none";
+      if (rootType === "square") {
+        buildSquareGrid(n);
+        renderEquation(eqLine, `${groupInt(n, "en")}^2 = \\color{#ed6d40}{${groupInt(n * n, "en")}}`);
+      } else {
+        buildCubeLayers(n);
+        renderEquation(eqLine, `${groupInt(n, "en")}^3 = \\color{#ed6d40}{${groupInt(n * n * n, "en")}}`);
+      }
+    } else {
+      controlLabel.textContent = t.controlLabelValue;
+      eqSubLine.textContent = t.eqSubReverse;
+      rootAnswer.style.display = "block";
+      if (rootType === "square") {
+        nSlider.min = 0; nSlider.max = PERFECT_SQUARES.length - 1;
+        const idx = parseInt(nSlider.value, 10);
+        const area = PERFECT_SQUARES[idx];
+        const n = Math.round(Math.sqrt(area));
+        nReadout.textContent = digits(area, i18n.lang);
+        buildSquareGrid(n);
+        rootAnswer.textContent = t.rootAnswerSquare(groupInt(area, "en"), groupInt(n, "en"));
+        renderEquation(eqLine, `\\sqrt{${groupInt(area, "en")}} = \\color{#ed6d40}{${groupInt(n, "en")}}`);
+      } else {
+        nSlider.min = 0; nSlider.max = PERFECT_CUBES.length - 1;
+        const idx = parseInt(nSlider.value, 10);
+        const vol = PERFECT_CUBES[idx];
+        const n = Math.round(Math.cbrt(vol));
+        nReadout.textContent = digits(vol, i18n.lang);
+        buildCubeLayers(n);
+        rootAnswer.textContent = t.rootAnswerCube(groupInt(vol, "en"), groupInt(n, "en"));
+        renderEquation(eqLine, `\\sqrt[3]{${groupInt(vol, "en")}} = \\color{#ed6d40}{${groupInt(n, "en")}}`);
+      }
+    }
+  }
+
+  rootToggle.querySelectorAll(".mode-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      rootType = btn.dataset.root;
+      rootToggle.querySelectorAll(".mode-btn").forEach(b => b.classList.toggle("active", b === btn));
+      nSlider.value = dir === "forward" ? 4 : (rootType === "square" ? 2 : 2);
+      render();
+    });
+  });
+  dirToggle.querySelectorAll(".mode-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      dir = btn.dataset.dir;
+      dirToggle.querySelectorAll(".mode-btn").forEach(b => b.classList.toggle("active", b === btn));
+      nSlider.value = dir === "forward" ? 4 : 2;
+      render();
+    });
+  });
+  nSlider.addEventListener("input", render);
+
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

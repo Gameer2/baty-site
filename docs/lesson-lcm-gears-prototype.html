@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lesson: Least Common Multiple — The Lab</title>
+<link rel="stylesheet" href="../math-lab/assets/css/engine.css" />
+<link rel="stylesheet" href="../math-lab/assets/proto/proto.css" />
+<style>
+  html, body { background: var(--core-black); }
+  body { padding: 56px 24px 120px; }
+
+  .lesson-shell { max-width: 760px; margin: 0 auto; }
+
+  .lesson-header h1 {
+    font-family: var(--font-serif); font-weight: 450; font-size: clamp(30px, 4vw, 42px);
+    color: var(--off-white); margin: 14px 0 10px;
+  }
+  .lesson-pitch { color: var(--neural-fog); font-size: 15px; max-width: 620px; line-height: 1.6; margin: 0 0 44px; }
+
+  .blocks { display: flex; flex-direction: column; gap: 44px; }
+  .lesson-block {
+    background: var(--rich-carbon); border: 1px solid rgba(255,255,255,.08);
+    border-radius: var(--radius-lg); overflow: hidden;
+  }
+  .lesson-block-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 22px 28px 0;
+  }
+  .lesson-block-label {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--electric-teal); display: flex; align-items: center; gap: 8px;
+  }
+  .lesson-block-label::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .lesson-block-label.is-challenge { color: var(--infrared); }
+  .lesson-block-sub { font-family: var(--font-mono); font-size: 12px; color: var(--pulse-ash); }
+
+  /* ---------- gear rendering (shared) ---------- */
+  .gear-stage {
+    padding: 28px 28px 8px; display: flex; justify-content: center;
+    background:
+      linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 24px 24px,
+      linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 24px 24px;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+  }
+  .gear-svg { width: 100%; max-width: 480px; height: 280px; overflow: visible; }
+
+  .gear-body { stroke-width: 1.75; paint-order: stroke; }
+  .gear-body.is-a { fill: rgba(92,147,159,.16); stroke: var(--electric-teal); }
+  .gear-body.is-b { fill: rgba(237,109,64,.13); stroke: var(--infrared); }
+
+  .gear-pitch { fill: none; stroke: rgba(255,255,255,.16); stroke-width: 1; stroke-dasharray: 1.5 4; }
+  .gear-spoke { stroke: rgba(255,255,255,.16); stroke-width: 1.5; stroke-linecap: round; }
+  .gear-hub { fill: var(--rich-carbon); stroke: rgba(255,255,255,.28); stroke-width: 1.5; }
+  .gear-bore { fill: var(--core-black); stroke: rgba(255,255,255,.14); stroke-width: 1; }
+
+  .gear-marker { stroke: var(--core-black); stroke-width: 1.5; }
+  .gear-marker.is-a { fill: var(--electric-teal); }
+  .gear-marker.is-b { fill: var(--infrared); }
+
+  .gear-ref-tick { stroke: var(--pulse-ash); stroke-width: 1.5; stroke-linecap: round; }
+  .gear-label {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: .04em;
+    fill: var(--pulse-ash); text-anchor: middle;
+  }
+  .gear-flash { fill: none; stroke: var(--validation-green); stroke-width: 2; opacity: 0; }
+  .gear-flash.is-on { animation: flashRing .8s ease-out; }
+  @keyframes flashRing {
+    0% { opacity: .85; stroke-width: 2; }
+    100% { opacity: 0; stroke-width: 20; }
+  }
+
+  /* ---------- controls ---------- */
+  .control-row { display: flex; align-items: center; gap: 14px; padding: 6px 28px; flex-wrap: wrap; }
+  .control-row label {
+    font-family: var(--font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: .07em;
+    color: var(--pulse-ash); width: 96px; flex-shrink: 0;
+  }
+  .control-row input[type="range"] { flex: 1; min-width: 140px; accent-color: var(--electric-teal); }
+  .control-row.is-b input[type="range"] { accent-color: var(--infrared); }
+  .control-row .val { font-family: var(--font-mono); font-size: 15px; color: var(--off-white); width: 30px; text-align: right; }
+
+  .readout-row {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    padding: 18px 28px 4px; font-family: var(--font-mono); font-size: 13px; color: var(--pulse-ash);
+  }
+  .readout-row .lcm-val { color: var(--off-white); font-size: 16px; }
+  .readout-row .lcm-val b { color: var(--validation-green); font-weight: 700; }
+
+  .play-btn {
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--electric-teal); background: none; border: 1px solid rgba(92,147,159,.4); border-radius: 100px;
+    padding: 9px 18px; cursor: pointer;
+  }
+  .play-btn:hover { background: rgba(92,147,159,.12); }
+  .play-btn.is-playing { color: var(--core-black); background: var(--electric-teal); }
+
+  .teach-strip { padding: 18px 28px 26px; }
+  .teach-note { font-size: 13px; color: var(--pulse-ash); line-height: 1.55; }
+  .teach-note b { color: var(--neural-fog); font-weight: 500; }
+
+  /* ---------- challenge-specific ---------- */
+  .puzzle-target {
+    margin: 6px 28px 0; padding: 14px 18px; border-radius: var(--radius-md);
+    background: rgba(237,109,64,.08); border: 1px solid rgba(237,109,64,.25);
+    font-size: 14px; color: var(--neural-fog); line-height: 1.5;
+  }
+  .puzzle-target b { color: var(--infrared); font-family: var(--font-mono); font-size: 15px; }
+
+  .puzzle-actions { display: flex; align-items: center; gap: 12px; padding: 18px 28px 6px; flex-wrap: wrap; }
+  .check-btn {
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--core-black); background: var(--infrared); border: none; border-radius: 100px;
+    padding: 11px 22px; cursor: pointer;
+  }
+  .check-btn:hover { filter: brightness(1.1); }
+  .check-btn:disabled { opacity: .35; cursor: default; }
+  .next-btn {
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--validation-green); background: none; border: 1px solid rgba(89,169,147,.4); border-radius: 100px;
+    padding: 10px 20px; cursor: pointer; display: none;
+  }
+  .next-btn.is-visible { display: inline-flex; }
+  .attempt-count { font-family: var(--font-mono); font-size: 12px; color: var(--pulse-ash); }
+
+  .puzzle-feedback {
+    margin: 4px 28px 0; padding: 14px 18px; border-radius: var(--radius-md); font-size: 13.5px; line-height: 1.5;
+    border: 1px solid rgba(255,255,255,.08); background: var(--urban-smoke); color: var(--neural-fog); display: none;
+  }
+  .puzzle-feedback.is-visible { display: block; }
+  .puzzle-feedback.is-correct { border-color: rgba(89,169,147,.4); background: rgba(89,169,147,.08); color: var(--off-white); }
+  .puzzle-feedback .grade { font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .06em; color: var(--validation-green); }
+
+  .puzzle-trail { display: flex; gap: 6px; padding: 4px 28px 20px; }
+  .puzzle-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.14);
+  }
+  .puzzle-dot.is-solved { background: var(--validation-green); }
+  .puzzle-dot.is-current { background: var(--infrared); }
+
+  .lesson-footer { margin-top: 40px; text-align: center; }
+  .lesson-footer p { font-family: var(--font-mono); font-size: 12px; color: var(--pulse-ash); letter-spacing: .04em; }
+</style>
+</head>
+<body>
+
+<div class="lesson-shell">
+
+  <div class="lesson-header">
+    <span class="eyebrow">Grade 5 · Unit 3, Lesson 3.4</span>
+    <h1>Least Common Multiple</h1>
+    <p class="lesson-pitch">
+      Two gears mesh together. One has fewer teeth than the other, so it spins faster.
+      Both have a marked tooth that starts pointing straight up. Watch how many teeth have
+      to pass before both marks point up again <em>at the same instant</em> — that number is
+      the least common multiple of the two tooth counts.
+    </p>
+  </div>
+
+  <div class="blocks">
+
+    <!-- ============ DEMONSTRATE ============ -->
+    <div class="lesson-block" id="demoBlock">
+      <div class="lesson-block-head">
+        <span class="lesson-block-label">Demonstrate</span>
+        <span class="lesson-block-sub">drag either gear's tooth count</span>
+      </div>
+
+      <div class="gear-stage">
+        <svg class="gear-svg" id="demoSvg" viewBox="0 0 480 260"></svg>
+      </div>
+
+      <div class="control-row">
+        <label>gear A teeth</label>
+        <input type="range" id="demoTeethA" min="3" max="9" step="1" value="4" />
+        <span class="val" id="demoTeethAVal">4</span>
+      </div>
+      <div class="control-row is-b">
+        <label>gear B teeth</label>
+        <input type="range" id="demoTeethB" min="3" max="9" step="1" value="6" />
+        <span class="val" id="demoTeethBVal">6</span>
+      </div>
+
+      <div class="readout-row">
+        <span>teeth passed: <span id="demoTicker" class="mono" style="color:var(--off-white)">0</span></span>
+        <span class="lcm-val">LCM(<span id="demoAlabel">4</span>, <span id="demoBlabel">6</span>) = <b id="demoLcm">12</b></span>
+        <button class="play-btn" id="demoPlay">Play</button>
+      </div>
+
+      <div class="teach-strip">
+        <span class="teach-note"><b>What this teaches:</b> a gear with <i>a</i> teeth completes one full
+        turn every <i>a</i> teeth that pass the mesh point; a gear with <i>b</i> teeth completes one turn
+        every <i>b</i>. Both marks return to the top together only when the teeth-passed count is a
+        multiple of <i>both</i> — the smallest such count is the LCM. The ring flashes each time it happens.</span>
+      </div>
+    </div>
+
+    <!-- ============ CHALLENGE ============ -->
+    <div class="lesson-block" id="challengeBlock">
+      <div class="lesson-block-head">
+        <span class="lesson-block-label is-challenge">Challenge</span>
+        <span class="lesson-block-sub" id="puzzleCounter">puzzle 1 of 3</span>
+      </div>
+
+      <div class="puzzle-target">
+        Choose two tooth counts (3–9 each) so the gears realign every <b id="puzzleTarget">12</b> teeth
+        — not more often, not less.
+      </div>
+
+      <div class="gear-stage">
+        <svg class="gear-svg" id="challengeSvg" viewBox="0 0 480 260"></svg>
+      </div>
+
+      <div class="control-row">
+        <label>gear A teeth</label>
+        <input type="range" id="chTeethA" min="3" max="9" step="1" value="3" />
+        <span class="val" id="chTeethAVal">3</span>
+      </div>
+      <div class="control-row is-b">
+        <label>gear B teeth</label>
+        <input type="range" id="chTeethB" min="3" max="9" step="1" value="3" />
+        <span class="val" id="chTeethBVal">3</span>
+      </div>
+
+      <div class="puzzle-actions">
+        <button class="check-btn" id="checkBtn">Check</button>
+        <button class="next-btn" id="nextBtn">Next puzzle →</button>
+        <span class="attempt-count" id="attemptCount">0 attempts</span>
+      </div>
+
+      <div class="puzzle-feedback" id="puzzleFeedback"></div>
+
+      <div class="puzzle-trail" id="puzzleTrail"></div>
+    </div>
+
+  </div>
+
+  <div class="lesson-footer">
+    <p>THE LAB · SCHOOL VISUALIZATION PROTOTYPE · JORDAN NATIONAL CURRICULUM, GRADE 5</p>
+  </div>
+</div>
+
+<script>
+  // ===================== math =====================
+  function gcd(a, b) { while (b) { [a, b] = [b, a % b]; } return a; }
+  function lcm(a, b) { return (a * b) / gcd(a, b); }
+
+  // ===================== gear geometry =====================
+  function toothPath(cx, cy, teeth, rOuter, rInner) {
+    const step = 360 / teeth;
+    let d = '';
+    const pt = (r, ang) => {
+      const rad = (ang - 90) * Math.PI / 180;
+      return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)];
+    };
+    for (let i = 0; i < teeth; i++) {
+      const a0 = i * step, a1 = a0 + step * 0.30, a2 = a0 + step * 0.5, a3 = a0 + step * 0.70;
+      const [x0, y0] = pt(rInner, a0);
+      const [x1, y1] = pt(rOuter, a1);
+      const [x2, y2] = pt(rOuter, a2);
+      const [x3, y3] = pt(rInner, a3);
+      d += `${i === 0 ? 'M' : 'L'} ${x0.toFixed(2)},${y0.toFixed(2)} L ${x1.toFixed(2)},${y1.toFixed(2)} L ${x2.toFixed(2)},${y2.toFixed(2)} L ${x3.toFixed(2)},${y3.toFixed(2)} `;
+    }
+    return d + 'Z';
+  }
+
+  function radiusFor(teeth) { return 30 + teeth * 5.2; }
+
+  // Builds (once) the static SVG scaffold for a gear pair and returns handles to update per-frame.
+  // Structure per gear: mount (translate only, set once at layout) > rotor (rotate only, set every frame).
+  // Keeping translate and rotate on separate elements avoids the SVG attr-transform / CSS-transform
+  // precedence trap where setting one wipes out the other.
+  function buildGearPair(svg, variant) {
+    svg.innerHTML = '';
+    const NS = 'http://www.w3.org/2000/svg';
+    const mk = (tag, attrs) => {
+      const el = document.createElementNS(NS, tag);
+      Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v));
+      return el;
+    };
+
+    function buildGear(suffix, sideClass) {
+      const mount = mk('g', { id: variant + 'Mount' + suffix });
+      const pitch = mk('circle', { class: 'gear-pitch' });
+      const rotor = mk('g', { class: 'gear-rotor' });
+      const body = mk('path', { class: 'gear-body ' + sideClass });
+      const spokes = mk('g', { class: 'gear-spokes ' + sideClass });
+      for (let i = 0; i < 3; i++) spokes.appendChild(mk('line', { class: 'gear-spoke' }));
+      const bore = mk('circle', { class: 'gear-bore' });
+      const hub = mk('circle', { class: 'gear-hub' });
+      const marker = mk('circle', { class: 'gear-marker ' + sideClass });
+      rotor.appendChild(body); rotor.appendChild(spokes); rotor.appendChild(hub); rotor.appendChild(bore); rotor.appendChild(marker);
+      mount.appendChild(pitch); mount.appendChild(rotor);
+      const tick = mk('line', { class: 'gear-ref-tick' });
+      const flashEl = mk('circle', { class: 'gear-flash' });
+      const label = mk('text', { class: 'gear-label', y: 258 });
+      return { mount, pitch, rotor, body, spokes, bore, hub, marker, tick, flashEl, label };
+    }
+
+    const a = buildGear('A', 'is-a');
+    const b = buildGear('B', 'is-b');
+
+    [a.tick, b.tick, a.flashEl, b.flashEl, a.mount, b.mount, a.label, b.label].forEach(el => svg.appendChild(el));
+
+    return {
+      cy: 150,
+      groupA: a.rotor, groupB: b.rotor,
+      mountA: a.mount, mountB: b.mount,
+      bodyA: a.body, bodyB: b.body,
+      pitchA: a.pitch, pitchB: b.pitch,
+      spokesA: a.spokes, spokesB: b.spokes,
+      hubA: a.hub, hubB: b.hub, boreA: a.bore, boreB: b.bore,
+      markerA: a.marker, markerB: b.marker,
+      tickA: a.tick, tickB: b.tick,
+      flashA: a.flashEl, flashB: b.flashEl,
+      labelA: a.label, labelB: b.label,
+    };
+  }
+
+  function layoutGearPair(handles, teethA, teethB) {
+    const rA = radiusFor(teethA), rB = radiusFor(teethB);
+    const gap = 2;
+    const totalWidth = 2 * rA + gap + 2 * rB;
+    const startX = 240 - totalWidth / 2;
+    const cA = startX + rA;
+    const cB = startX + totalWidth - rB;
+    const cy = handles.cy;
+    const rInA = rA * 0.70, rInB = rB * 0.70;
+
+    handles.bodyA.setAttribute('d', toothPath(0, 0, teethA, rA, rInA));
+    handles.bodyB.setAttribute('d', toothPath(0, 0, teethB, rB, rInB));
+    handles.mountA.setAttribute('transform', `translate(${cA} ${cy})`);
+    handles.mountB.setAttribute('transform', `translate(${cB} ${cy})`);
+
+    handles.pitchA.setAttribute('r', (rA + rInA) / 2);
+    handles.pitchB.setAttribute('r', (rB + rInB) / 2);
+
+    [[handles.spokesA, rInA], [handles.spokesB, rInB]].forEach(([spokes, rIn]) => {
+      const lines = spokes.querySelectorAll('line');
+      lines.forEach((ln, i) => {
+        const ang = (i / lines.length) * 360 - 90;
+        const rad = ang * Math.PI / 180;
+        ln.setAttribute('x1', (Math.cos(rad) * 11).toFixed(2));
+        ln.setAttribute('y1', (Math.sin(rad) * 11).toFixed(2));
+        ln.setAttribute('x2', (Math.cos(rad) * rIn * 0.86).toFixed(2));
+        ln.setAttribute('y2', (Math.sin(rad) * rIn * 0.86).toFixed(2));
+      });
+    });
+
+    handles.hubA.setAttribute('r', 11); handles.hubB.setAttribute('r', 11);
+    handles.boreA.setAttribute('r', 4.5); handles.boreB.setAttribute('r', 4.5);
+    handles.markerA.setAttribute('r', 4.5); handles.markerB.setAttribute('r', 4.5);
+    handles.markerA.setAttribute('cy', -(rA - 6)); handles.markerA.setAttribute('cx', 0);
+    handles.markerB.setAttribute('cy', -(rB - 6)); handles.markerB.setAttribute('cx', 0);
+
+    handles.tickA.setAttribute('x1', cA); handles.tickA.setAttribute('x2', cA);
+    handles.tickA.setAttribute('y1', cy - rA - 18); handles.tickA.setAttribute('y2', cy - rA - 8);
+    handles.tickB.setAttribute('x1', cB); handles.tickB.setAttribute('x2', cB);
+    handles.tickB.setAttribute('y1', cy - rB - 18); handles.tickB.setAttribute('y2', cy - rB - 8);
+
+    handles.flashA.setAttribute('cx', cA); handles.flashA.setAttribute('cy', cy); handles.flashA.setAttribute('r', rA + 5);
+    handles.flashB.setAttribute('cx', cB); handles.flashB.setAttribute('cy', cy); handles.flashB.setAttribute('r', rB + 5);
+
+    handles.labelA.setAttribute('x', cA); handles.labelA.textContent = teethA + ' teeth';
+    handles.labelB.setAttribute('x', cB); handles.labelB.textContent = teethB + ' teeth';
+
+    return { cA, cB, cy, rA, rB };
+  }
+
+  function poseGearPair(handles, teethA, teethB, t) {
+    const angA = (t / teethA) * 360 % 360;
+    const angB = -((t / teethB) * 360 % 360);
+    handles.groupA.setAttribute('transform', `rotate(${angA})`);
+    handles.groupB.setAttribute('transform', `rotate(${angB})`);
+  }
+
+  function flash(el) {
+    el.classList.remove('is-on');
+    // force reflow so the animation can restart
+    void el.getBoundingClientRect();
+    el.classList.add('is-on');
+  }
+
+  // ===================== Demonstrate block =====================
+  (function () {
+    const svg = document.getElementById('demoSvg');
+    const handles = buildGearPair(svg, 'demo');
+    const teethASlider = document.getElementById('demoTeethA');
+    const teethBSlider = document.getElementById('demoTeethB');
+    const teethAVal = document.getElementById('demoTeethAVal');
+    const teethBVal = document.getElementById('demoTeethBVal');
+    const ticker = document.getElementById('demoTicker');
+    const lcmA = document.getElementById('demoAlabel');
+    const lcmB = document.getElementById('demoBlabel');
+    const lcmOut = document.getElementById('demoLcm');
+    const playBtn = document.getElementById('demoPlay');
+
+    let teethA = 4, teethB = 6, t = 0, playing = false, rafId = null, lastTs = null;
+    const SPEED = 12; // teeth-units per second
+
+    function relayout() {
+      layoutGearPair(handles, teethA, teethB);
+      poseGearPair(handles, teethA, teethB, t);
+      lcmA.textContent = teethA; lcmB.textContent = teethB;
+      lcmOut.textContent = lcm(teethA, teethB);
+    }
+
+    function step(ts) {
+      if (!playing) return;
+      if (lastTs === null) lastTs = ts;
+      const dt = (ts - lastTs) / 1000;
+      lastTs = ts;
+      const prevT = t;
+      t += dt * SPEED;
+      ticker.textContent = Math.floor(t);
+      const L = lcm(teethA, teethB);
+      if (Math.floor(prevT / L) < Math.floor(t / L)) {
+        flash(handles.flashA);
+        flash(handles.flashB);
+      }
+      poseGearPair(handles, teethA, teethB, t);
+      rafId = requestAnimationFrame(step);
+    }
+
+    teethASlider.addEventListener('input', () => {
+      teethA = parseInt(teethASlider.value, 10);
+      teethAVal.textContent = teethA;
+      t = 0; ticker.textContent = '0';
+      relayout();
+    });
+    teethBSlider.addEventListener('input', () => {
+      teethB = parseInt(teethBSlider.value, 10);
+      teethBVal.textContent = teethB;
+      t = 0; ticker.textContent = '0';
+      relayout();
+    });
+    playBtn.addEventListener('click', () => {
+      playing = !playing;
+      playBtn.textContent = playing ? 'Pause' : 'Play';
+      playBtn.classList.toggle('is-playing', playing);
+      if (playing) { lastTs = null; rafId = requestAnimationFrame(step); }
+      else if (rafId) cancelAnimationFrame(rafId);
+    });
+
+    relayout();
+  })();
+
+  // ===================== Challenge block =====================
+  (function () {
+    const svg = document.getElementById('challengeSvg');
+    const handles = buildGearPair(svg, 'ch');
+    const teethASlider = document.getElementById('chTeethA');
+    const teethBSlider = document.getElementById('chTeethB');
+    const teethAVal = document.getElementById('chTeethAVal');
+    const teethBVal = document.getElementById('chTeethBVal');
+    const checkBtn = document.getElementById('checkBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const attemptCountEl = document.getElementById('attemptCount');
+    const feedback = document.getElementById('puzzleFeedback');
+    const puzzleTargetEl = document.getElementById('puzzleTarget');
+    const puzzleCounterEl = document.getElementById('puzzleCounter');
+    const trailEl = document.getElementById('puzzleTrail');
+
+    const puzzles = [12, 18, 24];
+    let puzzleIndex = 0, attempts = 0, solved = false;
+    let teethA = 3, teethB = 3;
+
+    puzzles.forEach((_, i) => {
+      const dot = document.createElement('span');
+      dot.className = 'puzzle-dot' + (i === 0 ? ' is-current' : '');
+      dot.id = 'dot' + i;
+      trailEl.appendChild(dot);
+    });
+
+    function relayout() {
+      layoutGearPair(handles, teethA, teethB);
+      poseGearPair(handles, teethA, teethB, 0);
+    }
+
+    function runRevealAnimation(target) {
+      const start = performance.now();
+      const DURATION = 1400;
+      function frame(ts) {
+        const p = Math.min(1, (ts - start) / DURATION);
+        poseGearPair(handles, teethA, teethB, target * p);
+        if (p < 1) requestAnimationFrame(frame);
+        else { flash(handles.flashA); flash(handles.flashB); }
+      }
+      requestAnimationFrame(frame);
+    }
+
+    function updateTrail() {
+      puzzles.forEach((_, i) => {
+        const dot = document.getElementById('dot' + i);
+        dot.classList.toggle('is-current', i === puzzleIndex);
+        dot.classList.toggle('is-solved', i < puzzleIndex);
+      });
+    }
+
+    function loadPuzzle(i) {
+      puzzleIndex = i;
+      attempts = 0; solved = false;
+      teethA = 3; teethB = 3;
+      teethASlider.value = 3; teethBSlider.value = 3;
+      teethAVal.textContent = 3; teethBVal.textContent = 3;
+      puzzleTargetEl.textContent = puzzles[i];
+      puzzleCounterEl.textContent = `puzzle ${i + 1} of ${puzzles.length}`;
+      attemptCountEl.textContent = '0 attempts';
+      feedback.className = 'puzzle-feedback';
+      feedback.textContent = '';
+      nextBtn.classList.remove('is-visible');
+      checkBtn.disabled = false;
+      updateTrail();
+      relayout();
+    }
+
+    teethASlider.addEventListener('input', () => {
+      teethA = parseInt(teethASlider.value, 10);
+      teethAVal.textContent = teethA;
+      relayout();
+    });
+    teethBSlider.addEventListener('input', () => {
+      teethB = parseInt(teethBSlider.value, 10);
+      teethBVal.textContent = teethB;
+      relayout();
+    });
+
+    checkBtn.addEventListener('click', () => {
+      if (solved) return;
+      attempts++;
+      attemptCountEl.textContent = `${attempts} attempt${attempts === 1 ? '' : 's'}`;
+      const target = puzzles[puzzleIndex];
+      const L = lcm(teethA, teethB);
+
+      if (L === target) {
+        solved = true;
+        checkBtn.disabled = true;
+        const grade = attempts === 1 ? 'Gold — first try' : attempts <= 3 ? 'Silver' : 'Bronze';
+        feedback.className = 'puzzle-feedback is-visible is-correct';
+        feedback.innerHTML = `<span class="grade">${grade}</span> — ${teethA} and ${teethB} teeth realign every ${L}, exactly the target.`;
+        nextBtn.classList.add('is-visible');
+        nextBtn.textContent = puzzleIndex === puzzles.length - 1 ? 'Finish' : 'Next puzzle →';
+        runRevealAnimation(target);
+        updateTrail();
+      } else {
+        feedback.className = 'puzzle-feedback is-visible';
+        const direction = L < target ? 'try a bigger pair, or two numbers with fewer shared factors' : 'try a smaller pair';
+        feedback.textContent = `${teethA} and ${teethB} teeth realign every ${L} — you need ${target}. (${direction}.)`;
+      }
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if (puzzleIndex < puzzles.length - 1) {
+        loadPuzzle(puzzleIndex + 1);
+      } else {
+        feedback.className = 'puzzle-feedback is-visible is-correct';
+        feedback.innerHTML = `<span class="grade">All 3 solved</span> — nice work.`;
+        nextBtn.classList.remove('is-visible');
+      }
+    });
+
+    loadPuzzle(0);
+  })();
+
+  // Prevent an incidental mouse-wheel pass over a slider (e.g. while scrolling the page)
+  // from silently changing its value — Chrome adjusts range inputs on wheel-over by default.
+  document.querySelectorAll('input[type="range"]').forEach(el => {
+    el.addEventListener('wheel', e => e.preventDefault(), { passive: false });
+  });
+</script>
+
+</body>
+</html>

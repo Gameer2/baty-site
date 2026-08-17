@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mixed Numbers — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:34px 24px 34px; display:flex; flex-direction:column; align-items:center; gap:30px; }
+  .track-wrap{ position:relative; width:100%; max-width:520px; height:60px; direction:ltr; touch-action:none; }
+  .track-line{ position:absolute; top:28px; left:0; right:0; height:2px; background:rgba(255,255,255,.16); }
+  .tick{ position:absolute; top:20px; width:1px; height:18px; background:rgba(255,255,255,.14); }
+  .tick.whole{ background:rgba(255,255,255,.35); height:22px; top:18px; }
+  .tick-label{ position:absolute; top:42px; font-family:var(--mono); font-size:10.5px; color:var(--pulse-ash); transform:translateX(-50%); }
+  .drag-dot{ position:absolute; top:20px; width:20px; height:20px; margin-left:-10px; border-radius:50%; background:var(--infrared); border:2px solid var(--off-white); cursor:grab; box-shadow:0 0 0 4px rgba(237,109,64,.18); z-index:3; }
+  .drag-dot:active{ cursor:grabbing; }
+
+  .pie-stack{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; max-width:480px; }
+  svg.pie{ overflow:visible; }
+  .slice{ fill:rgba(255,255,255,.05); stroke:rgba(255,255,255,.18); stroke-width:1; }
+  .slice.filled{ fill:var(--electric-teal); stroke:rgba(92,147,159,.7); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 4 · LESSON 1</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Mixed Numbers</h1>
+    <span class="title-secondary ar-display" id="titleAr">الأعداد الكسرية</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I represent a value as an improper fraction and as a mixed number, and see that they name the same amount.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">two names, one amount</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabel">drag the point</label>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="track-wrap" id="trackWrap" data-el="trackWrap"></div>
+      <div class="pie-stack" id="pieStack" data-el="pieStack"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">A mixed number and its equivalent improper fraction name the exact same point on the number line — the pies show why: whole circles plus one partial circle is the same total area as one big stack of eighths.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="../grade-5/3-5-square-square-root.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">3.5 · Square and Square Root</b></a>
+    <a class="nav-pill next" href="4-2-comparing-ordering-fractions.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">4.2 · Comparing and Ordering Fractions</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+  const DEN = 8, MAXWHOLE = 3, STEPS = DEN * MAXWHOLE;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 4 · LESSON 1",
+      objectiveLabel: "Objective —",
+      objectiveText: "I represent a value as an improper fraction and as a mixed number, and see that they name the same amount.",
+      eqSub: "two names, one amount",
+      explainBtn: "Explain this",
+      controlLabel: "drag the point",
+      navPrevLabel: "—", navPrevText: "3.5 · Square and Square Root",
+      navNextLabel: "next", navNext: "4.2 · Comparing and Ordering Fractions",
+      teachLabel: "What this teaches:",
+      teachBody: "A mixed number and its equivalent improper fraction name the exact same point on the number line — the pies show why: whole circles plus one partial circle is the same total area as one big stack of eighths.",
+      tour: [
+        { elKey: "trackWrap", label: "Drag the point", body: "Move it past a whole number — the point doesn't reset, it just keeps counting eighths." },
+        { ids: ["eqLine"], label: "Two names, same value", body: "The improper fraction and the mixed number are read off the same position — just written two different ways." },
+        { elKey: "pieStack", label: "See it in pies", body: "Each full pie is one whole (8 eighths); the partial pie shows the leftover eighths — count them all and you get the improper fraction's numerator." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٤ · الدرس ١",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أُمثّل قيمة ما ككسر غير حقيقي وكعدد كسري، وأرى أنّهما يسمّيان الكمّية نفسها.",
+      eqSub: "اسمان، وكمّية واحدة",
+      explainBtn: "اشرح هذا",
+      controlLabel: "اسحب النقطة",
+      navPrevLabel: "—", navPrevText: "٣.٥ · مربّع العدد والجذر التربيعي",
+      navNextLabel: "التالي", navNext: "٤.٢ · مقارنة الكسور وترتيبها",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "العدد الكسري ومكافئه الكسر غير الحقيقي يسمّيان النقطة نفسها تمامًا على خط الأعداد — وتوضّح الفطائر السبب: دوائر كاملة إضافة إلى دائرة جزئية واحدة تساوي المساحة الكلّية نفسها لكومة كبيرة من الأثمان.",
+      tour: [
+        { elKey: "trackWrap", label: "اسحب النقطة", body: "حرّكها متجاوزًا عددًا صحيحًا — لا تُعاد النقطة للصفر، بل تستمرّ بعدّ الأثمان." },
+        { ids: ["eqLine"], label: "اسمان، القيمة نفسها", body: "يُقرأ الكسر غير الحقيقي والعدد الكسري من الموضع نفسه — لكن بطريقتَي كتابة مختلفتين." },
+        { elKey: "pieStack", label: "شاهدها في الفطائر", body: "كل فطيرة كاملة هي وحدة واحدة (٨ أثمان)؛ وتُظهر الفطيرة الجزئية الأثمان المتبقّية — عُدّها كلّها فتحصل على بسط الكسر غير الحقيقي." }
+      ]
+    }
+  };
+
+  const trackWrap = document.getElementById("trackWrap");
+  const pieStack = document.getElementById("pieStack");
+  const eqLine = document.getElementById("eqLine");
+
+  let step = 13; // default 1 5/8
+
+  function buildTrack() {
+    trackWrap.innerHTML = "";
+    const line = document.createElement("div");
+    line.className = "track-line";
+    trackWrap.appendChild(line);
+    const w = trackWrap.clientWidth || 480;
+    for (let s = 0; s <= STEPS; s++) {
+      const isWhole = s % DEN === 0;
+      const tick = document.createElement("div");
+      tick.className = "tick" + (isWhole ? " whole" : "");
+      tick.style.left = (s / STEPS) * w + "px";
+      trackWrap.appendChild(tick);
+      if (isWhole) {
+        const label = document.createElement("div");
+        label.className = "tick-label";
+        label.style.left = (s / STEPS) * w + "px";
+        label.textContent = digits(s / DEN, i18n.lang);
+        trackWrap.appendChild(label);
+      }
+    }
+    const dot = document.createElement("div");
+    dot.className = "drag-dot";
+    dot.id = "dragDot";
+    trackWrap.appendChild(dot);
+    positionDot();
+    attachDrag(dot);
+  }
+
+  function positionDot() {
+    const dot = document.getElementById("dragDot");
+    const w = trackWrap.clientWidth || 480;
+    dot.style.left = (step / STEPS) * w + "px";
+  }
+
+  function attachDrag(dot) {
+    let dragging = false;
+    function setFromClientX(clientX) {
+      const rect = trackWrap.getBoundingClientRect();
+      const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      step = Math.round(ratio * STEPS);
+      positionDot();
+      render();
+    }
+    dot.addEventListener("pointerdown", (e) => { dragging = true; dot.setPointerCapture(e.pointerId); });
+    dot.addEventListener("pointermove", (e) => { if (dragging) setFromClientX(e.clientX); });
+    dot.addEventListener("pointerup", () => { dragging = false; });
+    trackWrap.addEventListener("pointerdown", (e) => { if (e.target === dot) return; setFromClientX(e.clientX); });
+  }
+
+  function buildPieSVG(filledCount, totalSlices) {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    const size = 64, r = 28, cx = size / 2, cy = size / 2;
+    svg.setAttribute("class", "pie");
+    svg.setAttribute("width", size); svg.setAttribute("height", size);
+    svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
+    for (let i = 0; i < totalSlices; i++) {
+      const a0 = (i / totalSlices) * Math.PI * 2 - Math.PI / 2;
+      const a1 = ((i + 1) / totalSlices) * Math.PI * 2 - Math.PI / 2;
+      const x0 = cx + r * Math.cos(a0), y0 = cy + r * Math.sin(a0);
+      const x1 = cx + r * Math.cos(a1), y1 = cy + r * Math.sin(a1);
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", `M${cx},${cy} L${x0},${y0} A${r},${r} 0 0 1 ${x1},${y1} Z`);
+      path.setAttribute("class", "slice" + (i < filledCount ? " filled" : ""));
+      svg.appendChild(path);
+    }
+    return svg;
+  }
+
+  function render() {
+    const whole = Math.floor(step / DEN);
+    const rem = step % DEN;
+    pieStack.innerHTML = "";
+    for (let p = 0; p < whole; p++) pieStack.appendChild(buildPieSVG(DEN, DEN));
+    pieStack.appendChild(buildPieSVG(rem, DEN));
+
+    const improperNum = step;
+    const eqSource = rem === 0
+      ? `${groupInt(whole, "en")} = \\color{#ed6d40}{\\dfrac{${groupInt(improperNum, "en")}}{${groupInt(DEN, "en")}}}`
+      : `${groupInt(whole, "en")}\\dfrac{${groupInt(rem, "en")}}{${groupInt(DEN, "en")}} = \\color{#ed6d40}{\\dfrac{${groupInt(improperNum, "en")}}{${groupInt(DEN, "en")}}}`;
+    renderEquation(eqLine, eqSource);
+  }
+
+  window.addEventListener("resize", () => { buildTrack(); });
+  const i18n = initI18n(T, { onLangChange: () => { buildTrack(); render(); } });
+  buildTrack();
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

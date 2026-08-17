@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Rounding Decimals — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:34px 24px 34px; display:flex; flex-direction:column; align-items:center; gap:26px; }
+  .line-wrap{ position:relative; width:100%; max-width:480px; height:76px; direction:ltr; }
+  .line-track{ position:absolute; top:32px; left:0; right:0; height:2px; background:rgba(255,255,255,.16); }
+  .target{ position:absolute; top:24px; width:18px; height:18px; margin-left:-9px; border-radius:6px; background:var(--urban-smoke); border:2px solid rgba(255,255,255,.3); z-index:2; }
+  .target.win{ border-color:var(--validation-green); background:rgba(107,181,124,.18); }
+  .target-label{ position:absolute; top:52px; font-family:var(--mono); font-size:11px; color:var(--pulse-ash); transform:translateX(-50%); direction:ltr; }
+  .value-dot{ position:absolute; top:26px; width:14px; height:14px; margin-left:-7px; border-radius:50%; background:var(--infrared); border:2px solid var(--off-white); z-index:3; }
+  .value-label{ position:absolute; top:-2px; font-family:var(--mono); font-size:12px; font-weight:700; color:var(--infrared); transform:translateX(-50%); direction:ltr; }
+  .midpoint-line{ position:absolute; top:20px; width:1px; height:24px; background:rgba(255,255,255,.2); border-left:1px dashed rgba(255,255,255,.25); }
+
+  .place-toggle{ display:flex; gap:6px; }
+  .mode-btn{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--pulse-ash); background:var(--core-black); border:1px solid rgba(255,255,255,.14); border-radius:100px; padding:6px 14px; cursor:pointer; }
+  .mode-btn.active{ color:var(--off-white); border-color:var(--electric-teal); background:rgba(92,147,159,.12); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 6 · LESSON 4</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Rounding Decimals</h1>
+    <span class="title-secondary ar-display" id="titleAr">تقريب الكسور العشرية</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I round a decimal to the nearest whole number, tenth, or hundredth by finding which rounding target it's closer to.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">snaps to whichever target is closer</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabel">value</label>
+      <input type="range" id="valSlider" min="0" max="1000" step="1" value="463" />
+      <span class="control-val" id="valReadout"></span>
+    </div>
+
+    <div class="control-row">
+      <div class="place-toggle" id="placeToggle" data-el="placeToggle">
+        <button class="mode-btn active" data-place="whole" data-i18n="placeWhole">nearest whole</button>
+        <button class="mode-btn" data-place="tenth" data-i18n="placeTenth">nearest tenth</button>
+        <button class="mode-btn" data-place="hundredth" data-i18n="placeHundredth">nearest hundredth</button>
+      </div>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="line-wrap" id="lineWrap" data-el="lineWrap"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Rounding means finding which of two nearby "round" targets a value sits closer to, then snapping to it — the number line makes the distance to each target, and therefore the correct direction to round, directly visible.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="6-3-comparing-ordering-decimals.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">6.3 · Comparing and Ordering Decimals</b></a>
+    <a class="nav-pill next" href="6-5-estimating-sums-differences-decimals.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">6.5 · Estimating Sums and Differences</b></a>
+  </div>
+</div>
+
+<script>
+  const { initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 6 · LESSON 4",
+      objectiveLabel: "Objective —",
+      objectiveText: "I round a decimal to the nearest whole number, tenth, or hundredth by finding which rounding target it's closer to.",
+      eqSub: "snaps to whichever target is closer",
+      explainBtn: "Explain this",
+      controlLabel: "value",
+      placeWhole: "nearest whole", placeTenth: "nearest tenth", placeHundredth: "nearest hundredth",
+      navPrevLabel: "—", navPrevText: "6.3 · Comparing and Ordering Decimals",
+      navNextLabel: "next", navNext: "6.5 · Estimating Sums and Differences",
+      teachLabel: "What this teaches:",
+      teachBody: "Rounding means finding which of two nearby “round” targets a value sits closer to, then snapping to it — the number line makes the distance to each target, and therefore the correct direction to round, directly visible.",
+      tour: [
+        { elKey: "lineWrap", label: "Two nearby targets", body: "The two square markers are the rounding targets on either side of the value — for tenths, they're one tenth apart." },
+        { elKey: "lineWrap", label: "Where does the value sit?", body: "The dot's exact position between the two targets shows which one it's actually closer to." },
+        { elKey: "lineWrap", label: "Snap to the closer one", body: "The target it's closer to lights up green — that's the rounded answer." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٦ · الدرس ٤",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أُقرِّب عددًا عشريًا لأقرب عدد صحيح أو عُشر أو جزء من مئة بإيجاد أقرب هدف تقريب له.",
+      eqSub: "ينتقل إلى الهدف الأقرب",
+      explainBtn: "اشرح هذا",
+      controlLabel: "القيمة",
+      placeWhole: "أقرب عدد صحيح", placeTenth: "أقرب عُشر", placeHundredth: "أقرب جزء من مئة",
+      navPrevLabel: "—", navPrevText: "٦.٣ · مقارنة الكسور العشرية وترتيبها",
+      navNextLabel: "التالي", navNext: "٦.٥ · تقدير مجموع وفرق الكسور العشرية",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "التقريب يعني إيجاد أيّ من هدفين «مستديرين» قريبين تقع القيمة بالقرب منه، ثم الانتقال إليه — يجعل خط الأعداد المسافة إلى كل هدف، وبالتالي اتجاه التقريب الصحيح، مرئيًا مباشرة.",
+      tour: [
+        { elKey: "lineWrap", label: "هدفان قريبان", body: "المؤشّران المربّعان هما هدفا التقريب على جانبَي القيمة — للأعشار، يفصل بينهما عُشر واحد." },
+        { elKey: "lineWrap", label: "أين تقع القيمة؟", body: "يُظهر موضع النقطة الدقيق بين الهدفين أيّهما أقرب إليها فعليًا." },
+        { elKey: "lineWrap", label: "انتقل إلى الأقرب", body: "يُضيء الهدف الأقرب بالأخضر — وهذه هي إجابة التقريب." }
+      ]
+    }
+  };
+
+  const valSlider = document.getElementById("valSlider");
+  const valReadout = document.getElementById("valReadout");
+  const lineWrap = document.getElementById("lineWrap");
+  const placeToggle = document.getElementById("placeToggle");
+  const eqLine = document.getElementById("eqLine");
+
+  let place = "whole"; // whole: value/100 (0..10.00) ; tenth: value/1000 scaled ; simplify by treating valSlider 0-1000 as thousandths of a base range
+
+  const PLACE_CFG = {
+    whole: { scale: 100, step: 1, decimals: 2 },      // slider 0..1000 -> value 0.00..10.00, round to whole
+    tenth: { scale: 1000, step: 1, decimals: 3 },     // slider -> 0.000..1.000, round to tenth
+    hundredth: { scale: 10000, step: 1, decimals: 4 } // slider -> 0.0000..0.1000, round to hundredth
+  };
+
+  function currentValue() {
+    const cfg = PLACE_CFG[place];
+    return parseInt(valSlider.value, 10) / cfg.scale;
+  }
+
+  function roundTargets(v) {
+    if (place === "whole") {
+      return [Math.floor(v), Math.ceil(v) === Math.floor(v) ? Math.floor(v) + 1 : Math.ceil(v)];
+    }
+    if (place === "tenth") {
+      const lo = Math.floor(v * 10) / 10, hi = lo + 0.1;
+      return [lo, hi];
+    }
+    const lo = Math.floor(v * 100) / 100, hi = lo + 0.01;
+    return [lo, hi];
+  }
+
+  function render() {
+    const v = currentValue();
+    const cfg = PLACE_CFG[place];
+    valReadout.textContent = v.toFixed(cfg.decimals - 1 >= 0 ? Math.min(4, cfg.decimals) : 0);
+
+    let [lo, hi] = roundTargets(v);
+    const closerToHi = (v - lo) >= (hi - v);
+    const winner = closerToHi ? hi : lo;
+
+    lineWrap.innerHTML = "";
+    const track = document.createElement("div");
+    track.className = "line-track";
+    lineWrap.appendChild(track);
+    const w = lineWrap.clientWidth || 440;
+    const span = hi - lo;
+    const minV = lo - span * 0.3, maxV = hi + span * 0.3;
+    function xFor(x) { return ((x - minV) / (maxV - minV)) * w; }
+
+    const mid = document.createElement("div");
+    mid.className = "midpoint-line";
+    mid.style.left = xFor((lo + hi) / 2) + "px";
+    lineWrap.appendChild(mid);
+
+    [lo, hi].forEach(t => {
+      const tgt = document.createElement("div");
+      tgt.className = "target" + (Math.abs(t - winner) < 1e-9 ? " win" : "");
+      tgt.style.left = xFor(t) + "px";
+      lineWrap.appendChild(tgt);
+      const label = document.createElement("div");
+      label.className = "target-label";
+      label.style.left = xFor(t) + "px";
+      label.textContent = t.toFixed(cfg.decimals - 1);
+      lineWrap.appendChild(label);
+    });
+
+    const dot = document.createElement("div");
+    dot.className = "value-dot";
+    dot.style.left = xFor(v) + "px";
+    lineWrap.appendChild(dot);
+    const vlabel = document.createElement("div");
+    vlabel.className = "value-label";
+    vlabel.style.left = xFor(v) + "px";
+    vlabel.textContent = v.toFixed(Math.min(4, cfg.decimals));
+    lineWrap.appendChild(vlabel);
+
+    renderEquation(eqLine, `${v.toFixed(Math.min(4, cfg.decimals))} \\;\\approx\\; \\color{#ed6d40}{${winner.toFixed(cfg.decimals - 1)}}`);
+  }
+
+  window.addEventListener("resize", render);
+  valSlider.addEventListener("input", render);
+  placeToggle.addEventListener("click", (e) => {
+    const btn = e.target.closest(".mode-btn");
+    if (!btn) return;
+    place = btn.dataset.place;
+    placeToggle.querySelectorAll(".mode-btn").forEach(b => b.classList.toggle("active", b === btn));
+    valSlider.max = place === "whole" ? 1000 : place === "tenth" ? 1000 : 1000;
+    render();
+  });
+
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

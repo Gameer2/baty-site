@@ -94,22 +94,22 @@ Object.defineProperty(document, "fonts", {
   },
 });
 
-Object.defineProperty(window, "EXCALIDRAW_ASSET_PATH", {
+Object.defineProperty(window, "SYNTROPY_ASSET_PATH", {
   value: `file://${__dirname}/`,
 });
 
 // mock the font fetch only, so that everything else, as font subsetting, can run inside of the (snapshot) tests
 vi.mock(
-  "./packages/excalidraw/fonts/ExcalidrawFontFace",
+  "./packages/excalidraw/fonts/SyntropyFontFace",
   async (importOriginal) => {
     const mod = await importOriginal<
-      typeof import("./packages/excalidraw/fonts/ExcalidrawFontFace")
+      typeof import("./packages/excalidraw/fonts/SyntropyFontFace")
     >();
-    const ExcalidrawFontFaceImpl = mod.ExcalidrawFontFace;
+    const SyntropyFontFaceImpl = mod.SyntropyFontFace;
 
     return {
       ...mod,
-      ExcalidrawFontFace: class extends ExcalidrawFontFaceImpl {
+      SyntropyFontFace: class extends SyntropyFontFaceImpl {
         public async fetchFont(url: URL): Promise<ArrayBuffer> {
           if (!url.toString().startsWith("file://")) {
             return super.fetchFont(url);

@@ -1,0 +1,68 @@
+/* JSXGraph skin — recolors the engine's default academic look into the lab identity
+   so a JSXGraph board reads as part of the schools vertical, not a dropped-in widget.
+   The board container itself is colored by the scene's own rule; this file only kills
+   JSXGraph's defaults and aligns its chrome (nav buttons, hover halo, infobox) with the
+   shared palette + type. Hex values match DESIGN_SYSTEM.md §1 verbatim. */
+
+.jxgbox {
+  background: transparent;
+  border: none;
+  font-family: "Azeret Mono", ui-monospace, monospace;
+  color: #dadada;
+  -webkit-user-select: none;
+  user-select: none;
+  /* JSXGraph ships a 250×250 default; the scene rule overrides width/height. */
+  line-height: 1;
+}
+
+/* kill the default gray fill + the focus outline */
+.jxgbox svg { background: transparent; outline: none; display: block; }
+.jxgbox svg ellipse, .jxgbox svg circle, .jxgbox svg polygon, .jxgbox svg path { vector-effect: non-scaling-stroke; }
+
+/* navigation button strip (zoom/fullscreen) — keep it but make it lab-quiet */
+.JXG_navigation {
+  font-family: "Azeret Mono", ui-monospace, monospace !important;
+  font-size: 11px !important;
+  color: #7d858c !important;
+}
+.JXG_navigation_button {
+  color: #7d858c !important;
+  background: transparent !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  border-radius: 6px !important;
+  padding: 2px 6px !important;
+  margin: 0 2px !important;
+  transition: border-color .15s cubic-bezier(.16,1,.3,1), color .15s ease;
+}
+.JXG_navigation_button:hover { color: #5c939f !important; border-color: rgba(92,147,159,.45) !important; }
+
+/* the hover highlight that JSXGraph draws on draggable points — lab accent, not orange */
+.JXG_highlight_hover { fill: rgba(237,109,64,.18) !important; }
+
+/* catch-all hover/selection halo on ANY element — JSXGraph's default highlight is a
+   yellow #ffff80 that reads as off-identity orange. Force it to the lab infrared tint
+   everywhere, so no element can leak the default no matter how it was created. */
+.jxgbox .JXG_highlight { fill: rgba(237,109,64,.16) !important; stroke: none !important; }
+
+/* coordinate/value infobox that pops near a point */
+.JXG_infobox {
+  font-family: "Azeret Mono", ui-monospace, monospace !important;
+  font-size: 11px !important;
+  color: #dadada !important;
+  background: #1b1b1b !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  border-radius: 6px !important;
+  padding: 4px 7px !important;
+  box-shadow: 0 6px 20px rgba(0,0,0,.45) !important;
+}
+
+/* labels — mono, muted, match the existing .pt-label voice */
+.jxgbox tspan, .JXGtext { font-family: "Azeret Mono", ui-monospace, monospace !important; fill: #7d858c !important; }
+
+/* dashed construction arcs should keep their dash at any zoom */
+.jxgbox [stroke-dasharray] { stroke-dasharray: 5 5; }
+
+/* JSXGraph paints hidden placeholder paths with its default orange (#D55E00).
+   They are display:none today, but neutralize any such default-colored path so it
+   can never become a visible off-identity leak in any mode. */
+.jxgbox svg path[stroke="#D55E00" i] { stroke: #7d858c !important; }

@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Equations — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: the balance mat, extended to two steps — undo the +/− term first,
+     then undo the ×/÷. Forks Grade 5's 7.2/7.3 equation mat. ---- */
+  .chart{ padding:30px 24px 30px; display:flex; flex-direction:column; align-items:center; gap:22px; }
+  .mat{ display:flex; align-items:flex-end; gap:26px; direction:ltr; }
+  .pan{ display:flex; flex-direction:column; align-items:center; gap:8px; min-width:170px; }
+  .pan-plate{ min-width:170px; min-height:90px; border-radius:10px; background:var(--urban-smoke); border:2px solid rgba(255,255,255,.16); display:flex; align-items:center; justify-content:center; padding:10px; gap:6px; flex-wrap:wrap; }
+  .pan-base{ width:6px; height:22px; background:rgba(255,255,255,.2); }
+  .equals-sym{ font-family:var(--mono); font-size:26px; color:var(--neural-fog); padding-bottom:36px; }
+  .x-tile{ width:34px; height:34px; border-radius:7px; background:var(--electric-teal); border:1px solid rgba(92,147,159,.7); display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-weight:700; color:var(--core-black); font-size:13px; }
+  .unit-tile{ width:16px; height:16px; border-radius:4px; background:var(--infrared); border:1px solid rgba(237,109,64,.7); }
+  .group-wrap{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  .group-cluster{ display:flex; flex-wrap:wrap; gap:3px; padding:6px; border-radius:8px; }
+  .group-cluster.split{ border:1px dashed rgba(107,181,124,.5); background:rgba(107,181,124,.08); }
+
+  .step-cap{ font-family:var(--mono); font-size:13px; color:var(--neural-fog); text-align:center; max-width:420px; }
+  .action-row{ display:flex; gap:10px; }
+  .action-btn{ font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--electric-teal); background:none; border:1px solid rgba(92,147,159,.45); border-radius:100px; padding:8px 16px; cursor:pointer; }
+  .action-btn:hover{ background:rgba(92,147,159,.14); }
+  .action-btn:disabled{ opacity:.35; cursor:default; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 5 · LESSON 5</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Equations</h1>
+    <span class="title-secondary ar-display" id="titleAr">المعادلات</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I verify whether a given value solves an equation; I solve equations.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">undo the + / − first, then the × / ÷</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="mat dimmable" data-el="mat" id="mat"></div>
+      <div class="step-cap" id="stepCap"></div>
+      <div class="action-row">
+        <button class="action-btn" id="actionBtn"></button>
+        <button class="action-btn" id="resetBtn" data-role="ui" data-i18n="resetBtn">reset</button>
+      </div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">An equation's solution is a variable value that makes both sides equal, verified by substitution. Building on a concept activity for two-operation equations, students solve equations requiring more than one step, isolating the variable via inverse operations.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="5-4-algebraic-properties.html">— <b data-role="body" id="navPrevText">5.4 · Algebraic Properties</b></a>
+    <a class="nav-pill next" href="5-6-sequences.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">5.6 · Sequences</b></a>
+  </div>
+</div>
+
+<script>
+  const { groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const COEFF = 2, CONST = 3, RESULT = 11;
+  const X = (RESULT - CONST) / COEFF; // 4
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 5 · LESSON 5",
+      objectiveLabel: "Objective —",
+      objectiveText: "I verify whether a given value solves an equation; I solve equations.",
+      eqSub: "undo the + / − first, then the × / ÷",
+      explainBtn: "Explain this",
+      resetBtn: "reset",
+      stepCaps: [
+        "2x + 3 = 11 — both sides balanced as given",
+        "remove 3 units from both sides — the balance holds",
+        "split both sides into 2 equal groups — one group is x",
+        "check: substitute x = 4 back into the original equation"
+      ],
+      actionLabels: ["remove 3 from both sides", "split into 2 groups", "check the answer", "done"],
+      teachLabel: "What this teaches:",
+      teachBody: "An equation's solution is a variable value that makes both sides equal, verified by substitution. Building on a concept activity for two-operation equations, students solve equations requiring more than one step, isolating the variable via inverse operations.",
+      navPrev: "5.4 · Algebraic Properties",
+      navNext: "5.6 · Sequences",
+      navNextLabel: "next",
+      tour: [
+        { elKey: "mat", label: "Balanced, as given", body: "Both pans hold equal value — 2x + 3 on the left, 11 unit tiles on the right." },
+        { ids: ["actionBtn"], label: "One inverse move at a time", body: "Each click undoes one operation on both sides at once — first the +3, then the ×2 — keeping the balance." },
+        { elKey: "stepCap", label: "Check by substitution", body: "The last step plugs x = 4 back into the original equation to confirm both sides really do match." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ٥ · الدرس ٥",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أتحقّق مما إذا كانت قيمة معطاة تحقّق معادلة؛ وأحلّ معادلات.",
+      eqSub: "أزل الجمع/الطرح أولًا، ثم الضرب/القسمة",
+      explainBtn: "اشرح هذا",
+      resetBtn: "إعادة",
+      stepCaps: [
+        "2x + 3 = 11 — الطرفان متوازنان كما هما",
+        "أزل ٣ وحدات من الطرفين — يبقى التوازن قائمًا",
+        "قسّم الطرفين إلى مجموعتين متساويتين — إحداهما هي x",
+        "تحقّق: عوّض x = 4 في المعادلة الأصلية"
+      ],
+      actionLabels: ["أزل ٣ من الطرفين", "قسّم إلى مجموعتين", "تحقّق من الإجابة", "تمّ"],
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "حلّ المعادلة هو قيمة المتغيّر التي تجعل الطرفين متساويَين، ويُتحقَّق منها بالتعويض. بناءً على نشاط مفهومي لمعادلات ذات عمليتين، يحلّ الطلبة معادلات تتطلّب أكثر من خطوة واحدة، بعزل المتغيّر عبر العمليات العكسية.",
+      navPrev: "٥.٤ · الخصائص الجبرية",
+      navNext: "٥.٦ · المتتاليات",
+      navNextLabel: "التالي",
+      tour: [
+        { elKey: "mat", label: "متوازنة، كما هي معطاة", body: "يحمل الطرفان القيمة نفسها — 2x + 3 على اليسار، و١١ قطعة وحدة على اليمين." },
+        { ids: ["actionBtn"], label: "عملية عكسية واحدة في كل مرّة", body: "تُلغي كل نقرة عملية واحدة في الطرفين معًا — أولًا +٣، ثم ×٢ — مع بقاء التوازن." },
+        { elKey: "stepCap", label: "تحقّق بالتعويض", body: "تُعيد الخطوة الأخيرة تعويض x = 4 في المعادلة الأصلية للتأكّد من تطابق الطرفين فعليًا." }
+      ]
+    }
+  };
+
+  const mat = document.getElementById("mat");
+  const stepCap = document.getElementById("stepCap");
+  const actionBtn = document.getElementById("actionBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  const eqLine = document.getElementById("eqLine");
+
+  let step = 0; // 0..3
+
+  function xTile() { const el = document.createElement("div"); el.className = "x-tile"; el.textContent = "x"; return el; }
+  function unitTile() { const el = document.createElement("div"); el.className = "unit-tile"; return el; }
+
+  function buildGroups(count, perGroup) {
+    const wrap = document.createElement("div");
+    wrap.className = "group-wrap";
+    for (let g = 0; g < count; g++) {
+      const cluster = document.createElement("div");
+      cluster.className = "group-cluster split";
+      for (let i = 0; i < perGroup; i++) cluster.appendChild(unitTile());
+      wrap.appendChild(cluster);
+    }
+    return wrap;
+  }
+  function buildFlat(total) {
+    const wrap = document.createElement("div");
+    wrap.className = "group-wrap";
+    for (let i = 0; i < total; i++) wrap.appendChild(unitTile());
+    return wrap;
+  }
+
+  function render() {
+    const t = T[i18n.lang];
+    mat.innerHTML = "";
+
+    const leftPan = document.createElement("div"); leftPan.className = "pan";
+    const leftPlate = document.createElement("div"); leftPlate.className = "pan-plate";
+    const rightPan = document.createElement("div"); rightPan.className = "pan";
+    const rightPlate = document.createElement("div"); rightPlate.className = "pan-plate";
+
+    if (step === 0) {
+      for (let i = 0; i < COEFF; i++) leftPlate.appendChild(xTile());
+      for (let i = 0; i < CONST; i++) leftPlate.appendChild(unitTile());
+      rightPlate.appendChild(buildFlat(RESULT));
+    } else if (step === 1) {
+      for (let i = 0; i < COEFF; i++) leftPlate.appendChild(xTile());
+      rightPlate.appendChild(buildFlat(RESULT - CONST));
+    } else {
+      leftPlate.appendChild(buildGroups(COEFF, 1));
+      leftPlate.querySelectorAll(".group-cluster").forEach(c => c.appendChild(xTile()));
+      rightPlate.appendChild(buildGroups(COEFF, (RESULT - CONST) / COEFF));
+    }
+
+    leftPan.appendChild(leftPlate);
+    const leftBase = document.createElement("div"); leftBase.className = "pan-base"; leftPan.appendChild(leftBase);
+    mat.appendChild(leftPan);
+
+    const eq = document.createElement("div"); eq.className = "equals-sym"; eq.textContent = "=";
+    mat.appendChild(eq);
+
+    rightPan.appendChild(rightPlate);
+    const rightBase = document.createElement("div"); rightBase.className = "pan-base"; rightPan.appendChild(rightBase);
+    mat.appendChild(rightPan);
+
+    gsap.fromTo(mat, { opacity: .3 }, { opacity: 1, duration: .35 });
+
+    stepCap.textContent = t.stepCaps[step];
+    actionBtn.textContent = t.actionLabels[step];
+    actionBtn.disabled = step === 3;
+
+    let eqSource;
+    if (step === 0) eqSource = `${COEFF}x + ${CONST} = ${RESULT}`;
+    else if (step === 1) eqSource = `${COEFF}x = ${RESULT - CONST}`;
+    else if (step === 2) eqSource = `x = \\color{#ed6d40}{${X}}`;
+    else eqSource = `${COEFF}(${X}) + ${CONST} = \\color{#ed6d40}{${COEFF * X + CONST}} \\; \\checkmark`;
+    renderEquation(eqLine, eqSource);
+  }
+
+  actionBtn.addEventListener("click", () => { if (step < 3) { step++; render(); } });
+  resetBtn.addEventListener("click", () => { step = 0; render(); });
+
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

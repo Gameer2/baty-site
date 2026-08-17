@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Adding &amp; Subtracting Fractions — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: dual fraction-bar model re-partitioning to a shared grid. ---- */
+  .chart{ padding:30px 24px 34px; display:flex; flex-direction:column; align-items:center; gap:20px; }
+  .bar-block{ display:flex; flex-direction:column; align-items:center; gap:7px; width:100%; max-width:420px; }
+  .bar-cap{ font-family:var(--mono); font-size:12px; color:var(--pulse-ash); direction:ltr; }
+  .bar{ display:flex; width:100%; height:44px; border:1px solid rgba(255,255,255,.16); border-radius:8px; overflow:hidden; }
+  .bar-seg{ flex:1; border-right:1px solid rgba(255,255,255,.1); transition:background .3s ease; }
+  .bar-seg:last-child{ border-right:none; }
+  .bar-seg.fa{ background:var(--electric-teal); }
+  .bar-seg.fb{ background:#b98a72; }
+  .bar-seg.fsum{ background:var(--validation-green); }
+  .bar-seg.fneg{ background:var(--infrared); }
+
+  .op-row{ display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:20px; color:var(--neural-fog); }
+
+  .toggle-row{ display:flex; gap:8px; }
+  .toggle-btn{ font-family:var(--mono); font-size:12px; padding:6px 14px; border-radius:100px; border:1px solid rgba(255,255,255,.16); background:none; color:var(--pulse-ash); cursor:pointer; }
+  .toggle-btn.active{ background:var(--electric-teal); color:var(--core-black); border-color:var(--electric-teal); font-weight:700; }
+
+  .inputs{ display:flex; gap:24px; align-items:center; }
+  .frac-input{ display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .frac-input label{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash); }
+  .frac-fields{ display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .frac-fields input{ font-family:var(--mono); font-size:14px; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.16); border-radius:6px; padding:4px 6px; width:46px; text-align:center; direction:ltr; }
+  .frac-fields .bar-div{ width:30px; height:1px; background:rgba(255,255,255,.3); margin:3px 0; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 2 · LESSON 1</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Adding &amp; Subtracting Fractions</h1>
+    <span class="title-secondary ar-display" id="titleAr">جمع الكسور وطرحها</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I find the sum/difference of fractions in simplest form.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">re-partition both bars to the same grid, then combine</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="inputs">
+        <div class="frac-input">
+          <label data-role="ui" data-i18n="labelA">fraction A</label>
+          <div class="frac-fields"><input type="number" id="numA" value="2" min="1" max="9" /><div class="bar-div"></div><input type="number" id="denA" value="3" min="2" max="12" /></div>
+        </div>
+        <div class="toggle-row" id="opToggle">
+          <button class="toggle-btn active" data-op="add">+</button>
+          <button class="toggle-btn" data-op="sub">−</button>
+        </div>
+        <div class="frac-input">
+          <label data-role="ui" data-i18n="labelB">fraction B</label>
+          <div class="frac-fields"><input type="number" id="numB" value="1" min="1" max="9" /><div class="bar-div"></div><input type="number" id="denB" value="4" min="2" max="12" /></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="bar-block dimmable" data-el="barsRaw">
+        <span class="bar-cap" id="capARaw"></span>
+        <div class="bar" id="barARaw"></div>
+      </div>
+      <div class="bar-block dimmable" data-el="barsRaw">
+        <span class="bar-cap" id="capBRaw"></span>
+        <div class="bar" id="barBRaw"></div>
+      </div>
+      <div class="op-row dimmable" data-el="resize" id="opSym">↓ resize to a shared grid ↓</div>
+      <div class="bar-block dimmable" data-el="resize">
+        <span class="bar-cap" id="capA"></span>
+        <div class="bar" id="barA"></div>
+      </div>
+      <div class="bar-block dimmable" data-el="resize">
+        <span class="bar-cap" id="capB"></span>
+        <div class="bar" id="barB"></div>
+      </div>
+      <div class="bar-block dimmable" data-el="sumBlock">
+        <span class="bar-cap" id="capSum"></span>
+        <div id="sumStack" style="display:flex; flex-direction:column; gap:6px; width:100%;"></div>
+      </div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">For unlike fractions, find the LCM of both denominators, rewrite each fraction with that common denominator (scaling numerator and denominator together), then add/subtract numerators and simplify — extending beyond grade 5's "one denominator is a multiple of the other" restriction to any two denominators. Applied to comparing planetary diameters as fractions of Earth's, and measuring-cup recipe adjustments.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="1-5-multiplying-dividing-integers.html">— <b data-role="body" id="navPrevText">1.5 · Multiplying &amp; Dividing Integers</b></a>
+    <a class="nav-pill next" href="2-2-adding-subtracting-mixed-numbers.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">2.2 · Adding &amp; Subtracting Mixed Numbers</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 2 · LESSON 1",
+      objectiveLabel: "Objective —",
+      objectiveText: "I find the sum/difference of fractions in simplest form.",
+      eqSub: "re-partition both bars to the same grid, then combine",
+      explainBtn: "Explain this",
+      labelA: "fraction A", labelB: "fraction B",
+      resizeWord: "↓ resize to a shared grid ↓",
+      capSum: "result",
+      teachLabel: "What this teaches:",
+      teachBody: "For unlike fractions, find the LCM of both denominators, rewrite each fraction with that common denominator (scaling numerator and denominator together), then add/subtract numerators and simplify — extending beyond grade 5's “one denominator is a multiple of the other” restriction to any two denominators. Applied to comparing planetary diameters as fractions of Earth's, and measuring-cup recipe adjustments.",
+      navPrev: "1.5 · Multiplying & Dividing Integers",
+      navNext: "2.2 · Adding & Subtracting Mixed Numbers",
+      navNextLabel: "next",
+      tour: [
+        { elKey: "barsRaw", label: "Unlike denominators", body: "The two bars start cut into different-size pieces — they can't combine directly yet." },
+        { elKey: "resize", label: "A shared grid", body: "Both fractions are rewritten over the LCM of the denominators, so every piece is now the same size." },
+        { elKey: "sumBlock", label: "Combine", body: "Add or subtract the shaded piece counts on the shared grid — that's the result, before simplifying." },
+        { ids: ["eqLine"], label: "Simplify", body: "If numerator and denominator share a common factor, divide both by it to reach simplest form." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ٢ · الدرس ١",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أجد ناتج جمع/طرح كسرين بأبسط صورة.",
+      eqSub: "أعد تقسيم الشريطين إلى الشبكة نفسها، ثم اجمعهما",
+      explainBtn: "اشرح هذا",
+      labelA: "الكسر A", labelB: "الكسر B",
+      resizeWord: "↓ أعد التقسيم إلى شبكة مشتركة ↓",
+      capSum: "الناتج",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "للكسور مختلفة المقام، أوجد م.م.أ لكلا المقامين، وأعد كتابة كل كسر بذلك المقام المشترك (بضرب البسط والمقام بالعدد نفسه)، ثم اجمع أو اطرح البسطين وبسّط — وهذا يتجاوز قيد الصف الخامس («أحد المقامين مضاعف للآخر») ليشمل أي مقامين. يُطبَّق على مقارنة أقطار الكواكب كأجزاء من قطر الأرض، وتعديل مقادير وصفات الطهي.",
+      navPrev: "١.٥ · ضرب الأعداد الصحيحة وقسمتها",
+      navNext: "٢.٢ · جمع الأعداد الكسرية وطرحها",
+      navNextLabel: "التالي",
+      tour: [
+        { elKey: "barsRaw", label: "مقامان مختلفان", body: "يبدأ الشريطان مقسّمين إلى قطع مختلفة الحجم — لا يمكن جمعهما مباشرة بعد." },
+        { elKey: "resize", label: "شبكة مشتركة", body: "يُعاد كتابة كلا الكسرين بمضاعف مشترك أصغر للمقامين، فتصبح كل قطعة بالحجم نفسه." },
+        { elKey: "sumBlock", label: "اجمع أو اطرح", body: "اجمع أو اطرح عدد القطع المظلّلة على الشبكة المشتركة — هذا هو الناتج، قبل التبسيط." },
+        { ids: ["eqLine"], label: "بسّط", body: "إن كان للبسط والمقام عامل مشترك، اقسم كليهما عليه للوصول إلى أبسط صورة." }
+      ]
+    }
+  };
+
+  const numA = document.getElementById("numA"), denA = document.getElementById("denA");
+  const numB = document.getElementById("numB"), denB = document.getElementById("denB");
+  const eqLine = document.getElementById("eqLine");
+  const barARaw = document.getElementById("barARaw"), capARaw = document.getElementById("capARaw");
+  const barBRaw = document.getElementById("barBRaw"), capBRaw = document.getElementById("capBRaw");
+  const barA = document.getElementById("barA"), capA = document.getElementById("capA");
+  const barB = document.getElementById("barB"), capB = document.getElementById("capB");
+  const sumStack = document.getElementById("sumStack"), capSum = document.getElementById("capSum");
+  const opSym = document.getElementById("opSym");
+  const opToggle = document.getElementById("opToggle");
+
+  let op = "add";
+  opToggle.querySelectorAll(".toggle-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      op = btn.dataset.op;
+      opToggle.querySelectorAll(".toggle-btn").forEach(b => b.classList.toggle("active", b === btn));
+      render();
+    });
+  });
+
+  function gcdOf(a, b) { return b === 0 ? a : gcdOf(b, a % b); }
+  function lcmOf(a, b) { return (a * b) / gcdOf(a, b); }
+  function simplify(n, d) { const g = gcdOf(Math.abs(n), d) || 1; return [n / g, d / g]; }
+
+  function buildBar(el, filled, total, cls) {
+    el.innerHTML = "";
+    for (let i = 0; i < total; i++) {
+      const seg = document.createElement("div");
+      seg.className = "bar-seg" + (i < filled ? " " + cls : "");
+      el.appendChild(seg);
+    }
+  }
+
+  function render() {
+    const t = T[i18n.lang];
+    const nA = Math.max(1, parseInt(numA.value, 10) || 1), dA = Math.max(2, parseInt(denA.value, 10) || 2);
+    const nB = Math.max(1, parseInt(numB.value, 10) || 1), dB = Math.max(2, parseInt(denB.value, 10) || 2);
+
+    capARaw.textContent = digits(nA, i18n.lang) + "/" + digits(dA, i18n.lang);
+    capBRaw.textContent = digits(nB, i18n.lang) + "/" + digits(dB, i18n.lang);
+    buildBar(barARaw, nA, dA, "fa");
+    buildBar(barBRaw, nB, dB, "fb");
+
+    opSym.textContent = t.resizeWord;
+
+    const L = lcmOf(dA, dB);
+    const cnA = nA * (L / dA), cnB = nB * (L / dB);
+    capA.textContent = digits(cnA, i18n.lang) + "/" + digits(L, i18n.lang);
+    capB.textContent = digits(cnB, i18n.lang) + "/" + digits(L, i18n.lang);
+    buildBar(barA, cnA, L, "fa");
+    buildBar(barB, cnB, L, "fb");
+
+    const resultNum = op === "add" ? cnA + cnB : cnA - cnB;
+    sumStack.innerHTML = "";
+    if (resultNum < 0) {
+      const row = document.createElement("div");
+      row.className = "bar";
+      buildBar(row, Math.min(-resultNum, L), L, "fneg");
+      sumStack.appendChild(row);
+    } else {
+      const wholeBars = Math.floor(resultNum / L);
+      const remSlices = resultNum % L;
+      for (let p = 0; p < wholeBars; p++) {
+        const row = document.createElement("div");
+        row.className = "bar";
+        buildBar(row, L, L, "fsum");
+        sumStack.appendChild(row);
+      }
+      if (remSlices > 0 || wholeBars === 0) {
+        const row = document.createElement("div");
+        row.className = "bar";
+        buildBar(row, remSlices, L, "fsum");
+        sumStack.appendChild(row);
+      }
+    }
+    capSum.textContent = t.capSum + ": " + (resultNum < 0 ? "−" : "") + digits(Math.abs(resultNum), i18n.lang) + "/" + digits(L, i18n.lang);
+
+    const [simN, simD] = simplify(resultNum, L);
+    const needsSimplify = simD !== L;
+    const opChar = op === "add" ? "+" : "-";
+    const resultTex = resultNum < 0 ? `-\\dfrac{${groupInt(-resultNum, "en")}}{${groupInt(L, "en")}}` : `\\dfrac{${groupInt(resultNum, "en")}}{${groupInt(L, "en")}}`;
+    const simTex = simN < 0 ? `-\\dfrac{${groupInt(-simN, "en")}}{${groupInt(simD, "en")}}` : `\\dfrac{${groupInt(simN, "en")}}{${groupInt(simD, "en")}}`;
+    const eqSource = needsSimplify
+      ? `\\dfrac{${groupInt(nA, "en")}}{${groupInt(dA, "en")}} ${opChar} \\dfrac{${groupInt(nB, "en")}}{${groupInt(dB, "en")}} = ${resultTex} = \\color{#ed6d40}{${simTex}}`
+      : `\\dfrac{${groupInt(nA, "en")}}{${groupInt(dA, "en")}} ${opChar} \\dfrac{${groupInt(nB, "en")}}{${groupInt(dB, "en")}} = \\color{#ed6d40}{${resultTex}}`;
+    renderEquation(eqLine, eqSource);
+  }
+
+  [numA, denA, numB, denB].forEach(el => el.addEventListener("input", render));
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

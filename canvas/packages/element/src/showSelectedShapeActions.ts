@@ -19,7 +19,7 @@ export const showSelectedShapeActions = (
             appState.activeTool.type !== "hand" &&
             appState.activeTool.type !== "laser"))) ||
         // Syntropy nodes are not plain shapes — selecting one alone should not surface the
-        // generic stroke/background/etc. properties panel (excalidraw-app/syntropy provides its
+        // generic stroke/background/etc. properties panel (syntropy-app/syntropy provides its
         // own UI). A regular shape selected alongside a node still shows the panel, scoped to it.
         getSelectedElements(elements, appState).filter(
           (element) => !isSyntropyLinkElement(element),

@@ -2,6 +2,7 @@
 (function () {
   "use strict";
   LinAlgPage.init({
+    storeKey: "engine-lab:linear-algebra-linear-systems",
     square: false, vector: true,
     example: { A: [[1, 2, 3], [2, 4, 6], [1, 1, 1]], b: [6, 12, 3] },
     compute: (A, b) => LinAlg.solveSystem(A, b),

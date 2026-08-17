@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Multiplying &amp; Dividing Integers — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: identical hops stack into the product, plus a sign-rule readout.
+     Forks 1.3's hop engine. ---- */
+  .scene{ height:470px; background:linear-gradient(to bottom, #0c0e10, var(--rich-carbon)); }
+
+  .ruler{ position:absolute; left:64px; top:30px; bottom:30px; width:1px; background:rgba(255,255,255,.06); }
+  .ruler .rung{ position:absolute; left:-5px; width:11px; height:1px; background:rgba(255,255,255,.16); }
+  .ruler .rung.zero{ display:none; }
+  .ruler .rung-label{ position:absolute; left:-40px; transform:translateY(-50%); font-family:var(--mono); font-size:10.5px; color:var(--pulse-ash); width:26px; text-align:right; direction:ltr; }
+  .ruler .rung-label.neg{ color:#7fa8b0; }
+  .ruler .rung-label.pos{ color:#b98a72; }
+
+  .zero-mark{ position:absolute; left:64px; width:14px; height:14px; margin-left:-7px; margin-top:-7px; border-radius:50%; border:2px solid var(--pulse-ash); background:var(--core-black); z-index:5; }
+
+  .hop-line{ position:absolute; left:64px; width:4px; margin-left:-2px; border-radius:2px; z-index:3; background:var(--electric-teal); }
+  .hop-head{ position:absolute; left:64px; width:0; height:0; margin-left:-7px; z-index:3; }
+  .hop-head.up{ border-left:7px solid transparent; border-right:7px solid transparent; border-bottom:11px solid var(--electric-teal); }
+  .hop-head.down{ border-left:7px solid transparent; border-right:7px solid transparent; border-top:11px solid var(--electric-teal); }
+
+  .landing{ position:absolute; left:64px; width:24px; height:24px; margin-left:-12px; margin-top:-12px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #f5a687, var(--infrared) 70%); box-shadow:0 6px 16px rgba(237,109,64,.4); z-index:6; }
+  .landing-tag{ position:absolute; left:88px; top:50%; transform:translateY(-50%); font-family:var(--mono); font-size:12.5px; font-weight:700; color:var(--infrared); white-space:nowrap; z-index:6; direction:ltr; }
+
+  .sign-lock{ position:absolute; left:50%; top:16px; transform:translateX(-50%); display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:14px; z-index:5; direction:ltr; }
+  .sign-chip{ width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-weight:700; border:1px solid rgba(255,255,255,.14); background:var(--urban-smoke); }
+  .sign-chip.neg{ color:#7fa8b0; }
+  .sign-chip.pos{ color:#b98a72; }
+  .sign-chip.result{ color:var(--infrared); border-color:rgba(237,109,64,.4); background:rgba(237,109,64,.1); }
+  .sign-op{ color:var(--pulse-ash); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 1 · LESSON 5</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Multiplying &amp; Dividing Integers</h1>
+    <span class="title-secondary ar-display" id="titleAr">ضرب الأعداد الصحيحة وقسمتها</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I multiply and divide integers.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">repeated hops of a, b times</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabelA">factor (a)</label>
+      <input type="range" id="sliderA" min="-6" max="6" step="1" value="-2" />
+      <span class="control-val" id="readoutA">−2</span>
+    </div>
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabelB">hop count (b)</label>
+      <input type="range" id="sliderB" min="-6" max="6" step="1" value="3" />
+      <span class="control-val" id="readoutB">3</span>
+    </div>
+
+    <div class="scene" id="scene">
+      <div class="sign-lock dimmable" data-el="signlock" id="signLock">
+        <div class="sign-chip neg" id="chipA">−</div>
+        <div class="sign-op">×</div>
+        <div class="sign-chip pos" id="chipB">+</div>
+        <div class="sign-op">=</div>
+        <div class="sign-chip result" id="chipResult">−</div>
+      </div>
+
+      <div class="ruler" id="ruler"></div>
+      <div class="zero-mark dimmable" data-el="zero" id="zeroMark"></div>
+
+      <div class="hops dimmable" data-el="hops" id="hopsContainer"></div>
+
+      <div class="landing dimmable" data-el="landing" id="landing"></div>
+      <div class="landing-tag" data-role="ui" id="landingTag">product = −6</div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Multiplication is introduced as repeated addition (3×(−2) = (−2)+(−2)+(−2) = −6), modeled with counter tiles and number-line hops, then generalized to sign rules for both multiplication and division (same signs → positive result, different signs → negative result). Applied to real constant-rate contexts (submarine descent rate × time).</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="1-4-subtracting-integers.html">— <b data-role="body" id="navPrevText">1.4 · Subtracting Integers</b></a>
+    <a class="nav-pill next" href="2-1-adding-subtracting-fractions.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">2.1 · Adding &amp; Subtracting Fractions</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 1 · LESSON 5",
+      objectiveLabel: "Objective —",
+      objectiveText: "I multiply and divide integers.",
+      eqSub: "repeated hops of a, b times",
+      explainBtn: "Explain this",
+      controlLabelA: "factor (a)", controlLabelB: "hop count (b)",
+      productWord: "product = ",
+      teachLabel: "What this teaches:",
+      teachBody: "Multiplication is introduced as repeated addition (3×(−2) = (−2)+(−2)+(−2) = −6), modeled with counter tiles and number-line hops, then generalized to sign rules for both multiplication and division (same signs → positive result, different signs → negative result). Applied to real constant-rate contexts (submarine descent rate × time).",
+      navPrev: "1.4 · Subtracting Integers",
+      navNext: "2.1 · Adding & Subtracting Fractions",
+      navNextLabel: "next",
+      tour: [
+        { elKey: "hops", label: "Identical hops", body: "Each hop is the same size, a — that's what repeated addition means. Negative b reverses every hop's direction." },
+        { elKey: "landing", label: "The product", body: "Wherever the last hop lands is a × b — count the hops to check it." },
+        { elKey: "signlock", label: "Predict the sign", body: "Same signs always give a positive result; different signs always give a negative one — true for both multiplying and dividing." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ١ · الدرس ٥",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أضرب الأعداد الصحيحة وأقسمها.",
+      eqSub: "قفزات متماثلة بمقدار a، مكرّرة b مرّة",
+      explainBtn: "اشرح هذا",
+      controlLabelA: "العامل (a)", controlLabelB: "عدد القفزات (b)",
+      productWord: "الناتج = ",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "يُقدَّم الضرب على أنه جمع متكرّر (٣×(−٢) = (−٢)+(−٢)+(−٢) = −٦)، ويُمثَّل باستخدام البلاطات العدّادة وقفزات خط الأعداد، ثم يُعمَّم إلى قواعد الإشارة لكل من الضرب والقسمة (الإشارتان المتماثلتان → ناتج موجب، الإشارتان المختلفتان → ناتج سالب). يُطبَّق على سياقات واقعية بمعدّل ثابت (معدّل غوص غوّاصة × الزمن).",
+      navPrev: "١.٤ · طرح الأعداد الصحيحة",
+      navNext: "٢.١ · جمع الكسور وطرحها",
+      navNextLabel: "التالي",
+      tour: [
+        { elKey: "hops", label: "قفزات متماثلة", body: "كل قفزة بالحجم نفسه، a — وهذا معنى الجمع المتكرّر. القيمة السالبة لـ b تعكس اتجاه كل قفزة." },
+        { elKey: "landing", label: "الناتج", body: "أينما تهبط آخر قفزة هو a × b — عدّ القفزات للتحقّق." },
+        { elKey: "signlock", label: "توقّع الإشارة", body: "الإشارتان المتماثلتان تُعطيان ناتجًا موجبًا دائمًا؛ والإشارتان المختلفتان تُعطيان ناتجًا سالبًا دائمًا — وهذا صحيح في الضرب والقسمة معًا." }
+      ]
+    }
+  };
+
+  const MIN = -16, MAX = 16;
+  const scene = document.getElementById("scene");
+  function bounds() {
+    const r = scene.getBoundingClientRect();
+    return { top: 30, bottom: r.height - 30, height: r.height };
+  }
+  function yFor(v) {
+    const b = bounds();
+    return b.top + (MAX - v) / (MAX - MIN) * (b.bottom - b.top);
+  }
+
+  const ruler = document.getElementById("ruler");
+  function buildRuler() {
+    ruler.innerHTML = "";
+    for (let v = MIN; v <= MAX; v++) {
+      const rung = document.createElement("div");
+      rung.className = "rung" + (v === 0 ? " zero" : "");
+      rung.style.top = (yFor(v) - 30) + "px";
+      ruler.appendChild(rung);
+      if (v % 4 === 0 && v !== 0) {
+        const label = document.createElement("div");
+        label.className = "rung-label " + (v < 0 ? "neg" : "pos");
+        label.style.top = (yFor(v) - 30) + "px";
+        label.textContent = digits(v, i18n.lang);
+        ruler.appendChild(label);
+      }
+    }
+  }
+
+  function layoutHop(v1, v2) {
+    const y1 = yFor(v1), y2 = yFor(v2);
+    if (y2 < y1) {
+      return { lineTop: y2 + 11, lineHeight: Math.max(y1 - (y2 + 11), 0), headTop: y2, dir: "up", flat: false };
+    } else if (y2 > y1) {
+      return { lineTop: y1, lineHeight: Math.max((y2 - 11) - y1, 0), headTop: y2 - 11, dir: "down", flat: false };
+    }
+    return { lineTop: y1, lineHeight: 0, headTop: y1, dir: "up", flat: true };
+  }
+
+  let a = -2, b = 3;
+  const zeroMark = document.getElementById("zeroMark");
+  const hopsContainer = document.getElementById("hopsContainer");
+  const landing = document.getElementById("landing");
+  const landingTag = document.getElementById("landingTag");
+  const sliderA = document.getElementById("sliderA");
+  const sliderB = document.getElementById("sliderB");
+  const readoutA = document.getElementById("readoutA");
+  const readoutB = document.getElementById("readoutB");
+  const eqLine = document.getElementById("eqLine");
+  const chipA = document.getElementById("chipA");
+  const chipB = document.getElementById("chipB");
+  const chipResult = document.getElementById("chipResult");
+
+  function render(animate) {
+    const t = T[i18n.lang];
+    const product = a * b;
+    const count = Math.abs(b);
+    const step = b === 0 ? 0 : (b > 0 ? a : -a);
+
+    zeroMark.style.top = yFor(0) + "px";
+
+    hopsContainer.innerHTML = "";
+    let pos = 0;
+    for (let i = 0; i < count; i++) {
+      const nextPos = pos + step;
+      const layout = layoutHop(pos, nextPos);
+      const line = document.createElement("div");
+      line.className = "hop-line";
+      const head = document.createElement("div");
+      head.className = "hop-head " + layout.dir;
+      if (animate) {
+        gsap.fromTo(line, { opacity: 0 }, { opacity: layout.flat ? 0 : 1, top: layout.lineTop, height: layout.lineHeight, duration: .4, delay: i * .08, ease: "back.out(1.7)" });
+        gsap.fromTo(head, { opacity: 0, scale: 0 }, { opacity: layout.flat ? 0 : 1, scale: 1, top: layout.headTop, duration: .4, delay: i * .08, ease: "back.out(1.7)" });
+      } else {
+        gsap.set(line, { top: layout.lineTop, height: layout.lineHeight, opacity: layout.flat ? 0 : 1 });
+        gsap.set(head, { top: layout.headTop, opacity: layout.flat ? 0 : 1 });
+      }
+      hopsContainer.appendChild(line);
+      hopsContainer.appendChild(head);
+      pos = nextPos;
+    }
+
+    const targets = animate ? { duration: .45, delay: count * .08, ease: "back.out(1.7)" } : { duration: 0 };
+    gsap.to(landing, { top: yFor(product), ...targets });
+    landingTag.style.top = yFor(product) + "px";
+    landingTag.textContent = t.productWord + digits(product, i18n.lang);
+
+    const signA = a < 0 ? "−" : "+";
+    const signB = b < 0 ? "−" : "+";
+    const signR = product < 0 ? "−" : "+";
+    chipA.textContent = signA; chipA.classList.toggle("neg", a < 0); chipA.classList.toggle("pos", a >= 0);
+    chipB.textContent = signB; chipB.classList.toggle("neg", b < 0); chipB.classList.toggle("pos", b >= 0);
+    chipResult.textContent = signR;
+
+    const eqSource = `\\color{#5c939f}{${a}} \\times ${b} = \\color{#ed6d40}{${product}}`;
+    renderEquation(eqLine, eqSource);
+
+    sliderA.value = a; sliderB.value = b;
+    readoutA.textContent = (a > 0 ? "+" : "") + a;
+    readoutB.textContent = b;
+  }
+
+  sliderA.addEventListener("input", () => { const v = parseInt(sliderA.value, 10); if (v !== a) { a = v; render(true); } });
+  sliderB.addEventListener("input", () => { const v = parseInt(sliderB.value, 10); if (v !== b) { b = v; render(true); } });
+
+  window.addEventListener("resize", () => { buildRuler(); render(false); });
+
+  const i18n = initI18n(T, {
+    onLangChange: () => { buildRuler(); render(false); }
+  });
+
+  buildRuler();
+  render(false);
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

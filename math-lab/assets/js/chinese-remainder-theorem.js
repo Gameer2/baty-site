@@ -67,5 +67,13 @@
     if (residues.length !== moduli.length) return showError(`residues (${residues.length}) and moduli (${moduli.length}) must have the same length.`);
     for (const m of moduli) if (m <= 0n) return showError("all moduli must be positive.");
     render(residues, moduli);
+    Proto.saveState("engine-lab:number-theory-chinese-remainder-theorem", { residues: rInput.value, moduli: mInput.value });
   });
+
+  const saved = Proto.loadState("engine-lab:number-theory-chinese-remainder-theorem");
+  if (saved) {
+    if (saved.residues !== undefined) rInput.value = saved.residues;
+    if (saved.moduli !== undefined) mInput.value = saved.moduli;
+    form.requestSubmit();
+  }
 })();

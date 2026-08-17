@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Probabilities — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: a 0-1 probability scale with labeled zones — pick an event and
+     the marker lands, with the reasoning shown. Extends Grade 5's 10.4 probability
+     groundwork into a quantified 0-1 scale. ---- */
+  .chart{ padding:30px 22px 34px; display:flex; flex-direction:column; align-items:center; gap:22px; }
+  .scale-wrap{ position:relative; width:100%; max-width:460px; padding:34px 10px 44px; direction:ltr; }
+  .scale-track{ position:relative; height:6px; border-radius:3px; background:linear-gradient(to right, #7fa8b0, rgba(255,255,255,.08) 50%, #b98a72); }
+  .zone-tick{ position:absolute; top:-8px; width:1px; height:22px; background:rgba(255,255,255,.2); }
+  .zone-label{ position:absolute; top:16px; font-family:var(--mono); font-size:9.5px; color:var(--pulse-ash); transform:translateX(-50%); text-align:center; width:70px; }
+  .marker{ position:absolute; top:-11px; width:24px; height:24px; margin-left:-12px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #f5a687, var(--infrared) 70%); box-shadow:0 4px 12px rgba(237,109,64,.4); cursor:grab; }
+  .marker-val{ position:absolute; top:-40px; transform:translateX(-50%); font-family:var(--mono); font-size:12px; font-weight:700; color:var(--infrared); white-space:nowrap; direction:ltr; }
+
+  .event-list{ display:flex; flex-direction:column; gap:6px; width:100%; max-width:460px; }
+  .event-btn{ font-family:var(--display); font-size:13px; text-align:start; color:var(--neural-fog); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.1); border-radius:10px; padding:10px 14px; cursor:pointer; }
+  .event-btn:hover{ border-color:rgba(92,147,159,.4); }
+  .event-btn.active{ border-color:var(--infrared); background:rgba(237,109,64,.08); }
+  .reason-line{ font-family:var(--mono); font-size:12px; color:var(--pulse-ash); text-align:center; max-width:440px; min-height:1.4em; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 8 · LESSON 5</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Probabilities</h1>
+    <span class="title-secondary ar-display" id="titleAr">الاحتمالات</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I describe the probability of an event using a numerical value on the probability scale.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">0 = impossible, 1 = certain</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="scale-wrap dimmable" data-el="scale">
+        <div class="marker-val" id="markerVal">0.5</div>
+        <div class="marker" id="marker"></div>
+        <div class="scale-track" id="scaleTrack"></div>
+        <div id="zoneMarks"></div>
+      </div>
+      <div class="event-list dimmable" data-el="events" id="eventList"></div>
+      <div class="reason-line" id="reasonLine"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Probability is a number from 0 (impossible) to 1 (certain) placed on a probability scale, with labeled regions (impossible, unlikely, equally likely, likely, certain). Students judge and place events on this qualitative-to-quantitative scale, extending the informal "equal/unequal chance" idea from grade 5 toward numeric probability.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="8-4-circle-sectors.html">— <b data-role="body" id="navPrevText">8.4 · Circle Sectors (Pie Charts)</b></a>
+    <div class="nav-pill next"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">end of Grade 6</b></div>
+  </div>
+</div>
+
+<script>
+  const { digitsDecimal, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const ZONES = [
+    { p: 0, en: "impossible", ar: "مستحيل" },
+    { p: 0.25, en: "unlikely", ar: "غير مرجّح" },
+    { p: 0.5, en: "equally likely", ar: "متساوي الاحتمال" },
+    { p: 0.75, en: "likely", ar: "مرجّح" },
+    { p: 1, en: "certain", ar: "مؤكّد" }
+  ];
+
+  const EVENTS = [
+    { p: 0, en: "Rolling a 7 on a standard six-sided die", ar: "الحصول على ٧ عند رمي حجر نرد سداسي عادي",
+      reasonEn: "No face shows a 7 — impossible.", reasonAr: "لا يوجد وجه يحمل ٧ — مستحيل." },
+    { p: 0.5, en: "Flipping heads on a fair coin", ar: "الحصول على صورة عند رمي عملة عادلة",
+      reasonEn: "Two equally likely outcomes — exactly 0.5.", reasonAr: "ناتجان متساويان في الاحتمال — بالضبط ٠.٥." },
+    { p: 0.3, en: "Drawing a red ball from a bag of 3 red and 7 blue balls", ar: "سحب كرة حمراء من كيس فيه ٣ حمراء و٧ زرقاء",
+      reasonEn: "3 out of 10 balls are red — 0.3, closer to impossible than certain.", reasonAr: "٣ من أصل ١٠ كرات حمراء — ٠.٣، أقرب إلى المستحيل منه إلى المؤكّد." },
+    { p: 0.8, en: "Drawing a blue ball from that same bag", ar: "سحب كرة زرقاء من الكيس نفسه",
+      reasonEn: "7 out of 10 balls are blue — 0.8, closer to certain.", reasonAr: "٧ من أصل ١٠ كرات زرقاء — ٠.٨، أقرب إلى المؤكّد." },
+    { p: 1, en: "The sun rising tomorrow", ar: "شروق الشمس غدًا",
+      reasonEn: "This always happens — certain, probability 1.", reasonAr: "يحدث هذا دائمًا — مؤكّد، احتماله ١." }
+  ];
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 8 · LESSON 5",
+      objectiveLabel: "Objective —",
+      objectiveText: "I describe the probability of an event using a numerical value on the probability scale.",
+      eqSub: "0 = impossible, 1 = certain",
+      explainBtn: "Explain this",
+      teachLabel: "What this teaches:",
+      teachBody: "Probability is a number from 0 (impossible) to 1 (certain) placed on a probability scale, with labeled regions (impossible, unlikely, equally likely, likely, certain). Students judge and place events on this qualitative-to-quantitative scale, extending the informal \"equal/unequal chance\" idea from grade 5 toward numeric probability.",
+      navPrev: "8.4 · Circle Sectors (Pie Charts)",
+      navNext: "end of Grade 6",
+      navNextLabel: "next",
+      tour: [
+        { elKey: "scale", label: "Zero to one", body: "Every probability sits somewhere between 0 (impossible) and 1 (certain), with labeled zones along the way." },
+        { elKey: "events", label: "Pick an event", body: "Choose a real event — the marker lands at its actual probability, with the reasoning shown." },
+        { ids: ["eqLine"], label: "The number itself", body: "The equation bar states the probability as a fraction — count the favorable outcomes over all possible outcomes." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ٨ · الدرس ٥",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أصف احتمال حدث باستخدام قيمة عددية على مقياس الاحتمال.",
+      eqSub: "٠ = مستحيل، ١ = مؤكّد",
+      explainBtn: "اشرح هذا",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "الاحتمال عدد من ٠ (مستحيل) إلى ١ (مؤكّد) يوضع على مقياس احتمال، بمناطق موسومة (مستحيل، غير مرجّح، متساوي الاحتمال، مرجّح، مؤكّد). يحكم الطلبة على أحداث ويضعونها على هذا المقياس من النوعي إلى الكمّي، موسّعين فكرة «فرصة متساوية/غير متساوية» غير الرسمية من الصف الخامس نحو احتمال عددي.",
+      navPrev: "٨.٤ · القطاعات الدائرية",
+      navNext: "نهاية الصف السادس",
+      navNextLabel: "التالي",
+      tour: [
+        { elKey: "scale", label: "من صفر إلى واحد", body: "يقع كل احتمال في مكان ما بين ٠ (مستحيل) و١ (مؤكّد)، بمناطق موسومة على الطريق." },
+        { elKey: "events", label: "اختر حدثًا", body: "اختر حدثًا حقيقيًا — يستقرّ المؤشّر عند احتماله الفعلي، مع عرض السبب." },
+        { ids: ["eqLine"], label: "العدد نفسه", body: "توضّح المعادلة الاحتمال ككسر — عُدّ النواتج المواتية على كل النواتج الممكنة." }
+      ]
+    }
+  };
+
+  const scaleWrap = document.querySelector(".scale-wrap");
+  const scaleTrack = document.getElementById("scaleTrack");
+  const zoneMarks = document.getElementById("zoneMarks");
+  const marker = document.getElementById("marker");
+  const markerVal = document.getElementById("markerVal");
+  const eventList = document.getElementById("eventList");
+  const reasonLine = document.getElementById("reasonLine");
+  const eqLine = document.getElementById("eqLine");
+
+  let prob = 0.5;
+  let activeEvent = null;
+
+  function buildZones() {
+    zoneMarks.innerHTML = "";
+    ZONES.forEach(z => {
+      const tick = document.createElement("div");
+      tick.className = "zone-tick";
+      tick.style.left = (z.p * 100) + "%";
+      const label = document.createElement("div");
+      label.className = "zone-label";
+      label.style.left = (z.p * 100) + "%";
+      label.dataset.p = z.p;
+      zoneMarks.appendChild(tick);
+      zoneMarks.appendChild(label);
+    });
+  }
+
+  function positionMarker(animate) {
+    const targets = { left: (prob * 100) + "%" };
+    if (animate) gsap.to(marker, { ...targets, duration: .5, ease: "back.out(1.7)" });
+    else gsap.set(marker, targets);
+    markerVal.style.left = (prob * 100) + "%";
+    markerVal.textContent = digitsDecimal(prob, i18n.lang, 2);
+  }
+
+  function buildEvents() {
+    eventList.innerHTML = "";
+    EVENTS.forEach((ev, idx) => {
+      const btn = document.createElement("button");
+      btn.className = "event-btn" + (activeEvent === idx ? " active" : "");
+      btn.textContent = i18n.lang === "ar" ? ev.ar : ev.en;
+      btn.addEventListener("click", () => {
+        activeEvent = idx;
+        prob = ev.p;
+        positionMarker(true);
+        buildEvents();
+        render();
+      });
+      eventList.appendChild(btn);
+    });
+  }
+
+  function render() {
+    const t = T[i18n.lang];
+    document.querySelectorAll(".zone-label").forEach(label => {
+      const z = ZONES.find(z => String(z.p) === label.dataset.p);
+      label.textContent = t[z.en] || z[i18n.lang === "ar" ? "ar" : "en"];
+    });
+
+    let eqSource;
+    if (activeEvent !== null) {
+      const ev = EVENTS[activeEvent];
+      reasonLine.textContent = i18n.lang === "ar" ? ev.reasonAr : ev.reasonEn;
+      eqSource = `P = \\color{#ed6d40}{${digitsDecimal(ev.p, "en", 2)}}`;
+    } else {
+      reasonLine.textContent = "";
+      eqSource = `0 \\le P \\le 1`;
+    }
+    renderEquation(eqLine, eqSource);
+  }
+
+  const i18n = initI18n(T, { onLangChange: () => { buildEvents(); positionMarker(false); render(); } });
+  buildZones();
+  positionMarker(false);
+  buildEvents();
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

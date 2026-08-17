@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Line Graph Representation — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:26px 20px 30px; display:flex; flex-direction:column; align-items:center; gap:16px; }
+  svg#lineSvg{ direction:ltr; }
+  .grid-line{ stroke:rgba(255,255,255,.08); stroke-width:1; }
+  .axis-line{ stroke:rgba(255,255,255,.4); stroke-width:1.5; }
+  .axis-num{ font-family:var(--mono); font-size:10px; fill:var(--pulse-ash); }
+  .data-dot{ fill:var(--electric-teal); stroke:var(--off-white); stroke-width:1.5; cursor:ns-resize; }
+  .data-line{ fill:none; stroke:var(--electric-teal); stroke-width:2.5; }
+  .play-marker{ fill:var(--infrared); stroke:var(--off-white); stroke-width:1.5; opacity:0; }
+  .value-readout{ font-family:var(--mono); font-size:13px; color:var(--neural-fog); direction:ltr; unicode-bidi:isolate; }
+  .value-readout b{ color:var(--infrared); }
+
+  .control-row .play-controls{ display:flex; align-items:center; gap:10px; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 5 · LESSON 3</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Line Graph Representation</h1>
+    <span class="title-secondary ar-display" id="titleAr">تمثيل البيانات بخط بياني</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I represent data that changes over time as a line graph, and read values from it.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">drag a point to change that day's value</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="play-controls">
+        <button class="explain-btn" id="playBtn" data-role="ui" data-i18n="playBtn">play</button>
+        <input type="range" id="playScrub" min="0" max="6" step="1" value="0" />
+      </div>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <svg id="lineSvg" width="420" height="260" viewBox="0 0 420 260" data-el="lineSvg"></svg>
+      <div class="value-readout" id="valueReadout" data-el="valueReadout"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">A line graph plots how a quantity changes over time — time always runs along the bottom axis — and connecting the points with a line lets you read (or estimate) a value at any point along the way.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="5-2-coordinate-plane.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">5.2 · The Coordinate Plane</b></a>
+    <a class="nav-pill next" href="5-4-double-bar-graph.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">5.4 · Double Bar Graph Representation</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const DAYS_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const DAYS_AR = ["أحد", "اثنين", "ثلاثاء", "أربعاء", "خميس", "جمعة", "سبت"];
+  const PAD_L = 40, PAD_R = 20, PAD_T = 16, PAD_B = 32, W = 420, H = 260;
+  const plotW = W - PAD_L - PAD_R, plotH = H - PAD_T - PAD_B;
+  const MAXVAL = 30;
+
+  let values = [12, 18, 15, 24, 20, 28, 22];
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 5 · LESSON 3",
+      objectiveLabel: "Objective —",
+      objectiveText: "I represent data that changes over time as a line graph, and read values from it.",
+      eqSub: "drag a point to change that day's value",
+      explainBtn: "Explain this",
+      playBtn: "play",
+      readout: (day, val) => `${day}: ${val} °C`,
+      navPrevLabel: "—", navPrevText: "5.2 · The Coordinate Plane",
+      navNextLabel: "next", navNext: "5.4 · Double Bar Graph Representation",
+      teachLabel: "What this teaches:",
+      teachBody: "A line graph plots how a quantity changes over time — time always runs along the bottom axis — and connecting the points with a line lets you read (or estimate) a value at any point along the way.",
+      tour: [
+        { ids: ["lineSvg"], label: "Time along the bottom", body: "Each point on the horizontal axis is a day — the vertical axis is the value being tracked, here temperature." },
+        { ids: ["lineSvg"], label: "Drag to edit the data", body: "Drag any point up or down to change that day's recorded value — the connecting line updates instantly." },
+        { ids: ["playBtn"], label: "Play it back", body: "Press play — a marker sweeps left to right, reading off the value at each day in sequence." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٥ · الدرس ٣",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أُمثّل بيانات تتغيّر بمرور الوقت بخط بياني، وأقرأ منه قيمًا.",
+      eqSub: "اسحب نقطة لتغيير قيمة ذلك اليوم",
+      explainBtn: "اشرح هذا",
+      playBtn: "تشغيل",
+      readout: (day, val) => `${day}: ${val} °م`,
+      navPrevLabel: "—", navPrevText: "٥.٢ · المستوى الإحداثي",
+      navNextLabel: "التالي", navNext: "٥.٤ · تمثيل البيانات بعمودين",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "يرسم الخط البياني كيف تتغيّر كمّية ما بمرور الوقت — يمتدّ الزمن دائمًا على المحور الأفقي — ويتيح وصل النقاط بخط قراءة (أو تقدير) قيمة عند أي نقطة على الطريق.",
+      tour: [
+        { ids: ["lineSvg"], label: "الزمن على المحور الأفقي", body: "كل نقطة على المحور الأفقي هي يوم — والمحور العمودي هو القيمة المُتتبَّعة، هنا درجة الحرارة." },
+        { ids: ["lineSvg"], label: "اسحب لتعديل البيانات", body: "اسحب أي نقطة لأعلى أو لأسفل لتغيير القيمة المسجَّلة لذلك اليوم — يتحدّث الخط الواصل فورًا." },
+        { ids: ["playBtn"], label: "شغّل التشغيل", body: "اضغط تشغيل — يتحرّك مؤشّر من اليسار لليمين، يقرأ القيمة عند كل يوم بالتسلسل." }
+      ]
+    }
+  };
+
+  const lineSvg = document.getElementById("lineSvg");
+  const eqLine = document.getElementById("eqLine");
+  const valueReadout = document.getElementById("valueReadout");
+  const playBtn = document.getElementById("playBtn");
+  const playScrub = document.getElementById("playScrub");
+
+  function px(i) { return PAD_L + (i / (values.length - 1)) * plotW; }
+  function py(v) { return PAD_T + plotH - (v / MAXVAL) * plotH; }
+
+  function build() {
+    lineSvg.innerHTML = "";
+    const days = i18n.lang === "ar" ? DAYS_AR : DAYS_EN;
+    for (let g = 0; g <= 5; g++) {
+      const yy = PAD_T + (g / 5) * plotH;
+      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("x1", PAD_L); line.setAttribute("x2", W - PAD_R);
+      line.setAttribute("y1", yy); line.setAttribute("y2", yy);
+      line.setAttribute("class", "grid-line");
+      lineSvg.appendChild(line);
+      const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      label.setAttribute("x", PAD_L - 8); label.setAttribute("y", yy + 3);
+      label.setAttribute("text-anchor", "end"); label.setAttribute("class", "axis-num");
+      label.textContent = digits(Math.round(MAXVAL - (g / 5) * MAXVAL), i18n.lang);
+      lineSvg.appendChild(label);
+    }
+    const axis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    axis.setAttribute("x1", PAD_L); axis.setAttribute("x2", PAD_L);
+    axis.setAttribute("y1", PAD_T); axis.setAttribute("y2", H - PAD_B);
+    axis.setAttribute("class", "axis-line");
+    lineSvg.appendChild(axis);
+    const axisB = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    axisB.setAttribute("x1", PAD_L); axisB.setAttribute("x2", W - PAD_R);
+    axisB.setAttribute("y1", H - PAD_B); axisB.setAttribute("y2", H - PAD_B);
+    axisB.setAttribute("class", "axis-line");
+    lineSvg.appendChild(axisB);
+
+    const pathD = values.map((v, i) => `${i === 0 ? "M" : "L"}${px(i)},${py(v)}`).join(" ");
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", pathD);
+    path.setAttribute("class", "data-line");
+    lineSvg.appendChild(path);
+
+    values.forEach((v, i) => {
+      const dayLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      dayLabel.setAttribute("x", px(i)); dayLabel.setAttribute("y", H - PAD_B + 16);
+      dayLabel.setAttribute("text-anchor", "middle"); dayLabel.setAttribute("class", "axis-num");
+      dayLabel.textContent = days[i];
+      lineSvg.appendChild(dayLabel);
+
+      const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      dot.setAttribute("cx", px(i)); dot.setAttribute("cy", py(v));
+      dot.setAttribute("r", 6); dot.setAttribute("class", "data-dot");
+      let dragging = false;
+      dot.addEventListener("pointerdown", (e) => { dragging = true; dot.setPointerCapture(e.pointerId); });
+      dot.addEventListener("pointermove", (e) => {
+        if (!dragging) return;
+        const rect = lineSvg.getBoundingClientRect();
+        const scaleY = H / rect.height;
+        const py_ = (e.clientY - rect.top) * scaleY;
+        const val = Math.max(0, Math.min(MAXVAL, Math.round(((PAD_T + plotH - py_) / plotH) * MAXVAL)));
+        values[i] = val;
+        build();
+      });
+      dot.addEventListener("pointerup", () => { dragging = false; });
+      lineSvg.appendChild(dot);
+    });
+
+    const marker = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    marker.setAttribute("id", "playMarker");
+    marker.setAttribute("r", 7);
+    marker.setAttribute("class", "play-marker");
+    lineSvg.appendChild(marker);
+
+    playScrub.max = values.length - 1;
+    updateReadout(parseInt(playScrub.value, 10));
+
+    renderEquation(eqLine, `\\text{max} = ${Math.max(...values)}\\text{, min} = ${Math.min(...values)}`);
+  }
+
+  function updateReadout(i) {
+    const t = T[i18n.lang];
+    const days = i18n.lang === "ar" ? DAYS_AR : DAYS_EN;
+    valueReadout.textContent = t.readout(days[i], values[i]);
+    const marker = document.getElementById("playMarker");
+    if (marker) {
+      marker.setAttribute("cx", px(i)); marker.setAttribute("cy", py(values[i]));
+      gsap.to(marker, { opacity: 1, duration: .2 });
+    }
+  }
+
+  playScrub.addEventListener("input", () => updateReadout(parseInt(playScrub.value, 10)));
+
+  playBtn.addEventListener("click", () => {
+    let i = 0;
+    playScrub.value = 0;
+    updateReadout(0);
+    const timer = setInterval(() => {
+      i++;
+      if (i >= values.length) { clearInterval(timer); return; }
+      playScrub.value = i;
+      updateReadout(i);
+    }, 550);
+  });
+
+  const i18n = initI18n(T, { onLangChange: build });
+  build();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

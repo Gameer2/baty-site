@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Chances of Occurrence — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:24px 20px 30px; display:flex; flex-direction:column; align-items:center; gap:20px; }
+  .spinner-wrap{ position:relative; width:180px; height:180px; }
+  svg#spinnerSvg{ overflow:visible; }
+  .pointer{ position:absolute; top:-14px; left:50%; width:0; height:0; margin-left:-8px; border-left:8px solid transparent; border-right:8px solid transparent; border-top:16px solid var(--off-white); }
+
+  .sliders{ display:flex; flex-direction:column; gap:8px; width:100%; max-width:340px; }
+  .slider-row{ display:flex; align-items:center; gap:10px; }
+  .slider-row .swatch{ width:12px; height:12px; border-radius:3px; flex-shrink:0; }
+  .slider-row input[type="range"]{ flex:1; }
+  .slider-row .val{ font-family:var(--mono); font-size:12px; width:34px; text-align:right; color:var(--neural-fog); direction:ltr; }
+
+  .actions{ display:flex; gap:10px; }
+
+  .tally-row{ display:flex; gap:14px; }
+  .tally-card{ display:flex; flex-direction:column; align-items:center; gap:4px; padding:8px 14px; border-radius:10px; background:var(--urban-smoke); border:1px solid rgba(255,255,255,.1); min-width:70px; }
+  .tally-card .swatch{ width:14px; height:14px; border-radius:4px; }
+  .tally-card .val{ font-family:var(--mono); font-size:15px; font-weight:700; color:var(--off-white); direction:ltr; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 10 · LESSON 4</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Chances of Occurrence</h1>
+    <span class="title-secondary ar-display" id="titleAr">فرص الحدوث</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I compare the theoretical chance of an outcome to what repeated random draws actually produce.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">bigger slice, more likely — draws should match</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="sliders" id="sliders" data-el="sliders"></div>
+    </div>
+
+    <div class="control-row">
+      <div class="actions">
+        <button class="explain-btn" id="drawBtn" data-role="ui" data-i18n="drawBtn">spin once</button>
+        <button class="explain-btn" id="draw10Btn" data-role="ui" data-i18n="draw10Btn">spin ×10</button>
+        <button class="explain-btn" id="resetBtn" data-role="ui" data-i18n="resetBtn">reset draws</button>
+      </div>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="spinner-wrap" id="spinnerWrap" data-el="spinnerWrap">
+        <div class="pointer"></div>
+        <svg id="spinnerSvg" width="180" height="180" viewBox="0 0 180 180"></svg>
+      </div>
+      <div class="tally-row" id="tallyRow" data-el="tallyRow"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">An outcome's slice size sets its theoretical chance of occurring — repeated random draws won't match that chance exactly every time, but over enough spins the empirical counts drift toward the same proportions the slices predict.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="10-3-the-range.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">10.3 · The Range</b></a>
+    <div class="nav-pill next"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">end of Grade 5</b></div>
+  </div>
+</div>
+
+<script>
+  const { digits, groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const OUTCOMES = [
+    { key: "red", color: "#ed6d40" },
+    { key: "teal", color: "#5c939f" },
+    { key: "green", color: "#6bb57c" }
+  ];
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 10 · LESSON 4",
+      objectiveLabel: "Objective —",
+      objectiveText: "I compare the theoretical chance of an outcome to what repeated random draws actually produce.",
+      eqSub: "bigger slice, more likely — draws should match",
+      explainBtn: "Explain this",
+      drawBtn: "spin once", draw10Btn: "spin ×10", resetBtn: "reset draws",
+      colorNames: { red: "red", teal: "teal", green: "green" },
+      navPrevLabel: "—", navPrevText: "10.3 · The Range",
+      navNextLabel: "next", navNext: "end of Grade 5",
+      teachLabel: "What this teaches:",
+      teachBody: "An outcome's slice size sets its theoretical chance of occurring — repeated random draws won't match that chance exactly every time, but over enough spins the empirical counts drift toward the same proportions the slices predict.",
+      tour: [
+        { elKey: "sliders", label: "Set the proportions", body: "Drag the sliders — the spinner's slices resize live to match each outcome's share." },
+        { elKey: "spinnerWrap", label: "Spin it", body: "A bigger slice means a bigger theoretical chance of the pointer landing on it." },
+        { elKey: "tallyRow", label: "Compare draws to theory", body: "Spin many times — the actual counts should drift toward matching the slice proportions, though not perfectly every time." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ١٠ · الدرس ٤",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أُقارن الفرصة النظرية لحدث بما تنتجه سحوبات عشوائية متكرّرة فعليًا.",
+      eqSub: "قطعة أكبر، احتمال أكبر — يجب أن تتطابق السحوبات",
+      explainBtn: "اشرح هذا",
+      drawBtn: "دوّر مرّة", draw10Btn: "دوّر ×١٠", resetBtn: "أعد ضبط السحوبات",
+      colorNames: { red: "أحمر", teal: "تركواز", green: "أخضر" },
+      navPrevLabel: "—", navPrevText: "١٠.٣ · المدى",
+      navNextLabel: "التالي", navNext: "نهاية الصف الخامس",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "حجم قطعة الحدث يحدّد فرصته النظرية للحدوث — لن تطابق السحوبات العشوائية المتكرّرة تلك الفرصة تمامًا في كل مرّة، لكن مع عدد كافٍ من الدورات، تنجرف الأعداد الفعلية نحو النسب نفسها التي تتنبّأ بها القطع.",
+      tour: [
+        { elKey: "sliders", label: "حدّد النسب", body: "اسحب أشرطة التمرير — تتغيّر أحجام قطع العجلة مباشرة لتطابق نصيب كل حدث." },
+        { elKey: "spinnerWrap", label: "دوّرها", body: "القطعة الأكبر تعني فرصة نظرية أكبر لسقوط المؤشّر عليها." },
+        { elKey: "tallyRow", label: "قارن السحوبات بالنظرية", body: "دوّر عدّة مرّات — يجب أن تنجرف الأعداد الفعلية نحو مطابقة نسب القطع، وإن لم تكن مثالية في كل مرّة." }
+      ]
+    }
+  };
+
+  const sliders = document.getElementById("sliders");
+  const spinnerSvg = document.getElementById("spinnerSvg");
+  const tallyRow = document.getElementById("tallyRow");
+  const drawBtn = document.getElementById("drawBtn");
+  const draw10Btn = document.getElementById("draw10Btn");
+  const resetBtn = document.getElementById("resetBtn");
+  const eqLine = document.getElementById("eqLine");
+
+  let props = { red: 5, teal: 3, green: 2 };
+  let draws = { red: 0, teal: 0, green: 0 };
+  let currentRotation = 0;
+
+  function buildSliders() {
+    const t = T[i18n.lang];
+    sliders.innerHTML = "";
+    OUTCOMES.forEach(o => {
+      const row = document.createElement("div");
+      row.className = "slider-row";
+      const swatch = document.createElement("div");
+      swatch.className = "swatch";
+      swatch.style.background = o.color;
+      const input = document.createElement("input");
+      input.type = "range"; input.min = 1; input.max = 10; input.value = props[o.key];
+      const val = document.createElement("span");
+      val.className = "val";
+      val.textContent = digits(props[o.key], i18n.lang);
+      input.addEventListener("input", () => {
+        props[o.key] = parseInt(input.value, 10);
+        val.textContent = digits(props[o.key], i18n.lang);
+        renderSpinner();
+      });
+      row.appendChild(swatch); row.appendChild(input); row.appendChild(val);
+      sliders.appendChild(row);
+    });
+  }
+
+  function renderSpinner() {
+    spinnerSvg.innerHTML = "";
+    const cx = 90, cy = 90, r = 80;
+    const total = OUTCOMES.reduce((s, o) => s + props[o.key], 0);
+    let angle = -90;
+    OUTCOMES.forEach(o => {
+      const sweep = (props[o.key] / total) * 360;
+      const a0 = (angle * Math.PI) / 180, a1 = ((angle + sweep) * Math.PI) / 180;
+      const x0 = cx + r * Math.cos(a0), y0 = cy + r * Math.sin(a0);
+      const x1 = cx + r * Math.cos(a1), y1 = cy + r * Math.sin(a1);
+      const large = sweep > 180 ? 1 : 0;
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", `M${cx},${cy} L${x0},${y0} A${r},${r} 0 ${large} 1 ${x1},${y1} Z`);
+      path.setAttribute("fill", o.color);
+      path.setAttribute("stroke", "#0c0d0e");
+      path.setAttribute("stroke-width", "2");
+      spinnerSvg.appendChild(path);
+      angle += sweep;
+    });
+
+    renderTally();
+    updateEq();
+  }
+
+  function renderTally() {
+    const t = T[i18n.lang];
+    tallyRow.innerHTML = "";
+    OUTCOMES.forEach(o => {
+      const card = document.createElement("div");
+      card.className = "tally-card";
+      const swatch = document.createElement("div");
+      swatch.className = "swatch";
+      swatch.style.background = o.color;
+      const val = document.createElement("div");
+      val.className = "val";
+      val.textContent = digits(draws[o.key], i18n.lang);
+      card.appendChild(swatch); card.appendChild(val);
+      tallyRow.appendChild(card);
+    });
+  }
+
+  function updateEq() {
+    const total = OUTCOMES.reduce((s, o) => s + props[o.key], 0);
+    const parts = OUTCOMES.map(o => `${props[o.key]}/${total}`).join(",\\;");
+    renderEquation(eqLine, `P = ${parts}`);
+  }
+
+  function pickOutcome() {
+    const total = OUTCOMES.reduce((s, o) => s + props[o.key], 0);
+    let r = Math.random() * total;
+    for (const o of OUTCOMES) {
+      if (r < props[o.key]) return o;
+      r -= props[o.key];
+    }
+    return OUTCOMES[OUTCOMES.length - 1];
+  }
+
+  function spinOnce(cb) {
+    const outcome = pickOutcome();
+    const total = OUTCOMES.reduce((s, o) => s + props[o.key], 0);
+    let angle = -90;
+    let targetMid = 0;
+    for (const o of OUTCOMES) {
+      const sweep = (props[o.key] / total) * 360;
+      if (o.key === outcome.key) { targetMid = angle + sweep / 2; break; }
+      angle += sweep;
+    }
+    const spins = 3 + Math.random() * 2;
+    const finalRotation = currentRotation + spins * 360 + (90 - targetMid) - (currentRotation % 360);
+    gsap.to(spinnerSvg, { rotation: finalRotation, transformOrigin: "50% 50%", duration: 1.1, ease: "power3.out", onComplete: () => {
+      currentRotation = finalRotation;
+      draws[outcome.key]++;
+      renderTally();
+      if (cb) cb();
+    }});
+  }
+
+  drawBtn.addEventListener("click", () => spinOnce());
+  draw10Btn.addEventListener("click", () => {
+    let count = 0;
+    function next() {
+      if (count >= 10) return;
+      count++;
+      spinOnce(next);
+    }
+    next();
+  });
+  resetBtn.addEventListener("click", () => { draws = { red: 0, teal: 0, green: 0 }; renderTally(); });
+
+  const i18n = initI18n(T, { onLangChange: () => { buildSliders(); renderSpinner(); } });
+  buildSliders();
+  renderSpinner();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

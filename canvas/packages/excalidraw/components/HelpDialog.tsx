@@ -12,50 +12,30 @@ import { getShortcutKey } from "../shortcut";
 
 import { useExcalidrawActionManager } from "./App";
 import { Dialog } from "./Dialog";
-import { ExternalLinkIcon, GithubIcon, youtubeIcon } from "./icons";
+import { ExternalLinkIcon } from "./icons";
 
 import "./HelpDialog.scss";
 
 import type { JSX } from "react";
 
+// No excalidraw.com/GitHub/Discord/YouTube links here — this fork has none of that (no public
+// repo, no community channels), and a "Blog"/"Report a bug" button pointing at Excalidraw's own
+// pages would be worse than not having one. Documentation lives right in this dialog instead of
+// linking out, so the button just scrolls to it.
 const Header = () => (
   <div className="HelpDialog__header">
-    <a
+    <button
+      type="button"
       className="HelpDialog__btn"
-      href="https://docs.excalidraw.com"
-      target="_blank"
-      rel="noopener"
+      onClick={() =>
+        document
+          .getElementById("HelpDialog__documentation")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" })
+      }
     >
       <div className="HelpDialog__link-icon">{ExternalLinkIcon}</div>
       {t("helpDialog.documentation")}
-    </a>
-    <a
-      className="HelpDialog__btn"
-      href="https://plus.excalidraw.com/blog"
-      target="_blank"
-      rel="noopener"
-    >
-      <div className="HelpDialog__link-icon">{ExternalLinkIcon}</div>
-      {t("helpDialog.blog")}
-    </a>
-    <a
-      className="HelpDialog__btn"
-      href="https://github.com/excalidraw/excalidraw/issues"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      <div className="HelpDialog__link-icon">{GithubIcon}</div>
-      {t("helpDialog.github")}
-    </a>
-    <a
-      className="HelpDialog__btn"
-      href="https://youtube.com/@excalidraw"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      <div className="HelpDialog__link-icon">{youtubeIcon}</div>
-      YouTube
-    </a>
+    </button>
   </div>
 );
 
@@ -64,6 +44,71 @@ const Section = (props: { title: string; children: React.ReactNode }) => (
     <h3>{props.title}</h3>
     <div className="HelpDialog__islands-container">{props.children}</div>
   </>
+);
+
+const DocTopic = (props: { title: string; children: React.ReactNode }) => (
+  <div className="HelpDialog__doc-topic">
+    <h4>{props.title}</h4>
+    {props.children}
+  </div>
+);
+
+/**
+ * Replaces the old "Documentation" external link (docs.excalidraw.com) — this fork isn't
+ * Excalidraw's docs site, and there's no in-house docs site yet either, so the content lives
+ * right here instead of pointing somewhere that doesn't exist.
+ */
+const Documentation = () => (
+  <div className="HelpDialog__doc">
+    <DocTopic title="Pens">
+      <p>
+        The pen favorites bar (top right) is six quick-swap presets — tap one to
+        switch straight to that color, width, and opacity. The two flat swatches
+        are highlighters: the same pen at a wide, low-opacity stroke. The slider
+        under the swatches dials in handwriting smoothing, from raw input to
+        heavily stabilized.
+      </p>
+    </DocTopic>
+    <DocTopic title="Paper">
+      <p>
+        The paper picker sets the canvas texture — blank, lined, grid, or dotted
+        — and its color, independent of the app's own light/dark theme.
+      </p>
+    </DocTopic>
+    <DocTopic title="Drafting instruments">
+      <p>
+        Compass, ruler, protractor, T-square, set square, and angle bisector
+        live under "More tools" in the toolbar. Each behaves like its physical
+        counterpart: drag to place, drag again to rotate or resize, and draw
+        along an edge to get a perfectly straight or constrained line.
+      </p>
+    </DocTopic>
+    <DocTopic title="Eraser modes">
+      <p>Pick a mode from the eraser's own toolbar panel:</p>
+      <p>
+        <strong>{t("labels.eraserMode_precision")}</strong> —{" "}
+        {t("labels.eraserMode_precision_description")}
+      </p>
+      <p>
+        <strong>{t("labels.eraserMode_stroke")}</strong> —{" "}
+        {t("labels.eraserMode_stroke_description")}
+      </p>
+      <p>
+        <strong>{t("labels.eraserMode_clear")}</strong> —{" "}
+        {t("labels.eraserMode_clear_description")}
+      </p>
+    </DocTopic>
+    <DocTopic title="Math-lab nodes">
+      <p>
+        The Library panel (left side) is a browser for every method across the
+        math-lab engines. Drag one onto the canvas and it becomes a live node —
+        fill in its inputs and it computes right there, no separate app. Drag a
+        wire from one node's output to another node's input to chain them:
+        change an upstream value and everything downstream recomputes
+        automatically.
+      </p>
+    </DocTopic>
+  </div>
 );
 
 const ShortcutIsland = (props: {
@@ -141,6 +186,8 @@ export const HelpDialog = ({ onClose }: { onClose?: () => void }) => {
         className={"HelpDialog"}
       >
         <Header />
+        <h3 id="HelpDialog__documentation">{t("helpDialog.documentation")}</h3>
+        <Documentation />
         <Section title={t("helpDialog.shortcuts")}>
           <ShortcutIsland
             className="HelpDialog__island--tools"

@@ -15,6 +15,12 @@
   const formulaBlock = document.getElementById("formulaBlock");
   const tableBody = document.querySelector("#tableBody tbody");
 
+  const STORE_KEY = "engine-lab:numerical-newton-dd";
+
+  function snapshot() {
+    return { points: pointsInput.value, x: xInput.value };
+  }
+
   function parsePoints() {
     const lines = pointsInput.value.trim().split("\n").filter((l) => l.trim() !== "");
     const points = [];
@@ -76,8 +82,7 @@
     tableBody.innerHTML = rows.join("");
   }
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+  function runCompute() {
     clearError();
     const points = parsePoints();
     const x = parseFloat(xInput.value);
@@ -86,10 +91,23 @@
     try {
       const result = Algorithms.runNewtonDD(points, x);
       render(result);
+      Proto.saveState(STORE_KEY, snapshot());
     } catch (err) {
       showError(err.message);
     }
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    runCompute();
   });
+
+  const saved = Proto.loadState(STORE_KEY);
+  if (saved) {
+    if (saved.points !== undefined) pointsInput.value = String(saved.points).split(";").join("\n");
+    if (saved.x !== undefined) xInput.value = saved.x;
+    runCompute();
+  }
 
   updateStatus();
 })();

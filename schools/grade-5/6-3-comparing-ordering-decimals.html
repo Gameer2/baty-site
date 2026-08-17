@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Comparing and Ordering Decimals — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:34px 24px 34px; display:flex; flex-direction:column; align-items:center; gap:26px; }
+  .line-wrap{ position:relative; width:100%; max-width:520px; height:70px; direction:ltr; }
+  .line-track{ position:absolute; top:32px; left:0; right:0; height:2px; background:rgba(255,255,255,.16); }
+  .tick{ position:absolute; top:26px; width:1px; height:14px; background:rgba(255,255,255,.14); }
+  .tick.major{ background:rgba(255,255,255,.35); height:18px; top:22px; }
+  .tick-label{ position:absolute; top:48px; font-family:var(--mono); font-size:10px; color:var(--pulse-ash); transform:translateX(-50%); direction:ltr; }
+  .point{ position:absolute; top:24px; width:16px; height:16px; margin-left:-8px; border-radius:50%; border:2px solid var(--off-white); z-index:3; }
+  .point.a{ background:var(--electric-teal); }
+  .point.b{ background:var(--infrared); }
+  .point-tag{ position:absolute; top:-22px; font-family:var(--mono); font-size:11px; font-weight:700; transform:translateX(-50%); direction:ltr; }
+  .point-tag.a{ color:var(--electric-teal); }
+  .point-tag.b{ color:var(--infrared); }
+
+  .zoom-row{ display:flex; align-items:center; gap:10px; }
+  .zoom-row label{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash); }
+
+  .verdict{ font-family:var(--mono); font-size:14px; color:var(--neural-fog); direction:ltr; unicode-bidi:isolate; }
+  .verdict b{ color:var(--validation-green); }
+
+  .inputs{ display:flex; gap:20px; }
+  .input-group{ display:flex; align-items:center; gap:8px; }
+  .input-group label{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash); }
+  .input-group input{ font-family:var(--mono); font-size:15px; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.16); border-radius:8px; padding:7px 10px; width:90px; direction:ltr; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 6 · LESSON 3</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Comparing and Ordering Decimals</h1>
+    <span class="title-secondary ar-display" id="titleAr">مقارنة الكسور العشرية وترتيبها</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I compare two decimals by locating them precisely on a zoomable number line.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">whichever sits further right is greater</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="inputs">
+        <div class="input-group"><label data-role="ui" data-i18n="labelA">decimal A</label><input type="number" id="valA" value="0.45" min="0" max="10" step="0.001" /></div>
+        <div class="input-group"><label data-role="ui" data-i18n="labelB">decimal B</label><input type="number" id="valB" value="0.5" min="0" max="10" step="0.001" /></div>
+      </div>
+    </div>
+
+    <div class="control-row zoom-row">
+      <label data-role="ui" data-i18n="zoomLabel">zoom</label>
+      <input type="range" id="zoomSlider" min="0" max="2" step="1" value="0" />
+      <span class="control-val" id="zoomReadout"></span>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="line-wrap" id="lineWrap" data-el="lineWrap"></div>
+      <div class="verdict" id="verdict" data-el="verdict"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Two decimals that look close, or even tied at first glance, can be told apart precisely by zooming in on a number line until their exact positions separate — whichever point sits further to the right is the greater value.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="6-2-fractions-decimals.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">6.2 · Converting Between Fractions and Decimals</b></a>
+    <a class="nav-pill next" href="6-4-rounding-decimals.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">6.4 · Rounding Decimals</b></a>
+  </div>
+</div>
+
+<script>
+  const { digitsDecimal, initI18n, renderEquation, buildTour } = LessonShell;
+  const ZOOM_LEVELS = [ { span: 1, decimals: 1 }, { span: 0.1, decimals: 2 }, { span: 0.01, decimals: 3 } ];
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 6 · LESSON 3",
+      objectiveLabel: "Objective —",
+      objectiveText: "I compare two decimals by locating them precisely on a zoomable number line.",
+      eqSub: "whichever sits further right is greater",
+      explainBtn: "Explain this",
+      labelA: "decimal A", labelB: "decimal B",
+      zoomLabel: "zoom",
+      zoomNames: ["wide", "closer", "closest"],
+      greaterIs: (which) => `${which} is greater`, equalTxt: "A and B are equal",
+      navPrevLabel: "—", navPrevText: "6.2 · Converting Between Fractions and Decimals",
+      navNextLabel: "next", navNext: "6.4 · Rounding Decimals",
+      teachLabel: "What this teaches:",
+      teachBody: "Two decimals that look close, or even tied at first glance, can be told apart precisely by zooming in on a number line until their exact positions separate — whichever point sits further to the right is the greater value.",
+      tour: [
+        { elKey: "lineWrap", label: "Place both decimals", body: "Both values are plotted on the same number line — at this zoom level they might look like they're tied." },
+        { ids: ["zoomSlider"], label: "Zoom in on the tie", body: "Drag the zoom slider — the number line stretches out, and any gap between the two points becomes visible." },
+        { elKey: "verdict", label: "Further right wins", body: "Once separated, whichever point sits further to the right is the greater decimal." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٦ · الدرس ٣",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أقارن بين عددين عشريين بتحديد موقعهما بدقّة على خط أعداد قابل للتكبير.",
+      eqSub: "أيّهما أبعد يمينًا فهو الأكبر",
+      explainBtn: "اشرح هذا",
+      labelA: "العدد A", labelB: "العدد B",
+      zoomLabel: "التكبير",
+      zoomNames: ["واسع", "أقرب", "الأقرب"],
+      greaterIs: (which) => `${which} أكبر`, equalTxt: "A و B متساويان",
+      navPrevLabel: "—", navPrevText: "٦.٢ · التحويل بين الكسور والكسور العشرية",
+      navNextLabel: "التالي", navNext: "٦.٤ · تقريب الكسور العشرية",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "يمكن التمييز بدقّة بين عددين عشريين يبدوان متقاربين، أو حتى متساويين للوهلة الأولى، بالتكبير على خط الأعداد حتى ينفصل موقعاهما الدقيقان — والنقطة الأبعد يمينًا هي القيمة الأكبر.",
+      tour: [
+        { elKey: "lineWrap", label: "حدّد موقع القيمتين", body: "تُرسم كلتا القيمتين على خط الأعداد نفسه — عند هذا المستوى من التكبير قد تبدوان متساويتين." },
+        { ids: ["zoomSlider"], label: "كبّر على نقطة التساوي", body: "اسحب شريط التكبير — يتمدّد خط الأعداد، وتصبح أي فجوة بين النقطتين مرئية." },
+        { elKey: "verdict", label: "الأبعد يمينًا يفوز", body: "بمجرد انفصالهما، النقطة الأبعد يمينًا هي القيمة العشرية الأكبر." }
+      ]
+    }
+  };
+
+  const valA = document.getElementById("valA"), valB = document.getElementById("valB");
+  const zoomSlider = document.getElementById("zoomSlider");
+  const zoomReadout = document.getElementById("zoomReadout");
+  const lineWrap = document.getElementById("lineWrap");
+  const verdict = document.getElementById("verdict");
+  const eqLine = document.getElementById("eqLine");
+
+  function render() {
+    const t = T[i18n.lang];
+    const a = parseFloat(valA.value) || 0, b = parseFloat(valB.value) || 0;
+    const zoomIdx = parseInt(zoomSlider.value, 10);
+    zoomReadout.textContent = t.zoomNames[zoomIdx];
+
+    const center = (a + b) / 2;
+    const span = ZOOM_LEVELS[zoomIdx].span;
+    const decimals = ZOOM_LEVELS[zoomIdx].decimals;
+    const minV = Math.round((center - span * 5) / span) * span;
+    const maxV = minV + span * 10;
+
+    lineWrap.innerHTML = "";
+    const track = document.createElement("div");
+    track.className = "line-track";
+    lineWrap.appendChild(track);
+    const w = lineWrap.clientWidth || 480;
+
+    function xFor(v) { return ((v - minV) / (maxV - minV)) * w; }
+
+    for (let i = 0; i <= 10; i++) {
+      const v = minV + i * span;
+      const tick = document.createElement("div");
+      tick.className = "tick" + (i % 5 === 0 ? " major" : "");
+      tick.style.left = xFor(v) + "px";
+      lineWrap.appendChild(tick);
+      if (i % 2 === 0) {
+        const label = document.createElement("div");
+        label.className = "tick-label";
+        label.style.left = xFor(v) + "px";
+        label.textContent = v.toFixed(decimals);
+        lineWrap.appendChild(label);
+      }
+    }
+
+    [["a", a], ["b", b]].forEach(([key, v]) => {
+      if (v < minV || v > maxV) return;
+      const dot = document.createElement("div");
+      dot.className = "point " + key;
+      dot.style.left = xFor(v) + "px";
+      lineWrap.appendChild(dot);
+      const tag = document.createElement("div");
+      tag.className = "point-tag " + key;
+      tag.style.left = xFor(v) + "px";
+      tag.textContent = key.toUpperCase();
+      lineWrap.appendChild(tag);
+    });
+
+    if (Math.abs(a - b) < 1e-9) verdict.textContent = t.equalTxt;
+    else verdict.textContent = t.greaterIs(a > b ? "A" : "B");
+
+    const cmp = Math.abs(a - b) < 1e-9 ? "=" : (a > b ? ">" : "<");
+    renderEquation(eqLine, `${a} \\;\\color{#ed6d40}{${cmp}}\\; ${b}`);
+  }
+
+  window.addEventListener("resize", render);
+  [valA, valB, zoomSlider].forEach(el => el.addEventListener("input", render));
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

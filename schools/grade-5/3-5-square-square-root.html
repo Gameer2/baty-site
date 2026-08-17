@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Square of a Number and Square Root — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:30px 20px 30px; display:flex; flex-direction:column; align-items:center; gap:18px; }
+  .mode-toggle{ display:flex; gap:6px; margin-inline-start:12px; }
+  .mode-btn{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--pulse-ash); background:var(--core-black); border:1px solid rgba(255,255,255,.14); border-radius:100px; padding:6px 14px; cursor:pointer; }
+  .mode-btn.active{ color:var(--off-white); border-color:var(--electric-teal); background:rgba(92,147,159,.12); }
+
+  .grid-wrap{ display:grid; gap:3px; }
+  .tile{ width:20px; height:20px; border-radius:3px; background:rgba(92,147,159,.16); border:1px solid rgba(92,147,159,.4); }
+  .tile.new{ background:rgba(237,109,64,.22); border-color:rgba(237,109,64,.6); }
+
+  .inputs{ display:flex; align-items:center; gap:10px; }
+  .input-group{ display:flex; align-items:center; gap:8px; }
+  .input-group label{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash); }
+  .input-group input[type="number"]{ font-family:var(--mono); font-size:15px; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.16); border-radius:8px; padding:7px 10px; width:74px; direction:ltr; }
+
+  .root-answer{ font-family:var(--mono); font-size:15px; color:var(--neural-fog); direction:ltr; unicode-bidi:isolate; }
+  .root-answer b{ color:var(--infrared); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 3 · LESSON 5</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Square of a Number and Square Root</h1>
+    <span class="title-secondary ar-display" id="titleAr">مربّع العدد والجذر التربيعي</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I find the square of a whole number, and the square root of a perfect square, using a tile-grid model.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">count the tiles in the square</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabelSide" id="controlLabel">side length</label>
+      <input type="range" id="sideSlider" min="1" max="14" step="1" value="6" />
+      <span class="control-val" id="sideReadout">6</span>
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="modeForward" data-role="ui" data-i18n="modeForward">n → n²</button>
+        <button class="mode-btn" id="modeReverse" data-role="ui" data-i18n="modeReverse">area → n</button>
+      </div>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="grid-wrap" id="gridWrap" data-el="gridWrap"></div>
+      <div class="root-answer" id="rootAnswer" data-el="rootAnswer" style="display:none;"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">A number's square is literally the number of unit tiles that fill an n-by-n square; the square root of a perfect-square area is the side length of that same square — the two operations undo each other.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="3-4-least-common-multiple.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">3.4 · Least Common Multiple</b></a>
+    <a class="nav-pill next" href="4-1-mixed-numbers.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">4.1 · Mixed Numbers</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 3 · LESSON 5",
+      objectiveLabel: "Objective —",
+      objectiveText: "I find the square of a whole number, and the square root of a perfect square, using a tile-grid model.",
+      eqSub: "count the tiles in the square",
+      explainBtn: "Explain this",
+      controlLabelSide: "side length", controlLabelArea: "area (perfect square)",
+      modeForward: "n → n²", modeReverse: "area → n",
+      rootAnswerText: (area, n) => `${area} tiles arrange into a perfect ${n} × ${n} square, so √${area} = ${n}`,
+      navPrevLabel: "—", navPrevText: "3.4 · Least Common Multiple",
+      navNextLabel: "next", navNext: "4.1 · Understanding Fractions",
+      teachLabel: "What this teaches:",
+      teachBody: "A number's square is literally the number of unit tiles that fill an n-by-n square; the square root of a perfect-square area is the side length of that same square — the two operations undo each other.",
+      tour: [
+        { elKey: "gridWrap", label: "Build the square", body: "Drag the slider — each step grows the grid by one row and one column, and the new tiles (in orange) show exactly what got added." },
+        { ids: ["eqLine"], label: "Count all the tiles", body: "The total tile count is n squared — the side length multiplied by itself." },
+        { ids: ["modeReverse"], label: "Reverse it: from area to side", body: "Switch to area mode — now you're given the total tiles and have to find the side length that produces it, which is the square root." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٣ · الدرس ٥",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أجد مربّع عدد كلّي، والجذر التربيعي لمربّع كامل، باستخدام نموذج شبكة المربّعات.",
+      eqSub: "عُدّ المربّعات الصغيرة في المربّع",
+      explainBtn: "اشرح هذا",
+      controlLabelSide: "طول الضلع", controlLabelArea: "المساحة (مربّع كامل)",
+      modeForward: "n ← n²", modeReverse: "n ← المساحة",
+      rootAnswerText: (area, n) => `تترتّب ${area} مربّعًا في مربّع كامل ${n} × ${n}، إذن ${n} = √${area}`,
+      navPrevLabel: "—", navPrevText: "٣.٤ · المضاعف المشترك الأصغر",
+      navNextLabel: "التالي", navNext: "٤.١ · فهم الكسور",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "مربّع العدد هو حرفيًا عدد المربّعات الصغيرة التي تملأ مربّعًا أبعاده n × n؛ والجذر التربيعي لمساحة مربّع كامل هو طول ضلع ذلك المربّع نفسه — والعمليتان تُلغي إحداهما الأخرى.",
+      tour: [
+        { elKey: "gridWrap", label: "ابنِ المربّع", body: "اسحب شريط التمرير — تنمو الشبكة بصفّ وعمود إضافيَّين في كل خطوة، وتُظهر المربّعات الجديدة (بالبرتقالي) ما أُضيف بالضبط." },
+        { ids: ["eqLine"], label: "عُدّ كل المربّعات", body: "إجمالي عدد المربّعات هو n تربيع — طول الضلع مضروبًا في نفسه." },
+        { ids: ["modeReverse"], label: "اعكسها: من المساحة إلى الضلع", body: "بدّل إلى وضع المساحة — الآن لديك إجمالي المربّعات وعليك إيجاد طول الضلع الذي ينتجها، وهو الجذر التربيعي." }
+      ]
+    }
+  };
+
+  const PERFECT_SQUARES = [1,4,9,16,25,36,49,64,81,100,121,144,169,196];
+
+  const sideSlider = document.getElementById("sideSlider");
+  const sideReadout = document.getElementById("sideReadout");
+  const controlLabel = document.getElementById("controlLabel");
+  const eqLine = document.getElementById("eqLine");
+  const gridWrap = document.getElementById("gridWrap");
+  const rootAnswer = document.getElementById("rootAnswer");
+  const modeForward = document.getElementById("modeForward");
+  const modeReverse = document.getElementById("modeReverse");
+
+  let mode = "forward"; // forward: slider = side length. reverse: slider = index into PERFECT_SQUARES
+
+  function buildGrid(n, prevN) {
+    gridWrap.innerHTML = "";
+    gridWrap.style.gridTemplateColumns = `repeat(${n}, 20px)`;
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
+        const tile = document.createElement("div");
+        const isNew = prevN != null && (r >= prevN || c >= prevN);
+        tile.className = "tile" + (isNew ? " new" : "");
+        gridWrap.appendChild(tile);
+      }
+    }
+  }
+
+  let lastN = null;
+
+  function render() {
+    const t = T[i18n.lang];
+    if (mode === "forward") {
+      controlLabel.textContent = t.controlLabelSide;
+      sideSlider.min = 1; sideSlider.max = 14;
+      const n = parseInt(sideSlider.value, 10);
+      sideReadout.textContent = digits(n, i18n.lang);
+      buildGrid(n, lastN);
+      lastN = n;
+      rootAnswer.style.display = "none";
+      renderEquation(eqLine, `${groupInt(n, "en")}^2 = \\color{#ed6d40}{${groupInt(n * n, "en")}}`);
+    } else {
+      controlLabel.textContent = t.controlLabelArea;
+      sideSlider.min = 0; sideSlider.max = PERFECT_SQUARES.length - 1;
+      const idx = parseInt(sideSlider.value, 10);
+      const area = PERFECT_SQUARES[idx];
+      const n = Math.round(Math.sqrt(area));
+      sideReadout.textContent = digits(area, i18n.lang);
+      buildGrid(n, null);
+      lastN = n;
+      rootAnswer.style.display = "block";
+      rootAnswer.textContent = t.rootAnswerText(groupInt(area, "en"), groupInt(n, "en"));
+      renderEquation(eqLine, `\\sqrt{${groupInt(area, "en")}} = \\color{#ed6d40}{${groupInt(n, "en")}}`);
+    }
+  }
+
+  sideSlider.addEventListener("input", render);
+  modeForward.addEventListener("click", () => {
+    mode = "forward"; modeForward.classList.add("active"); modeReverse.classList.remove("active");
+    lastN = null; sideSlider.value = 6; render();
+  });
+  modeReverse.addEventListener("click", () => {
+    mode = "reverse"; modeReverse.classList.add("active"); modeForward.classList.remove("active");
+    lastN = null; sideSlider.value = 5; render();
+  });
+
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

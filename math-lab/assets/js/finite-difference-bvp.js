@@ -31,6 +31,20 @@
 
   let state = null; // { grid, bounds }
   const TRACE = { solution: 0, current: 1 };
+  const STORE_KEY = "engine-lab:numerical-finite-difference-bvp";
+
+  function snapshot() {
+    return {
+      p: pInput.value,
+      q: qInput.value,
+      r: rInput.value,
+      a: aInput.value,
+      b: bInput.value,
+      alpha: alphaInput.value,
+      beta: betaInput.value,
+      n: nInput.value,
+    };
+  }
 
   function updatePreview() {
     Engine.renderKatex(pPreview, `p(x) = ${Engine.toLatex(pInput.value)}`, false);
@@ -212,8 +226,7 @@
 
   stepSlider.addEventListener("input", (e) => updateStep(Number(e.target.value)));
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+  function runCompute() {
     clearError();
 
     const cp = Engine.compileFx(pInput.value);
@@ -241,6 +254,12 @@
     }
 
     render(result, n);
+    Proto.saveState(STORE_KEY, snapshot());
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    runCompute();
   });
 
   Engine.attachMathKeypad(pInput, document.getElementById("pKeypad"));
@@ -250,6 +269,19 @@
   Engine.attachMathKeypad(rInput, document.getElementById("rKeypad"));
   Engine.attachKeypadToggle(document.getElementById("rKeypadToggle"), document.getElementById("rKeypad"));
 
+  const saved = Proto.loadState(STORE_KEY);
+  if (saved) {
+    if (saved.p !== undefined) pInput.value = saved.p;
+    if (saved.q !== undefined) qInput.value = saved.q;
+    if (saved.r !== undefined) rInput.value = saved.r;
+    if (saved.a !== undefined) aInput.value = saved.a;
+    if (saved.b !== undefined) bInput.value = saved.b;
+    if (saved.alpha !== undefined) alphaInput.value = saved.alpha;
+    if (saved.beta !== undefined) betaInput.value = saved.beta;
+    if (saved.n !== undefined) nInput.value = saved.n;
+  }
+
   updatePreview();
   updateStartCheck();
+  if (saved) runCompute();
 })();

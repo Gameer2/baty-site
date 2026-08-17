@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lesson: The Pythagorean Theorem — The Lab</title>
+<link rel="stylesheet" href="../math-lab/assets/css/engine.css" />
+<link rel="stylesheet" href="../math-lab/assets/proto/proto.css" />
+<style>
+  html, body { background: var(--core-black); }
+  body { padding: 56px 24px 120px; }
+
+  .lesson-shell { max-width: 760px; margin: 0 auto; }
+
+  .lesson-header h1 {
+    font-family: var(--font-serif); font-weight: 450; font-size: clamp(30px, 4vw, 42px);
+    color: var(--off-white); margin: 14px 0 10px;
+  }
+  .lesson-pitch { color: var(--neural-fog); font-size: 15px; max-width: 620px; line-height: 1.6; margin: 0 0 44px; }
+
+  .blocks { display: flex; flex-direction: column; gap: 44px; }
+  .lesson-block {
+    background: var(--rich-carbon); border: 1px solid rgba(255,255,255,.08);
+    border-radius: var(--radius-lg); overflow: hidden;
+  }
+  .lesson-block-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 22px 28px 0;
+  }
+  .lesson-block-label {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--electric-teal); display: flex; align-items: center; gap: 8px;
+  }
+  .lesson-block-label::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .lesson-block-label.is-challenge { color: var(--infrared); }
+  .lesson-block-sub { font-family: var(--font-mono); font-size: 12px; color: var(--pulse-ash); }
+
+  /* ---------- triangle + squares rendering (shared) ---------- */
+  .tri-stage {
+    padding: 28px 28px 8px; display: flex; justify-content: center;
+    background:
+      linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 24px 24px,
+      linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 24px 24px;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+  }
+  .tri-svg { width: 100%; max-width: 480px; height: 320px; overflow: visible; }
+
+  .tri-body { fill: rgba(255,255,255,.05); stroke: var(--pulse-ash); stroke-width: .16; }
+  .sq-poly { stroke-width: .18; paint-order: stroke; }
+  .sq-poly.is-a { fill: rgba(92,147,159,.16); stroke: var(--electric-teal); }
+  .sq-poly.is-b { fill: rgba(237,109,64,.13); stroke: var(--infrared); }
+  .sq-poly.is-c { fill: rgba(155,139,217,.14); stroke: var(--accent-violet); }
+  .sq-label { font-family: var(--font-mono); text-anchor: middle; dominant-baseline: central; }
+  .sq-label.is-a { fill: var(--electric-teal); }
+  .sq-label.is-b { fill: var(--infrared); }
+  .sq-label.is-c { fill: var(--accent-violet); }
+  .sq-flash { fill: none; stroke: var(--validation-green); stroke-width: .2; opacity: 0; }
+  .sq-flash.is-on { animation: flashSq .8s ease-out; }
+  @keyframes flashSq {
+    0% { opacity: .85; stroke-width: .2; }
+    100% { opacity: 0; stroke-width: 1.6; }
+  }
+
+  /* ---------- controls ---------- */
+  .control-row { display: flex; align-items: center; gap: 14px; padding: 6px 28px; flex-wrap: wrap; }
+  .control-row label {
+    font-family: var(--font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: .07em;
+    color: var(--pulse-ash); width: 96px; flex-shrink: 0;
+  }
+  .control-row input[type="range"] { flex: 1; min-width: 140px; accent-color: var(--electric-teal); }
+  .control-row.is-b input[type="range"] { accent-color: var(--infrared); }
+  .control-row .val { font-family: var(--font-mono); font-size: 15px; color: var(--off-white); width: 30px; text-align: right; }
+
+  .readout-row {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 22px;
+    padding: 18px 28px 4px; font-family: var(--font-mono); font-size: 14px; color: var(--pulse-ash);
+  }
+  .readout-row .eq { color: var(--off-white); font-size: 15px; }
+  .readout-row .eq b { font-weight: 700; }
+  .readout-row .eq .n-a { color: var(--electric-teal); }
+  .readout-row .eq .n-b { color: var(--infrared); }
+  .readout-row .eq .n-c { color: var(--accent-violet); }
+
+  .teach-strip { padding: 18px 28px 26px; }
+  .teach-note { font-size: 13px; color: var(--pulse-ash); line-height: 1.55; }
+  .teach-note b { color: var(--neural-fog); font-weight: 500; }
+
+  /* ---------- challenge-specific ---------- */
+  .puzzle-target {
+    margin: 6px 28px 0; padding: 14px 18px; border-radius: var(--radius-md);
+    background: rgba(237,109,64,.08); border: 1px solid rgba(237,109,64,.25);
+    font-size: 14px; color: var(--neural-fog); line-height: 1.5;
+  }
+  .puzzle-target b { color: var(--infrared); font-family: var(--font-mono); font-size: 15px; }
+
+  .puzzle-actions { display: flex; align-items: center; gap: 12px; padding: 18px 28px 6px; flex-wrap: wrap; }
+  .check-btn {
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--core-black); background: var(--infrared); border: none; border-radius: 100px;
+    padding: 11px 22px; cursor: pointer;
+  }
+  .check-btn:hover { filter: brightness(1.1); }
+  .check-btn:disabled { opacity: .35; cursor: default; }
+  .next-btn {
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--validation-green); background: none; border: 1px solid rgba(89,169,147,.4); border-radius: 100px;
+    padding: 10px 20px; cursor: pointer; display: none;
+  }
+  .next-btn.is-visible { display: inline-flex; }
+  .attempt-count { font-family: var(--font-mono); font-size: 12px; color: var(--pulse-ash); }
+
+  .puzzle-feedback {
+    margin: 4px 28px 0; padding: 14px 18px; border-radius: var(--radius-md); font-size: 13.5px; line-height: 1.5;
+    border: 1px solid rgba(255,255,255,.08); background: var(--urban-smoke); color: var(--neural-fog); display: none;
+  }
+  .puzzle-feedback.is-visible { display: block; }
+  .puzzle-feedback.is-correct { border-color: rgba(89,169,147,.4); background: rgba(89,169,147,.08); color: var(--off-white); }
+  .puzzle-feedback .grade { font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .06em; color: var(--validation-green); }
+
+  .puzzle-trail { display: flex; gap: 6px; padding: 4px 28px 20px; }
+  .puzzle-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.14); }
+  .puzzle-dot.is-solved { background: var(--validation-green); }
+  .puzzle-dot.is-current { background: var(--infrared); }
+
+  .lesson-footer { margin-top: 40px; text-align: center; }
+  .lesson-footer p { font-family: var(--font-mono); font-size: 12px; color: var(--pulse-ash); letter-spacing: .04em; }
+</style>
+</head>
+<body>
+
+<div class="lesson-shell">
+
+  <div class="lesson-header">
+    <span class="eyebrow">Grade 8 · Unit 1, Lesson 1.3</span>
+    <h1>The Pythagorean Theorem</h1>
+    <p class="lesson-pitch">
+      Build a square on each side of a right triangle. The two smaller squares — one on
+      each leg — always cover exactly the same area as the one on the hypotenuse. That's
+      not a coincidence to memorize as <em>a&sup2; + b&sup2; = c&sup2;</em>; it's a fact
+      about area you can watch hold up as the triangle changes shape.
+    </p>
+  </div>
+
+  <div class="blocks">
+
+    <!-- ============ DEMONSTRATE ============ -->
+    <div class="lesson-block" id="demoBlock">
+      <div class="lesson-block-head">
+        <span class="lesson-block-label">Demonstrate</span>
+        <span class="lesson-block-sub">drag either leg</span>
+      </div>
+
+      <div class="tri-stage">
+        <svg class="tri-svg" id="demoSvg"></svg>
+      </div>
+
+      <div class="control-row">
+        <label>leg a</label>
+        <input type="range" id="demoLegA" min="3" max="12" step="1" value="3" />
+        <span class="val" id="demoLegAVal">3</span>
+      </div>
+      <div class="control-row is-b">
+        <label>leg b</label>
+        <input type="range" id="demoLegB" min="3" max="12" step="1" value="4" />
+        <span class="val" id="demoLegBVal">4</span>
+      </div>
+
+      <div class="readout-row">
+        <span class="eq" id="demoEq">3&sup2; + 4&sup2; = <b>25</b></span>
+        <span>c = &radic;<span id="demoSumUnder">25</span> &asymp; <b id="demoCval" style="color:var(--off-white)">5.00</b></span>
+      </div>
+
+      <div class="teach-strip">
+        <span class="teach-note"><b>What this teaches:</b> the teal square's area is leg
+        <i>a</i> squared, the orange square's area is leg <i>b</i> squared, and the violet
+        square's area is the hypotenuse squared. Their areas always satisfy
+        a&sup2; + b&sup2; = c&sup2; — drag a leg and watch all three areas stay in balance.</span>
+      </div>
+    </div>
+
+    <!-- ============ CHALLENGE ============ -->
+    <div class="lesson-block" id="challengeBlock">
+      <div class="lesson-block-head">
+        <span class="lesson-block-label is-challenge">Challenge</span>
+        <span class="lesson-block-sub" id="puzzleCounter">puzzle 1 of 3</span>
+      </div>
+
+      <div class="puzzle-target">
+        Choose two leg lengths (3–12 each) so the hypotenuse comes out to exactly
+        <b id="puzzleTarget">5</b> — no rounding, an exact match.
+      </div>
+
+      <div class="tri-stage">
+        <svg class="tri-svg" id="challengeSvg"></svg>
+      </div>
+
+      <div class="control-row">
+        <label>leg a</label>
+        <input type="range" id="chLegA" min="3" max="12" step="1" value="3" />
+        <span class="val" id="chLegAVal">3</span>
+      </div>
+      <div class="control-row is-b">
+        <label>leg b</label>
+        <input type="range" id="chLegB" min="3" max="12" step="1" value="3" />
+        <span class="val" id="chLegBVal">3</span>
+      </div>
+
+      <div class="puzzle-actions">
+        <button class="check-btn" id="checkBtn">Check</button>
+        <button class="next-btn" id="nextBtn">Next puzzle →</button>
+        <span class="attempt-count" id="attemptCount">0 attempts</span>
+      </div>
+
+      <div class="puzzle-feedback" id="puzzleFeedback"></div>
+
+      <div class="puzzle-trail" id="puzzleTrail"></div>
+    </div>
+
+  </div>
+
+  <div class="lesson-footer">
+    <p>THE LAB · SCHOOL VISUALIZATION PROTOTYPE · JORDAN NATIONAL CURRICULUM, GRADE 8</p>
+  </div>
+</div>
+
+<script>
+  // ===================== geometry =====================
+  // Right angle at the origin O. Leg a runs along +x to P; leg b runs along -y to Q
+  // (SVG y grows downward, so "up" in the triangle's own frame is -y here).
+  // Squares are built outward on each side; the hypotenuse square's far corners come
+  // from rotating AB by the fixed perpendicular displacement (b, -a), which always
+  // points away from O for a triangle drawn this way.
+  function computeGeometry(a, b) {
+    const c = Math.sqrt(a * a + b * b);
+    const O = { x: 0, y: 0 };
+    const P = { x: a, y: 0 };
+    const Q = { x: 0, y: -b };
+    const P2 = { x: a + b, y: -a };
+    const Q2 = { x: b, y: -(a + b) };
+    return {
+      a, b, c,
+      tri: [O, P, Q],
+      sqA: [O, P, { x: a, y: a }, { x: 0, y: a }],
+      sqB: [O, Q, { x: -b, y: -b }, { x: -b, y: 0 }],
+      sqC: [P, Q, Q2, P2],
+    };
+  }
+
+  function centroid(pts) {
+    const n = pts.length;
+    return { x: pts.reduce((s, p) => s + p.x, 0) / n, y: pts.reduce((s, p) => s + p.y, 0) / n };
+  }
+  function ptsAttr(pts) { return pts.map(p => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' '); }
+
+  function fitViewBox(svg, geo) {
+    const all = [...geo.sqA, ...geo.sqB, ...geo.sqC];
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    all.forEach(p => { minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x); minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y); });
+    const pad = 3.4;
+    const w = (maxX - minX) + pad * 2, h = (maxY - minY) + pad * 2;
+    svg.setAttribute('viewBox', `${(minX - pad).toFixed(2)} ${(minY - pad).toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)}`);
+    return Math.max(w, h);
+  }
+
+  // Builds (once) the static SVG scaffold; every subsequent render just updates attributes.
+  function buildTriScene(svg) {
+    svg.innerHTML = '';
+    const NS = 'http://www.w3.org/2000/svg';
+    const mk = (tag, attrs) => {
+      const el = document.createElementNS(NS, tag);
+      Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v));
+      return el;
+    };
+    const tri = mk('polygon', { class: 'tri-body' });
+    const sqA = mk('polygon', { class: 'sq-poly is-a' });
+    const sqB = mk('polygon', { class: 'sq-poly is-b' });
+    const sqC = mk('polygon', { class: 'sq-poly is-c' });
+    const flashA = mk('polygon', { class: 'sq-flash' });
+    const flashB = mk('polygon', { class: 'sq-flash' });
+    const flashC = mk('polygon', { class: 'sq-flash' });
+    const labelA = mk('text', { class: 'sq-label is-a' });
+    const labelB = mk('text', { class: 'sq-label is-b' });
+    const labelC = mk('text', { class: 'sq-label is-c' });
+    [tri, sqA, sqB, sqC, flashA, flashB, flashC, labelA, labelB, labelC].forEach(el => svg.appendChild(el));
+    return { tri, sqA, sqB, sqC, flashA, flashB, flashC, labelA, labelB, labelC };
+  }
+
+  // Each square gets its own label size, fit to its own side length — a small square
+  // (e.g. a leg of 3) can't host the same text size as a large one without overflowing.
+  function fitLabelFontSize(side) { return Math.max(0.85, Math.min(2.5, side * 0.24)); }
+  function labelFor(prefix, side, value) {
+    return side < 4.6 ? String(value) : `${prefix} = ${value}`;
+  }
+
+  function renderTriScene(svg, handles, a, b, opts) {
+    opts = opts || {};
+    const geo = computeGeometry(a, b);
+    fitViewBox(svg, geo);
+
+    handles.tri.setAttribute('points', ptsAttr(geo.tri));
+    handles.sqA.setAttribute('points', ptsAttr(geo.sqA));
+    handles.sqB.setAttribute('points', ptsAttr(geo.sqB));
+    handles.sqC.setAttribute('points', ptsAttr(geo.sqC));
+    handles.flashA.setAttribute('points', ptsAttr(geo.sqA));
+    handles.flashB.setAttribute('points', ptsAttr(geo.sqB));
+    handles.flashC.setAttribute('points', ptsAttr(geo.sqC));
+
+    const cA = centroid(geo.sqA), cB = centroid(geo.sqB), cC = centroid(geo.sqC);
+    handles.labelA.setAttribute('x', cA.x); handles.labelA.setAttribute('y', cA.y);
+    handles.labelB.setAttribute('x', cB.x); handles.labelB.setAttribute('y', cB.y);
+    handles.labelC.setAttribute('x', cC.x); handles.labelC.setAttribute('y', cC.y);
+    handles.labelA.setAttribute('font-size', fitLabelFontSize(a).toFixed(2));
+    handles.labelB.setAttribute('font-size', fitLabelFontSize(b).toFixed(2));
+    handles.labelC.setAttribute('font-size', fitLabelFontSize(geo.c).toFixed(2));
+    handles.labelA.textContent = labelFor('a²', a, a * a);
+    handles.labelB.textContent = labelFor('b²', b, b * b);
+    handles.labelC.textContent = opts.hideC ? '?' : labelFor('c²', geo.c, a * a + b * b);
+
+    return geo;
+  }
+
+  function flash(el) {
+    el.classList.remove('is-on');
+    void el.getBoundingClientRect();
+    el.classList.add('is-on');
+  }
+
+  // ===================== Demonstrate block =====================
+  (function () {
+    const svg = document.getElementById('demoSvg');
+    const handles = buildTriScene(svg);
+    const legASlider = document.getElementById('demoLegA');
+    const legBSlider = document.getElementById('demoLegB');
+    const legAVal = document.getElementById('demoLegAVal');
+    const legBVal = document.getElementById('demoLegBVal');
+    const eqEl = document.getElementById('demoEq');
+    const sumUnderEl = document.getElementById('demoSumUnder');
+    const cValEl = document.getElementById('demoCval');
+
+    function render() {
+      const a = parseInt(legASlider.value, 10);
+      const b = parseInt(legBSlider.value, 10);
+      legAVal.textContent = a; legBVal.textContent = b;
+      const geo = renderTriScene(svg, handles, a, b);
+      const sum = a * a + b * b;
+      eqEl.innerHTML = `<span class="n-a">${a}²</span> + <span class="n-b">${b}²</span> = <b class="n-c">${sum}</b>`;
+      sumUnderEl.textContent = sum;
+      cValEl.textContent = geo.c.toFixed(2);
+    }
+    legASlider.addEventListener('input', render);
+    legBSlider.addEventListener('input', render);
+    render();
+  })();
+
+  // ===================== Challenge block =====================
+  (function () {
+    const svg = document.getElementById('challengeSvg');
+    const handles = buildTriScene(svg);
+    const legASlider = document.getElementById('chLegA');
+    const legBSlider = document.getElementById('chLegB');
+    const legAVal = document.getElementById('chLegAVal');
+    const legBVal = document.getElementById('chLegBVal');
+    const checkBtn = document.getElementById('checkBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const attemptCountEl = document.getElementById('attemptCount');
+    const feedback = document.getElementById('puzzleFeedback');
+    const puzzleTargetEl = document.getElementById('puzzleTarget');
+    const puzzleCounterEl = document.getElementById('puzzleCounter');
+    const trailEl = document.getElementById('puzzleTrail');
+
+    const puzzles = [5, 10, 13];
+    let puzzleIndex = 0, attempts = 0, solved = false;
+    let legA = 3, legB = 3;
+
+    puzzles.forEach((_, i) => {
+      const dot = document.createElement('span');
+      dot.className = 'puzzle-dot' + (i === 0 ? ' is-current' : '');
+      dot.id = 'ptDot' + i;
+      trailEl.appendChild(dot);
+    });
+
+    function render() { renderTriScene(svg, handles, legA, legB); }
+
+    function updateTrail() {
+      puzzles.forEach((_, i) => {
+        const dot = document.getElementById('ptDot' + i);
+        dot.classList.toggle('is-current', i === puzzleIndex);
+        dot.classList.toggle('is-solved', i < puzzleIndex);
+      });
+    }
+
+    function loadPuzzle(i) {
+      puzzleIndex = i; attempts = 0; solved = false;
+      legA = 3; legB = 3;
+      legASlider.value = 3; legBSlider.value = 3;
+      legAVal.textContent = 3; legBVal.textContent = 3;
+      puzzleTargetEl.textContent = puzzles[i];
+      puzzleCounterEl.textContent = `puzzle ${i + 1} of ${puzzles.length}`;
+      attemptCountEl.textContent = '0 attempts';
+      feedback.className = 'puzzle-feedback';
+      feedback.textContent = '';
+      nextBtn.classList.remove('is-visible');
+      checkBtn.disabled = false;
+      updateTrail();
+      render();
+    }
+
+    legASlider.addEventListener('input', () => { legA = parseInt(legASlider.value, 10); legAVal.textContent = legA; render(); });
+    legBSlider.addEventListener('input', () => { legB = parseInt(legBSlider.value, 10); legBVal.textContent = legB; render(); });
+
+    checkBtn.addEventListener('click', () => {
+      if (solved) return;
+      attempts++;
+      attemptCountEl.textContent = `${attempts} attempt${attempts === 1 ? '' : 's'}`;
+      const target = puzzles[puzzleIndex];
+      const sumSq = legA * legA + legB * legB;
+      const targetSq = target * target;
+
+      if (sumSq === targetSq) {
+        solved = true;
+        checkBtn.disabled = true;
+        const grade = attempts === 1 ? 'Gold — first try' : attempts <= 3 ? 'Silver' : 'Bronze';
+        feedback.className = 'puzzle-feedback is-visible is-correct';
+        feedback.innerHTML = `<span class="grade">${grade}</span> — legs ${legA} and ${legB}: ${legA}² + ${legB}² = ${sumSq} = ${target}², exactly the target.`;
+        nextBtn.classList.add('is-visible');
+        nextBtn.textContent = puzzleIndex === puzzles.length - 1 ? 'Finish' : 'Next puzzle →';
+        flash(handles.flashA); flash(handles.flashB); flash(handles.flashC);
+        updateTrail();
+      } else {
+        feedback.className = 'puzzle-feedback is-visible';
+        const direction = sumSq < targetSq ? 'aim bigger' : 'aim smaller';
+        feedback.textContent = `${legA}² + ${legB}² = ${sumSq} — target is ${target}² = ${targetSq}. (${direction}.)`;
+      }
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if (puzzleIndex < puzzles.length - 1) {
+        loadPuzzle(puzzleIndex + 1);
+      } else {
+        feedback.className = 'puzzle-feedback is-visible is-correct';
+        feedback.innerHTML = `<span class="grade">All 3 solved</span> — nice work.`;
+        nextBtn.classList.remove('is-visible');
+      }
+    });
+
+    loadPuzzle(0);
+  })();
+
+  // Prevent an incidental mouse-wheel pass over a slider (e.g. while scrolling the page)
+  // from silently changing its value — Chrome adjusts range inputs on wheel-over by default.
+  document.querySelectorAll('input[type="range"]').forEach(el => {
+    el.addEventListener('wheel', e => e.preventDefault(), { passive: false });
+  });
+</script>
+
+</body>
+</html>

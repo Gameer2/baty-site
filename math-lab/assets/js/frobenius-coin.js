@@ -101,5 +101,13 @@
     if (a < 1n || b < 1n) return showError("a and b must be positive.");
     if (upto < 1n || upto > 500n) return showError("Show the number line up to a value between 1 and 500.");
     render(a, b, upto);
+    Proto.saveState("engine-lab:number-theory-frobenius-coin", { a: aInput.value, b: bInput.value });
   });
+
+  const saved = Proto.loadState("engine-lab:number-theory-frobenius-coin");
+  if (saved) {
+    if (saved.a !== undefined) aInput.value = saved.a;
+    if (saved.b !== undefined) bInput.value = saved.b;
+    form.requestSubmit();
+  }
 })();

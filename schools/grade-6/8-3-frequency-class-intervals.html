@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Frequency Tables &amp; Charts with Class Intervals — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: dragging the interval width live-regroups raw data points into
+     a histogram. Forks 8.2's tally/bar engine, grouping by interval instead of exact value. ---- */
+  .chart{ padding:26px 22px 30px; display:flex; flex-direction:column; align-items:center; gap:20px; }
+  .raw-row{ display:flex; gap:5px; flex-wrap:wrap; justify-content:center; max-width:540px; direction:ltr; }
+  .raw-dot{ font-family:var(--mono); font-size:11px; color:var(--pulse-ash); background:var(--core-black); border:1px solid rgba(255,255,255,.14); border-radius:5px; padding:3px 6px; }
+
+  .hist{ display:flex; align-items:flex-end; gap:4px; height:160px; width:100%; max-width:480px; direction:ltr; }
+  .hist-bar-wrap{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; gap:4px; }
+  .hist-bar{ width:100%; background:var(--electric-teal); border-radius:4px 4px 0 0; transition:height .35s ease; }
+  .hist-label{ font-family:var(--mono); font-size:9px; color:var(--pulse-ash); text-align:center; }
+  .hist-count{ font-family:var(--mono); font-size:11px; color:var(--off-white); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 8 · LESSON 3</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Frequency Tables &amp; Charts with Class Intervals</h1>
+    <span class="title-secondary ar-display" id="titleAr">الجداول والمخططات التكرارية ذات الفئات</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I organize continuous data into class intervals and represent it graphically.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">fish lengths, grouped into equal-width intervals</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabel">interval width</label>
+      <input type="range" id="widthSlider" min="0" max="2" step="1" value="1" />
+      <span class="control-val" id="widthReadout">2 cm</span>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="raw-row dimmable" data-el="raw" id="rawRow"></div>
+      <div class="hist dimmable" data-el="hist" id="hist"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">For continuous data with many distinct values (e.g. fish lengths to the nearest tenth of a cm), grouping into equal-width class intervals (ranges) makes a frequency table/chart meaningful, since tallying every exact value would be impractical.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="8-2-frequency-tables.html">— <b data-role="body" id="navPrevText">8.2 · Frequency Tables</b></a>
+    <a class="nav-pill next" href="8-4-circle-sectors.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">8.4 · Circle Sectors (Pie Charts)</b></a>
+  </div>
+</div>
+
+<script>
+  const { digitsDecimal, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const RAW_DATA = [12.3, 15.1, 13.8, 18.2, 14.5, 16.9, 11.2, 19.5, 13.0, 17.4, 15.8, 12.9, 14.1, 16.2, 18.8, 13.5, 15.5, 17.0, 11.9, 19.1];
+  const WIDTHS = [1, 2, 5];
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 8 · LESSON 3",
+      objectiveLabel: "Objective —",
+      objectiveText: "I organize continuous data into class intervals and represent it graphically.",
+      eqSub: "fish lengths, grouped into equal-width intervals",
+      explainBtn: "Explain this",
+      controlLabel: "interval width",
+      teachLabel: "What this teaches:",
+      teachBody: "For continuous data with many distinct values (e.g. fish lengths to the nearest tenth of a cm), grouping into equal-width class intervals (ranges) makes a frequency table/chart meaningful, since tallying every exact value would be impractical.",
+      navPrev: "8.2 · Frequency Tables",
+      navNext: "8.4 · Circle Sectors (Pie Charts)",
+      navNextLabel: "next",
+      tour: [
+        { elKey: "raw", label: "Too many distinct values", body: "20 different fish lengths — tallying each exact value one by one wouldn't reveal much of a pattern." },
+        { ids: ["widthSlider"], label: "Choose an interval width", body: "Group nearby values into equal-width ranges instead of tallying each exact length." },
+        { elKey: "hist", label: "Width changes the shape", body: "Narrower intervals show more detail but a choppier shape; wider intervals smooth it out but hide detail — try both." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ٨ · الدرس ٣",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أُنظِّم بيانات متصلة في فئات وأُمثِّلها بيانيًا.",
+      eqSub: "أطوال أسماك، مجمَّعة في فئات متساوية العرض",
+      explainBtn: "اشرح هذا",
+      controlLabel: "عرض الفئة",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "بالنسبة للبيانات المتصلة ذات القيم المميّزة الكثيرة (كأطوال أسماك لأقرب عُشر سم)، يجعل التجميع في فئات متساوية العرض (مدى) الجدول أو المخطط التكراري ذا معنى، إذ يكون عدّ كل قيمة دقيقة غير عملي.",
+      navPrev: "٨.٢ · الجداول التكرارية",
+      navNext: "٨.٤ · القطاعات الدائرية",
+      navNextLabel: "التالي",
+      tour: [
+        { elKey: "raw", label: "قيم مميّزة كثيرة جدًا", body: "٢٠ طولًا مختلفًا لأسماك — عدّ كل قيمة دقيقة على حدة لن يُظهر نمطًا واضحًا." },
+        { ids: ["widthSlider"], label: "اختر عرض فئة", body: "جمّع القيم المتقاربة في مدى متساوي العرض بدلًا من عدّ كل طول دقيق." },
+        { elKey: "hist", label: "العرض يُغيّر الشكل", body: "الفئات الأضيق تُظهر تفصيلًا أكثر لكن بشكل أكثر تعرّجًا؛ والفئات الأوسع تُنعِّم الشكل لكنها تُخفي التفاصيل — جرّب كليهما." }
+      ]
+    }
+  };
+
+  const widthSlider = document.getElementById("widthSlider");
+  const widthReadout = document.getElementById("widthReadout");
+  const rawRow = document.getElementById("rawRow");
+  const hist = document.getElementById("hist");
+  const eqLine = document.getElementById("eqLine");
+
+  function render() {
+    const width = WIDTHS[parseInt(widthSlider.value, 10)];
+    widthReadout.textContent = width + " cm";
+
+    rawRow.innerHTML = "";
+    RAW_DATA.forEach(v => {
+      const dot = document.createElement("div");
+      dot.className = "raw-dot";
+      dot.textContent = digitsDecimal(v, i18n.lang, 1);
+      rawRow.appendChild(dot);
+    });
+
+    const min = Math.floor(Math.min(...RAW_DATA) / width) * width;
+    const max = Math.ceil(Math.max(...RAW_DATA) / width) * width;
+    const bins = [];
+    for (let start = min; start < max; start += width) bins.push({ start, end: start + width, count: 0 });
+    RAW_DATA.forEach(v => {
+      const bin = bins.find(b => v >= b.start && v < b.end) || bins[bins.length - 1];
+      bin.count++;
+    });
+    const maxCount = Math.max(1, ...bins.map(b => b.count));
+
+    hist.innerHTML = "";
+    bins.forEach(b => {
+      const wrap = document.createElement("div");
+      wrap.className = "hist-bar-wrap";
+      const count = document.createElement("span");
+      count.className = "hist-count";
+      count.textContent = b.count;
+      const bar = document.createElement("div");
+      bar.className = "hist-bar";
+      bar.style.height = (b.count / maxCount * 120) + "px";
+      const label = document.createElement("span");
+      label.className = "hist-label";
+      label.textContent = b.start + "–" + b.end;
+      wrap.appendChild(count); wrap.appendChild(bar); wrap.appendChild(label);
+      hist.appendChild(wrap);
+    });
+
+    const eqSource = `\\text{width} = ${width} \\;\\Rightarrow\\; \\color{#ed6d40}{${bins.length} \\text{ intervals}}`;
+    renderEquation(eqLine, eqSource);
+  }
+
+  widthSlider.addEventListener("input", render);
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

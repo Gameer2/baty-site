@@ -17,6 +17,12 @@
   const origCoeffsDiv = document.getElementById("origCoeffsDiv");
   const econCoeffsDiv = document.getElementById("econCoeffsDiv");
 
+  const STORE_KEY = "engine-lab:numerical-chebyshev-econ";
+
+  function snapshot() {
+    return { coeffs: coeffsInput.value, d: degreeInput.value };
+  }
+
   function parseCoeffs() {
     return coeffsInput.value.split(",").map((s) => parseFloat(s.trim())).filter((s) => !Number.isNaN(s));
   }
@@ -98,8 +104,7 @@
     ).join("");
   }
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+  function runCompute() {
     clearError();
     const coeffs = parseCoeffs();
     const d = parseInt(degreeInput.value, 10);
@@ -110,10 +115,23 @@
       const result = Algorithms.runChebyshevEcon(coeffs, d);
       result.origCoeffs = coeffs;
       render(result);
+      Proto.saveState(STORE_KEY, snapshot());
     } catch (err) {
       showError(err.message);
     }
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    runCompute();
   });
+
+  const saved = Proto.loadState(STORE_KEY);
+  if (saved) {
+    if (saved.coeffs !== undefined) coeffsInput.value = saved.coeffs;
+    if (saved.d !== undefined) degreeInput.value = saved.d;
+    runCompute();
+  }
 
   updateStatus();
 })();

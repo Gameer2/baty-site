@@ -72,5 +72,14 @@
     const text = String(textInput.value);
     if (!text) return showError("Enter some plaintext.");
     render(text, a, b, kh11, kh22);
+    Proto.saveState("engine-lab:number-theory-classical-ciphers", { text: textInput.value, a: aInput.value, b: bInput.value });
   });
+
+  const saved = Proto.loadState("engine-lab:number-theory-classical-ciphers");
+  if (saved) {
+    if (saved.text !== undefined) textInput.value = saved.text;
+    if (saved.a !== undefined) aInput.value = saved.a;
+    if (saved.b !== undefined) bInput.value = saved.b;
+    form.requestSubmit();
+  }
 })();

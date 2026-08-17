@@ -110,5 +110,13 @@
 
     const result = NumberTheory.extendedGcd(a, b);
     render(a, b, result);
+    Proto.saveState("engine-lab:number-theory-extended-euclidean", { a: aInput.value, b: bInput.value });
   });
+
+  const saved = Proto.loadState("engine-lab:number-theory-extended-euclidean");
+  if (saved) {
+    if (saved.a !== undefined) aInput.value = saved.a;
+    if (saved.b !== undefined) bInput.value = saved.b;
+    form.requestSubmit();
+  }
 })();

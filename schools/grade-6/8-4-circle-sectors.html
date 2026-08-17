@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Circle Sectors (Pie Charts) — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: an interactive pie chart, plus a toggle to the same data as a
+     bar graph — showing when each representation is more useful. ---- */
+  .chart{ padding:26px 22px 30px; display:flex; flex-direction:column; align-items:center; gap:22px; }
+  .mode-toggle{ display:flex; gap:6px; }
+  .mode-btn{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--pulse-ash); background:var(--core-black); border:1px solid rgba(255,255,255,.14); border-radius:100px; padding:6px 14px; cursor:pointer; }
+  .mode-btn.active{ color:var(--off-white); border-color:var(--electric-teal); background:rgba(92,147,159,.12); }
+
+  .pie{ width:190px; height:190px; border-radius:50%; }
+  .legend{ display:flex; flex-direction:column; gap:6px; width:100%; max-width:340px; }
+  .legend-row{ display:flex; align-items:center; gap:10px; }
+  .legend-dot{ width:12px; height:12px; border-radius:3px; flex:0 0 auto; }
+  .legend-name{ font-family:var(--mono); font-size:12px; color:var(--neural-fog); width:96px; }
+  .legend-slider{ flex:1; }
+  .legend-val{ font-family:var(--mono); font-size:11.5px; color:var(--off-white); width:100px; text-align:end; direction:ltr; }
+
+  .bars{ display:flex; align-items:flex-end; gap:14px; height:150px; }
+  .bar-wrap{ display:flex; flex-direction:column; align-items:center; gap:6px; justify-content:flex-end; height:100%; }
+  .bar-el{ width:34px; border-radius:5px 5px 0 0; transition:height .35s ease; }
+  .bar-label{ font-family:var(--mono); font-size:9.5px; color:var(--pulse-ash); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 8 · LESSON 4</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Circle Sectors (Pie Charts)</h1>
+    <span class="title-secondary ar-display" id="titleAr">القطاعات الدائرية</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I read, interpret, and solve problems involving data represented by circle sectors (pie charts).</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">sector angle = share of the whole × 360°</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="mode-toggle" id="viewToggle">
+        <button class="mode-btn active" data-view="pie">pie</button>
+        <button class="mode-btn" data-view="bar">bar</button>
+      </div>
+    </div>
+    <div class="control-row">
+      <div class="legend" id="sliderLegend"></div>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div id="pieView" data-el="pieView">
+        <div class="pie dimmable" data-el="pie" id="pie"></div>
+      </div>
+      <div id="barView" data-el="barView" style="display:none;">
+        <div class="bars" id="bars"></div>
+      </div>
+      <div class="legend" id="legend" data-el="legend"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Each sector's size represents a category's share of the total (proportion), making pie charts best for comparing a category against the whole — as opposed to bar graphs, better for comparing categories against each other. Students read fractions/percentages directly off sector sizes.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="8-3-frequency-class-intervals.html">— <b data-role="body" id="navPrevText">8.3 · Frequency with Class Intervals</b></a>
+    <a class="nav-pill next" href="8-5-probabilities.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">8.5 · Probabilities</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const CATS = [
+    { key: "football", color: "#5c939f", en: "football", ar: "كرة القدم", val: 6 },
+    { key: "basketball", color: "#ed6d40", en: "basketball", ar: "كرة السلة", val: 3 },
+    { key: "swimming", color: "#59a993", en: "swimming", ar: "السباحة", val: 4 },
+    { key: "tennis", color: "#b98a72", en: "tennis", ar: "التنس", val: 2 }
+  ];
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 8 · LESSON 4",
+      objectiveLabel: "Objective —",
+      objectiveText: "I read, interpret, and solve problems involving data represented by circle sectors (pie charts).",
+      eqSub: "sector angle = share of the whole × 360°",
+      explainBtn: "Explain this",
+      teachLabel: "What this teaches:",
+      teachBody: "Each sector's size represents a category's share of the total (proportion), making pie charts best for comparing a category against the whole — as opposed to bar graphs, better for comparing categories against each other. Students read fractions/percentages directly off sector sizes.",
+      navPrev: "8.3 · Frequency with Class Intervals",
+      navNext: "8.5 · Probabilities",
+      navNextLabel: "next",
+      tour: [
+        { elKey: "pie", label: "The whole circle is the total", body: "Every student surveyed is somewhere in this circle — 360° total, 100% total." },
+        { elKey: "legend", label: "Drag a value", body: "Changing one category's count reshapes its sector, and every other sector's share, live." },
+        { ids: ["viewToggle"], label: "Same data, bar graph", body: "Switch to bars — better for comparing two specific categories side by side, though harder to see each one's share of the whole." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ٨ · الدرس ٤",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أقرأ وأفسّر وأحلّ مسائل تتضمّن بيانات ممثَّلة بقطاعات دائرية (مخططات دائرية).",
+      eqSub: "زاوية القطاع = حصّة من الكل × ٣٦٠°",
+      explainBtn: "اشرح هذا",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "يمثّل حجم كل قطاع حصّة تلك الفئة من الإجمالي (النسبة)، مما يجعل المخططات الدائرية أفضل لمقارنة فئة بالكل — بخلاف مخططات الأعمدة، الأفضل لمقارنة الفئات ببعضها. يقرأ الطلبة الكسور/النسب المئوية مباشرة من أحجام القطاعات.",
+      navPrev: "٨.٣ · الجداول والمخططات التكرارية ذات الفئات",
+      navNext: "٨.٥ · الاحتمالات",
+      navNextLabel: "التالي",
+      tour: [
+        { elKey: "pie", label: "الدائرة الكاملة هي الإجمالي", body: "كل طالب استُطلع رأيه يقع في مكان ما من هذه الدائرة — ٣٦٠° إجمالًا، و١٠٠٪ إجمالًا." },
+        { elKey: "legend", label: "اسحب قيمة", body: "تغيير عدد إحدى الفئات يُعيد تشكيل قطاعها، وحصّة كل قطاع آخر، فورًا." },
+        { ids: ["viewToggle"], label: "البيانات نفسها، مخطط أعمدة", body: "بدّل إلى الأعمدة — أفضل لمقارنة فئتين محدّدتين جنبًا إلى جنب، رغم صعوبة رؤية حصّة كل منها من الكل." }
+      ]
+    }
+  };
+
+  const sliderLegend = document.getElementById("sliderLegend");
+  const legend = document.getElementById("legend");
+  const pie = document.getElementById("pie");
+  const bars = document.getElementById("bars");
+  const pieView = document.getElementById("pieView");
+  const barView = document.getElementById("barView");
+  const viewToggle = document.getElementById("viewToggle");
+  const eqLine = document.getElementById("eqLine");
+
+  let view = "pie";
+
+  function buildSliders() {
+    sliderLegend.innerHTML = "";
+    CATS.forEach(cat => {
+      const row = document.createElement("div");
+      row.className = "legend-row";
+      const dot = document.createElement("div");
+      dot.className = "legend-dot";
+      dot.style.background = cat.color;
+      const name = document.createElement("span");
+      name.className = "legend-name";
+      name.id = "name_" + cat.key;
+      const slider = document.createElement("input");
+      slider.type = "range"; slider.min = "1"; slider.max = "10"; slider.value = cat.val;
+      slider.className = "legend-slider";
+      slider.addEventListener("input", () => { cat.val = parseInt(slider.value, 10); render(); });
+      row.appendChild(dot); row.appendChild(name); row.appendChild(slider);
+      sliderLegend.appendChild(row);
+    });
+  }
+
+  function render() {
+    const t = T[i18n.lang];
+    const total = CATS.reduce((s, c) => s + c.val, 0);
+
+    CATS.forEach(cat => { document.getElementById("name_" + cat.key).textContent = t[cat.key] || cat[i18n.lang === "ar" ? "ar" : "en"]; });
+
+    let acc = 0;
+    const stops = CATS.map(c => {
+      const startPct = acc / total * 100;
+      acc += c.val;
+      const endPct = acc / total * 100;
+      return `${c.color} ${startPct}% ${endPct}%`;
+    }).join(", ");
+    pie.style.background = `conic-gradient(${stops})`;
+
+    const maxVal = Math.max(...CATS.map(c => c.val));
+    bars.innerHTML = "";
+    CATS.forEach(c => {
+      const wrap = document.createElement("div");
+      wrap.className = "bar-wrap";
+      const bar = document.createElement("div");
+      bar.className = "bar-el";
+      bar.style.background = c.color;
+      bar.style.height = (c.val / maxVal * 120) + "px";
+      const label = document.createElement("span");
+      label.className = "bar-label";
+      label.textContent = digits(c.val, i18n.lang);
+      wrap.appendChild(bar); wrap.appendChild(label);
+      bars.appendChild(wrap);
+    });
+
+    legend.innerHTML = "";
+    CATS.forEach(c => {
+      const pct = Math.round(c.val / total * 100);
+      const angle = Math.round(c.val / total * 360);
+      const row = document.createElement("div");
+      row.className = "legend-row";
+      row.innerHTML = `<div class="legend-dot" style="background:${c.color}"></div><span class="legend-name">${c[i18n.lang === "ar" ? "ar" : "en"]}</span><span class="legend-val">${digits(pct, i18n.lang)}% · ${digits(angle, i18n.lang)}°</span>`;
+      legend.appendChild(row);
+    });
+
+    const top = CATS.reduce((a, b) => a.val > b.val ? a : b);
+    const topPct = Math.round(top.val / total * 100);
+    const topAngle = Math.round(top.val / total * 360);
+    const eqSource = `\\dfrac{${top.val}}{${total}} \\times 360° = \\color{#ed6d40}{${topAngle}°} \\; (${topPct}\\%)`;
+    renderEquation(eqLine, eqSource);
+  }
+
+  viewToggle.querySelectorAll(".mode-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      view = btn.dataset.view;
+      viewToggle.querySelectorAll(".mode-btn").forEach(b => b.classList.toggle("active", b === btn));
+      pieView.style.display = view === "pie" ? "block" : "none";
+      barView.style.display = view === "bar" ? "block" : "none";
+    });
+  });
+
+  buildSliders();
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Translation — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:20px 20px 30px; display:flex; flex-direction:column; align-items:center; gap:18px; }
+  svg#gridSvg{ direction:ltr; touch-action:none; }
+  .grid-line{ stroke:rgba(255,255,255,.08); stroke-width:1; }
+  .orig-shape{ fill:rgba(92,147,159,.22); stroke:var(--electric-teal); stroke-width:2; }
+  .image-shape{ fill:rgba(237,109,64,.18); stroke:var(--infrared); stroke-width:2; stroke-dasharray:4 3; cursor:grab; }
+  .vector-line{ stroke:var(--neural-fog); stroke-width:1.5; stroke-dasharray:3 3; }
+
+  .readouts{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
+  .readout-card{ display:flex; flex-direction:column; align-items:center; gap:4px; padding:8px 14px; border-radius:10px; background:var(--urban-smoke); border:1px solid rgba(255,255,255,.1); }
+  .readout-card .cap{ font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash); }
+  .readout-card .val{ font-family:var(--mono); font-size:14px; font-weight:700; color:var(--validation-green); direction:ltr; }
+
+  .slider-row{ display:flex; align-items:center; gap:10px; }
+  .slider-row .tag{ font-family:var(--mono); font-size:12px; color:var(--off-white); width:16px; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 8 · LESSON 6</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Translation</h1>
+    <span class="title-secondary ar-display" id="titleAr">الانسحاب</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I translate a shape by sliding it, and confirm the image is congruent to the original.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">slide it — nothing else changes</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="slider-row">
+        <span class="tag">x</span>
+        <input type="range" id="dxSlider" min="-4" max="4" step="1" value="3" />
+      </div>
+      <div class="slider-row">
+        <span class="tag">y</span>
+        <input type="range" id="dySlider" min="-4" max="4" step="1" value="2" />
+      </div>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <svg id="gridSvg" width="320" height="240" viewBox="0 0 320 240" data-el="gridSvg"></svg>
+      <div class="readouts" id="readouts" data-el="readouts"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">A translation slides every point of a shape the same distance in the same direction — the image is congruent to the original: same side lengths, same angles, same orientation, just in a new position.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="8-5-classifying-quadrilaterals.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">8.5 · Classifying Quadrilaterals</b></a>
+    <a class="nav-pill next" href="8-7-prism-pyramid.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">8.7 · Prism and Pyramid</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, initI18n, renderEquation, buildTour } = LessonShell;
+  const UNIT = 30, ORIGIN_X = 40, ORIGIN_Y = 200;
+  const SHAPE = [{ x: 0, y: 0 }, { x: 2, y: 0 }, { x: 2, y: -2 }, { x: 0, y: -2 }]; // unit square, grid coords
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 8 · LESSON 6",
+      objectiveLabel: "Objective —",
+      objectiveText: "I translate a shape by sliding it, and confirm the image is congruent to the original.",
+      eqSub: "slide it — nothing else changes",
+      explainBtn: "Explain this",
+      capSide: "side length", capAngle: "angles", capCongruent: "congruent?",
+      yes: "yes, unchanged",
+      navPrevLabel: "—", navPrevText: "8.5 · Classifying Quadrilaterals",
+      navNextLabel: "next", navNext: "8.7 · Prism and Pyramid",
+      teachLabel: "What this teaches:",
+      teachBody: "A translation slides every point of a shape the same distance in the same direction — the image is congruent to the original: same side lengths, same angles, same orientation, just in a new position.",
+      tour: [
+        { ids: ["gridSvg"], label: "Original and image", body: "The solid shape is the original; the dashed one is its translated image." },
+        { ids: ["dxSlider", "dySlider"], label: "Slide it", body: "Drag either slider — the image slides along the grid, always the same distance in the same direction." },
+        { elKey: "readouts", label: "Still congruent", body: "Side lengths and angles never change during a translation — only the position does." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٨ · الدرس ٦",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أُنسِح شكلًا بإزلاقه، وأتحقّق من تطابق الصورة مع الأصل.",
+      eqSub: "أزلقه — لا شيء آخر يتغيّر",
+      explainBtn: "اشرح هذا",
+      capSide: "طول الضلع", capAngle: "الزوايا", capCongruent: "متطابق؟",
+      yes: "نعم، بلا تغيير",
+      navPrevLabel: "—", navPrevText: "٨.٥ · تصنيف الرباعيات",
+      navNextLabel: "التالي", navNext: "٨.٧ · المنشور والهرم",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "الانسحاب يُزلق كل نقطة في الشكل المسافة نفسها بالاتجاه نفسه — الصورة تطابق الأصل: أطوال الأضلاع نفسها، الزوايا نفسها، الاتجاه نفسه، فقط في موضع جديد.",
+      tour: [
+        { ids: ["gridSvg"], label: "الأصل والصورة", body: "الشكل المصمت هو الأصل؛ والمتقطّع هو صورته المنسحبة." },
+        { ids: ["dxSlider", "dySlider"], label: "أزلقه", body: "اسحب أيّ شريط — تنزلق الصورة على الشبكة، دائمًا بالمسافة نفسها وبالاتجاه نفسه." },
+        { elKey: "readouts", label: "لا يزال متطابقًا", body: "أطوال الأضلاع والزوايا لا تتغيّر أبدًا أثناء الانسحاب — الموضع فقط هو ما يتغيّر." }
+      ]
+    }
+  };
+
+  const dxSlider = document.getElementById("dxSlider");
+  const dySlider = document.getElementById("dySlider");
+  const gridSvg = document.getElementById("gridSvg");
+  const readouts = document.getElementById("readouts");
+  const eqLine = document.getElementById("eqLine");
+
+  function toScreen(p) { return { x: ORIGIN_X + p.x * UNIT, y: ORIGIN_Y + p.y * UNIT }; }
+
+  function render() {
+    const t = T[i18n.lang];
+    const dx = parseInt(dxSlider.value, 10), dy = parseInt(dySlider.value, 10);
+    gridSvg.innerHTML = "";
+    for (let i = 0; i <= 9; i++) {
+      const v = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      v.setAttribute("x1", ORIGIN_X + i * UNIT - UNIT); v.setAttribute("x2", ORIGIN_X + i * UNIT - UNIT);
+      v.setAttribute("y1", 10); v.setAttribute("y2", 230);
+      v.setAttribute("class", "grid-line");
+      gridSvg.appendChild(v);
+      const h = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      h.setAttribute("y1", 20 + i * UNIT - UNIT * 2); h.setAttribute("y2", 20 + i * UNIT - UNIT * 2);
+      h.setAttribute("x1", 10); h.setAttribute("x2", 310);
+      h.setAttribute("class", "grid-line");
+      gridSvg.appendChild(h);
+    }
+
+    const origPts = SHAPE.map(toScreen);
+    const origPoly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+    origPoly.setAttribute("points", origPts.map(p => `${p.x},${p.y}`).join(" "));
+    origPoly.setAttribute("class", "orig-shape");
+    gridSvg.appendChild(origPoly);
+
+    const imgPts = SHAPE.map(p => toScreen({ x: p.x + dx, y: p.y + dy }));
+    const imgPoly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+    imgPoly.setAttribute("points", imgPts.map(p => `${p.x},${p.y}`).join(" "));
+    imgPoly.setAttribute("class", "image-shape");
+    gridSvg.appendChild(imgPoly);
+
+    const vec = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    vec.setAttribute("x1", origPts[0].x); vec.setAttribute("y1", origPts[0].y);
+    vec.setAttribute("x2", imgPts[0].x); vec.setAttribute("y2", imgPts[0].y);
+    vec.setAttribute("class", "vector-line");
+    gridSvg.appendChild(vec);
+
+    readouts.innerHTML = "";
+    [["capSide", "2 units"], ["capAngle", "90°"], ["capCongruent", t.yes]].forEach(([key, val]) => {
+      const card = document.createElement("div");
+      card.className = "readout-card";
+      const cap = document.createElement("div");
+      cap.className = "cap";
+      cap.textContent = t[key];
+      const v = document.createElement("div");
+      v.className = "val";
+      v.textContent = val;
+      card.appendChild(cap); card.appendChild(v);
+      readouts.appendChild(card);
+    });
+
+    renderEquation(eqLine, `(x, y) \\;\\Rightarrow\\; (x ${dx >= 0 ? "+" : "-"} ${Math.abs(dx)},\\; y ${dy >= 0 ? "+" : "-"} ${Math.abs(dy)})`);
+  }
+
+  dxSlider.addEventListener("input", render);
+  dySlider.addEventListener("input", render);
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

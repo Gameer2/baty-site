@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Coordinate Plane — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:26px 20px 30px; display:flex; flex-direction:column; align-items:center; gap:18px; }
+  .mode-toggle{ display:flex; gap:6px; }
+  .mode-btn{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--pulse-ash); background:var(--core-black); border:1px solid rgba(255,255,255,.14); border-radius:100px; padding:6px 14px; cursor:pointer; }
+  .mode-btn.active{ color:var(--off-white); border-color:var(--electric-teal); background:rgba(92,147,159,.12); }
+
+  svg#gridSvg{ direction:ltr; touch-action:none; cursor:crosshair; }
+  .grid-line{ stroke:rgba(255,255,255,.08); stroke-width:1; }
+  .axis-line{ stroke:rgba(255,255,255,.4); stroke-width:1.5; }
+  .axis-num{ font-family:var(--mono); font-size:10px; fill:var(--pulse-ash); }
+  .point-dot{ fill:var(--infrared); stroke:var(--off-white); stroke-width:1.5; cursor:grab; }
+  .point-label{ font-family:var(--mono); font-size:12px; font-weight:700; fill:var(--off-white); }
+  .landmark{ cursor:pointer; }
+  .landmark text{ font-size:20px; }
+  .landmark-label{ font-family:var(--mono); font-size:11px; fill:var(--off-white); opacity:0; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 5 · LESSON 2</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">The Coordinate Plane</h1>
+    <span class="title-secondary ar-display" id="titleAr">المستوى الإحداثي</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I locate and name points in the first quadrant of the coordinate plane using ordered pairs.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">(x, y) — across, then up</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="modePlot" data-role="ui" data-i18n="modePlot">plot a point</button>
+        <button class="mode-btn" id="modeMap" data-role="ui" data-i18n="modeMap">read the map</button>
+      </div>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <svg id="gridSvg" width="360" height="360" viewBox="0 0 360 360" data-el="gridSvg"></svg>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Every point in the first quadrant is named by an ordered pair (x, y): move x units across from the origin, then y units up. Order matters — (3, 5) is a different point from (5, 3).</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="5-1-statistical-question.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">5.1 · The Statistical Question</b></a>
+    <a class="nav-pill next" href="5-3-line-graph.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">5.3 · Line Graph Representation</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, initI18n, renderEquation, buildTour } = LessonShell;
+  const N = 10; // grid units per axis
+  const PAD = 30, SIZE = 360, CELL = (SIZE - PAD * 2) / N;
+
+  const LANDMARKS = [
+    { x: 2, y: 2, icon: "🏠", en: "house", ar: "منزل" },
+    { x: 7, y: 3, icon: "🏥", en: "hospital", ar: "مستشفى" },
+    { x: 4, y: 8, icon: "🌲", en: "forest", ar: "غابة" },
+    { x: 8, y: 8, icon: "🏞️", en: "lake", ar: "بحيرة" }
+  ];
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 5 · LESSON 2",
+      objectiveLabel: "Objective —",
+      objectiveText: "I locate and name points in the first quadrant of the coordinate plane using ordered pairs.",
+      eqSub: "(x, y) — across, then up",
+      explainBtn: "Explain this",
+      modePlot: "plot a point", modeMap: "read the map",
+      navPrevLabel: "—", navPrevText: "5.1 · The Statistical Question",
+      navNextLabel: "next", navNext: "5.3 · Line Graph Representation",
+      teachLabel: "What this teaches:",
+      teachBody: "Every point in the first quadrant is named by an ordered pair (x, y): move x units across from the origin, then y units up. Order matters — (3, 5) is a different point from (5, 3).",
+      tour: [
+        { ids: ["gridSvg"], label: "Origin and axes", body: "The horizontal axis is x, the vertical axis is y — both start at 0 where they cross, the origin." },
+        { ids: ["gridSvg"], label: "Click to plot", body: "Click anywhere on the grid — it snaps to the nearest whole point and labels its (x, y) coordinates." },
+        { ids: ["modeMap"], label: "Read a landmark's coordinates", body: "Switch to map mode — click any landmark to reveal its coordinates on the same grid." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٥ · الدرس ٢",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أحدّد وأسمّي نقاطًا في الربع الأول من المستوى الإحداثي باستخدام الأزواج المرتّبة.",
+      eqSub: "(x, y) — أفقيًا ثم عموديًا",
+      explainBtn: "اشرح هذا",
+      modePlot: "ارسم نقطة", modeMap: "اقرأ الخريطة",
+      navPrevLabel: "—", navPrevText: "٥.١ · السؤال الإحصائي",
+      navNextLabel: "التالي", navNext: "٥.٣ · تمثيل البيانات بخط بياني",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "تُسمّى كل نقطة في الربع الأول بزوج مرتّب (x, y): تحرّك x وحدة أفقيًا من نقطة الأصل، ثم y وحدة عموديًا. الترتيب مهم — (٣، ٥) نقطة مختلفة عن (٥، ٣).",
+      tour: [
+        { ids: ["gridSvg"], label: "نقطة الأصل والمحوران", body: "المحور الأفقي هو x، والمحور العمودي هو y — يبدأ كلاهما من ٠ عند نقطة تقاطعهما، وهي نقطة الأصل." },
+        { ids: ["gridSvg"], label: "انقر لترسم", body: "انقر في أي مكان على الشبكة — تلتصق النقطة بأقرب نقطة صحيحة وتُسمّى بإحداثياتها (x, y)." },
+        { ids: ["modeMap"], label: "اقرأ إحداثيات معلَم", body: "بدّل إلى وضع الخريطة — انقر على أي معلَم لتكشف إحداثياته على الشبكة نفسها." }
+      ]
+    }
+  };
+
+  const gridSvg = document.getElementById("gridSvg");
+  const eqLine = document.getElementById("eqLine");
+  const modePlot = document.getElementById("modePlot");
+  const modeMap = document.getElementById("modeMap");
+
+  let mode = "plot";
+  let point = { x: 3, y: 5 };
+
+  function gx(x) { return PAD + x * CELL; }
+  function gy(y) { return SIZE - PAD - y * CELL; }
+
+  function buildGrid() {
+    gridSvg.innerHTML = "";
+    for (let i = 0; i <= N; i++) {
+      const vline = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      vline.setAttribute("x1", gx(i)); vline.setAttribute("x2", gx(i));
+      vline.setAttribute("y1", gy(0)); vline.setAttribute("y2", gy(N));
+      vline.setAttribute("class", i === 0 ? "axis-line" : "grid-line");
+      gridSvg.appendChild(vline);
+      const hline = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      hline.setAttribute("y1", gy(i)); hline.setAttribute("y2", gy(i));
+      hline.setAttribute("x1", gx(0)); hline.setAttribute("x2", gx(N));
+      hline.setAttribute("class", i === 0 ? "axis-line" : "grid-line");
+      gridSvg.appendChild(hline);
+      if (i > 0 && i % 2 === 0) {
+        const xn = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        xn.setAttribute("x", gx(i)); xn.setAttribute("y", gy(0) + 14);
+        xn.setAttribute("class", "axis-num"); xn.setAttribute("text-anchor", "middle");
+        xn.textContent = digits(i, i18n.lang);
+        gridSvg.appendChild(xn);
+        const yn = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        yn.setAttribute("x", gx(0) - 10); yn.setAttribute("y", gy(i) + 3);
+        yn.setAttribute("class", "axis-num"); yn.setAttribute("text-anchor", "end");
+        yn.textContent = digits(i, i18n.lang);
+        gridSvg.appendChild(yn);
+      }
+    }
+  }
+
+  function snapFromEvent(evt) {
+    const rect = gridSvg.getBoundingClientRect();
+    const scaleX = SIZE / rect.width, scaleY = SIZE / rect.height;
+    const px = (evt.clientX - rect.left) * scaleX;
+    const py = (evt.clientY - rect.top) * scaleY;
+    const x = Math.round((px - PAD) / CELL);
+    const y = Math.round((SIZE - PAD - py) / CELL);
+    return { x: Math.max(0, Math.min(N, x)), y: Math.max(0, Math.min(N, y)) };
+  }
+
+  function drawPoint() {
+    const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    dot.setAttribute("cx", gx(point.x)); dot.setAttribute("cy", gy(point.y));
+    dot.setAttribute("r", 7); dot.setAttribute("class", "point-dot");
+    gridSvg.appendChild(dot);
+    const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    label.setAttribute("x", gx(point.x) + 10); label.setAttribute("y", gy(point.y) - 8);
+    label.setAttribute("class", "point-label");
+    label.textContent = `(${digits(point.x, i18n.lang)}, ${digits(point.y, i18n.lang)})`;
+    gridSvg.appendChild(label);
+    renderEquation(eqLine, `(x, y) = (${point.x}, ${point.y})`);
+  }
+
+  function drawLandmarks() {
+    LANDMARKS.forEach(lm => {
+      const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      g.setAttribute("class", "landmark");
+      const icon = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      icon.setAttribute("x", gx(lm.x)); icon.setAttribute("y", gy(lm.y) + 6);
+      icon.setAttribute("text-anchor", "middle");
+      icon.textContent = lm.icon;
+      const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      label.setAttribute("x", gx(lm.x)); label.setAttribute("y", gy(lm.y) - 16);
+      label.setAttribute("text-anchor", "middle");
+      label.setAttribute("class", "landmark-label");
+      g.appendChild(icon);
+      g.appendChild(label);
+      g.addEventListener("click", (e) => {
+        e.stopPropagation();
+        label.textContent = `(${digits(lm.x, i18n.lang)}, ${digits(lm.y, i18n.lang)})`;
+        gsap.to(label, { opacity: 1, duration: .3 });
+        renderEquation(eqLine, `\\text{${i18n.lang === "ar" ? lm.ar : lm.en}} = (${lm.x}, ${lm.y})`);
+      });
+      gridSvg.appendChild(g);
+    });
+  }
+
+  function render() {
+    buildGrid();
+    if (mode === "plot") {
+      drawPoint();
+    } else {
+      drawLandmarks();
+      renderEquation(eqLine, `\\text{?} = (x, y)`);
+    }
+  }
+
+  gridSvg.addEventListener("click", (e) => {
+    if (mode !== "plot") return;
+    point = snapFromEvent(e);
+    render();
+  });
+
+  modePlot.addEventListener("click", () => {
+    mode = "plot"; modePlot.classList.add("active"); modeMap.classList.remove("active");
+    render();
+  });
+  modeMap.addEventListener("click", () => {
+    mode = "map"; modeMap.classList.add("active"); modePlot.classList.remove("active");
+    render();
+  });
+
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

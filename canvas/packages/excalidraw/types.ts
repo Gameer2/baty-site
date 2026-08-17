@@ -455,6 +455,9 @@ export interface AppState {
   currentItemStrokeStyle: ExcalidrawElement["strokeStyle"];
   currentItemRoughness: number;
   currentItemStrokeVariability: StrokeVariability;
+  /** 0-1, additive on top of the pointer-type streamline baseline — see
+   *  handleFreeDrawElementOnPointerDown in App.tsx. 0 = baseline/untouched. */
+  currentItemStrokeSmoothing: number;
   currentItemOpacity: number;
   currentItemFontFamily: FontFamilyValues;
   currentItemFontSize: number;
@@ -489,7 +492,6 @@ export interface AppState {
   openDialog:
     | null
     | { name: "imageExport" | "help" | "jsonExport" | "pdfImport" }
-    | { name: "ttd"; tab: "text-to-diagram" | "mermaid" }
     | { name: "commandPalette" }
     | { name: "settings" }
     | { name: "elementLinkSelector"; sourceElementId: ExcalidrawElement["id"] }

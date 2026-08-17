@@ -25,6 +25,16 @@
 
   let state = null; // { iterations }
   const TRACE = { current: 1 };
+  const STORE_KEY = "engine-lab:numerical-power-method";
+
+  function snapshot() {
+    return {
+      matrix: getMatrix().map((row) => row.join(",")).join(";"),
+      x0: getX0().join(","),
+      tol: tolInput.value,
+      maxIter: maxIterInput.value,
+    };
+  }
 
   function buildMatrixGrid(n) {
     let html = "";
@@ -220,8 +230,7 @@
 
   stepSlider.addEventListener("input", (e) => updateStep(Number(e.target.value)));
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+  function runCompute() {
     clearError();
 
     const checked = updateStartCheck();
@@ -241,9 +250,39 @@
     }
     if (!iterations.length) return showError("No iterations produced.");
     render(iterations);
+    Proto.saveState(STORE_KEY, snapshot());
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    runCompute();
   });
 
   // initial grid + validity check so the page isn't blank on load
   setSize(parseInt(sizeInput.value, 10) || 2);
+
+  const saved = Proto.loadState(STORE_KEY);
+  if (saved && saved.matrix !== undefined) {
+    const rows = String(saved.matrix).split(";").map((r) => r.split(",").map(Number));
+    const n = rows.length;
+    if (n >= 2 && n <= 6 && rows.every((row) => row.length === n)) {
+      sizeInput.value = String(n);
+      setSize(n);
+      matrixTable.querySelectorAll(".mat-cell").forEach((cell) => {
+        const i = Number(cell.dataset.row), j = Number(cell.dataset.col);
+        cell.value = rows[i][j];
+      });
+      if (saved.x0 !== undefined) {
+        const x0 = String(saved.x0).split(",").map(Number);
+        x0Row.querySelectorAll(".x0-cell").forEach((inp, idx) => {
+          if (x0[idx] !== undefined) inp.value = x0[idx];
+        });
+      }
+      if (saved.tol !== undefined) tolInput.value = saved.tol;
+      if (saved.maxIter !== undefined) maxIterInput.value = saved.maxIter;
+      runCompute();
+    }
+  }
+
   updateStartCheck();
 })();

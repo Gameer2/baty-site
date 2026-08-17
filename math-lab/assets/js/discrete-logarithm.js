@@ -57,5 +57,14 @@
     try { g = parseInput(gInput.value, "g"); h = parseInput(hInput.value, "h"); n = parseInput(nInput.value, "n"); } catch (err) { return showError(err.message); }
     if (n <= 0n) return showError("n must be a positive modulus.");
     render(g, h, n);
+    Proto.saveState("engine-lab:number-theory-discrete-logarithm", { g: gInput.value, h: hInput.value, n: nInput.value });
   });
+
+  const saved = Proto.loadState("engine-lab:number-theory-discrete-logarithm");
+  if (saved) {
+    if (saved.g !== undefined) gInput.value = saved.g;
+    if (saved.h !== undefined) hInput.value = saved.h;
+    if (saved.n !== undefined) nInput.value = saved.n;
+    form.requestSubmit();
+  }
 })();

@@ -255,7 +255,17 @@ def _series_solution(equation_text, point_str, order):
             return False
 
     if finite_at(qp) and finite_at(rp):
-        sol = sp.dsolve(sp.Eq(lhs_expr, 0), y, hint="2nd_power_series_ordinary", n=order, x0=point)
+        # n=order+1, not n=order: when p, q have pure even/odd symmetry about the expansion
+        # point (the common textbook case — e.g. y''+y=0), the two independent solutions split
+        # into an even-degree-only branch and an odd-degree-only branch, whose terms are each 2
+        # degrees apart. SymPy's power-series counter advances by 1 per call, so asking for
+        # n=order leaves exactly ONE of the two branches one recurrence-step short of the term
+        # it needs to actually reach O(x^order) — which branch is short flips with the parity of
+        # order (confirmed: n=6 leaves the odd branch at O(x^5) while the even branch is a true
+        # O(x^6); n=7 flips it). Asking for one extra term closes that gap for whichever branch
+        # needed it and never changes the other (confirmed empirically across n=3..9) — always
+        # at least as accurate as requested, never less.
+        sol = sp.dsolve(sp.Eq(lhs_expr, 0), y, hint="2nd_power_series_ordinary", n=order + 1, x0=point)
         kind = "ordinary"
     else:
         p0 = sp.limit((x - point) * qp, x, point)

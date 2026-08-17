@@ -15,6 +15,12 @@
   const coeffsDiv = document.getElementById("coeffsDiv");
   const tableBody = document.querySelector("#tableBody tbody");
 
+  const STORE_KEY = "engine-lab:numerical-least-squares";
+
+  function snapshot() {
+    return { points: pointsInput.value, d: degreeInput.value };
+  }
+
   function parsePoints() {
     const lines = pointsInput.value.trim().split("\n").filter((l) => l.trim() !== "");
     const points = [];
@@ -94,8 +100,7 @@
     ).join("");
   }
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+  function runCompute() {
     clearError();
     const points = parsePoints();
     const d = parseInt(degreeInput.value, 10);
@@ -106,10 +111,23 @@
       const result = Algorithms.runDiscreteLeastSquares(points, d);
       result.points = points;
       render(result);
+      Proto.saveState(STORE_KEY, snapshot());
     } catch (err) {
       showError(err.message);
     }
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    runCompute();
   });
+
+  const saved = Proto.loadState(STORE_KEY);
+  if (saved) {
+    if (saved.points !== undefined) pointsInput.value = String(saved.points).split(";").join("\n");
+    if (saved.d !== undefined) degreeInput.value = saved.d;
+    runCompute();
+  }
 
   updateStatus();
 })();

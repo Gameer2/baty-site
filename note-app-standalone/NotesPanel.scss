@@ -1,0 +1,202 @@
+// Same shell as LibraryPanel.scss — left-column slot, sticky head, no visible scrollbar. The two
+// panels are mutually exclusive (see ChromeRail.tsx), so sharing the exact layout means switching
+// between them reads as "the same drawer, different contents," not a layout jump.
+.NotesPanel {
+  width: 300px;
+  flex-shrink: 0;
+  height: 100%;
+  overflow-y: auto;
+  background: var(--island-bg-color);
+  border-right: 1px solid var(--input-border-color);
+  padding: 0 14px 16px;
+  box-sizing: border-box;
+  font-family: var(--ui-font);
+  color: var(--color-on-surface);
+  position: relative;
+  z-index: 10;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.NotesPanel__head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--island-bg-color);
+  margin: 0 -14px;
+  padding: 16px 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.NotesPanel__eyebrow {
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-gray-60);
+  margin: 0 4px;
+}
+
+.NotesPanel__searchInput {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 9px 11px;
+  border-radius: 8px;
+  border: 1px solid var(--input-border-color);
+  background: var(--color-surface-low);
+  color: var(--color-on-surface);
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &::placeholder {
+    color: var(--color-gray-60);
+  }
+
+  &:focus {
+    border-color: var(--color-primary);
+  }
+}
+
+.NotesPanel__new {
+  all: unset;
+  box-sizing: border-box;
+  width: 100%;
+  text-align: center;
+  padding: 9px 11px;
+  border-radius: 8px;
+  border: 1px dashed var(--input-border-color);
+  color: var(--color-on-surface);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+}
+
+.NotesPanel__empty {
+  margin: 0 6px 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-gray-60);
+}
+
+.NotesPanel__item {
+  position: relative;
+  margin-bottom: 1px;
+}
+
+.NotesPanel__itemButton {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 52px 10px 12px;
+  border-left: 3px solid transparent;
+  border-radius: 0 6px 6px 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-on-surface);
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: var(--color-surface-high);
+  }
+}
+
+.NotesPanel__item--active .NotesPanel__itemButton {
+  border-left-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+.NotesPanel__itemName {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.NotesPanel__itemDate {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--color-gray-60);
+}
+
+.NotesPanel__renameInput {
+  box-sizing: border-box;
+  width: 100%;
+  margin: 4px 0;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--color-primary);
+  background: var(--color-surface-low);
+  color: var(--color-on-surface);
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+.NotesPanel__itemRename,
+.NotesPanel__itemDelete {
+  all: unset;
+  box-sizing: border-box;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-size: 12px;
+  color: var(--color-gray-60);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.NotesPanel__itemRename {
+  right: 26px;
+
+  &:hover {
+    background: var(--color-surface-high);
+    color: var(--color-primary);
+  }
+}
+
+.NotesPanel__itemDelete {
+  right: 4px;
+  font-size: 14px;
+
+  &:hover {
+    background: var(--bad-soft, var(--color-surface-high));
+    color: var(--bad, #e0684f);
+  }
+}
+
+.NotesPanel__item:hover .NotesPanel__itemRename,
+.NotesPanel__item:hover .NotesPanel__itemDelete,
+.NotesPanel__item:focus-within .NotesPanel__itemRename,
+.NotesPanel__item:focus-within .NotesPanel__itemDelete {
+  opacity: 1;
+}
+
+@media (max-width: 900px) {
+  .NotesPanel {
+    width: 100%;
+    position: fixed;
+    inset: 0;
+  }
+}

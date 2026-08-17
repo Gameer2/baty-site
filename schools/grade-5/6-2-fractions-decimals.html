@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Converting Between Fractions and Decimals — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:30px 24px 30px; display:flex; flex-direction:column; align-items:center; gap:20px; }
+  .mode-toggle{ display:flex; gap:6px; }
+  .mode-btn{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--pulse-ash); background:var(--core-black); border:1px solid rgba(255,255,255,.14); border-radius:100px; padding:6px 14px; cursor:pointer; }
+  .mode-btn.active{ color:var(--off-white); border-color:var(--electric-teal); background:rgba(92,147,159,.12); }
+
+  .steps-col{ display:flex; flex-direction:column; gap:8px; width:100%; max-width:440px; }
+  .step-card{ display:flex; align-items:center; justify-content:center; gap:10px; padding:10px 16px; border-radius:10px; background:var(--core-black); border:1px solid rgba(255,255,255,.08); opacity:.25; transition:opacity .3s ease; direction:ltr; font-family:var(--mono); font-size:13.5px; color:var(--off-white); }
+  .step-card.active{ opacity:1; border-color:rgba(92,147,159,.4); background:rgba(92,147,159,.08); }
+  .step-card .arrow{ color:var(--infrared); }
+  .step-card.simplify-highlight{ border-color:rgba(107,181,124,.5); background:rgba(107,181,124,.12); }
+
+  .inputs{ display:flex; align-items:center; gap:16px; }
+  .frac-input{ display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .frac-input label{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash); }
+  .frac-fields{ display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .frac-fields input{ font-family:var(--mono); font-size:14px; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.16); border-radius:6px; padding:4px 6px; width:46px; text-align:center; direction:ltr; }
+  .frac-fields .bar-div{ width:30px; height:1px; background:rgba(255,255,255,.3); margin:3px 0; }
+  .dec-input input{ font-family:var(--mono); font-size:15px; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.16); border-radius:8px; padding:7px 10px; width:90px; direction:ltr; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 6 · LESSON 2</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Converting Between Fractions and Decimals</h1>
+    <span class="title-secondary ar-display" id="titleAr">التحويل بين الكسور والكسور العشرية</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I convert a fraction to a decimal by dividing, and a decimal to a fraction over a power of ten.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">the same value, two representations</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="modeF2D" data-role="ui" data-i18n="modeF2D">fraction → decimal</button>
+        <button class="mode-btn" id="modeD2F" data-role="ui" data-i18n="modeD2F">decimal → fraction</button>
+      </div>
+    </div>
+
+    <div class="control-row">
+      <div class="inputs" id="f2dInputs">
+        <div class="frac-input">
+          <label data-role="ui" data-i18n="labelFrac">fraction</label>
+          <div class="frac-fields"><input type="number" id="numA" value="3" min="1" max="9" /><div class="bar-div"></div><input type="number" id="denA" value="4" min="2" max="20" /></div>
+        </div>
+      </div>
+      <div class="inputs dec-input" id="d2fInputs" style="display:none;">
+        <div class="frac-input">
+          <label data-role="ui" data-i18n="labelDec">decimal</label>
+          <input type="number" id="decInput" value="0.35" min="0" max="0.999" step="0.001" />
+        </div>
+      </div>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="steps-col" id="stepsCol" data-el="stepsCol"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">A fraction converts to a decimal by long division of its numerator by its denominator; a decimal converts to a fraction by reading its place value as a power-of-ten denominator, then simplifying if the numerator and denominator share a common factor.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="6-1-thousandths.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">6.1 · Thousandths</b></a>
+    <a class="nav-pill next" href="6-3-comparing-ordering-decimals.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">6.3 · Comparing and Ordering Decimals</b></a>
+  </div>
+</div>
+
+<script>
+  const { digitsDecimal, groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 6 · LESSON 2",
+      objectiveLabel: "Objective —",
+      objectiveText: "I convert a fraction to a decimal by dividing, and a decimal to a fraction over a power of ten.",
+      eqSub: "the same value, two representations",
+      explainBtn: "Explain this",
+      modeF2D: "fraction → decimal", modeD2F: "decimal → fraction",
+      labelFrac: "fraction", labelDec: "decimal",
+      stepDivide: (n, d) => `${n} ÷ ${d}`,
+      stepResult: (n, d, dec) => `${n} ÷ ${d} = ${dec}`,
+      stepPowerTen: (dec, num, den) => `${dec} = ${num}/${den}`,
+      stepSimplify: (num, den, simN, simD) => `${num}/${den} = ${simN}/${simD} (simplified)`,
+      navPrevLabel: "—", navPrevText: "6.1 · Thousandths",
+      navNextLabel: "next", navNext: "6.3 · Comparing and Ordering Decimals",
+      teachLabel: "What this teaches:",
+      teachBody: "A fraction converts to a decimal by long division of its numerator by its denominator; a decimal converts to a fraction by reading its place value as a power-of-ten denominator, then simplifying if the numerator and denominator share a common factor.",
+      tour: [
+        { elKey: "stepsCol", label: "Fraction means division", body: "A fraction's bar is literally a division sign — divide the numerator by the denominator to get the decimal." },
+        { ids: ["modeD2F"], label: "Reverse: decimal to fraction", body: "Switch modes — a decimal's last place value tells you the denominator (tenths → 10, hundredths → 100, and so on)." },
+        { elKey: "stepsCol", label: "Simplify if you can", body: "If numerator and denominator share a common factor, simplify — that final fraction is in its reduced form." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٦ · الدرس ٢",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أُحوّل كسرًا إلى عدد عشري بالقسمة، وعددًا عشريًا إلى كسر مقامه قوة من قوى العشرة.",
+      eqSub: "القيمة نفسها، بتمثيلين",
+      explainBtn: "اشرح هذا",
+      modeF2D: "كسر ← عشري", modeD2F: "عشري ← كسر",
+      labelFrac: "الكسر", labelDec: "العدد العشري",
+      stepDivide: (n, d) => `${n} ÷ ${d}`,
+      stepResult: (n, d, dec) => `${n} ÷ ${d} = ${dec}`,
+      stepPowerTen: (dec, num, den) => `${dec} = ${num}/${den}`,
+      stepSimplify: (num, den, simN, simD) => `${num}/${den} = ${simN}/${simD} (مبسّط)`,
+      navPrevLabel: "—", navPrevText: "٦.١ · جزء من ألف",
+      navNextLabel: "التالي", navNext: "٦.٣ · مقارنة الكسور العشرية وترتيبها",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "يتحوّل الكسر إلى عدد عشري بقسمة بسطه على مقامه بالقسمة المطوّلة؛ ويتحوّل العدد العشري إلى كسر بقراءة قيمته المنزلية الأخيرة كمقام هو قوة من قوى العشرة، ثم التبسيط إن كان للبسط والمقام عامل مشترك.",
+      tour: [
+        { elKey: "stepsCol", label: "الكسر يعني قسمة", body: "خط الكسر هو إشارة قسمة حرفيًا — اقسم البسط على المقام لتحصل على العدد العشري." },
+        { ids: ["modeD2F"], label: "اعكسها: من عشري إلى كسر", body: "بدّل الوضع — تخبرك آخر منزلة في العدد العشري بالمقام (أعشار ← ١٠، أجزاء من مئة ← ١٠٠، وهكذا)." },
+        { elKey: "stepsCol", label: "بسّط إن أمكن", body: "إن كان للبسط والمقام عامل مشترك، بسّط — ذلك الكسر النهائي هو الصورة المختزلة." }
+      ]
+    }
+  };
+
+  const modeF2D = document.getElementById("modeF2D");
+  const modeD2F = document.getElementById("modeD2F");
+  const f2dInputs = document.getElementById("f2dInputs");
+  const d2fInputs = document.getElementById("d2fInputs");
+  const numA = document.getElementById("numA"), denA = document.getElementById("denA");
+  const decInput = document.getElementById("decInput");
+  const stepsCol = document.getElementById("stepsCol");
+  const eqLine = document.getElementById("eqLine");
+
+  let mode = "f2d";
+
+  function gcdOf(a, b) { return b === 0 ? a : gcdOf(b, a % b); }
+  function simplify(n, d) { const g = gcdOf(n, d); return [n / g, d / g]; }
+
+  function addStep(text, cls) {
+    const card = document.createElement("div");
+    card.className = "step-card" + (cls ? " " + cls : "");
+    card.textContent = text;
+    stepsCol.appendChild(card);
+    gsap.to(card, { opacity: 1, duration: .3, delay: stepsCol.children.length * .15 });
+    card.classList.add("active");
+    return card;
+  }
+
+  function renderF2D() {
+    const t = T[i18n.lang];
+    const n = Math.max(1, parseInt(numA.value, 10) || 1);
+    const d = Math.max(2, parseInt(denA.value, 10) || 2);
+    const dec = n / d;
+    const decStr = Number.isInteger(dec * 1000) ? dec.toFixed(3).replace(/0+$/, "").replace(/\.$/, "") : dec.toFixed(4);
+
+    stepsCol.innerHTML = "";
+    addStep(t.stepDivide(n, d));
+    addStep(t.stepResult(n, d, decStr));
+
+    renderEquation(eqLine, `\\dfrac{${groupInt(n, "en")}}{${groupInt(d, "en")}} = \\color{#ed6d40}{${decStr}}`);
+  }
+
+  function renderD2F() {
+    const t = T[i18n.lang];
+    let dec = parseFloat(decInput.value);
+    if (isNaN(dec) || dec < 0) dec = 0;
+    if (dec >= 1) dec = dec - Math.floor(dec);
+    const decStr = dec.toString().replace(/^0/, "0");
+    const decimalPlaces = (decStr.split(".")[1] || "").length || 1;
+    const den = Math.pow(10, decimalPlaces);
+    const num = Math.round(dec * den);
+
+    stepsCol.innerHTML = "";
+    addStep(t.stepPowerTen(decStr, num, den));
+
+    const [simN, simD] = simplify(num, den);
+    const needsSimplify = simD !== den;
+    let eqSource;
+    if (needsSimplify) {
+      const card = addStep(t.stepSimplify(num, den, simN, simD), "simplify-highlight");
+      eqSource = `${decStr} = \\dfrac{${groupInt(num, "en")}}{${groupInt(den, "en")}} = \\color{#ed6d40}{\\dfrac{${groupInt(simN, "en")}}{${groupInt(simD, "en")}}}`;
+    } else {
+      eqSource = `${decStr} = \\color{#ed6d40}{\\dfrac{${groupInt(num, "en")}}{${groupInt(den, "en")}}}`;
+    }
+    renderEquation(eqLine, eqSource);
+  }
+
+  function render() {
+    if (mode === "f2d") renderF2D(); else renderD2F();
+  }
+
+  [numA, denA, decInput].forEach(el => el.addEventListener("input", render));
+  modeF2D.addEventListener("click", () => {
+    mode = "f2d"; modeF2D.classList.add("active"); modeD2F.classList.remove("active");
+    f2dInputs.style.display = ""; d2fInputs.style.display = "none";
+    render();
+  });
+  modeD2F.addEventListener("click", () => {
+    mode = "d2f"; modeD2F.classList.add("active"); modeF2D.classList.remove("active");
+    f2dInputs.style.display = "none"; d2fInputs.style.display = "";
+    render();
+  });
+
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

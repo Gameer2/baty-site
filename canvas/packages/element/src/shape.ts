@@ -271,7 +271,7 @@ const modifyIframeLikeForRoughOptions = (
 ) => {
   // Syntropy Canvas: embeddables whose link is a "syntropy://" handle are not real embeds —
   // the link exists only so validateEmbeddable accepts the element, and all visible chrome is
-  // drawn by the NodeOverlay DOM layer (excalidraw-app/syntropy/NodeOverlay.tsx). Excalidraw's
+  // drawn by the NodeOverlay DOM layer (syntropy-app/syntropy/NodeOverlay.tsx). Excalidraw's
   // default fallback below paints a solid #d3d3d3 (light-gray) rectangle whenever an embeddable's
   // validation status isn't `true` yet — which happens on the first frame(s) before
   // updateEmbeddables resolves the status, and reads as a stray white square behind every node.

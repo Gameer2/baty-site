@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Place Value Within Millions — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: the place-value chart. This is 1.1-only — nothing here is shared. ---- */
+  .chart{ position:relative; height:auto; padding:38px 24px 30px; display:flex; flex-direction:column; align-items:center; gap:22px; overflow:visible; }
+  .periods{ display:flex; gap:22px; flex-wrap:wrap; justify-content:center; }
+  .period{ display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .period-label{ font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; padding:3px 10px; border-radius:100px; }
+  .period-label.ar-ui{ letter-spacing:0; text-transform:none; }
+  .period[data-period="millions"] .period-label{ color:#b98a72; background:rgba(185,138,114,.12); }
+  .period[data-period="thousands"] .period-label{ color:var(--electric-teal); background:rgba(92,147,159,.12); }
+  .period[data-period="ones"] .period-label{ color:#8fbec6; background:rgba(143,190,198,.1); }
+  .cells{ display:flex; gap:6px; }
+  .cell{ width:56px; height:64px; border-radius:10px; background:var(--core-black); border:1px solid rgba(255,255,255,.1); display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; transition:border-color .2s ease, background .2s ease, transform .2s ease; }
+  .cell:hover{ border-color:rgba(255,255,255,.3); }
+  .cell.empty{ opacity:.28; }
+  .cell.selected{ background:rgba(237,109,64,.14); border-color:var(--infrared); transform:translateY(-4px); }
+  .cell-digit{ font-family:var(--mono); font-size:26px; font-weight:700; color:var(--off-white); direction:ltr; }
+  .cell-place{ font-family:var(--mono); font-size:8.5px; letter-spacing:.03em; color:var(--pulse-ash); margin-top:3px; text-transform:uppercase; }
+
+  .readout{ font-family:var(--mono); font-size:14px; color:var(--neural-fog); text-align:center; display:flex; flex-direction:column; gap:6px; }
+  .readout-line{ direction:ltr; unicode-bidi:isolate; }
+  .readout-line[dir="rtl"]{ direction:rtl; unicode-bidi:isolate; }
+  .readout b{ color:var(--infrared); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 1 · LESSON 1</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Place Value Within Millions</h1>
+    <span class="title-secondary ar-display" id="titleAr">القيمة المنزلية ضمن الملايين</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I determine the place value of a digit in a number within the millions; I read and write numbers within the millions.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">the value of the digit you select below</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabel">place</label>
+      <input type="range" id="placeSlider" min="0" max="6" step="1" value="6" />
+      <span class="control-val" id="placeReadout">ones</span>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="periods" id="periods"></div>
+      <div class="readout" id="readout"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Extends the ones/thousands "period" grouping (each group of 3 digits) to a third period, millions, using a place-value chart with ones/tens/hundreds columns repeated per period. Students identify a marked digit's place value using the chart, and convert numbers between standard form, word form, and expanded form — including real 7–8 digit numbers.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <div class="nav-pill prev">— <b data-role="body" id="navPrevText">start of Grade 5, Unit 1</b></div>
+    <a class="nav-pill next" href="1-2-comparing-ordering-numbers.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">1.2 · Comparing &amp; Ordering Numbers</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 1 · LESSON 1",
+      objectiveLabel: "Objective —",
+      objectiveText: "I determine the place value of a digit in a number within the millions; I read and write numbers within the millions.",
+      eqSub: "the value of the digit you select below",
+      explainBtn: "Explain this",
+      controlLabel: "place",
+      navPrev: "start of Grade 5, Unit 1",
+      navNext: "1.2 · Comparing & Ordering Numbers",
+      navNextLabel: "next",
+      teachLabel: "What this teaches:",
+      teachBody: "Extends the ones/thousands “period” grouping (each group of 3 digits) to a third period, millions, using a place-value chart with ones/tens/hundreds columns repeated per period. Students identify a marked digit's place value using the chart, and convert numbers between standard form, word form, and expanded form — including real 7–8 digit numbers.",
+      periodNames: { millions: "millions", thousands: "thousands", ones: "ones" },
+      placeNames: ["ones", "tens", "hundreds", "thousands", "ten thousands", "hundred thousands", "millions"],
+      selected: "You selected",
+      valueIs: "its value is",
+      standard: "Standard form",
+      expanded: "Expanded form",
+      tour: [
+        { ids: ["periodMillions", "periodThousands", "periodOnes"], label: "Three periods", body: "Every three digits form a period: ones, thousands, millions — reading right to left. Each period repeats the same hundreds/tens/ones pattern." },
+        { elKey: "cellActive", label: "Pick a digit", body: "Click any cell, or use the slider above, to select a digit and see exactly what it's worth." },
+        { ids: ["eqLine"], label: "Digit × place value", body: "The equation shows the digit multiplied by its place value (a power of ten) — that product is what the digit actually contributes to the number." },
+        { elKey: "readout", label: "Expanded form", body: "Every nonzero place adds up to the full number — that sum is the number's expanded form." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ١ · الدرس ١",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أُحدِّد القيمة المنزلية لرقم ضمن الملايين، وأقرأ الأعداد ضمن الملايين وأكتبها.",
+      eqSub: "قيمة الرقم الذي تختاره أدناه",
+      explainBtn: "اشرح هذا",
+      controlLabel: "المنزلة",
+      navPrev: "بداية الوحدة الأولى، الصف الخامس",
+      navNext: "١.٢ · مقارنة الأعداد وترتيبها",
+      navNextLabel: "التالي",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "يوسّع تجميع “الدورة” للآحاد والألوف (كل مجموعة من ٣ أرقام) إلى دورة ثالثة، الملايين، باستخدام جدول القيمة المنزلية بأعمدة الآحاد والعشرات والمئات المتكررة في كل دورة. يحدّد الطلبة القيمة المنزلية لرقم مُحدَّد باستخدام الجدول، ويحوّلون الأعداد بين الصيغة القياسية والصيغة اللفظية والصيغة التحليلية — بما في ذلك أعداد حقيقية من ٧-٨ أرقام.",
+      periodNames: { millions: "الملايين", thousands: "الألوف", ones: "الآحاد" },
+      placeNames: ["آحاد", "عشرات", "مئات", "ألوف", "عشرات ألوف", "مئات ألوف", "ملايين"],
+      selected: "اخترت",
+      valueIs: "وقيمته",
+      standard: "الصيغة القياسية",
+      expanded: "الصيغة التحليلية",
+      tour: [
+        { ids: ["periodMillions", "periodThousands", "periodOnes"], label: "ثلاث دورات", body: "كل ثلاثة أرقام تُشكِّل دورة: الآحاد، ثم الألوف، ثم الملايين — من اليمين إلى اليسار. كل دورة تكرّر نمط المئات والعشرات والآحاد نفسه." },
+        { elKey: "cellActive", label: "اختر رقمًا", body: "انقر أي خانة، أو استخدم شريط التمرير أعلاه، لتختار رقمًا وترى قيمته بالضبط." },
+        { ids: ["eqLine"], label: "الرقم × القيمة المنزلية", body: "توضّح المعادلة ناتج ضرب الرقم بقيمته المنزلية (قوة من قوى العشرة) — وهذا الناتج هو ما يُسهم به الرقم فعليًا في العدد." },
+        { elKey: "readout", label: "الصيغة التحليلية", body: "مجموع كل المنازل غير الصفرية يساوي العدد الكامل — وهذا المجموع هو الصيغة التحليلية للعدد." }
+      ]
+    }
+  };
+
+  // ---------------- the number this lesson works with ----------------
+  const NUMBER = 4758213; // a 7-digit example, matching the textbook's own "real 7-8 digit numbers" framing
+  const PLACES = [0, 1, 2, 3, 4, 5, 6]; // ones..millions
+  function digitAt(n, pos) { return Math.floor(n / Math.pow(10, pos)) % 10; }
+  function placeValueAt(n, pos) { return digitAt(n, pos) * Math.pow(10, pos); }
+
+  const PERIODS = [
+    { key: "millions", positions: [6] },
+    { key: "thousands", positions: [5, 4, 3] },
+    { key: "ones", positions: [2, 1, 0] }
+  ];
+
+  const periodsEl = document.getElementById("periods");
+  const cellsByPos = {};
+
+  function buildChart() {
+    periodsEl.innerHTML = "";
+    PERIODS.forEach(period => {
+      const wrap = document.createElement("div");
+      wrap.className = "period";
+      wrap.dataset.period = period.key;
+      wrap.id = "period" + period.key.charAt(0).toUpperCase() + period.key.slice(1);
+      const label = document.createElement("div");
+      label.className = "period-label";
+      label.dataset.role = "ui";
+      label.textContent = T[i18n.lang].periodNames[period.key];
+      wrap.appendChild(label);
+      const cellsRow = document.createElement("div");
+      cellsRow.className = "cells";
+      period.positions.forEach(pos => {
+        const cell = document.createElement("div");
+        cell.className = "cell dimmable";
+        cell.dataset.el = pos === selectedPos ? "cellActive" : "";
+        const d = digitAt(NUMBER, pos);
+        const isSignificant = Math.pow(10, pos) <= NUMBER;
+        if (!isSignificant) cell.classList.add("empty");
+        const digitEl = document.createElement("div");
+        digitEl.className = "cell-digit";
+        digitEl.textContent = d;
+        const placeEl = document.createElement("div");
+        placeEl.className = "cell-place";
+        placeEl.textContent = "10^" + pos;
+        cell.appendChild(digitEl);
+        cell.appendChild(placeEl);
+        cell.addEventListener("click", () => selectPlace(pos));
+        cellsRow.appendChild(cell);
+        cellsByPos[pos] = cell;
+      });
+      wrap.appendChild(cellsRow);
+      periodsEl.appendChild(wrap);
+    });
+  }
+
+  let selectedPos = 6;
+  const slider = document.getElementById("placeSlider");
+  const placeReadout = document.getElementById("placeReadout");
+  const readout = document.getElementById("readout");
+  const eqLine = document.getElementById("eqLine");
+
+  function selectPlace(pos) {
+    selectedPos = pos;
+    slider.value = pos;
+    render(true);
+  }
+
+  function render(animate) {
+    const t = T[i18n.lang];
+    Object.keys(cellsByPos).forEach(pos => {
+      const cell = cellsByPos[pos];
+      const isActive = Number(pos) === selectedPos;
+      cell.classList.toggle("selected", isActive);
+      cell.dataset.el = isActive ? "cellActive" : "";
+      if (animate && isActive) {
+        gsap.fromTo(cell, { y: -8 }, { y: 0, duration: .4, ease: "back.out(1.7)" });
+      }
+    });
+
+    const digit = digitAt(NUMBER, selectedPos);
+    const value = placeValueAt(NUMBER, selectedPos);
+    placeReadout.textContent = t.placeNames[selectedPos];
+
+    const eqSource = `${digit} \\times 10^{${selectedPos}} = \\color{#ed6d40}{${value.toLocaleString("en-US")}}`;
+    renderEquation(eqLine, eqSource);
+
+    // expanded form — every nonzero place, summed, in the active language's digits
+    const parts = PLACES.slice().reverse()
+      .map(pos => ({ pos, v: placeValueAt(NUMBER, pos) }))
+      .filter(p => p.v > 0)
+      .map(p => groupInt(p.v, i18n.lang));
+    // Two separate block lines, not one flowing paragraph — a single mixed RTL-label /
+    // LTR-isolated-number paragraph reorders its whole phrase sequence under bidi (tested:
+    // "Expanded form" visually jumped in front of "Standard form"). Stacking as independent
+    // blocks sidesteps that; each line's own direction is set explicitly, not inherited.
+    const dir = i18n.lang === "ar" ? "rtl" : "ltr";
+    readout.innerHTML =
+      `<div class="readout-line" dir="${dir}"><b data-role="ui">${t.standard}:</b> ${groupInt(NUMBER, i18n.lang)}</div>` +
+      `<div class="readout-line" dir="${dir}"><b data-role="ui">${t.expanded}:</b> ${parts.join(" + ")}</div>`;
+  }
+
+  slider.addEventListener("input", () => selectPlace(parseInt(slider.value, 10)));
+
+  const i18n = initI18n(T, {
+    onLangChange: () => { buildChart(); render(false); }
+  });
+
+  buildChart();
+  render(false);
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

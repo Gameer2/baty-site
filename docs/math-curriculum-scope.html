@@ -1,0 +1,548 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Math Curriculum Scope — Grades 4–10 (Jordan + Cambridge)</title>
+<style>
+  :root{
+    --bg:#EEF1F4;
+    --surface:#FFFFFF;
+    --surface-2:#F6F9FB;
+    --ink:#16242F;
+    --ink-soft:#465863;
+    --ink-faint:#7E8E9C;
+    --rule:#D6DEE6;
+    --grid:#E4EAF0;
+    --jordan:#B5742A;
+    --jordan-soft:#F4E8D6;
+    --cam:#2E7D74;
+    --cam-soft:#D7ECE9;
+    --N:#2F6BB0;
+    --A:#8A4A8E;
+    --G:#4E8150;
+    --S:#C0642E;
+    --F:#3E5266;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1722;
+      --surface:#16242F;
+      --surface-2:#1B2D39;
+      --ink:#E6EDF2;
+      --ink-soft:#AEBCC8;
+      --ink-faint:#6E7E8C;
+      --rule:#273A48;
+      --grid:#192835;
+      --jordan:#D89A4A;
+      --jordan-soft:#2A2117;
+      --cam:#5FB3A6;
+      --cam-soft:#16302D;
+      --N:#6FA6D8;
+      --A:#C287C6;
+      --G:#7FB281;
+      --S:#E39463;
+      --F:#9FB2C6;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1722;
+    --surface:#16242F;
+    --surface-2:#1B2D39;
+    --ink:#E6EDF2;
+    --ink-soft:#AEBCC8;
+    --ink-faint:#6E7E8C;
+    --rule:#273A48;
+    --grid:#192835;
+    --jordan:#D89A4A;
+    --jordan-soft:#2A2117;
+    --cam:#5FB3A6;
+    --cam-soft:#16302D;
+    --N:#6FA6D8;
+    --A:#C287C6;
+    --G:#7FB281;
+    --S:#E39463;
+    --F:#9FB2C6;
+  }
+  *{box-sizing:border-box}
+  html{ -webkit-text-size-adjust:100% }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    line-height:1.55;
+    font-size:16px;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:28px 28px;
+    background-position:-1px -1px;
+  }
+  .wrap{ max-width:1080px; margin:0 auto; padding:48px 24px 96px; }
+  header.page{ margin-bottom:40px; }
+  .eyebrow{
+    text-transform:uppercase; letter-spacing:.18em; font-size:.72rem;
+    color:var(--ink-faint); font-weight:600; margin-bottom:14px;
+  }
+  h1{
+    font-family:ui-serif,"Iowan Old Style","Apple Garamond",Georgia,"Times New Roman",serif;
+    font-weight:600; font-size:2.6rem; line-height:1.1; margin:0 0 14px;
+    text-wrap:balance; letter-spacing:-.01em;
+  }
+  .lede{ color:var(--ink-soft); max-width:62ch; font-size:1.05rem; margin:0; }
+  .system-key{ display:flex; gap:18px; flex-wrap:wrap; margin-top:22px; font-size:.85rem; }
+  .sys{ display:inline-flex; align-items:center; gap:8px; font-weight:600; }
+  .swatch{ width:12px; height:12px; border-radius:3px; display:inline-block; }
+  .swatch.j{ background:var(--jordan); }
+  .swatch.c{ background:var(--cam); }
+
+  .legend{
+    display:flex; gap:14px; flex-wrap:wrap; margin-top:18px;
+    padding:14px 16px; background:var(--surface); border:1px solid var(--rule);
+    border-radius:10px;
+  }
+  .cat{ display:inline-flex; align-items:center; gap:7px; font-size:.82rem; color:var(--ink-soft); }
+  .cat b{
+    font-weight:700; font-size:.72rem; width:20px; height:20px; border-radius:5px;
+    display:inline-grid; place-items:center; color:#fff; font-family:ui-monospace,Menlo,monospace;
+  }
+  .cat .N{ background:var(--N);} .cat .A{ background:var(--A);}
+  .cat .G{ background:var(--G);} .cat .S{ background:var(--S);} .cat .F{ background:var(--F);}
+
+  .controls{
+    display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:26px 0 6px;
+  }
+  .controls .lbl{ font-size:.78rem; text-transform:uppercase; letter-spacing:.14em; color:var(--ink-faint); margin-right:4px; }
+  .seg{ display:inline-flex; background:var(--surface); border:1px solid var(--rule); border-radius:8px; padding:3px; }
+  .seg button{
+    border:0; background:transparent; color:var(--ink-soft); font:inherit; font-size:.85rem;
+    font-weight:600; padding:7px 14px; border-radius:6px; cursor:pointer; transition:background .15s,color .15s;
+  }
+  .seg button[aria-pressed="true"]{ background:var(--ink); color:var(--surface); }
+  .seg button:focus-visible{ outline:2px solid var(--cam); outline-offset:2px; }
+
+  section.grade{
+    background:var(--surface); border:1px solid var(--rule); border-radius:12px;
+    margin-top:18px; overflow:hidden;
+  }
+  .grade-head{
+    display:flex; align-items:baseline; gap:14px; padding:16px 20px;
+    border-bottom:1px solid var(--rule); background:var(--surface-2);
+  }
+  .grade-tag{
+    font-family:ui-serif,Georgia,serif; font-weight:600; font-size:1.5rem;
+    letter-spacing:-.01em; font-variant-numeric:tabular-nums;
+  }
+  .grade-sub{ color:var(--ink-faint); font-size:.82rem; }
+
+  .cols{ display:grid; grid-template-columns:1fr 1fr; }
+  .col{ padding:16px 20px; border-right:1px solid var(--rule); }
+  .col:last-child{ border-right:0; }
+  .col-head{ display:flex; align-items:center; gap:8px; font-weight:700; font-size:.85rem; margin-bottom:12px; }
+  .col-head .swatch{ width:10px; height:10px; }
+  .col-head .meta{ font-weight:500; color:var(--ink-faint); font-size:.72rem; margin-left:auto; }
+
+  ul.topics{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:7px; }
+  li.topic{ display:flex; gap:9px; align-items:flex-start; font-size:.9rem; color:var(--ink-soft); }
+  li.topic .b{
+    flex:0 0 20px; height:20px; border-radius:5px; display:inline-grid; place-items:center;
+    color:#fff; font-weight:700; font-size:.7rem; font-family:ui-monospace,Menlo,monospace; margin-top:1px;
+  }
+  .b.N{ background:var(--N);} .b.A{ background:var(--A);} .b.G{ background:var(--G);} .b.S{ background:var(--S);} .b.F{ background:var(--F);}
+
+  .ext{ font-size:.68rem; text-transform:uppercase; letter-spacing:.1em; color:var(--cam); font-weight:700; margin-left:6px; }
+
+  .col.hidden, section.grade.hidden{ display:none; }
+
+  .syn{
+    margin-top:44px; border-top:2px solid var(--ink); padding-top:28px;
+  }
+  .syn h2{
+    font-family:ui-serif,Georgia,serif; font-weight:600; font-size:1.8rem; margin:0 0 6px;
+    text-wrap:balance;
+  }
+  .syn > p{ color:var(--ink-soft); max-width:68ch; margin:0 0 24px; }
+  .syn-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px; }
+  .syn-card{ background:var(--surface); border:1px solid var(--rule); border-radius:12px; padding:18px 20px; }
+  .syn-card h3{ margin:0 0 10px; font-size:1rem; display:flex; align-items:center; gap:8px; }
+  .syn-card h3 .swatch{ width:10px; height:10px; }
+  .syn-card h3 .swatch.core{ background:var(--ink); }
+  .syn-card p{ color:var(--ink-soft); font-size:.88rem; margin:0 0 10px; }
+  .syn-card ul{ margin:0; padding-left:18px; color:var(--ink-soft); font-size:.86rem; }
+  .syn-card li{ margin-bottom:5px; }
+  .syn-card .why{ font-size:.8rem; color:var(--ink-faint); margin-top:12px; padding-top:12px; border-top:1px dashed var(--rule); }
+
+  footer.page{ margin-top:56px; color:var(--ink-faint); font-size:.78rem; border-top:1px solid var(--rule); padding-top:18px; }
+  footer.page a{ color:var(--cam); }
+
+  @media (max-width:720px){
+    .cols{ grid-template-columns:1fr; }
+    .col{ border-right:0; border-bottom:1px solid var(--rule); }
+    .col:last-child{ border-bottom:0; }
+    h1{ font-size:2rem; }
+    .wrap{ padding:32px 16px 64px; }
+  }
+  @media (prefers-reduced-motion: reduce){ *{ transition:none !important; } }
+</style>
+
+<header class="page">
+  <div class="wrap" style="padding-bottom:0">
+    <div class="eyebrow">Math Engines · Scope Study</div>
+    <h1>Math topics, grades 4–10 — two systems, one plan</h1>
+    <p class="lede">A full collection of what's taught from grade 4 to 10 in Jordan's national curriculum and the Cambridge international track (Primary → Lower Secondary → IGCSE), sorted into a shared category taxonomy so you can see the common core to build once and the extras to build per system.</p>
+    <div class="system-key">
+      <span class="sys"><span class="swatch j"></span> Jordan national (MoE / NCCD)</span>
+      <span class="sys"><span class="swatch c"></span> Cambridge international (0096 / 0862 / 0580)</span>
+    </div>
+    <div class="legend">
+      <span class="cat"><b class="N">N</b> Number &amp; arithmetic</span>
+      <span class="cat"><b class="A">A</b> Algebra</span>
+      <span class="cat"><b class="G">G</b> Geometry &amp; measurement</span>
+      <span class="cat"><b class="S">S</b> Statistics &amp; probability</span>
+      <span class="cat"><b class="F">F</b> Functions, trig &amp; analytic geometry</span>
+    </div>
+    <div class="controls">
+      <span class="lbl">Show</span>
+      <div class="seg" role="group" aria-label="System view">
+        <button data-view="both" aria-pressed="true">Both</button>
+        <button data-view="jordan" aria-pressed="false">Jordan</button>
+        <button data-view="cam" aria-pressed="false">Cambridge</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap" style="padding-top:0">
+
+  <section class="grade" data-grade="4">
+    <div class="grade-head"><span class="grade-tag">Grade 4</span><span class="grade-sub">Ages ~9–10 · building number sense &amp; first geometry</span></div>
+    <div class="cols">
+      <div class="col" data-sys="jordan">
+        <div class="col-head"><span class="swatch j"></span> Jordan · Grade 4</div>
+        <ul class="topics">
+          <li class="topic"><span class="b N">N</span> Numbers to 7 digits; place value</li>
+          <li class="topic"><span class="b N">N</span> Addition &amp; subtraction of large numbers</li>
+          <li class="topic"><span class="b N">N</span> Multiplication (up to 3-digit)</li>
+          <li class="topic"><span class="b N">N</span> Division</li>
+          <li class="topic"><span class="b N">N</span> Multiples &amp; divisibility (2, 3, 5)</li>
+          <li class="topic"><span class="b N">N</span> Common fractions — add / subtract</li>
+          <li class="topic"><span class="b N">N</span> Decimal fractions (2 dp)</li>
+          <li class="topic"><span class="b G">G</span> Angles, triangles, solids</li>
+        </ul>
+      </div>
+      <div class="col" data-sys="cam">
+        <div class="col-head"><span class="swatch c"></span> Cambridge · Stage 4</div>
+        <ul class="topics">
+          <li class="topic"><span class="b N">N</span> Negative numbers introduced; tables 1–10</li>
+          <li class="topic"><span class="b N">N</span> Multiply to 1000 (1-digit); factors &amp; multiples</li>
+          <li class="topic"><span class="b N">N</span> Divisibility tests (2, 5, 10, 25, 50, 100)</li>
+          <li class="topic"><span class="b N">N</span> Percentages introduced</li>
+          <li class="topic"><span class="b N">N</span> Order/compare +ve &amp; −ve; round to 10–100,000</li>
+          <li class="topic"><span class="b G">G</span> Perimeter &amp; area of rectangles (formulae); compound shapes</li>
+          <li class="topic"><span class="b G">G</span> Nets of 3D shapes; symmetry (H/V/diagonal)</li>
+          <li class="topic"><span class="b G">G</span> Acute/right/obtuse angles; 1st-quadrant coordinates; reflecting shapes</li>
+          <li class="topic"><span class="b S">S</span> Planning investigations; dot plots; chance language</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="grade" data-grade="5">
+    <div class="grade-head"><span class="grade-tag">Grade 5</span><span class="grade-sub">Ages ~10–11 · number theory &amp; decimals begin</span></div>
+    <div class="cols">
+      <div class="col" data-sys="jordan">
+        <div class="col-head"><span class="swatch j"></span> Jordan · Grade 5</div>
+        <ul class="topics">
+          <li class="topic"><span class="b N">N</span> Numbers to 9 digits; four operations</li>
+          <li class="topic"><span class="b N">N</span> Number theory: primes, LCM, GCD</li>
+          <li class="topic"><span class="b N">N</span> Fractions — all four operations</li>
+          <li class="topic"><span class="b N">N</span> Decimals (4 places)</li>
+          <li class="topic"><span class="b G">G</span> Triangles (angles); lines &amp; circles</li>
+          <li class="topic"><span class="b G">G</span> Measurement: area, perimeter, speed</li>
+        </ul>
+      </div>
+      <div class="col" data-sys="cam">
+        <div class="col-head"><span class="swatch c"></span> Cambridge · Stage 5</div>
+        <ul class="topics">
+          <li class="topic"><span class="b N">N</span> Integers add/subtract; order of operations</li>
+          <li class="topic"><span class="b N">N</span> Multiply to 1000 (2-digit)</li>
+          <li class="topic"><span class="b N">N</span> Decimals (tenths, hundredths) introduced</li>
+          <li class="topic"><span class="b N">N</span> Ratio &amp; proportion introduced</li>
+          <li class="topic"><span class="b N">N</span> Prime &amp; composite; square numbers 1–100</li>
+          <li class="topic"><span class="b N">N</span> Equivalent fractions / decimals / percentages</li>
+          <li class="topic"><span class="b G">G</span> Isosceles/equilateral/scalene triangles; compound shapes</li>
+          <li class="topic"><span class="b G">G</span> Nets of a cube; angles on a line = 180°</li>
+          <li class="topic"><span class="b G">G</span> Plot/translate/reflect in 1st quadrant</li>
+          <li class="topic"><span class="b S">S</span> Continuous data; mode &amp; median; line/frequency graphs</li>
+          <li class="topic"><span class="b S">S</span> Likelihood language; equally likely outcomes</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="grade" data-grade="6">
+    <div class="grade-head"><span class="grade-tag">Grade 6</span><span class="grade-sub">Ages ~11–12 · algebra enters; first statistics</span></div>
+    <div class="cols">
+      <div class="col" data-sys="jordan">
+        <div class="col-head"><span class="swatch j"></span> Jordan · Grade 6</div>
+        <ul class="topics">
+          <li class="topic"><span class="b N">N</span> Numbers to 10 digits; squares, cubes &amp; roots</li>
+          <li class="topic"><span class="b N">N</span> Common &amp; decimal fractions</li>
+          <li class="topic"><span class="b N">N</span> Ratio, proportion, percentage</li>
+          <li class="topic"><span class="b A">A</span> Algebraic expressions (first introduction)</li>
+          <li class="topic"><span class="b G">G</span> Quadrilaterals &amp; circles</li>
+          <li class="topic"><span class="b G">G</span> Measurement: area, volume, mass, temperature</li>
+          <li class="topic"><span class="b G">G</span> Solids &amp; volumes</li>
+          <li class="topic"><span class="b S">S</span> Statistics: mean, range</li>
+        </ul>
+      </div>
+      <div class="col" data-sys="cam">
+        <div class="col-head"><span class="swatch c"></span> Cambridge · Stage 6</div>
+        <ul class="topics">
+          <li class="topic"><span class="b N">N</span> Order of operations with brackets</li>
+          <li class="topic"><span class="b N">N</span> Multiply to 10,000; divide to 1000 (2-digit)</li>
+          <li class="topic"><span class="b N">N</span> Common multiples/factors; cube numbers 1–125</li>
+          <li class="topic"><span class="b N">N</span> Fractions in simplest form; + fractions (diff. denominators)</li>
+          <li class="topic"><span class="b N">N</span> Direct proportion; equivalent ratios</li>
+          <li class="topic"><span class="b G">G</span> Quadrilateral families (parallelogram, rhombus, trapezium)</li>
+          <li class="topic"><span class="b G">G</span> Parts of a circle; area of right-angled triangles; surface area</li>
+          <li class="topic"><span class="b G">G</span> Rotational symmetry (order ≤4); angles in a triangle = 180°</li>
+          <li class="topic"><span class="b G">G</span> Coordinates in all 4 quadrants; rotate 90°</li>
+          <li class="topic"><span class="b S">S</span> Pie charts, scatter graphs; mean/median/mode/range</li>
+          <li class="topic"><span class="b S">S</span> Mutually exclusive events; probability experiments</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="grade" data-grade="7">
+    <div class="grade-head"><span class="grade-tag">Grade 7</span><span class="grade-sub">Ages ~12–13 · integers, rationals &amp; formal algebra</span></div>
+    <div class="cols">
+      <div class="col" data-sys="jordan">
+        <div class="col-head"><span class="swatch j"></span> Jordan · Grade 7</div>
+        <ul class="topics">
+          <li class="topic"><span class="b N">N</span> Integers: operations &amp; absolute value</li>
+          <li class="topic"><span class="b N">N</span> Rational numbers: operations</li>
+          <li class="topic"><span class="b N">N</span> Sets &amp; set operations</li>
+          <li class="topic"><span class="b N">N</span> Proportion</li>
+          <li class="topic"><span class="b A">A</span> Algebraic expressions &amp; factorizing</li>
+          <li class="topic"><span class="b A">A</span> Linear equations</li>
+          <li class="topic"><span class="b G">G</span> Parallel lines; polygon angles; triangle congruence &amp; similarity</li>
+          <li class="topic"><span class="b G">G</span> Construction geometry; areas &amp; volumes</li>
+          <li class="topic"><span class="b S">S</span> Statistics &amp; probability</li>
+        </ul>
+      </div>
+      <div class="col" data-sys="cam">
+        <div class="col-head"><span class="swatch c"></span> Cambridge · Stage 7</div>
+        <ul class="topics">
+          <li class="topic"><span class="b N">N</span> Operate with integers; LCM &amp; HCF; divisibility</li>
+          <li class="topic"><span class="b N">N</span> Squares, cubes, roots; place value (powers of 10); rounding (dp)</li>
+          <li class="topic"><span class="b N">N</span> Fractions/decimals/% equivalence; fractions &amp; mixed-number ops</li>
+          <li class="topic"><span class="b N">N</span> Percentages; ratio &amp; direct proportion (unitary)</li>
+          <li class="topic"><span class="b A">A</span> Letters as unknowns; like terms; distributive law</li>
+          <li class="topic"><span class="b A">A</span> Linear expressions, formulae &amp; equations (one side)</li>
+          <li class="topic"><span class="b A">A</span> nth term (n±a, a×n); linear functions; straight-line graphs</li>
+          <li class="topic"><span class="b G">G</span> Regular polygons; congruence; parts of a circle</li>
+          <li class="topic"><span class="b G">G</span> Metric area units; triangle/compound area; cuboid volume; surface area</li>
+          <li class="topic"><span class="b G">G</span> Symmetry; angles in quadrilaterals &amp; around a point; parallel/perpendicular lines</li>
+          <li class="topic"><span class="b G">G</span> Maps &amp; scaling; translations, reflections, rotations, enlargements</li>
+          <li class="topic"><span class="b S">S</span> Data &amp; sampling; Venn/Carroll, bar, pie, line, scatter graphs</li>
+          <li class="topic"><span class="b S">S</span> Mode/median/mean/range; probability 0–1; experimental probability</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="grade" data-grade="8">
+    <div class="grade-head"><span class="grade-tag">Grade 8</span><span class="grade-sub">Ages ~13–14 · reals, quadratics &amp; first trig</span></div>
+    <div class="cols">
+      <div class="col" data-sys="jordan">
+        <div class="col-head"><span class="swatch j"></span> Jordan · Grade 8</div>
+        <ul class="topics">
+          <li class="topic"><span class="b N">N</span> Real numbers (rational &amp; irrational)</li>
+          <li class="topic"><span class="b N">N</span> Commercial math: interest, discounts, insurance, stocks</li>
+          <li class="topic"><span class="b A">A</span> Expressions &amp; factorization (quadratics)</li>
+          <li class="topic"><span class="b A">A</span> Systems of linear equations</li>
+          <li class="topic"><span class="b G">G</span> Triangles — Pythagorean theorem</li>
+          <li class="topic"><span class="b G">G</span> Solids: cone, cylinder, sphere</li>
+          <li class="topic"><span class="b G">G</span> Quadrilateral equivalence</li>
+          <li class="topic"><span class="b F">F</span> Relations &amp; functions</li>
+          <li class="topic"><span class="b F">F</span> Trigonometric ratios</li>
+          <li class="topic"><span class="b S">S</span> Probability</li>
+        </ul>
+      </div>
+      <div class="col" data-sys="cam">
+        <div class="col-head"><span class="swatch c"></span> Cambridge · Stage 8</div>
+        <ul class="topics">
+          <li class="topic"><span class="b N">N</span> Order of ops with indices; prime factors, HCF, LCM</li>
+          <li class="topic"><span class="b N">N</span> Hierarchy of N/Z/Q; index laws; negative squares; cube roots</li>
+          <li class="topic"><span class="b N">N</span> ×/÷ by 0.1, 0.01; rounding to sig figs; recurring decimals</li>
+          <li class="topic"><span class="b N">N</span> Percentage increase/decrease; comparing &amp; dividing into ratios</li>
+          <li class="topic"><span class="b A">A</span> Expressions vs formulae vs equations; expand &amp; factorise (HCF)</li>
+          <li class="topic"><span class="b A">A</span> Change subject of a formula; solve equations (both sides)</li>
+          <li class="topic"><span class="b A">A</span> nth term (an±b); y = mx + c; gradient &amp; y-intercept</li>
+          <li class="topic"><span class="b G">G</span> Hierarchy of quadrilaterals; π &amp; circumference; miles/km</li>
+          <li class="topic"><span class="b G">G</span> Area of parallelograms &amp; trapezia; Euler's formula; triangular-prism volume</li>
+          <li class="topic"><span class="b G">G</span> Surface area of prisms &amp; pyramids; exterior angle of a triangle</li>
+          <li class="topic"><span class="b G">G</span> Angles on parallel lines; constructions (triangles, bisectors)</li>
+          <li class="topic"><span class="b S">S</span> Justifying sampling; stem-and-leaf; time series; comparing distributions</li>
+          <li class="topic"><span class="b S">S</span> Complementary &amp; combined independent events; experimental vs theoretical</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="grade" data-grade="9">
+    <div class="grade-head"><span class="grade-tag">Grade 9</span><span class="grade-sub">Ages ~14–15 · analytic geometry, quadratics &amp; circles</span></div>
+    <div class="cols">
+      <div class="col" data-sys="jordan">
+        <div class="col-head"><span class="swatch j"></span> Jordan · Grade 9</div>
+        <ul class="topics">
+          <li class="topic"><span class="b F">F</span> Analytic geometry: coordinates, distance, line equations, transformations</li>
+          <li class="topic"><span class="b A">A</span> Factoring quadratics, cubics &amp; algebraic fractions</li>
+          <li class="topic"><span class="b A">A</span> Linear &amp; quadratic equations</li>
+          <li class="topic"><span class="b A">A</span> Inequalities (one &amp; two variables)</li>
+          <li class="topic"><span class="b G">G</span> Circles: central angles, chords, intersections</li>
+          <li class="topic"><span class="b G">G</span> Circular shapes: tangents, inscribed/circumscribed</li>
+          <li class="topic"><span class="b F">F</span> Trigonometry</li>
+          <li class="topic"><span class="b S">S</span> Statistics: frequency, mean, median, mode</li>
+        </ul>
+      </div>
+      <div class="col" data-sys="cam">
+        <div class="col-head"><span class="swatch c"></span> Cambridge · Stage 9 → IGCSE starts</div>
+        <ul class="topics">
+          <li class="topic"><span class="b N">N</span> Rational vs irrational; standard form; estimating surds; bounds of rounding</li>
+          <li class="topic"><span class="b N">N</span> Recurring vs terminating decimals; compound percentages; direct &amp; inverse proportion</li>
+          <li class="topic"><span class="b A">A</span> Expand products of two expressions; index laws; algebraic fractions</li>
+          <li class="topic"><span class="b A">A</span> Change subject (squares/cubes); solve equations (unknown in denominator)</li>
+          <li class="topic"><span class="b A">A</span> Simultaneous linear equations (algebraic &amp; graphical); linear inequalities</li>
+          <li class="topic"><span class="b A">A</span> Linear &amp; quadratic sequences; nth term (n², n³, n²±a); plot linear &amp; quadratic functions</li>
+          <li class="topic"><span class="b F">F</span> Equations of straight lines; compound measures</li>
+          <li class="topic"><span class="b G">G</span> Area &amp; circumference of a circle; compound 2D shapes with circles</li>
+          <li class="topic"><span class="b G">G</span> Volume of prisms &amp; cylinders; surface area of cylinders; 3D symmetry</li>
+          <li class="topic"><span class="b G">G</span> Polygon interior sum; exterior angles = 360°; Pythagoras' theorem</li>
+          <li class="topic"><span class="b G">G</span> Construct 60/45/30° &amp; regular polygons; bearings &amp; scaling; combined transformations</li>
+          <li class="topic"><span class="b S">S</span> Bias in sampling; frequency polygons; back-to-back stem-and-leaf; grouped data</li>
+          <li class="topic"><span class="b S">S</span> Mutually exclusive (sum = 1); independent vs non-independent; combined-event probability</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="grade" data-grade="10">
+    <div class="grade-head"><span class="grade-tag">Grade 10</span><span class="grade-sub">Ages ~15–16 · functions, identities &amp; 3D space — vs. full IGCSE</span></div>
+    <div class="cols">
+      <div class="col" data-sys="jordan">
+        <div class="col-head"><span class="swatch j"></span> Jordan · Grade 10</div>
+        <ul class="topics">
+          <li class="topic"><span class="b F">F</span> Periodic functions: radians, sine/cosine graphs, arc length</li>
+          <li class="topic"><span class="b F">F</span> Analytic geometry: line forms, perpendicular lines, distance, circle equation, transformations</li>
+          <li class="topic"><span class="b F">F</span> Polynomial functions: division, synthetic division, remainder theorem</li>
+          <li class="topic"><span class="b F">F</span> Relations &amp; functions: Cartesian products, composition</li>
+          <li class="topic"><span class="b F">F</span> Trigonometry: compound/multiple/half angles, identities, equations</li>
+          <li class="topic"><span class="b G">G</span> Space geometry: planes, parallel/perpendicular lines &amp; planes, projections</li>
+          <li class="topic"><span class="b A">A</span> Systems of equations</li>
+          <li class="topic"><span class="b S">S</span> Statistics: dispersion, standard deviation</li>
+        </ul>
+      </div>
+      <div class="col" data-sys="cam">
+        <div class="col-head"><span class="swatch c"></span> Cambridge · IGCSE 0580 (Core + Extended)</div>
+        <ul class="topics">
+          <li class="topic"><span class="b N">N</span> Number types, sets/Venn, powers &amp; roots, fractions/decimals/%</li>
+          <li class="topic"><span class="b N">N</span> Indices, standard form, estimation, limits of accuracy, ratio &amp; proportion, rates<span class="ext">+ surds, recurring↔fraction, reverse %, fractional indices, bounds</span></li>
+          <li class="topic"><span class="b A">A</span> Algebraic manipulation, equations, inequalities, sequences, graphs of functions<span class="ext">+ algebraic fractions, completing the square, quadratic formula, sim. (linear+non-linear), inverse/composite functions, differentiation intro</span></li>
+          <li class="topic"><span class="b F">F</span> Coordinate geometry: coordinates, gradient, linear graphs, parallel lines<span class="ext">+ length &amp; midpoint, perpendicular lines</span></li>
+          <li class="topic"><span class="b G">G</span> Geometry: terms, constructions, scale drawings, similarity, symmetry, angles, circle theorems<span class="ext">+ extra circle theorems, similarity of solids (area/volume scale), 3D symmetry</span></li>
+          <li class="topic"><span class="b G">G</span> Mensuration: units, area/perimeter, circles/arcs/sectors, surface area &amp; volume, compound shapes</li>
+          <li class="topic"><span class="b F">F</span> Trigonometry: Pythagoras, right-triangle sin/cos/tan<span class="ext">+ exact values, sine/cosine rules, ½ab sin C, trig graphs &amp; equations, 3D problems</span></li>
+          <li class="topic"><span class="b G">G</span> Transformations &amp; vectors: reflection, rotation, enlargement, translation<span class="ext">+ negative scale factors, vector magnitude, position vectors, vector geometry</span></li>
+          <li class="topic"><span class="b S">S</span> Probability: scale, single &amp; combined events, tree/Venn/sample spaces<span class="ext">+ conditional probability, with/without replacement, 3-set Venn</span></li>
+          <li class="topic"><span class="b S">S</span> Statistics: classify/interpret data, averages &amp; range, charts, scatter<span class="ext">+ quartiles/IQR, estimated mean (grouped), cumulative frequency, histograms</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="syn">
+    <h2>What to build</h2>
+    <p>Both systems converge on the same advanced destinations by grade 10 (functions, trigonometry, analytic geometry, statistics) but reach them on different schedules and with different emphasis. The leverage is in the shared middle — build that once, then bolt on the system-specific ends.</p>
+    <div class="syn-grid">
+      <div class="syn-card">
+        <h3><span class="swatch core"></span> Shared core — build once</h3>
+        <p>Appears in both systems across most grades. One engine module serves both curricula.</p>
+        <ul>
+          <li>Arithmetic &amp; number sense (G4–6): place value, four operations, divisibility</li>
+          <li>Fractions, decimals, percentages, ratio &amp; proportion (G4–8)</li>
+          <li>Intro algebra &amp; linear equations (G7–8)</li>
+          <li>Geometry &amp; measurement: area, volume, angles, polygons (all grades)</li>
+          <li>Statistics basics: mean/median/mode/range &amp; charts (G6–9)</li>
+          <li>Probability basics: 0–1 scale, equally likely, combined events (G7–9)</li>
+          <li>Pythagoras (G8–9), basic trig ratios (G9–10)</li>
+          <li>Simultaneous &amp; quadratic equations, analytic geometry of lines (G9–10)</li>
+        </ul>
+        <div class="why">Highest coverage per module. Start here — roughly 70% of both curricula.</div>
+      </div>
+      <div class="syn-card">
+        <h3><span class="swatch j"></span> Jordan-only extras</h3>
+        <p>Topics the national curriculum carries that Cambridge 0580 doesn't, or covers much later.</p>
+        <ul>
+          <li>Sets &amp; set operations (G7)</li>
+          <li>Commercial math: insurance, stocks (G8) — interest is shared</li>
+          <li>3D space geometry: planes, projections (G10)</li>
+          <li>Polynomial division, synthetic division, remainder theorem (G10)</li>
+          <li>Compound/multiple/half-angle trig identities &amp; equations (G10)</li>
+          <li>Periodic functions, radians, arc length (G10)</li>
+        </ul>
+        <div class="why">Jordan pushes deeper &amp; earlier on trig identities and 3D space geometry.</div>
+      </div>
+      <div class="syn-card">
+        <h3><span class="swatch c"></span> Cambridge-only extras</h3>
+        <p>Topics the IGCSE Extended tier carries that Jordan's G4–10 doesn't reach.</p>
+        <ul>
+          <li>Surds (simplify, rationalise), exact trig values (30/45/60°)</li>
+          <li>Sine &amp; cosine rules, ½ab sin C, 3D trig</li>
+          <li>Vectors &amp; vector geometry (magnitude, position, parallel proofs)</li>
+          <li>Conditional probability, with/without replacement, 3-set Venn</li>
+          <li>Cumulative frequency, histograms (frequency density), quartiles/IQR</li>
+          <li>Differentiation intro (gradients, stationary points)</li>
+          <li>Thinking &amp; Working Mathematically — a process skill, not a topic</li>
+        </ul>
+        <div class="why">Cambridge goes deeper on statistics/probability tooling and vectors.</div>
+      </div>
+      <div class="syn-card">
+        <h3><span class="swatch core"></span> Suggested build order</h3>
+        <p>One way to sequence the engine work, by leverage.</p>
+        <ul>
+          <li>1 · Number &amp; arithmetic engine (G4–6 shared)</li>
+          <li>2 · Fractions/decimals/%/ratio engine (G4–8 shared)</li>
+          <li>3 · Algebra &amp; equations engine (G7–10 shared)</li>
+          <li>4 · Geometry &amp; measurement engine (all grades shared)</li>
+          <li>5 · Statistics &amp; probability engine (G6–10 shared)</li>
+          <li>6 · Functions/trig/analytic engine (G8–10 shared)</li>
+          <li>7 · Jordan extension pack (sets, 3D space, poly division, trig identities)</li>
+          <li>8 · Cambridge Extended pack (surds, sine/cosine rules, vectors, conditional prob, cumulative freq)</li>
+        </ul>
+        <div class="why">Steps 1–6 cover both systems; 7 &amp; 8 are the system-specific caps.</div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="page">
+    Sources: <a href="https://timssandpirls.bc.edu/timss2015/encyclopedia/countries/jordan/the-mathematics-curriculum-in-primary-and-lower-secondary-grades/">TIMSS 2015 — Jordan math curriculum</a> · <a href="https://www.nccd.gov.jo/Default/Ar">Jordan NCCD (textbooks &amp; frameworks)</a> · <a href="https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-primary/curriculum/mathematics/">Cambridge Primary Maths 0096</a> · <a href="https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-lower-secondary/curriculum/mathematics/">Cambridge Lower Secondary 0862</a> · <a href="https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-igcse-mathematics-0580/">Cambridge IGCSE 0580 (2025–27)</a>. IB MYP is the other common international track in Jordan — map it as a third column later if you adopt it.
+  </footer>
+</div>
+
+<script>
+  (function(){
+    var seg = document.querySelector('.seg');
+    seg.addEventListener('click', function(e){
+      var btn = e.target.closest('button'); if(!btn) return;
+      var view = btn.dataset.view;
+      Array.prototype.forEach.call(seg.buttons || seg.querySelectorAll('button'), function(b){
+        b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+      });
+      var jordan = document.querySelectorAll('.col[data-sys="jordan"]');
+      var cam = document.querySelectorAll('.col[data-sys="cam"]');
+      jordan.forEach(function(c){ c.classList.toggle('hidden', view === 'cam'); });
+      cam.forEach(function(c){ c.classList.toggle('hidden', view === 'jordan'); });
+    });
+  })();
+</script>

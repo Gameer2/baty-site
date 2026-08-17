@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Visual Identity — 3 Directions for the Rendered Math Itself</title>
+<style>
+  @font-face{font-family:"Roc Grotesk";src:url("../math-lab/assets/fonts/roc-grotesk-regular.woff2") format("woff2"),url("../math-lab/assets/fonts/roc-grotesk-regular.woff") format("woff");font-weight:400;font-display:swap}
+  @font-face{font-family:"Roc Grotesk";src:url("../math-lab/assets/fonts/roc-grotesk-medium.woff2") format("woff2"),url("../math-lab/assets/fonts/roc-grotesk-medium.woff") format("woff");font-weight:500;font-display:swap}
+  @font-face{font-family:"Azeret Mono";src:url("../math-lab/assets/fonts/azeret-mono-regular.otf") format("opentype");font-weight:400 700;font-display:swap}
+  @font-face{font-family:"Fraunces";src:url("../math-lab/assets/fonts/fraunces-variable.woff2") format("woff2");font-weight:300 600;font-display:swap}
+
+  :root{
+    --core-black:#090909; --rich-carbon:#111111; --urban-smoke:#1b1b1b; --graphite:#161616;
+    --pulse-ash:#7d858c; --off-white:#e7e7e7; --neural-fog:#dadada;
+    --electric-teal:#5c939f; --infrared:#ed6d40;
+    --font-display:"Roc Grotesk","Helvetica Neue",Arial,sans-serif;
+    --font-mono:"Azeret Mono",ui-monospace,monospace;
+    --font-serif:"Fraunces",Georgia,serif;
+    --radius-md:10px; --radius-lg:22px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--core-black);color:var(--off-white);font-family:var(--font-display);line-height:1.5;-webkit-font-smoothing:antialiased}
+
+  .topbar{position:sticky;top:0;z-index:40;background:rgba(9,9,9,.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.08)}
+  .topbar .bar{max-width:1180px;margin:0 auto;padding:14px 22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .brand{font-family:var(--font-serif);font-size:17px;letter-spacing:-.01em;display:flex;align-items:center;gap:9px}
+  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--electric-teal);box-shadow:0 0 0 4px rgba(92,147,159,.16)}
+  .brand small{font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--pulse-ash);margin-left:2px}
+  .jump{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+  .jump a{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--pulse-ash);text-decoration:none;border:1px solid rgba(255,255,255,.1);padding:7px 12px;border-radius:100px;transition:color .15s,border-color .15s}
+  .jump a:hover{color:var(--off-white);border-color:rgba(255,255,255,.24)}
+
+  .stage{max-width:1180px;margin:0 auto;padding:0 22px 100px}
+  .hero{padding:48px 0 28px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:48px}
+  .eyebrow{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--electric-teal);display:inline-flex;align-items:center;gap:8px}
+  .eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+  h1{font-family:var(--font-serif);font-weight:400;font-size:clamp(28px,4vw,40px);line-height:1.08;letter-spacing:-.012em;margin:12px 0 14px;max-width:26ch}
+  .pitch{color:var(--neural-fog);font-size:15.5px;max-width:74ch;margin:0}
+  .pitch b{color:var(--electric-teal)}
+
+  .direction{margin-bottom:64px;scroll-margin-top:76px}
+  .dir-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+  .dir-tag{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ac);border:1px solid color-mix(in srgb,var(--ac) 45%,transparent);background:color-mix(in srgb,var(--ac) 12%,transparent);padding:5px 11px;border-radius:100px}
+  h2{font-family:var(--font-serif);font-weight:400;font-size:25px;letter-spacing:-.01em;margin:10px 0 6px}
+  .dir-desc{color:var(--neural-fog);font-size:14px;max-width:76ch;margin:0 0 18px}
+
+  .canvas-frame{background:var(--rich-carbon);border:1px solid rgba(255,255,255,.09);border-radius:var(--radius-lg);padding:0;overflow:hidden;position:relative}
+  .canvas-frame canvas{display:block;width:100%;height:auto}
+
+  .traits{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,255,255,.08);margin-top:14px;border:1px solid rgba(255,255,255,.09);border-radius:var(--radius-md);overflow:hidden}
+  @media (max-width:760px){.traits{grid-template-columns:repeat(2,1fr)}}
+  .trait{background:var(--rich-carbon);padding:14px 16px}
+  .trait .tl{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--pulse-ash);margin-bottom:5px}
+  .trait .tv{font-size:12.5px;color:var(--off-white);line-height:1.45}
+
+  .rec-panel{margin-top:36px;background:linear-gradient(135deg,color-mix(in srgb,var(--electric-teal) 14%,var(--rich-carbon)),var(--rich-carbon));border:1px solid color-mix(in srgb,var(--electric-teal) 40%,transparent);border-radius:var(--radius-lg);padding:26px 28px}
+  .rec-panel p{margin:0 0 10px;color:var(--off-white);font-size:15px;line-height:1.65;max-width:76ch}
+  .rec-panel p:last-child{margin-bottom:0}
+  .rec-panel b{color:var(--electric-teal)}
+
+  footer{margin-top:50px;padding-top:20px;border-top:1px solid rgba(255,255,255,.08);color:var(--pulse-ash);font-family:var(--font-mono);font-size:11px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="bar">
+    <div class="brand"><span class="dot"></span>Visual Identity<small>rendered content · 3 directions</small></div>
+    <nav class="jump">
+      <a href="#dir-a">A · Instrument</a>
+      <a href="#dir-b">B · Ink &amp; Light</a>
+      <a href="#dir-c">C · Depth Field</a>
+    </nav>
+  </div>
+</div>
+
+<div class="stage">
+
+  <div class="hero">
+    <span class="eyebrow">Same curve, three signatures</span>
+    <h1>What the math itself looks like, not the editor around it</h1>
+    <p class="pitch">The editor chrome already has an identity from the site's design system. This is about the <b>rendered content</b> — the curve, the fill, the tangent line — which right now is still plain strokes and flat fills, Manim's exact look. Same example (a curve, a shaded region, a tangent line) rendered three different ways below.</p>
+  </div>
+
+  <!-- ============ DIRECTION A — INSTRUMENT ============ -->
+  <section class="direction" id="dir-a" style="--ac:#5c939f">
+    <div class="dir-head"><span class="dir-tag">Direction A</span></div>
+    <h2>Instrument</h2>
+    <p class="dir-desc">Precision-lab-equipment feel. Thin crisp lines, no softness, crosshair reticles at key points, values shown as readouts rather than labels. Extends the site's existing dark/teal/infrared identity directly — the most conservative of the three.</p>
+    <div class="canvas-frame"><canvas id="cA" width="1100" height="480"></canvas></div>
+    <div class="traits">
+      <div class="trait"><div class="tl">Line</div><div class="tv">1.5px crisp, no glow</div></div>
+      <div class="trait"><div class="tl">Fill</div><div class="tv">Flat translucent, hairline top edge</div></div>
+      <div class="trait"><div class="tl">Markers</div><div class="tv">Crosshair reticles, not dots</div></div>
+      <div class="trait"><div class="tl">Labels</div><div class="tv">Mono readout chips, tabular-nums</div></div>
+    </div>
+  </section>
+
+  <!-- ============ DIRECTION B — INK & LIGHT ============ -->
+  <section class="direction" id="dir-b" style="--ac:#d9a26b">
+    <div class="dir-head"><span class="dir-tag">Direction B</span></div>
+    <h2>Ink &amp; Light</h2>
+    <p class="dir-desc">Warm, editorial, alive — like a beautifully kept mathematician's notebook, not a printout. Slightly irregular line quality (still mathematically precise, just not ruler-perfect), serif captions as margin notes, a soft candlelight bloom at the point that matters.</p>
+    <div class="canvas-frame"><canvas id="cB" width="1100" height="480"></canvas></div>
+    <div class="traits">
+      <div class="trait"><div class="tl">Line</div><div class="tv">Layered ink strokes, soft variance</div></div>
+      <div class="trait"><div class="tl">Fill</div><div class="tv">Warm wash, textured not flat</div></div>
+      <div class="trait"><div class="tl">Markers</div><div class="tv">Soft bloom, no hard dot</div></div>
+      <div class="trait"><div class="tl">Labels</div><div class="tv">Serif captions, dotted leader lines</div></div>
+    </div>
+  </section>
+
+  <!-- ============ DIRECTION C — DEPTH FIELD ============ -->
+  <section class="direction" id="dir-c" style="--ac:#ed6d40">
+    <div class="dir-head"><span class="dir-tag">Direction C</span></div>
+    <h2>Depth Field</h2>
+    <p class="dir-desc">Cinematic — teal-to-infrared grade, soft depth-of-field on the background grid, volumetric glow along the curve itself. The boldest departure from Manim's flat vector look. No ambient decoration — everything rendered here is either the curve, its glow, or the frame around it.</p>
+    <div class="canvas-frame"><canvas id="cC" width="1100" height="480"></canvas></div>
+    <div class="traits">
+      <div class="trait"><div class="tl">Line</div><div class="tv">Glow halo + crisp core, gradient stroke</div></div>
+      <div class="trait"><div class="tl">Fill</div><div class="tv">Volumetric vertical gradient</div></div>
+      <div class="trait"><div class="tl">Background</div><div class="tv">Blurred grid, vignette — nothing that isn't the math</div></div>
+      <div class="trait"><div class="tl">Labels</div><div class="tv">Glowing accent text, minimal</div></div>
+    </div>
+  </section>
+
+  <div class="rec-panel">
+    <p><b>Note on cost:</b> all three are now static-render cheap — none of them redraw on their own once painted. C's blur and gradients are still the most expensive per-pixel, but with no ambient animation forcing a continuous redraw loop, that cost is paid once and then nothing, not every frame forever.</p>
+  </div>
+
+  <footer>docs/animation-visual-identity-directions.html — same data, three render treatments, all static once painted.</footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  function hiDPI(canvas){
+    var dpr = window.devicePixelRatio||1;
+    var cssW = canvas.width, cssH = canvas.height;
+    canvas.style.width='100%';
+    canvas.width = cssW*dpr; canvas.height = cssH*dpr;
+    var ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    return { ctx: ctx, W: cssW, H: cssH };
+  }
+  function f(x){ return 1.6 + 0.85*Math.sin(0.62*x - 0.4); }
+  function fp(x){ return 0.85*0.62*Math.cos(0.62*x - 0.4); }
+  var domA=0.6, domB=8.6, yMin=0, yMax=3.0;
+  var tanX = 4.6;
+
+  function makeMapper(W,H,padL,padR,padT,padB){
+    var pw=W-padL-padR, ph=H-padT-padB;
+    return {
+      px: function(x){ return padL+(x-domA)/(domB-domA)*pw; },
+      py: function(y){ return padT+ph-(y-yMin)/(yMax-yMin)*ph; }
+    };
+  }
+
+  /* ---------- Direction A: Instrument ---------- */
+  (function(){
+    var el=document.getElementById('cA'); var d=hiDPI(el); var ctx=d.ctx, W=d.W, H=d.H;
+    var m = makeMapper(W,H,60,50,40,60);
+    ctx.fillStyle='#111111'; ctx.fillRect(0,0,W,H);
+    // faint grid
+    ctx.strokeStyle='rgba(255,255,255,.045)'; ctx.lineWidth=1;
+    for(var gx=1; gx<8; gx++){ var x=60+gx*((W-110)/8); ctx.beginPath();ctx.moveTo(x,40);ctx.lineTo(x,H-60);ctx.stroke(); }
+    for(var gy=1; gy<4; gy++){ var y=40+gy*((H-100)/4); ctx.beginPath();ctx.moveTo(60,y);ctx.lineTo(W-50,y);ctx.stroke(); }
+    // axis
+    ctx.strokeStyle='rgba(255,255,255,.22)'; ctx.beginPath(); ctx.moveTo(60,m.py(0)); ctx.lineTo(W-50,m.py(0)); ctx.stroke();
+    // fill under curve between 2 and 7
+    ctx.beginPath();
+    ctx.moveTo(m.px(2), m.py(0));
+    for(var i=0;i<=100;i++){ var x=2+(7-2)*i/100; ctx.lineTo(m.px(x), m.py(f(x))); }
+    ctx.lineTo(m.px(7), m.py(0)); ctx.closePath();
+    ctx.fillStyle='rgba(92,147,159,.22)'; ctx.fill();
+    ctx.strokeStyle='rgba(92,147,159,.8)'; ctx.lineWidth=1; ctx.beginPath();
+    for(var i2=0;i2<=100;i2++){ var x2=2+(7-2)*i2/100; var X=m.px(x2),Y=m.py(f(x2)); if(i2===0) ctx.moveTo(X,Y); else ctx.lineTo(X,Y); }
+    ctx.stroke();
+    // curve
+    ctx.strokeStyle='#e7e7e7'; ctx.lineWidth=1.6; ctx.beginPath();
+    for(var i3=0;i3<=200;i3++){ var x3=domA+(domB-domA)*i3/200; var X3=m.px(x3),Y3=m.py(f(x3)); if(i3===0) ctx.moveTo(X3,Y3); else ctx.lineTo(X3,Y3); }
+    ctx.stroke();
+    // tangent
+    var ty=f(tanX), slope=fp(tanX);
+    ctx.strokeStyle='#ed6d40'; ctx.lineWidth=1.6; ctx.beginPath();
+    var x0=tanX-1.6, x1=tanX+1.6;
+    ctx.moveTo(m.px(x0), m.py(ty+slope*(x0-tanX)));
+    ctx.lineTo(m.px(x1), m.py(ty+slope*(x1-tanX)));
+    ctx.stroke();
+    // crosshair reticle at tangency point
+    var cx=m.px(tanX), cy=m.py(ty);
+    ctx.strokeStyle='#ed6d40'; ctx.lineWidth=1;
+    [[-1,-1,-1,1],[1,-1,1,1]].forEach(function(){});
+    function tick(dx1,dy1,dx2,dy2){ ctx.beginPath(); ctx.moveTo(cx+dx1,cy+dy1); ctx.lineTo(cx+dx2,cy+dy2); ctx.stroke(); }
+    tick(-14,0,-6,0); tick(6,0,14,0); tick(0,-14,0,-6); tick(0,6,0,14);
+    ctx.beginPath(); ctx.arc(cx,cy,3,0,Math.PI*2); ctx.strokeStyle='#ed6d40'; ctx.stroke();
+    // readout chip
+    ctx.font='600 12px "Azeret Mono", monospace';
+    var label = "f′(" + tanX.toFixed(1) + ") = " + slope.toFixed(3);
+    var tw = ctx.measureText(label).width;
+    ctx.fillStyle='rgba(9,9,9,.85)'; ctx.fillRect(cx+18, cy-30, tw+20, 24);
+    ctx.strokeStyle='rgba(255,255,255,.15)'; ctx.strokeRect(cx+18, cy-30, tw+20, 24);
+    ctx.fillStyle='#ed6d40'; ctx.fillText(label, cx+28, cy-13);
+  })();
+
+  /* ---------- Direction B: Ink & Light ---------- */
+  (function(){
+    var el=document.getElementById('cB'); var d=hiDPI(el); var ctx=d.ctx, W=d.W, H=d.H;
+    var m = makeMapper(W,H,60,50,40,60);
+    ctx.fillStyle='#15120e'; ctx.fillRect(0,0,W,H);
+    var vg = ctx.createRadialGradient(W*0.5,H*0.45,H*0.15,W*0.5,H*0.45,H*0.85);
+    vg.addColorStop(0,'rgba(217,162,107,.05)'); vg.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='rgba(240,233,220,.16)'; ctx.beginPath(); ctx.moveTo(60,m.py(0)); ctx.lineTo(W-50,m.py(0)); ctx.stroke();
+    // warm wash fill (layered soft strokes for texture)
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(m.px(2), m.py(0));
+    for(var i=0;i<=100;i++){ var x=2+(7-2)*i/100; ctx.lineTo(m.px(x), m.py(f(x))); }
+    ctx.lineTo(m.px(7), m.py(0)); ctx.closePath();
+    ctx.clip();
+    for(var layer=0; layer<26; layer++){
+      var yy = 40 + layer*((H-100)/26);
+      ctx.strokeStyle='rgba(217,162,107,'+(0.05+Math.random()*0.03).toFixed(3)+')';
+      ctx.lineWidth=1.4;
+      ctx.beginPath(); ctx.moveTo(60,yy); ctx.lineTo(W-50,yy+ (Math.random()*4-2)); ctx.stroke();
+    }
+    ctx.restore();
+    // ink curve: multiple offset passes for organic line quality
+    for(var pass=0; pass<3; pass++){
+      ctx.strokeStyle='rgba(240,233,220,'+(pass===0?0.9:0.18)+')';
+      ctx.lineWidth = pass===0? 1.8 : 3.2;
+      ctx.beginPath();
+      for(var i3=0;i3<=200;i3++){
+        var x3=domA+(domB-domA)*i3/200;
+        var jitter = pass===0? 0 : Math.sin(i3*0.7+pass)*0.6;
+        var X3=m.px(x3),Y3=m.py(f(x3))+jitter;
+        if(i3===0) ctx.moveTo(X3,Y3); else ctx.lineTo(X3,Y3);
+      }
+      ctx.stroke();
+    }
+    // tangent — looser warm stroke
+    var ty=f(tanX), slope=fp(tanX);
+    ctx.strokeStyle='rgba(217,140,110,.85)'; ctx.lineWidth=2.4; ctx.lineCap='round';
+    ctx.beginPath();
+    var x0=tanX-1.7, x1=tanX+1.7;
+    ctx.moveTo(m.px(x0), m.py(ty+slope*(x0-tanX)));
+    ctx.lineTo(m.px(x1), m.py(ty+slope*(x1-tanX)));
+    ctx.stroke();
+    // soft bloom at point
+    var cx=m.px(tanX), cy=m.py(ty);
+    var bloom = ctx.createRadialGradient(cx,cy,0,cx,cy,26);
+    bloom.addColorStop(0,'rgba(240,210,160,.55)'); bloom.addColorStop(1,'rgba(240,210,160,0)');
+    ctx.fillStyle=bloom; ctx.beginPath(); ctx.arc(cx,cy,26,0,Math.PI*2); ctx.fill();
+    // serif margin-note caption with dotted leader
+    ctx.strokeStyle='rgba(240,233,220,.35)'; ctx.setLineDash([1.5,3]); ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(cx+10,cy-10); ctx.lineTo(cx+60,cy-46); ctx.stroke(); ctx.setLineDash([]);
+    ctx.font='italic 15px "Fraunces", Georgia, serif';
+    ctx.fillStyle='rgba(240,233,220,.92)';
+    ctx.fillText("the slope right here", cx+64, cy-42);
+  })();
+
+  /* ---------- Direction C: Depth Field ---------- */
+  (function(){
+    var el=document.getElementById('cC'); var d=hiDPI(el); var ctx=d.ctx, W=d.W, H=d.H;
+    var m = makeMapper(W,H,60,50,40,60);
+
+    function frame(){
+      ctx.fillStyle='#0a0a0b'; ctx.fillRect(0,0,W,H);
+      // blurred background grid
+      ctx.save(); ctx.filter='blur(2.5px)';
+      ctx.strokeStyle='rgba(92,147,159,.10)'; ctx.lineWidth=1;
+      for(var gx=1; gx<9; gx++){ var x=60+gx*((W-110)/9); ctx.beginPath();ctx.moveTo(x,40);ctx.lineTo(x,H-60);ctx.stroke(); }
+      for(var gy=1; gy<5; gy++){ var y=40+gy*((H-100)/5); ctx.beginPath();ctx.moveTo(60,y);ctx.lineTo(W-50,y);ctx.stroke(); }
+      ctx.restore();
+      // volumetric fill (gradient)
+      ctx.beginPath();
+      ctx.moveTo(m.px(2), m.py(0));
+      for(var i=0;i<=100;i++){ var x=2+(7-2)*i/100; ctx.lineTo(m.px(x), m.py(f(x))); }
+      ctx.lineTo(m.px(7), m.py(0)); ctx.closePath();
+      var vgrad = ctx.createLinearGradient(0, m.py(yMax), 0, m.py(0));
+      vgrad.addColorStop(0, 'rgba(92,147,159,.42)'); vgrad.addColorStop(1, 'rgba(92,147,159,0)');
+      ctx.fillStyle=vgrad; ctx.fill();
+      // glow halo curve (teal->infrared gradient stroke)
+      var grad = ctx.createLinearGradient(m.px(domA),0,m.px(domB),0);
+      grad.addColorStop(0,'#5c939f'); grad.addColorStop(1,'#ed6d40');
+      ctx.save(); ctx.filter='blur(6px)';
+      ctx.strokeStyle=grad; ctx.lineWidth=7; ctx.globalAlpha=.55;
+      ctx.beginPath();
+      for(var i3=0;i3<=200;i3++){ var x3=domA+(domB-domA)*i3/200; var X3=m.px(x3),Y3=m.py(f(x3)); if(i3===0) ctx.moveTo(X3,Y3); else ctx.lineTo(X3,Y3); }
+      ctx.stroke(); ctx.restore(); ctx.globalAlpha=1;
+      // crisp curve core
+      ctx.strokeStyle=grad; ctx.lineWidth=2; ctx.beginPath();
+      for(var i4=0;i4<=200;i4++){ var x4=domA+(domB-domA)*i4/200; var X4=m.px(x4),Y4=m.py(f(x4)); if(i4===0) ctx.moveTo(X4,Y4); else ctx.lineTo(X4,Y4); }
+      ctx.stroke();
+      // tangent glow
+      var ty=f(tanX), slope=fp(tanX), x0=tanX-1.6, x1=tanX+1.6;
+      ctx.save(); ctx.filter='blur(4px)';
+      ctx.strokeStyle='rgba(237,109,64,.7)'; ctx.lineWidth=4;
+      ctx.beginPath(); ctx.moveTo(m.px(x0), m.py(ty+slope*(x0-tanX))); ctx.lineTo(m.px(x1), m.py(ty+slope*(x1-tanX))); ctx.stroke();
+      ctx.restore();
+      ctx.strokeStyle='#ed6d40'; ctx.lineWidth=1.6;
+      ctx.beginPath(); ctx.moveTo(m.px(x0), m.py(ty+slope*(x0-tanX))); ctx.lineTo(m.px(x1), m.py(ty+slope*(x1-tanX))); ctx.stroke();
+      // vignette
+      var vig = ctx.createRadialGradient(W*0.5,H*0.5,H*0.2,W*0.5,H*0.5,H*0.85);
+      vig.addColorStop(0,'rgba(0,0,0,0)'); vig.addColorStop(1,'rgba(0,0,0,.55)');
+      ctx.fillStyle=vig; ctx.fillRect(0,0,W,H);
+      // glowing label
+      var cx=m.px(tanX), cy=m.py(ty);
+      ctx.save(); ctx.filter='blur(3px)';
+      ctx.font='700 12px "Azeret Mono", monospace'; ctx.fillStyle='rgba(237,109,64,.8)';
+      ctx.fillText("f′("+tanX.toFixed(1)+")", cx+16, cy-16);
+      ctx.restore();
+      ctx.font='700 12px "Azeret Mono", monospace'; ctx.fillStyle='#ffd9c4';
+      ctx.fillText("f′("+tanX.toFixed(1)+")", cx+16, cy-16);
+    }
+    frame();
+  })();
+})();
+</script>
+</body>
+</html>

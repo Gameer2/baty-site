@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Adding &amp; Subtracting Mixed Numbers — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: whole circles + fraction bar per operand, with a borrow-a-whole
+     regroup step when subtracting a larger fractional part. Forks 2.1's bar rendering. ---- */
+  .chart{ padding:26px 24px 34px; display:flex; flex-direction:column; align-items:center; gap:16px; }
+  .op-block{ display:flex; flex-direction:column; align-items:center; gap:6px; width:100%; max-width:440px; }
+  .op-cap{ font-family:var(--mono); font-size:12px; color:var(--pulse-ash); direction:ltr; }
+  .whole-row{ display:flex; gap:6px; flex-wrap:wrap; justify-content:center; min-height:22px; }
+  .whole-dot{ width:20px; height:20px; border-radius:50%; }
+  .whole-dot.fa{ background:var(--electric-teal); }
+  .whole-dot.fb{ background:#b98a72; }
+  .whole-dot.fsum{ background:var(--validation-green); }
+  .whole-dot.borrowed{ border:2px dashed var(--infrared); background:none; }
+  .frac-stack{ display:flex; flex-direction:column; gap:5px; width:100%; }
+  .bar{ display:flex; width:100%; height:32px; border:1px solid rgba(255,255,255,.16); border-radius:7px; overflow:hidden; }
+  .bar-seg{ flex:1; border-right:1px solid rgba(255,255,255,.1); }
+  .bar-seg:last-child{ border-right:none; }
+  .bar-seg.fa{ background:var(--electric-teal); }
+  .bar-seg.fb{ background:#b98a72; }
+  .bar-seg.fsum{ background:var(--validation-green); }
+
+  .borrow-badge{ font-family:var(--mono); font-size:11.5px; color:var(--infrared); background:rgba(237,109,64,.1); border:1px solid rgba(237,109,64,.35); border-radius:100px; padding:4px 12px; }
+
+  .toggle-row{ display:flex; gap:8px; }
+  .toggle-btn{ font-family:var(--mono); font-size:12px; padding:6px 14px; border-radius:100px; border:1px solid rgba(255,255,255,.16); background:none; color:var(--pulse-ash); cursor:pointer; }
+  .toggle-btn.active{ background:var(--electric-teal); color:var(--core-black); border-color:var(--electric-teal); font-weight:700; }
+
+  .inputs{ display:flex; gap:22px; align-items:center; flex-wrap:wrap; justify-content:center; }
+  .mixed-input{ display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .mixed-input label{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash); }
+  .mixed-fields{ display:flex; align-items:center; gap:6px; }
+  .mixed-fields input{ font-family:var(--mono); font-size:14px; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.16); border-radius:6px; padding:4px 6px; text-align:center; direction:ltr; }
+  .mixed-fields input.whole{ width:34px; }
+  .frac-fields{ display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .frac-fields input{ width:40px; }
+  .frac-fields .bar-div{ width:26px; height:1px; background:rgba(255,255,255,.3); margin:3px 0; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 2 · LESSON 2</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Adding &amp; Subtracting Mixed Numbers</h1>
+    <span class="title-secondary ar-display" id="titleAr">جمع الأعداد الكسرية وطرحها</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I find the sum/difference of mixed numbers.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">wholes and fraction parts combine separately</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="inputs">
+        <div class="mixed-input">
+          <label data-role="ui" data-i18n="labelA">mixed A</label>
+          <div class="mixed-fields">
+            <input type="number" class="whole" id="wholeA" value="2" min="0" max="9" />
+            <div class="frac-fields"><input type="number" id="numA" value="1" min="1" max="9" /><div class="bar-div"></div><input type="number" id="denA" value="3" min="2" max="12" /></div>
+          </div>
+        </div>
+        <div class="toggle-row" id="opToggle">
+          <button class="toggle-btn active" data-op="add">+</button>
+          <button class="toggle-btn" data-op="sub">−</button>
+        </div>
+        <div class="mixed-input">
+          <label data-role="ui" data-i18n="labelB">mixed B</label>
+          <div class="mixed-fields">
+            <input type="number" class="whole" id="wholeB" value="1" min="0" max="9" />
+            <div class="frac-fields"><input type="number" id="numB" value="2" min="1" max="9" /><div class="bar-div"></div><input type="number" id="denB" value="4" min="2" max="12" /></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="op-block dimmable" data-el="opA">
+        <span class="op-cap" id="capA"></span>
+        <div class="whole-row" id="wholeRowA"></div>
+        <div class="frac-stack" id="fracStackA"></div>
+      </div>
+      <div class="borrow-badge dimmable" data-el="borrow" id="borrowBadge" style="display:none;"></div>
+      <div class="op-block dimmable" data-el="opB">
+        <span class="op-cap" id="capB"></span>
+        <div class="whole-row" id="wholeRowB"></div>
+        <div class="frac-stack" id="fracStackB"></div>
+      </div>
+      <div class="op-block dimmable" data-el="result">
+        <span class="op-cap" id="capResult"></span>
+        <div class="whole-row" id="wholeRowResult"></div>
+        <div class="frac-stack" id="fracStackResult"></div>
+      </div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Extends fraction addition/subtraction to mixed numbers: convert fractional parts to a common denominator, add/subtract fractional and whole-number parts separately (regrouping — borrowing a whole as extra fraction parts — when a fractional subtraction would go negative), simplify.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="2-1-adding-subtracting-fractions.html">— <b data-role="body" id="navPrevText">2.1 · Adding &amp; Subtracting Fractions</b></a>
+    <a class="nav-pill next" href="2-3-multiplying-fractions-mixed-numbers.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">2.3 · Multiplying Fractions &amp; Mixed Numbers</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 2 · LESSON 2",
+      objectiveLabel: "Objective —",
+      objectiveText: "I find the sum/difference of mixed numbers.",
+      eqSub: "wholes and fraction parts combine separately",
+      explainBtn: "Explain this",
+      labelA: "mixed A", labelB: "mixed B",
+      capA: "A", capB: "B", capResult: "result",
+      borrowText: "borrowed 1 whole = extra L/L pieces",
+      teachLabel: "What this teaches:",
+      teachBody: "Extends fraction addition/subtraction to mixed numbers: convert fractional parts to a common denominator, add/subtract fractional and whole-number parts separately (regrouping — borrowing a whole as extra fraction parts — when a fractional subtraction would go negative), simplify.",
+      navPrev: "2.1 · Adding & Subtracting Fractions",
+      navNext: "2.3 · Multiplying Fractions & Mixed Numbers",
+      navNextLabel: "next",
+      tour: [
+        { elKey: "opA", label: "Whole + fraction, A", body: "The circles are the whole part; the bar below is the fractional part, resized to the shared denominator." },
+        { elKey: "opB", label: "Whole + fraction, B", body: "Same breakdown for B, on the same shared grid." },
+        { elKey: "borrow", label: "Borrowing a whole", body: "When subtracting, if A's fraction part is smaller than B's, one whole from A converts into extra fraction pieces first." },
+        { elKey: "result", label: "Combine separately", body: "Add or subtract the whole parts and the fraction parts on their own, then simplify the fraction part." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ٢ · الدرس ٢",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أجد ناتج جمع/طرح عددين كسريين.",
+      eqSub: "تُجمع الأجزاء الصحيحة والكسرية كلٌّ على حدة",
+      explainBtn: "اشرح هذا",
+      labelA: "الكسري A", labelB: "الكسري B",
+      capA: "A", capB: "B", capResult: "الناتج",
+      borrowText: "استُعير كامل واحد = قطع إضافية L/L",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "يوسّع جمع/طرح الكسور إلى الأعداد الكسرية: تحويل الأجزاء الكسرية إلى مقام مشترك، ثم جمع أو طرح الجزأين الكسري والصحيح كلٍّ على حدة (مع إعادة التجميع — استعارة كامل واحد كقطع كسرية إضافية — إذا أدّى طرح الجزء الكسري إلى قيمة سالبة)، ثم التبسيط.",
+      navPrev: "٢.١ · جمع الكسور وطرحها",
+      navNext: "٢.٣ · ضرب الكسور والأعداد الكسرية",
+      navNextLabel: "التالي",
+      tour: [
+        { elKey: "opA", label: "صحيح + كسر، A", body: "الدوائر تمثّل الجزء الصحيح؛ والشريط أسفلها الجزء الكسري، معاد تحجيمه إلى المقام المشترك." },
+        { elKey: "opB", label: "صحيح + كسر، B", body: "التقسيم نفسه لـ B، على الشبكة المشتركة نفسها." },
+        { elKey: "borrow", label: "استعارة كامل واحد", body: "عند الطرح، إذا كان جزء A الكسري أصغر من جزء B، يتحوّل كامل واحد من A إلى قطع كسرية إضافية أولًا." },
+        { elKey: "result", label: "اجمع كلًّا على حدة", body: "اجمع أو اطرح الأجزاء الصحيحة والأجزاء الكسرية كلٌّ على حدة، ثم بسّط الجزء الكسري." }
+      ]
+    }
+  };
+
+  const wholeA = document.getElementById("wholeA"), numA = document.getElementById("numA"), denA = document.getElementById("denA");
+  const wholeB = document.getElementById("wholeB"), numB = document.getElementById("numB"), denB = document.getElementById("denB");
+  const eqLine = document.getElementById("eqLine");
+  const capA = document.getElementById("capA"), capB = document.getElementById("capB"), capResult = document.getElementById("capResult");
+  const wholeRowA = document.getElementById("wholeRowA"), fracStackA = document.getElementById("fracStackA");
+  const wholeRowB = document.getElementById("wholeRowB"), fracStackB = document.getElementById("fracStackB");
+  const wholeRowResult = document.getElementById("wholeRowResult"), fracStackResult = document.getElementById("fracStackResult");
+  const borrowBadge = document.getElementById("borrowBadge");
+  const opToggle = document.getElementById("opToggle");
+
+  let op = "add";
+  opToggle.querySelectorAll(".toggle-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      op = btn.dataset.op;
+      opToggle.querySelectorAll(".toggle-btn").forEach(b => b.classList.toggle("active", b === btn));
+      render();
+    });
+  });
+
+  function gcdOf(a, b) { return b === 0 ? a : gcdOf(b, a % b); }
+  function lcmOf(a, b) { return (a * b) / gcdOf(a, b); }
+  function simplify(n, d) { const g = gcdOf(Math.max(1, Math.abs(n)), d) || 1; return [n / g, d / g]; }
+
+  function buildWholeRow(el, count, cls) {
+    el.innerHTML = "";
+    for (let i = 0; i < Math.max(0, count); i++) {
+      const dot = document.createElement("div");
+      dot.className = "whole-dot " + cls;
+      el.appendChild(dot);
+    }
+  }
+  function buildFracStack(el, filled, total, cls) {
+    el.innerHTML = "";
+    const wholeBars = Math.floor(Math.max(0, filled) / total);
+    const rem = Math.max(0, filled) % total;
+    for (let p = 0; p < wholeBars; p++) {
+      const row = document.createElement("div");
+      row.className = "bar";
+      for (let i = 0; i < total; i++) { const seg = document.createElement("div"); seg.className = "bar-seg " + cls; row.appendChild(seg); }
+      el.appendChild(row);
+    }
+    const row = document.createElement("div");
+    row.className = "bar";
+    for (let i = 0; i < total; i++) { const seg = document.createElement("div"); seg.className = "bar-seg" + (i < rem ? " " + cls : ""); row.appendChild(seg); }
+    el.appendChild(row);
+  }
+
+  function computeResult(wA0, nA, dA, wB0, nB, dB, op) {
+    const L = lcmOf(dA, dB);
+    let cnA = nA * (L / dA), cnB = nB * (L / dB);
+    let wA = wA0, wB = wB0, borrowed = false;
+    if (op === "sub" && cnA < cnB) { wA -= 1; cnA += L; borrowed = true; }
+    let wholeResult, fracResult;
+    if (op === "add") {
+      fracResult = cnA + cnB;
+      wholeResult = wA + wB;
+      if (fracResult >= L) { fracResult -= L; wholeResult += 1; }
+    } else {
+      fracResult = cnA - cnB;
+      wholeResult = wA - wB;
+    }
+    return { L, cnA, cnB, wA, wB, borrowed, wholeResult, fracResult };
+  }
+
+  function render() {
+    const t = T[i18n.lang];
+    const wA = Math.max(0, parseInt(wholeA.value, 10) || 0), nA = Math.max(1, parseInt(numA.value, 10) || 1), dA = Math.max(2, parseInt(denA.value, 10) || 2);
+    const wB = Math.max(0, parseInt(wholeB.value, 10) || 0), nB = Math.max(1, parseInt(numB.value, 10) || 1), dB = Math.max(2, parseInt(denB.value, 10) || 2);
+
+    const r = computeResult(wA, nA, dA, wB, nB, dB, op);
+
+    capA.textContent = t.capA + ": " + digits(wA, i18n.lang) + " " + digits(nA, i18n.lang) + "/" + digits(dA, i18n.lang);
+    buildWholeRow(wholeRowA, r.borrowed ? r.wA : wA, "fa");
+    buildFracStack(fracStackA, r.borrowed ? r.cnA : nA * (r.L / dA), r.L, "fa");
+
+    capB.textContent = t.capB + ": " + digits(wB, i18n.lang) + " " + digits(nB, i18n.lang) + "/" + digits(dB, i18n.lang);
+    buildWholeRow(wholeRowB, wB, "fb");
+    buildFracStack(fracStackB, r.cnB, r.L, "fb");
+
+    borrowBadge.style.display = r.borrowed ? "inline-block" : "none";
+    if (r.borrowed) borrowBadge.textContent = t.borrowText.replace("L", digits(r.L, i18n.lang));
+
+    const [simN, simD] = simplify(r.fracResult, r.L);
+    capResult.textContent = t.capResult + ": " + digits(r.wholeResult, i18n.lang) + " " + digits(simN, i18n.lang) + "/" + digits(simD, i18n.lang);
+    buildWholeRow(wholeRowResult, r.wholeResult, "fsum");
+    buildFracStack(fracStackResult, r.fracResult, r.L, "fsum");
+
+    const opChar = op === "add" ? "+" : "-";
+    const mixedTex = (w, n, d) => n === 0 ? `${groupInt(w, "en")}` : `${groupInt(w, "en")}\\tfrac{${groupInt(n, "en")}}{${groupInt(d, "en")}}`;
+    const eqSource = `${mixedTex(wA, nA, dA)} ${opChar} ${mixedTex(wB, nB, dB)} = \\color{#ed6d40}{${mixedTex(r.wholeResult, simN, simD)}}`;
+    renderEquation(eqLine, eqSource);
+  }
+
+  [wholeA, numA, denA, wholeB, numB, denB].forEach(el => el.addEventListener("input", render));
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

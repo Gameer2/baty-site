@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Statistical Question — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:30px 22px 30px; display:flex; flex-direction:column; align-items:center; gap:24px; }
+  .q-list{ display:flex; flex-direction:column; gap:8px; width:100%; max-width:520px; }
+  .q-card{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; border-radius:10px; background:var(--urban-smoke); border:1px solid rgba(255,255,255,.1); }
+  .q-card .qtext{ font-family:var(--display); font-size:14px; color:var(--off-white); flex:1; }
+  .q-card .btns{ display:flex; gap:6px; }
+  .sort-btn{ font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--pulse-ash); background:var(--core-black); border:1px solid rgba(255,255,255,.16); border-radius:100px; padding:5px 10px; cursor:pointer; }
+  .sort-btn.chosen-correct{ color:var(--validation-green); border-color:rgba(107,181,124,.5); background:rgba(107,181,124,.14); }
+  .sort-btn.chosen-wrong{ color:var(--infrared); border-color:rgba(237,109,64,.5); background:rgba(237,109,64,.1); }
+  .q-reason{ font-family:var(--mono); font-size:11.5px; color:var(--pulse-ash); margin-top:6px; display:none; }
+  .q-card.answered .q-reason{ display:block; }
+  .q-card-inner{ display:flex; flex-direction:column; flex:1; }
+
+  .try-box{ width:100%; max-width:520px; display:flex; flex-direction:column; gap:10px; }
+  .try-box input[type="text"]{ font-family:var(--display); font-size:14px; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.16); border-radius:10px; padding:11px 14px; }
+  .respondents{ display:flex; gap:8px; flex-wrap:wrap; }
+  .respondent-chip{ font-family:var(--mono); font-size:12px; color:var(--off-white); background:rgba(92,147,159,.14); border:1px solid rgba(92,147,159,.4); border-radius:8px; padding:6px 10px; opacity:0; }
+  .respondent-chip b{ color:var(--electric-teal); }
+  .variance-note{ font-family:var(--mono); font-size:12px; color:var(--validation-green); display:none; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 5 · LESSON 1</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">The Statistical Question</h1>
+    <span class="title-secondary ar-display" id="titleAr">السؤال الإحصائي</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I recognize a statistical question as one that anticipates variability in the answers it collects.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">does the answer vary from person to person?</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="q-list" id="qList" data-el="qList"></div>
+      <div class="try-box" data-el="tryBox">
+        <label data-role="ui" data-i18n="tryLabel" style="font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash);">try your own question</label>
+        <input type="text" id="tryInput" data-role="body" />
+        <div class="respondents" id="respondents"></div>
+        <div class="variance-note" id="varianceNote" data-role="ui" data-i18n="varianceNote">answers varied — that's a statistical question</div>
+      </div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">A statistical question expects a range of different answers across the people asked; a question with one fixed correct answer for everyone is not statistical, even if it involves numbers.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="../grade-5/4-6-dividing-fractions.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">4.6 · Dividing Fractions</b></a>
+    <a class="nav-pill next" href="5-2-coordinate-plane.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">5.2 · The Coordinate Plane</b></a>
+  </div>
+</div>
+
+<script>
+  const { initI18n, renderEquation, buildTour } = LessonShell;
+
+  const QUESTIONS = [
+    { en: "How many days are in the month of March?", ar: "كم عدد أيام شهر آذار؟", statistical: false,
+      reasonEn: "Every March has exactly 31 days — there's one fixed answer.", reasonAr: "لكل آذار ٣١ يومًا بالضبط — هناك إجابة واحدة ثابتة." },
+    { en: "How many hours did each classmate sleep last night?", ar: "كم ساعة نام كل زميل ليلة أمس؟", statistical: true,
+      reasonEn: "Different classmates almost certainly slept different amounts.", reasonAr: "من شبه المؤكّد أن الزملاء ناموا مددًا مختلفة." },
+    { en: "How many centimeters tall is the Eiffel Tower?", ar: "كم يبلغ ارتفاع برج إيفل بالسنتيمتر؟", statistical: false,
+      reasonEn: "The Eiffel Tower has one fixed height — no variation across askers.", reasonAr: "لبرج إيفل ارتفاع ثابت واحد — لا يتغيّر باختلاف من يسأل." },
+    { en: "What is each student's favorite subject?", ar: "ما المادة المفضّلة لكل طالب؟", statistical: true,
+      reasonEn: "Favorite subject naturally differs from student to student.", reasonAr: "تختلف المادة المفضّلة طبيعيًا من طالب إلى آخر." }
+  ];
+
+  const RESPONDENT_ANSWERS = ["7", "9", "5", "12", "3", "yes", "no", "blue", "maybe", "2"];
+  const RESPONDENT_NAMES_EN = ["Lina", "Omar", "Sara", "Yousef"];
+  const RESPONDENT_NAMES_AR = ["لينا", "عمر", "سارة", "يوسف"];
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 5 · LESSON 1",
+      objectiveLabel: "Objective —",
+      objectiveText: "I recognize a statistical question as one that anticipates variability in the answers it collects.",
+      eqSub: "does the answer vary from person to person?",
+      explainBtn: "Explain this",
+      tryLabel: "try your own question",
+      varianceNote: "answers varied — that's a statistical question",
+      statBtn: "statistical", notStatBtn: "not statistical",
+      navPrevLabel: "—", navPrevText: "4.6 · Dividing Fractions",
+      navNextLabel: "next", navNext: "5.2 · The Coordinate Plane",
+      teachLabel: "What this teaches:",
+      teachBody: "A statistical question expects a range of different answers across the people asked; a question with one fixed correct answer for everyone is not statistical, even if it involves numbers.",
+      tour: [
+        { elKey: "qList", label: "A fixed-answer example", body: "Some questions have exactly one correct answer for everyone — those are not statistical." },
+        { elKey: "qList", label: "A varies-by-person example", body: "Other questions naturally get different answers from different people — that variability is what makes a question statistical." },
+        { elKey: "tryBox", label: "Try typing your own", body: "Type any question — a few simulated respondents will answer it, so you can see whether their answers vary." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٥ · الدرس ١",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أُميّز السؤال الإحصائي بأنّه سؤال يتوقّع تباينًا في الإجابات التي يجمعها.",
+      eqSub: "هل تختلف الإجابة من شخص لآخر؟",
+      explainBtn: "اشرح هذا",
+      tryLabel: "جرّب سؤالك الخاص",
+      varianceNote: "تباينت الإجابات — هذا سؤال إحصائي",
+      statBtn: "إحصائي", notStatBtn: "غير إحصائي",
+      navPrevLabel: "—", navPrevText: "٤.٦ · قسمة الكسور",
+      navNextLabel: "التالي", navNext: "٥.٢ · المستوى الإحداثي",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "يتوقّع السؤال الإحصائي مجموعة إجابات مختلفة بين الأشخاص المسؤولين؛ أمّا السؤال ذو الإجابة الصحيحة الثابتة للجميع فليس إحصائيًا، حتى لو تضمّن أرقامًا.",
+      tour: [
+        { elKey: "qList", label: "مثال بإجابة ثابتة", body: "بعض الأسئلة لها إجابة صحيحة واحدة فقط للجميع — هذه ليست إحصائية." },
+        { elKey: "qList", label: "مثال يختلف حسب الشخص", body: "أسئلة أخرى تحصل طبيعيًا على إجابات مختلفة من أشخاص مختلفين — هذا التباين هو ما يجعل السؤال إحصائيًا." },
+        { elKey: "tryBox", label: "جرّب كتابة سؤالك", body: "اكتب أي سؤال — سيجيب عنه عدد من المستجيبين الافتراضيين، لترى إن كانت إجاباتهم تتباين." }
+      ]
+    }
+  };
+
+  const qList = document.getElementById("qList");
+  const eqLine = document.getElementById("eqLine");
+  const tryInput = document.getElementById("tryInput");
+  const respondents = document.getElementById("respondents");
+  const varianceNote = document.getElementById("varianceNote");
+
+  function buildQuestions() {
+    const t = T[i18n.lang];
+    qList.innerHTML = "";
+    QUESTIONS.forEach((q, idx) => {
+      const card = document.createElement("div");
+      card.className = "q-card";
+      const inner = document.createElement("div");
+      inner.className = "q-card-inner";
+      const qtext = document.createElement("div");
+      qtext.className = "qtext";
+      qtext.textContent = i18n.lang === "ar" ? q.ar : q.en;
+      const reason = document.createElement("div");
+      reason.className = "q-reason";
+      reason.textContent = i18n.lang === "ar" ? q.reasonAr : q.reasonEn;
+      inner.appendChild(qtext);
+      inner.appendChild(reason);
+
+      const btns = document.createElement("div");
+      btns.className = "btns";
+      const statBtn = document.createElement("button");
+      statBtn.className = "sort-btn";
+      statBtn.textContent = t.statBtn;
+      const notBtn = document.createElement("button");
+      notBtn.className = "sort-btn";
+      notBtn.textContent = t.notStatBtn;
+
+      function choose(isStat, btnEl, otherEl) {
+        const correct = isStat === q.statistical;
+        btnEl.classList.add(correct ? "chosen-correct" : "chosen-wrong");
+        otherEl.classList.remove("chosen-correct", "chosen-wrong");
+        card.classList.add("answered");
+      }
+      statBtn.addEventListener("click", () => choose(true, statBtn, notBtn));
+      notBtn.addEventListener("click", () => choose(false, notBtn, statBtn));
+
+      btns.appendChild(statBtn);
+      btns.appendChild(notBtn);
+      card.appendChild(inner);
+      card.appendChild(btns);
+      qList.appendChild(card);
+    });
+  }
+
+  function simulateRespondents() {
+    const t = T[i18n.lang];
+    const names = i18n.lang === "ar" ? RESPONDENT_NAMES_AR : RESPONDENT_NAMES_EN;
+    respondents.innerHTML = "";
+    const shuffled = [...RESPONDENT_ANSWERS].sort(() => Math.random() - .5).slice(0, 4);
+    const uniqueCount = new Set(shuffled).size;
+    names.forEach((name, idx) => {
+      const chip = document.createElement("div");
+      chip.className = "respondent-chip";
+      chip.innerHTML = `${name}: <b>${shuffled[idx]}</b>`;
+      respondents.appendChild(chip);
+      gsap.to(chip, { opacity: 1, duration: .3, delay: idx * .12 });
+    });
+    varianceNote.style.display = uniqueCount > 1 ? "block" : "none";
+  }
+
+  tryInput.addEventListener("input", () => {
+    if (tryInput.value.trim().length > 2) simulateRespondents();
+    else { respondents.innerHTML = ""; varianceNote.style.display = "none"; }
+  });
+
+  function render() {
+    buildQuestions();
+    renderEquation(eqLine, `\\text{varies?} \\;\\Rightarrow\\; \\color{#ed6d40}{\\text{statistical}}`);
+  }
+
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

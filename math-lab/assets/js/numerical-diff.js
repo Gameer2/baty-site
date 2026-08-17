@@ -18,6 +18,12 @@
   const statExact = document.getElementById("statExact");
   const formulaBlock = document.getElementById("formulaBlock");
 
+  const STORE_KEY = "engine-lab:numerical-numerical-diff";
+
+  function snapshot() {
+    return { fx: fxInput.value, x: xInput.value, h: hInput.value };
+  }
+
   function updatePreview() {
     Engine.renderKatex(fxPreview, `f(x) = ${Engine.toLatex(fxInput.value)}`, false);
     Engine.pulseFlash(fxPreview);
@@ -89,8 +95,7 @@
     }
   }
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+  function runCompute() {
     clearError();
 
     const compiled = Engine.compileFx(fxInput.value);
@@ -105,14 +110,28 @@
     try {
       const result = Algorithms.runNumericalDiff(compiled.fn, x, h);
       render(result, compiled, x);
+      Proto.saveState(STORE_KEY, snapshot());
     } catch (err) {
       showError(err.message);
     }
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    runCompute();
   });
 
   Engine.attachMathKeypad(fxInput, document.getElementById("fxKeypad"));
   Engine.attachKeypadToggle(document.getElementById("keypadToggle"), document.getElementById("fxKeypad"));
 
+  const saved = Proto.loadState(STORE_KEY);
+  if (saved) {
+    if (saved.fx !== undefined) fxInput.value = saved.fx;
+    if (saved.x !== undefined) xInput.value = saved.x;
+    if (saved.h !== undefined) hInput.value = saved.h;
+  }
+
   updatePreview();
   updateStatus();
+  if (saved) runCompute();
 })();

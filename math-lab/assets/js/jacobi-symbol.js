@@ -89,5 +89,13 @@
     if (n % 2n === 0n) return showError("n must be odd — the Jacobi symbol is defined for odd positive n only.");
     if (n === 1n) return showError("n = 1 is trivial ((a/1) = 1 for all a); choose an odd n > 1.");
     render(a, n);
+    Proto.saveState("engine-lab:number-theory-jacobi-symbol", { a: aInput.value, n: nInput.value });
   });
+
+  const saved = Proto.loadState("engine-lab:number-theory-jacobi-symbol");
+  if (saved) {
+    if (saved.a !== undefined) aInput.value = saved.a;
+    if (saved.n !== undefined) nInput.value = saved.n;
+    form.requestSubmit();
+  }
 })();

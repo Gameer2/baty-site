@@ -2,6 +2,7 @@
 (function () {
   "use strict";
   LinAlgPage.init({
+    storeKey: "engine-lab:linear-algebra-lu-decomposition",
     square: true,
     example: { A: [[2, 1, 1], [4, -6, 0], [-2, 7, 2]] },
     compute: (A) => LinAlg.luDecompose(A),

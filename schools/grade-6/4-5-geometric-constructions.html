@@ -1,0 +1,1010 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Geometric Constructions — Grade 6</title>
+
+<!-- vendored open-source engines (see DESIGN_SYSTEM.md §14):
+     JSXGraph — interactive math/geometry scene engine (replaces hand-rolled SVG)
+     Motion   — animation system (replaces per-element gsap.fromTo) -->
+<link rel="stylesheet" href="../assets/vendor/jsxgraph.css" />
+<script src="../assets/vendor/jsxgraphcore.js"></script>
+<script src="../assets/vendor/motion.min.js"></script>
+
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<link rel="stylesheet" href="../assets/css/jsxgraph-skin.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<script src="../assets/js/lesson-motion.js"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+  /* ---- bespoke workspace: JSXGraph board + book-procedure panel side by side.
+     This is the 4.5-only layout; nothing here is shared. The board is the real
+     geometric scene (JSXGraph), the procedure panel is the textbook's own
+     construction steps, live-highlighted by the step slider. ---- */
+  /* ---- one continuous dark-black canvas. The JSXGraph board fills the stage edge-to-
+     edge (no inner frame), and the procedure sits on the same black surface as bare
+     text — no boxed columns, no "squares inside squares". The "Explain this" live
+     cursor + typed notebook are driven from lesson-shell.js buildNotebook. ---- */
+  .stage{ background:var(--core-black); border:1px solid rgba(255,255,255,.045); border-radius:22px; }
+  .workspace{ display:flex; gap:0; }
+  .board-wrap{ flex:1 1 64%; min-width:0; position:relative; padding:6px 0 6px 6px; }
+  /* board = the dark canvas itself. Pure core-black, no border, no radius — it merges
+     into the stage so there is one surface, not a box inside a box. A faint dot grid
+     + a slow drifting aurora on ::before (behind the transparent SVG) give it life. */
+  .board-wrap .jxgbox{
+    width:100%; height:640px; direction:ltr; border-radius:0; position:relative;
+    background: radial-gradient(rgba(230,230,230,.045) 1px, transparent 1.2px);
+    background-size: 24px 24px;
+    background-color:var(--core-black);
+    border:none;
+  }
+  .board-wrap .jxgbox svg{ background:transparent; position:relative; z-index:1; }
+  .board-wrap .jxgbox::before{
+    content:""; position:absolute; inset:0; z-index:0; pointer-events:none;
+    background:
+      radial-gradient(46% 46% at 32% 36%, rgba(92,147,159,.12), transparent 72%),
+      radial-gradient(52% 52% at 70% 72%, rgba(89,169,147,.08), transparent 72%);
+    background-repeat:no-repeat;
+    animation: boardAurora 24s ease-in-out infinite;
+  }
+  @keyframes boardAurora{
+    0%,100%{ background-position: 0% 0%, 100% 100%; }
+    50%{ background-position: 55% 45%, 25% 75%; }
+  }
+
+  /* procedure = bare text rail on the same black canvas. No panel background, no box —
+     just a single hairline divider on its inline-start so it never reads as a column
+     inside a square. */
+  .procedure{
+    position:relative;
+    flex:0 0 36%; max-width:380px; padding:var(--sp-5) var(--sp-6) var(--sp-5);
+    border-left:1px solid rgba(255,255,255,.06);
+    background:none;
+    display:flex; flex-direction:column; gap:var(--sp-2);
+  }
+  .procedure-head{ font-family:var(--display); font-size:var(--fs-2xs); letter-spacing:var(--tr-label); text-transform:uppercase; color:var(--electric-teal); margin-bottom:var(--sp-1); font-weight:600; }
+  .procedure-head.ar-ui{ letter-spacing:0; text-transform:none; font-size:var(--fs-sm); }
+  .proc-step{ display:flex; gap:var(--sp-3); padding:var(--sp-3); border-radius:var(--sp-3); border:1px solid transparent; transition:background .25s cubic-bezier(.16,1,.3,1), border-color .25s ease, box-shadow .25s ease; cursor:pointer; }
+  .proc-step:hover{ background:rgba(255,255,255,.03); }
+  .proc-step.is-active{ background:linear-gradient(90deg, rgba(92,147,159,.16), rgba(92,147,159,.02)); border-color:rgba(92,147,159,.30); box-shadow: inset 3px 0 0 var(--electric-teal); }
+  .proc-num{ flex:0 0 22px; height:22px; border-radius:50%; border:1px solid rgba(255,255,255,.18); font-family:var(--mono); font-size:var(--fs-2xs); display:flex; align-items:center; justify-content:center; color:var(--pulse-ash); box-shadow: inset 0 1px 1px rgba(255,255,255,.06), 0 2px 4px rgba(0,0,0,.4); transition:all .25s cubic-bezier(.16,1,.3,1); margin-top:1px; }
+  .proc-step.is-active .proc-num{ background:var(--electric-teal); border-color:var(--electric-teal); color:var(--core-black); font-weight:700; animation: numPulse 2.6s ease-in-out infinite; }
+  .proc-body{ font-size:var(--fs-sm); color:var(--neural-fog); line-height:var(--lh-snug); }
+  .proc-body.ar-body{ font-size:var(--fs-sm); line-height:var(--lh-relaxed); }
+  .proc-why{ margin-top:var(--sp-2); padding:var(--sp-3) var(--sp-4); border-radius:var(--sp-3); background:rgba(89,169,147,.08); border:1px solid rgba(89,169,147,.22); font-size:var(--fs-xs); color:var(--neural-fog); line-height:var(--lh-snug); }
+  .proc-why b{ color:var(--validation-green); font-weight:500; }
+  .proc-why.ar-body{ font-size:var(--fs-xs); line-height:var(--lh-relaxed); }
+  /* the teach block lives at the bottom of the scrolling rail — strip its shared padding/bg
+     so it reads as a closing note on the same black canvas, not a boxed sub-panel */
+  .procedure .teach{ padding:var(--sp-4) 0 0; border-top:1px solid rgba(255,255,255,.06); background:none; }
+  .procedure .teach p{ font-size:var(--fs-xs); line-height:var(--lh-snug); }
+  .procedure .teach p.ar-body{ line-height:var(--lh-relaxed); }
+  /* premium rail scrollbar — transparent track (no "white bar"), a thin teal-gradient
+     rounded thumb that brightens on hover. Firefox gets scrollbar-color; webkit gets the
+     full thumb/track treatment. scrollbar-gutter reserves the gutter so step text never
+     reflows when the bar appears/disappears. */
+  .procedure{ scrollbar-width: thin; scrollbar-color: rgba(92,147,159,.45) transparent; scrollbar-gutter: stable; }
+  .procedure::-webkit-scrollbar{ width:9px; }
+  .procedure::-webkit-scrollbar-track{ background:transparent; margin:var(--sp-3) 0; }
+  .procedure::-webkit-scrollbar-thumb{ background:linear-gradient(180deg, rgba(92,147,159,.55), rgba(92,147,159,.28)); border-radius:100px; border:2px solid transparent; background-clip:padding-box; transition:background .2s ease; }
+  .procedure::-webkit-scrollbar-thumb:hover{ background:linear-gradient(180deg, rgba(92,147,159,.85), rgba(92,147,159,.5)); background-clip:padding-box; }
+  .procedure::-webkit-scrollbar-corner{ background:transparent; }
+  @keyframes numPulse{
+    0%,100%{ box-shadow: 0 0 0 0 rgba(92,147,159,.0); }
+    50%{ box-shadow: 0 0 0 6px rgba(92,147,159,.16); }
+  }
+
+  .mode-toggle{ display:flex; gap:4px; padding:4px; border-radius:100px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.06); box-shadow: inset 0 1px 3px rgba(0,0,0,.5); }
+  .mode-btn{ font-family:var(--display); font-size:var(--fs-xs); letter-spacing:var(--tr-normal); color:var(--pulse-ash); background:none; border:1px solid transparent; border-radius:100px; padding:var(--sp-2) var(--sp-5); cursor:pointer; transition:color .2s ease, background .25s cubic-bezier(.16,1,.3,1), box-shadow .25s ease; }
+  .mode-btn.ar-ui{ letter-spacing:0; }
+  .mode-btn:hover{ color:var(--off-white); }
+  /* teal = the active/selected state; green is reserved for the provably-correct RESULT
+     (the bisector line) per the lab's one-accent-per-role rule. The active segment reads
+     as a raised pill sitting in the recessed track (3D segmented control). */
+  .mode-btn.active{ color:var(--core-black); font-weight:600; background:linear-gradient(180deg, #6fa9b4, var(--electric-teal)); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 2px 8px rgba(92,147,159,.22); }
+
+  /* premium slider: a true progress fill (teal up to the thumb, hairline after) driven
+     by a --fill var the JS sets on input. Overrides the shared static gradient. */
+  .control-row input[type="range"]{
+    --fill:25%;
+    background:linear-gradient(90deg, var(--electric-teal) 0%, var(--electric-teal) var(--fill), rgba(255,255,255,.10) var(--fill), rgba(255,255,255,.10) 100%);
+    height:6px;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.5);
+  }
+  .control-row input[type="range"]::-moz-range-progress{ background:transparent; }
+
+  /* eq-bar: bare on the black canvas — no pane, no box. */
+  .eq-bar{ background:none; -webkit-backdrop-filter:none; backdrop-filter:none; }
+
+  /* Explain button: teal glow on hover + a transform transition so the JS magnetic
+     pull reads as physical, not jumpy. */
+  .explain-btn{ transition:background .2s cubic-bezier(.16,1,.3,1), box-shadow .25s ease, transform .25s cubic-bezier(.16,1,.3,1), border-color .2s ease; will-change:transform; }
+  .explain-btn:hover{ background:rgba(92,147,159,.10); box-shadow:0 2px 0 rgba(0,0,0,.35), 0 0 10px rgba(92,147,159,.12); }
+
+  /* premium Explain chooser — a glassy popover anchored under the Explain button.
+     "Whole construction" is the prominent teal action; the step list lets you ask
+     about one part, each labelled by the part it introduces. */
+  .explain-pop{ position:absolute; z-index:30; top:calc(100% + 8px); right:0; width:300px;
+    padding:var(--sp-4); border-radius:16px; background:rgba(16,17,20,.96);
+    -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+    border:1px solid rgba(92,147,159,.28);
+    box-shadow:0 12px 32px rgba(0,0,0,.5), inset 0 1px 0 rgba(92,147,159,.18);
+    display:none; flex-direction:column; gap:var(--sp-2); }
+  .explain-pop.is-open{ display:flex; animation:nbIn .32s cubic-bezier(.16,1,.3,1); }
+  .explain-pop-close{ position:absolute; top:10px; right:12px; width:24px; height:24px; border-radius:50%;
+    border:1px solid rgba(255,255,255,.16); background:none; color:var(--pulse-ash); font-size:17px; line-height:1;
+    cursor:pointer; transition:color .2s ease, border-color .2s ease; }
+  .explain-pop-close:hover{ color:var(--electric-teal); border-color:rgba(92,147,159,.5); }
+  .explain-pop-title{ font-family:var(--display); font-size:var(--fs-2xs); letter-spacing:var(--tr-label);
+    text-transform:uppercase; color:var(--electric-teal); font-weight:600; }
+  .explain-pop-title.ar-ui{ letter-spacing:0; text-transform:none; font-size:var(--fs-xs); }
+  .explain-opt--whole{ font-family:var(--display); font-size:var(--fs-sm); color:var(--core-black); font-weight:600;
+    background:linear-gradient(180deg, #6fa9b4, var(--electric-teal)); border:none; border-radius:100px;
+    padding:var(--sp-3) var(--sp-4); cursor:pointer; text-align:start;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 4px 14px rgba(92,147,159,.35);
+    transition:filter .2s ease, transform .15s cubic-bezier(.16,1,.3,1); }
+  .explain-opt--whole:hover{ filter:brightness(1.06); }
+  .explain-opt--whole:active{ transform:translateY(1px); }
+  .explain-opt--whole.ar-ui{ font-family:"Vazirmatn", sans-serif; }
+  .explain-pop-divider{ font-family:var(--display); font-size:var(--fs-2xs); color:var(--pulse-ash); text-align:center; }
+  .explain-pop-divider.ar-ui{ font-family:"Vazirmatn", sans-serif; }
+  .explain-steps{ display:flex; flex-direction:column; gap:var(--sp-1); }
+  .explain-step{ display:flex; align-items:center; gap:var(--sp-2); font-family:var(--display); font-size:var(--fs-xs);
+    color:var(--neural-fog); background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08);
+    border-radius:10px; padding:var(--sp-2) var(--sp-3); cursor:pointer; text-align:start;
+    transition:background .2s ease, border-color .2s ease, transform .15s cubic-bezier(.16,1,.3,1); }
+  .explain-step:hover{ background:rgba(92,147,159,.10); border-color:rgba(92,147,159,.4); transform:translateX(2px); }
+  .explain-step.ar-ui{ font-family:"Vazirmatn", sans-serif; }
+  .explain-step-n{ flex:0 0 20px; height:20px; border-radius:50%; background:rgba(92,147,159,.18);
+    color:var(--electric-teal); font-family:var(--mono); font-size:var(--fs-2xs);
+    display:flex; align-items:center; justify-content:center; }
+
+  /* the LIVE virtual mouse cursor — a real arrow pointer that glides across the board
+     to the element the notebook is explaining and "clicks" it (a ripple at the tip). It
+     is the thing that moves to explain. Appended to the stage by buildNotebook. The
+     arrow tip sits at the cursor box's (0,0), so left/top = the target point. */
+  .nb-cursor{ position:absolute; z-index:5; width:18px; height:26px; pointer-events:none; opacity:0;
+    transition:opacity .3s ease, left .55s cubic-bezier(.16,1,.3,1), top .55s cubic-bezier(.16,1,.3,1);
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,.55)) drop-shadow(0 0 3px rgba(92,147,159,.28)); }
+  .nb-cursor.is-visible{ opacity:1; }
+  .nb-cursor svg{ display:block; width:18px; height:26px; }
+  .nb-cursor-ripple{ position:absolute; left:0; top:0; width:34px; height:34px; margin:-17px 0 0 -17px;
+    border-radius:50%; border:2px solid rgba(92,147,159,.8); opacity:0; pointer-events:none; }
+  .nb-cursor-label{ position:absolute; left:24px; top:18px; white-space:nowrap; font-family:var(--mono);
+    font-size:var(--fs-2xs); letter-spacing:var(--tr-label); text-transform:uppercase; color:var(--electric-teal);
+    background:rgba(9,9,9,.85); border:1px solid rgba(92,147,159,.35); border-radius:100px; padding:var(--sp-1) var(--sp-3); }
+  .nb-cursor-label.ar-ui{ text-transform:none; letter-spacing:0; font-size:var(--fs-xs); }
+
+  /* ---- full-screen app shell: board + explanation fill the viewport, no page scroll.
+     Compact header bar (crumb eyebrow + single-language title | lang + explain). The
+     stage is a flex column — eq strip, controls, then the workspace (board | rail)
+     flexes to fill the rest. The rail scrolls internally; the board never clips. ---- */
+  html,body{ height:100%; }
+  .app{ max-width:none; height:100dvh; margin:0; padding:var(--sp-2) var(--sp-6); display:flex; flex-direction:column; gap:var(--sp-2); overflow:hidden; }
+  .app-bar{ display:flex; justify-content:space-between; align-items:center; gap:var(--sp-4); flex:0 0 auto; padding-bottom:var(--sp-2); border-bottom:1px solid rgba(255,255,255,.06); }
+  .app-bar-left{ display:flex; flex-direction:column; gap:var(--sp-1); min-width:0; }
+  .app-bar-left .crumb{ font-size:var(--fs-2xs); }
+  .app-bar-left .title-primary{ font-size:clamp(22px, 2.6vw, 30px); line-height:var(--lh-tight); letter-spacing:var(--tr-tight); }
+  .app-bar-right{ display:flex; align-items:center; gap:var(--sp-3); flex-wrap:wrap; }
+  .bar-sep{ width:1px; align-self:stretch; background:rgba(255,255,255,.10); margin:0 var(--sp-1); }
+
+  .stage{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
+  /* equation + mode share one row: the formal statement on the left, the mode selector
+     docked to its right, so the board reclaims the full row the mode-toggle used to own. */
+  .eq-bar{ flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; gap:var(--sp-5); padding:var(--sp-3) var(--sp-6) var(--sp-2); flex-wrap:wrap; }
+  .eq-left{ display:flex; flex-direction:column; gap:var(--sp-1); min-width:0; }
+  .control-row{ flex:0 0 auto; padding:var(--sp-2) var(--sp-6) var(--sp-3); }
+  .control-sep{ width:1px; align-self:stretch; background:rgba(255,255,255,.08); margin:0 var(--sp-2); }
+  .workspace{ flex:1 1 auto; min-height:0; }
+  .board-wrap{ flex:1 1 64%; min-width:0; position:relative; padding:0; }
+  .board-wrap .jxgbox{ position:absolute; inset:0; width:auto; height:auto; }
+  .procedure{ flex:0 0 36%; max-width:380px; min-height:0; overflow-y:auto; }
+  /* premium compact lesson nav — lives in the header now (wayfinding is a header
+     concern), not a wasted full-width bottom row. fit-content chevron pills, tinted
+     shadow + scale press adapted from uiverse button patterns into the lab identity
+     (teal hairline, dark fill, one accent). The chevron carries direction and mirrors
+     in RTL, so no per-side transforms are needed. */
+  .app-bar .nav-pill{ flex:0 0 auto; width:fit-content; max-width:30ch; display:inline-flex; align-items:center; gap:var(--sp-2); font-family:var(--display); font-size:var(--fs-xs); color:var(--pulse-ash); border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.02); border-radius:100px; padding:var(--sp-2) var(--sp-4); text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,.30); transition:border-color .2s ease, background .25s cubic-bezier(.16,1,.3,1), color .2s ease, transform .2s cubic-bezier(.16,1,.3,1), box-shadow .25s ease; }
+  .app-bar .nav-pill:hover{ border-color:rgba(92,147,159,.5); background:linear-gradient(180deg, rgba(92,147,159,.16), rgba(92,147,159,.04)); color:var(--off-white); transform:translateY(-1px); box-shadow:0 6px 16px rgba(0,0,0,.34), 0 0 0 1px rgba(92,147,159,.18); }
+  .app-bar .nav-pill:active{ transform:scale(.97); }
+  .app-bar .nav-pill svg{ width:14px; height:14px; fill:none; stroke:var(--electric-teal); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:0 0 auto; }
+  html[dir="rtl"] .app-bar .nav-pill svg{ transform:scaleX(-1); }
+  .app-bar .nav-pill b{ color:var(--neural-fog); font-family:var(--display); font-size:var(--fs-xs); font-weight:500; line-height:var(--lh-tight); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:26ch; }
+  .app-bar .nav-pill b.ar-body{ font-weight:600; }
+
+  @media (prefers-reduced-motion: reduce){
+    .board-wrap .jxgbox::before, .proc-step.is-active .proc-num{ animation: none !important; }
+    .nb-cursor{ transition:opacity .3s ease; }
+  }
+
+  /* strict language separation: in EN the Arabic title is hidden, in AR the English
+     title is hidden — no second-language line is ever visible. The lang pill's EN/AR
+     glyphs are toggle controls, not content, so they stay. */
+  html[lang="en"] #titleAr { display:none; }
+  html[lang="ar"] #titleEn { display:none; }
+
+  @media (max-width:760px){
+    .app{ height:auto; min-height:100dvh; overflow:auto; }
+    .app-bar{ align-items:flex-start; }
+    .workspace{ flex-direction:column; }
+    .procedure{ flex:none; max-width:none; min-height:0; overflow-y:visible; border-left:none; border-top:1px solid rgba(255,255,255,.06); }
+    .board-wrap{ position:relative; padding:6px; }
+    .board-wrap .jxgbox{ position:relative; inset:auto; width:100%; height:440px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="app-bar">
+    <div class="app-bar-left">
+      <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 4 · LESSON 5</div>
+      <h1 class="title-primary" id="titleEn">Bisecting a Segment and an Angle</h1>
+      <h1 class="title-primary ar-display" id="titleAr">أنصف قطعة مستقيمة وزاوية</h1>
+    </div>
+    <div class="app-bar-right">
+      <a class="nav-pill prev" href="4-4-diameter-radius.html" title="4.4 · Diameter &amp; Radius">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+        <b data-role="body" id="navPrevText">4.4 · Diameter &amp; Radius</b>
+      </a>
+      <a class="nav-pill next" href="5-1-powers-exponents.html" title="5.1 · Powers &amp; Exponents">
+        <b data-role="body" id="navNextText">5.1 · Powers &amp; Exponents</b>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+      </a>
+      <span class="bar-sep" aria-hidden="true"></span>
+      <div class="lang-pill">
+        <button data-lang="en" class="active">EN</button>
+        <button data-lang="ar">AR</button>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+  </header>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div class="eq-left">
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" id="eqSubLine">straightedge and compass only, same opening for both arcs</div>
+      </div>
+      <div class="mode-toggle" id="modeToggle">
+        <button class="mode-btn active" data-mode="bisector" data-role="ui" data-i18n="modeBisector">perpendicular bisector</button>
+        <button class="mode-btn" data-mode="angle" data-role="ui" data-i18n="modeAngle">angle bisector</button>
+      </div>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="widthLabel">compass width</label>
+      <input type="range" id="widthSlider" min="0" max="10" step="1" value="4" />
+      <span class="control-val" id="widthReadout">5</span>
+      <span class="control-sep" aria-hidden="true"></span>
+      <label data-role="ui" data-i18n="stepLabel">step</label>
+      <input type="range" id="stepSlider" min="0" max="3" step="1" value="0" />
+      <span class="control-val" id="stepReadout">1 / 4</span>
+    </div>
+
+    <div class="workspace">
+      <div class="board-wrap"><div class="jxgbox" id="board"></div></div>
+      <div class="procedure" id="procedure">
+        <div class="procedure-head" data-role="ui" data-i18n="procHead">Construction steps</div>
+        <div id="procList"></div>
+        <div class="proc-why" id="procWhy" data-role="body"></div>
+        <div class="teach">
+          <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Constructions use only an unmarked straightedge and compass — no ruler measurement, no protractor. A perpendicular bisector and an angle bisector are both built from equal-radius arcs and their intersections: the crossing points are equidistant from the two centers by construction, not by measuring, which is exactly why the resulting line is provably correct.</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const { initI18n, renderEquation, buildNotebook } = LessonShell;
+  const { springValue, appear, draw, reveal, animate, EXPO, STATE_SPRING } = LessonMotion;
+
+  // ---- palette (DESIGN_SYSTEM.md §1) — JSXGraph takes hex strings, not CSS vars ----
+  // lab-identity story (one accent per role): neutrals = given/structure, teal = the
+  // compass work + active/selected state, green = the provably-correct result. infrared
+  // is the lab's CTA-only accent and is NOT used on the board — no orange reaches the
+  // construction, so it reads as the lab, not a generic geometry widget.
+  const C = {
+    fog: "#dadada", ash: "#7d858c", white: "#e7e7e7",
+    teal: "#5c939f", infrared: "#ed6d40", green: "#59a993"
+  };
+
+  // ---- i18n strings ----------------------------------------------------------
+  // tour is split per-mode so it can target each mode's JSXGraph elements by id.
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 4 · LESSON 5",
+      objectiveLabel: "Objective —",
+      objectiveText: "I bisect a line segment and an angle using an unmarked straightedge and compass.",
+      explainBtn: "Explain this",
+      explainTitle: "Explain", explainWhole: "Whole construction", explainSingle: "or a single step",
+      widthLabel: "compass width", stepLabel: "step",
+      modeBisector: "perpendicular bisector", modeAngle: "angle bisector",
+      eqSubBisector: "straightedge and compass only, same opening for both arcs",
+      eqSubAngle: "an arc from the vertex, then equal arcs from where it crosses",
+      procHead: "Construction steps",
+      teachLabel: "What this teaches:",
+      teachBody: "Constructions use only an unmarked straightedge and compass, no measuring. The key step in bisecting a segment is keeping the compass opening unchanged between the two arcs, so the crossing points are equidistant from both ends by construction, not by measuring, which makes the line through them the perpendicular bisector. An angle bisector is a ray that divides the angle into two congruent angles, built the same way: an arc from the vertex, then equal arcs from where it crosses.",
+      navPrev: "4.4 · Diameter & Radius",
+      navNext: "5.1 · Powers & Exponents",
+      navPrevLabel: "prev",
+      navNextLabel: "next",
+      proc: {
+        bisector: [
+          "Use the straightedge to draw a segment and name it AB.",
+          "Open the compass more than half of AB. Place the point at A and swing a large arc.",
+          "Without changing the width, place the point at B and swing the same arc. The two arcs cross in two points.",
+          "Draw the straight line through the two crossings. It is the perpendicular bisector of AB."
+        ],
+        angle: [
+          "Start with the given angle at vertex V.",
+          "Swing an arc from V that crosses both sides at P and Q.",
+          "From P and from Q, swing equal arcs; mark their crossing R.",
+          "Draw the ray VR. It divides the angle into two congruent angles."
+        ]
+      },
+      why: {
+        bisector: "<b>Why it works:</b> The compass stays at the same opening for both arcs, so AP = BP and AQ = BQ. Each crossing point is equidistant from A and B, and the locus of points equidistant from A and B is the perpendicular bisector, so the line through P and Q is exactly it.",
+        angle: "<b>Why it works:</b> VP = VQ (one arc from V) and PR = QR (equal arcs from P and Q), so R is equidistant from both sides. Every point on the angle bisector is equidistant from the two sides, so the ray VR splits the angle into two congruent angles."
+      },
+      tour: {
+        bisector: [
+          { ids: ["bi-seg", "bi-A", "bi-B"], label: "Start with the given", body: "A segment AB drawn with the straightedge, nothing measured. Drag A or B to change it." },
+          { ids: ["bi-ca"], label: "Arc from A", body: "Open the compass more than half of AB and swing a large arc from A." },
+          { ids: ["bi-cb", "bi-P", "bi-Q"], label: "Same arc from B", body: "Without changing the width, swing the same arc from B. The two arcs cross in two points." },
+          { ids: ["bi-line"], label: "Draw the result", body: "A straight line through the two crossings is the perpendicular bisector, provably exact." }
+        ],
+        angle: [
+          { ids: ["an-r1", "an-r2", "an-V"], label: "Start with the given", body: "An angle at vertex V — nothing measured. Drag V or either side; the construction follows." },
+          { ids: ["an-cv", "an-P", "an-Q"], label: "An arc from the vertex", body: "One arc from V crosses both sides at P and Q — so VP = VQ by construction." },
+          { ids: ["an-cp", "an-cq", "an-R"], label: "Equal arcs from P and Q", body: "From P and from Q, swing equal arcs. Where they cross, R is equidistant from both — PR = QR." },
+          { ids: ["an-ray"], label: "Draw the result", body: "The ray from V through R is the angle bisector — provably exact, no protractor needed." }
+        ]
+      }
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ٤ · الدرس ٥",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أُنصِّف قطعةً مستقيمةً وزاويةً باستعمال المسطرة غير المدرَّجة والفرجار.",
+      explainBtn: "اشرح هذا",
+      explainTitle: "اشرح", explainWhole: "الإنشاء كاملًا", explainSingle: "أو خطوة واحدة",
+      widthLabel: "فتحة الفرجار", stepLabel: "الخطوة",
+      modeBisector: "المحور العمودي المنصِّف", modeAngle: "منصِّف الزاوية",
+      eqSubBisector: "المسطرة والفرجار فقط، والفتحة نفسها لكلا القوسين",
+      eqSubAngle: "قوس من الرأس، ثم أقواس متساوية من نقطتَي تقاطعه",
+      procHead: "خطوات الإنشاء",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "الإنشاءات الهندسية تستعمل المسطرة غير المدرَّجة والفرجار فقط، دون قياس. الخطوة الأساسية في إنشاء المنصف العمودي هي عدم تغيير فتحة الفرجار بين القوسين، فتكون نقاط التقاطع على البعد نفسه من الطرفين بالإنشاء لا بالقياس، وهذا يجعل الخط الناتج المنصف العمودي. ومنصف الزاوية شعاع يقسم الزاوية إلى زاويتين متطابقتين، يُبنى بالطريقة نفسها: قوس من الرأس ثم قوسان متساويان من نقطتي تقاطعه.",
+      navPrev: "٤.٤ · علاقة القطر بنصف القطر",
+      navNext: "٥.١ · القوى والأسس",
+      navPrevLabel: "السابق",
+      navNextLabel: "التالي",
+      proc: {
+        bisector: [
+          "أستعمل المسطرة لرسم قطعة مستقيمة وأسمّيها AB.",
+          "أفتح الفرجار فتحة تزيد على نصف القطعة، وأثبّت رأسه عند A، وأرسم قوسًا كبيرًا.",
+          "دون تغيير فتحة الفرجار، أضع رأسه عند B وأرسم القوس نفسه؛ فيتقاطع القوسان في نقطتين.",
+          "أرسم خطًّا مستقيمًا يمر بنقطتي تقاطع القوسين، وهو المنصف العمودي للقطعة."
+        ],
+        angle: [
+          "ابدأ بالزاوية المعطاة عند رأسها V.",
+          "ارسم قوسًا من V يقطع ضلعَي الزاوية عند P و Q.",
+          "من P ومن Q ارسم قوسين متساويين، وعلِّم نقطة تقاطعهما R.",
+          "ارسم الشعاع VR. يقسم الزاوية إلى زاويتين متطابقتين."
+        ]
+      },
+      why: {
+        bisector: "<b>لماذا يعمل:</b> يبقى الفرجار بالفتحة نفسها لكلا القوسين، فتكون AP = BP و AQ = BQ. كل نقطة تقاطع تبعد المسافة نفسها عن A و B، ومجموع النقاط التي تبعد المسافة نفسها عن A و B هو المنصف العمودي، فالخط عبر P و Q هو بالضبط ذلك المنصف.",
+        angle: "<b>لماذا يعمل:</b> VP = VQ (قوس واحد من V) و PR = QR (قوسان متساويان من P و Q)، فتكون R على البعد نفسه من الضلعين. كل نقطة على منصف الزاوية تبعد المسافة نفسها عن الضلعين، فالشعاع VR يقسم الزاوية إلى زاويتين متطابقتين."
+      },
+      tour: {
+        bisector: [
+          { ids: ["bi-seg", "bi-A", "bi-B"], label: "ابدأ بالمعطى", body: "قطعة AB بالمسطرة — لا قياس، فقط المعطى. اسحب A أو B لتغييرها." },
+          { ids: ["bi-ca"], label: "قوس من A", body: "افتح الفرجار أكثر من نصف AB وارسم قوسًا كبيرًا من A." },
+          { ids: ["bi-cb", "bi-P", "bi-Q"], label: "القوس نفسه من B", body: "دون تغيير الفتحة، ارسم القوس نفسه من B؛ يتقاطع القوسان في نقطتين." },
+          { ids: ["bi-line"], label: "ارسم الناتج", body: "خط مستقيم عبر نقطتي التقاطع هو المنصف العمودي، دقيق برهانيًا." }
+        ],
+        angle: [
+          { ids: ["an-r1", "an-r2", "an-V"], label: "ابدأ بالمعطى", body: "زاوية عند رأسها V — لا شيء مقاسًا. اسحب V أو أحد الضلعين؛ يتابع الإنشاء التغيير." },
+          { ids: ["an-cv", "an-P", "an-Q"], label: "قوس من الرأس", body: "قوس واحد من V يقطع الضلعين عند P و Q — فتكون VP = VQ بالإنشاء." },
+          { ids: ["an-cp", "an-cq", "an-R"], label: "قوسان متساويان من P و Q", body: "من P ومن Q ارسم قوسين متساويين. حيث يتقاطعان، تكون R على بُعد المسافة نفسها — PR = QR." },
+          { ids: ["an-ray"], label: "ارسم الناتج", body: "الشعاع من V عبر R هو منصِّف الزاوية — دقيق برهانيًا، دون منقلة." }
+        ]
+      }
+    }
+  };
+
+  // ---- professor's notebook content (per lesson, state-aware) ----------------
+  // Each entry is a function of the live arc radius r (units) and returns
+  //   { ids:[...], kicker, sections:[{h,p}, ...] }
+  // "{r}" is interpolated at render time with the board's CURRENT radius, so the
+  // explanation tracks the actual compass opening on screen — not a fixed number.
+  // Four sections: On the board now / The move / Why it holds / Next (→ Result at the
+  // last step). This is the "professor's notebook" voice: what you see, the action, the
+  // reasoning, and where it leads — authored per (mode × step × language), never one
+  // generic script for everything.
+  const EXPLAIN = {
+    en: {
+      bisector: [
+        () => ({ ids: ["bi-seg", "bi-A", "bi-B"], kicker: "Step 1 of 4 · Perpendicular bisector", sections: [
+          { h: "On the board now", p: "A single segment AB, drawn with the straightedge. Only the two endpoints are given — nothing is measured. Drag A or B and the whole construction rebuilds around your new segment." },
+          { h: "The move", p: "Step 1 — lay down the segment to bisect. The straightedge gives the line; the endpoints fix the length. No ruler markings are used: constructions never measure." },
+          { h: "Why it holds", p: "Nothing to prove yet. We've only fixed what was given — a segment and its two endpoints." },
+          { h: "Next", p: "Next, open the compass to more than half of AB and swing a first arc from A. The opening must exceed half the segment, or the two later arcs won't reach each other." }
+        ]}),
+        (r) => ({ ids: ["bi-ca"], kicker: "Step 2 of 4 · Perpendicular bisector", sections: [
+          { h: "On the board now", p: "One teal arc, centred at A. Its radius is about {r} units — more than half of AB, so it already crosses past the midpoint. Slide the compass-width control to see it resize." },
+          { h: "The move", p: "Step 2 — open the compass past half of AB, plant the point at A, swing a large arc. This opening is now locked: it must not change for the next arc." },
+          { h: "Why it holds", p: "Every point on this arc is exactly {r} units from A. That is the only fact this arc gives us — a locus of points at one fixed distance from A." },
+          { h: "Next", p: "Next, without changing the opening, swing the identical arc from B. Keeping the opening identical is the whole trick: it is what makes the two crossings equidistant from both ends." }
+        ]}),
+        (r) => ({ ids: ["bi-cb", "bi-P", "bi-Q"], kicker: "Step 3 of 4 · Perpendicular bisector", sections: [
+          { h: "On the board now", p: "A second teal arc, centred at B — same radius {r}, because the opening never changed. The two arcs cross at P and Q (white)." },
+          { h: "The move", p: "Step 3 — without changing the compass, swing the same arc from B. The two arcs meet at P and Q." },
+          { h: "Why it holds", p: "Because the opening never changed, P and Q each lie on both circles: AP = BP and AQ = BQ. Each crossing is equidistant from A and from B — by construction, not by measuring." },
+          { h: "Next", p: "Next, one straight line through P and Q. Since both crossings are equidistant from A and B, that line is forced to be the perpendicular bisector." }
+        ]}),
+        () => ({ ids: ["bi-line"], kicker: "Step 4 of 4 · Perpendicular bisector", sections: [
+          { h: "On the board now", p: "The green line through P and Q — the perpendicular bisector of AB. It meets AB at its midpoint and at a right angle." },
+          { h: "The move", p: "Step 4 — draw the straight line through the two crossings. This is the constructed result." },
+          { h: "Why it holds", p: "P and Q are both equidistant from A and B, so the line PQ is the locus of all points equidistant from A and B — exactly the perpendicular bisector. It passes through the midpoint (equal distances ⇒ halfway) and is perpendicular (the locus is the mirror line of the segment). No ruler, no protractor — yet provably exact." },
+          { h: "Result", p: "Construction complete. Change the compass width: the arcs resize and P, Q move, but the green bisector stays put — it never depends on the opening, only on A and B." }
+        ]})
+      ],
+      angle: [
+        () => ({ ids: ["an-r1", "an-r2", "an-V"], kicker: "Step 1 of 4 · Angle bisector", sections: [
+          { h: "On the board now", p: "An angle at vertex V with two sides (rays) leaving it. Drag V to move the vertex, or drag the end of either ray to change how wide the angle opens." },
+          { h: "The move", p: "Step 1 — start from the given angle. The goal is the ray that splits it into two equal angles." },
+          { h: "Why it holds", p: "Nothing to prove yet — only the angle is given." },
+          { h: "Next", p: "Next, one arc from V crosses both sides at P and Q, giving two points equally far from the vertex." }
+        ]}),
+        (r) => ({ ids: ["an-cv", "an-P", "an-Q"], kicker: "Step 2 of 4 · Angle bisector", sections: [
+          { h: "On the board now", p: "One teal arc from V cuts both sides at P and Q. Because it is a single arc, VP = VQ — both are {r} units from V." },
+          { h: "The move", p: "Step 2 — swing an arc from the vertex that crosses both sides. Mark the crossings P and Q." },
+          { h: "Why it holds", p: "One arc, one centre, one radius ⇒ VP = VQ. We now have two points on the sides, equally far from the vertex." },
+          { h: "Next", p: "Next, from P and from Q swing equal arcs. Their crossing R will be equidistant from both sides." }
+        ]}),
+        (r) => ({ ids: ["an-cp", "an-cq", "an-R"], kicker: "Step 3 of 4 · Angle bisector", sections: [
+          { h: "On the board now", p: "Two equal teal arcs from P and Q, crossing at R. R is equidistant from both sides of the angle." },
+          { h: "The move", p: "Step 3 — from P and from Q, swing equal arcs (same opening). Mark their crossing R." },
+          { h: "Why it holds", p: "VP = VQ from step 2, and PR = QR because the two new arcs are equal. So R is equidistant from both sides — exactly the property that defines the angle bisector." },
+          { h: "Next", p: "Next, the ray from V through R. Since R is equidistant from both sides, that ray splits the angle into two congruent angles." }
+        ]}),
+        () => ({ ids: ["an-ray"], kicker: "Step 4 of 4 · Angle bisector", sections: [
+          { h: "On the board now", p: "The green ray from V through R — the angle bisector. It divides the angle into two congruent (equal) angles." },
+          { h: "The move", p: "Step 4 — draw the ray VR. This is the constructed bisector." },
+          { h: "Why it holds", p: "R is equidistant from both sides (VP = VQ and PR = QR), and every point equidistant from the two sides of an angle lies on its bisector. So VR splits the angle exactly in half — by construction, no protractor." },
+          { h: "Result", p: "Construction complete. Drag the sides to change the angle: R tracks the crossings and the green bisector always splits the new angle in half." }
+        ]})
+      ]
+    },
+    ar: {
+      bisector: [
+        () => ({ ids: ["bi-seg", "bi-A", "bi-B"], kicker: "الخطوة ١ من ٤ · المنصف العمودي", sections: [
+          { h: "على اللوح الآن", p: "قطعة واحدة AB مرسومة بالمسطرة. نقطتا الطرفين فقط هما المعطى — لا شيء مقيس. اسحب A أو B فيُعاد بناء الإنشاء كله حول القطعة الجديدة." },
+          { h: "الخطوة", p: "الخطوة ١ — أرسم القطعةَ التي أريد تنصيفها. المسطرة تُعطي الخطَّ، ونقطتا الطرفين تُحدّدان الطول. لا تُستعمل علامات المسطرة: الإنشاءات لا تقيس أبدًا." },
+          { h: "لماذا يصح", p: "لا شيء لإثباته بعد. لقد ثبّتنا المعطى فقط — قطعةً ونقطتي طرفيها." },
+          { h: "التالي", p: "التالي: أفتح الفرجار أكثر من نصف AB وأرسم قوسًا أول من A. يجب أن تزيد الفتحة على نصف القطعة، وإلّا فلن يتقاطع القوسان لاحقًا." }
+        ]}),
+        (r) => ({ ids: ["bi-ca"], kicker: "الخطوة ٢ من ٤ · المنصف العمودي", sections: [
+          { h: "على اللوح الآن", p: "قوسٌ واحد بلون التيل من A. نصف قطره نحو {r} وحدات — أكثر من نصف AB، فيتجاوز نقطة المنتصف. حرّك زرَّ فتحة الفرجار لتراه يتغيّر." },
+          { h: "الخطوة", p: "الخطوة ٢ — أفتح الفرجار أكثر من نصف AB، وأثبّت رأسه عند A، وأرسم قوسًا كبيرًا. هذه الفتحة الآن مثبّتة: لا يجوز تغييرها في القوس التالي." },
+          { h: "لماذا يصح", p: "كل نقطة على هذا القوس تبعد عن A مسافة {r} وحدات بالضبط. هذا كل ما يُعطيه القوس: مجموعة نقاط على بُعد ثابت من A." },
+          { h: "التالي", p: "التالي: دون تغيير الفتحة، أرسم القوسَ نفسه من B. إبقاءُ الفتحة كما هي هي الحيلة كلها: بها تصير نقطتا التقاطع على البعد نفسه من الطرفين." }
+        ]}),
+        (r) => ({ ids: ["bi-cb", "bi-P", "bi-Q"], kicker: "الخطوة ٣ من ٤ · المنصف العمودي", sections: [
+          { h: "على اللوح الآن", p: "قوسٌ ثانٍ بلون التيل من B — نصف القطر نفسه {r}، لأن الفتحة لم تتغيّر. يتقاطع القوسان عند P و Q (أبيض)." },
+          { h: "الخطوة", p: "الخطوة ٣ — دون تغيير الفرجار، أرسم القوس نفسه من B. يلتقي القوسان عند P و Q." },
+          { h: "لماذا يصح", p: "لأن الفتحة لم تتغيّر، تقع P و Q على الدائرتين معًا: AP = BP و AQ = BQ. كل نقطة تقاطع تبعد المسافة نفسها عن A وعن B — بالإنشاء لا بالقياس." },
+          { h: "التالي", p: "التالي: خطٌّ مستقيم واحد عبر P و Q. وبما أن نقطتي التقاطع تبعدان المسافة نفسها عن A و B، فذلك الخطُّ حتمًا هو المنصف العمودي." }
+        ]}),
+        () => ({ ids: ["bi-line"], kicker: "الخطوة ٤ من ٤ · المنصف العمودي", sections: [
+          { h: "على اللوح الآن", p: "الخط الأخضر عبر P و Q — المنصف العمودي لـ AB. يلتقي AB عند منتصفه وعلى زاوية قائمة." },
+          { h: "الخطوة", p: "الخطوة ٤ — أرسم الخط المستقيم عبر نقطتي التقاطع. هذا هو الناتج المنشأ." },
+          { h: "لماذا يصح", p: "P و Q تبعدان المسافة نفسها عن A و B، فخطُّ PQ هو مجموع النقاط التي تبعد المسافة نفسها عن A و B — وهو بالضبط المنصف العمودي. يمرّ بالمنتصف (مسافات متساوية ⇒ المنتصف) ويكون عموديًا (المجموع هو خطّ تماثل القطعة). بلا مسطرة مدرَّجة ولا منقلة — ومع ذلك فهو دقيق برهانيًا." },
+          { h: "النتيجة", p: "اكتمل الإنشاء. غيّر فتحة الفرجار: يتغيّر حجم القوسين وتنتقل P و Q، لكن المنصف الأخضر يثبت — لا يعتمد على الفتحة، بل على A و B فقط." }
+        ]})
+      ],
+      angle: [
+        () => ({ ids: ["an-r1", "an-r2", "an-V"], kicker: "الخطوة ١ من ٤ · منصف الزاوية", sections: [
+          { h: "على اللوح الآن", p: "زاوية عند رأسها V وضلعان (شعاعان) يخرجان منها. اسحب V لتحريك الرأس، أو اسحب طرفَ أحد الضلعين لتغيير اتساع الزاوية." },
+          { h: "الخطوة", p: "الخطوة ١ — أبدأ بالزاوية المعطاة. الهدف هو الشعاعُ الذي يقسمها إلى زاويتين متساويتين." },
+          { h: "لماذا يصح", p: "لا شيء لإثباته بعد — الزاوية فقط هي المعطى." },
+          { h: "التالي", p: "التالي: قوسٌ واحد من V يقطع الضلعين عند P و Q، فيُعطي نقطتين تبعدان المسافة نفسها عن الرأس." }
+        ]}),
+        (r) => ({ ids: ["an-cv", "an-P", "an-Q"], kicker: "الخطوة ٢ من ٤ · منصف الزاوية", sections: [
+          { h: "على اللوح الآن", p: "قوسٌ واحد بلون التيل من V يقطع الضلعين عند P و Q. ولأنه قوس واحد، فـ VP = VQ — كلاهما يبعد {r} وحدات من V." },
+          { h: "الخطوة", p: "الخطوة ٢ — أرسم قوسًا من الرأس يقطع الضلعين. أُعلِّم نقطتي التقاطع P و Q." },
+          { h: "لماذا يصح", p: "قوسٌ واحد، مركزٌ واحد، نصف قطر واحد ⇒ VP = VQ. صار لدينا نقطتان على الضلعين تبعدان المسافة نفسها عن الرأس." },
+          { h: "التالي", p: "التالي: من P ومن Q أرسم قوسين متساويين. نقطة تقاطعهما R ستبعد المسافة نفسها عن الضلعين." }
+        ]}),
+        (r) => ({ ids: ["an-cp", "an-cq", "an-R"], kicker: "الخطوة ٣ من ٤ · منصف الزاوية", sections: [
+          { h: "على اللوح الآن", p: "قوسان متساويان بلون التيل من P و Q، يتقاطعان عند R. وتقع R على البعد نفسه من ضلعَي الزاوية." },
+          { h: "الخطوة", p: "الخطوة ٣ — من P ومن Q أرسم قوسين متساويين (الفتحة نفسها). أُعلِّم نقطة تقاطعهما R." },
+          { h: "لماذا يصح", p: "VP = VQ من الخطوة ٢، و PR = QR لأن القوسين الجديدين متساويان. فتقع R على البعد نفسه من الضلعين — وهذا بالضبط ما يُعرّف منصف الزاوية." },
+          { h: "التالي", p: "التالي: الشعاع من V عبر R. وبما أن R تبعد المسافة نفسها عن الضلعين، فإن ذلك الشعاعَ يقسم الزاوية إلى زاويتين متطابقتين." }
+        ]}),
+        () => ({ ids: ["an-ray"], kicker: "الخطوة ٤ من ٤ · منصف الزاوية", sections: [
+          { h: "على اللوح الآن", p: "الشعاع الأخضر من V عبر R — منصف الزاوية. يقسم الزاوية إلى زاويتين متطابقتين (متساويتين)." },
+          { h: "الخطوة", p: "الخطوة ٤ — أرسم الشعاع VR. هذا هو المنصف المنشأ." },
+          { h: "لماذا يصح", p: "R تبعد المسافة نفسها عن الضلعين (VP = VQ و PR = QR)، وكل نقطة تبعد المسافة نفسها عن ضلعَي زاوية تقع على منصفها. فالشعاع VR يقسم الزاوية إلى نصفين تمامًا — بالإنشاء، دون منقلة." },
+          { h: "النتيجة", p: "اكتمل الإنشاء. اسحب الضلعين لتغيير الزاوية: تتبع R نقطتي التقاطع ويظل المنصف الأخضر يقسم الزاوية الجديدة إلى نصفين." }
+        ]})
+      ]
+    }
+  };
+
+  // eastern Arabic-Indic digits + Arabic decimal separator, for AR number rendering
+  function arNum(s) {
+    return String(s).replace(/[0-9]/g, function (d) { return "٠١٢٣٤٥٦٧٨٩"[+d]; }).replace(/\./, "٫");
+  }
+
+  // ---- DOM refs ---------------------------------------------------------------
+  const boardEl = document.getElementById("board");
+  const eqLine = document.getElementById("eqLine");
+  const eqSubLine = document.getElementById("eqSubLine");
+  const widthSlider = document.getElementById("widthSlider");
+  const widthReadout = document.getElementById("widthReadout");
+  const stepSlider = document.getElementById("stepSlider");
+  const stepReadout = document.getElementById("stepReadout");
+  const modeToggle = document.getElementById("modeToggle");
+  const procList = document.getElementById("procList");
+  const procWhy = document.getElementById("procWhy");
+
+  // ---- state ------------------------------------------------------------------
+  let mode = "bisector";
+  let step = 0;
+  // compass width as a spring value — the slider writes to it, the scene reads the
+  // eased value each frame. This is the fix for "slider jumps the visual": the spring
+  // catches up, so the arcs resize fluidly instead of snapping.
+  let widthSpring = springValue(4, () => { if (board) board.update(); });
+  // group registry: per mode, { given:[els], arcs:[els], marks:[els], result:[els] }
+  let groups = null;
+  let board = null;
+  let notebook = null; // professor's-notebook panel (assigned at mount)
+
+  // live arc radius in board units, read straight from the current scene so the
+  // notebook's "{r}" tracks the actual compass opening on screen (incl. drags)
+  function liveRadius() {
+    try {
+      if (mode === "bisector" && groups && groups.arcA) return groups.arcA[0].Radius().toFixed(1);
+      if (mode === "angle" && groups && groups.arcs) return groups.arcs[0].Radius().toFixed(1);
+    } catch (e) {}
+    return "—";
+  }
+  // build the notebook entry for the CURRENT state (mode × step × lang × live radius)
+  function getEntry() {
+    const lang = i18n.lang;
+    const r = liveRadius();
+    const entry = EXPLAIN[lang][mode][step](r);
+    const rs = lang === "ar" ? arNum(r) : r;
+    entry.kicker = entry.kicker.replace("{r}", rs);
+    entry.sections.forEach(function (s) { s.h = s.h.replace("{r}", rs); s.p = s.p.replace("{r}", rs); });
+    return entry;
+  }
+
+  // threshold at which each group appears — matches the 4 tour steps / procedure items
+  // bisector reveals arc-from-A and arc-from-B as SEPARATE steps — the book's خطوة ٢
+  // and خطوة ٣, whose whole point is "do not change the compass opening between them".
+  // angle keeps the single arcs group (one arc from V) at step 1.
+  const THRESH = { given: 0, arcA: 1, arcB: 2, arcs: 1, marks: 2, result: 3 };
+
+  // ---- JSXGraph board ---------------------------------------------------------
+  function makeBoard() {
+    board = JXG.JSXGraph.initBoard(boardEl.id, {
+      boundingbox: [-3, 6, 11, -4],
+      axis: false, showCopyright: false, showNavigation: false,
+      keepaspectratio: true, // geometry must not be distorted
+      pan: { enabled: false }, zoom: { enabled: false },
+      grid: false
+    });
+  }
+
+  // tag a JSXGraph element's SVG node for the tour + dim scheme, give it a stable id
+  function tag(el, id, groupKey) {
+    el.rendNode.id = id;
+    el.rendNode.classList.add("dimmable");
+    el.rendNode.dataset.el = groupKey;
+  }
+
+  // shared point style
+  function givenPoint(coords, name, id) {
+    const p = board.create("point", coords, {
+      name: name, size: 5, face: "o", fillColor: C.fog, strokeColor: C.fog,
+      fixed: false, showInfobox: false, highlightFillColor: C.teal,
+      label: { offset: [-12, 14], fontSize: 16, color: C.fog, cssStyle: "font-family:'Azeret Mono',monospace" }
+    });
+    tag(p, id, "given");
+    return p;
+  }
+  function markPoint(parent, id, color) {
+    const p = board.create("point", parent, {
+      name: "", size: 4, face: "o", fillColor: color, strokeColor: color,
+      fixed: true, showInfobox: false
+    });
+    tag(p, id, "marks");
+    return p;
+  }
+
+  function buildBisector() {
+    const A = givenPoint([1.5, 1], "A", "bi-A");
+    const B = givenPoint([7, 1], "B", "bi-B");
+    const seg = board.create("segment", [A, B], { strokeColor: C.fog, strokeWidth: 2.5, strokeOpacity: 0.95, highlight: false });
+    tag(seg, "bi-seg", "given");
+
+    // radius = half of AB × (1.05 + gentle width factor), always > half → circles
+    // always intersect, but the range stays inside the board's margins so arcs never
+    // clip the edge. Reads the spring value, so the arcs resize fluidly as it settles.
+    const rFn = () => A.Dist(B) / 2 * (1.05 + 0.05 * (widthSpring.get() + 1));
+    // both arcs are the SAME tool (equal-radius compass) → same teal, the lab accent
+    // for construction work. The equality is the lesson; a second color would lie about it.
+    const cA = board.create("circle", [A, rFn], { strokeColor: C.teal, strokeWidth: 2.25, strokeOpacity: 0.95, dash: 2, fillOpacity: 0, highlight: false });
+    const cB = board.create("circle", [B, rFn], { strokeColor: C.teal, strokeWidth: 2.25, strokeOpacity: 0.95, dash: 2, fillOpacity: 0, highlight: false });
+    tag(cA, "bi-ca", "arcs"); tag(cB, "bi-cb", "arcs");
+
+    const P = board.create("intersection", [cA, cB, 0], { name: "P", size: 4, fillColor: C.white, strokeColor: C.teal, fixed: true, showInfobox: false, label: { offset: [8, 12], fontSize: 16, color: C.fog } });
+    const Q = board.create("intersection", [cA, cB, 1], { name: "Q", size: 4, fillColor: C.white, strokeColor: C.teal, fixed: true, showInfobox: false, label: { offset: [8, -16], fontSize: 16, color: C.fog } });
+    tag(P, "bi-P", "marks"); tag(Q, "bi-Q", "marks");
+
+    const line = board.create("line", [P, Q], { strokeColor: C.green, strokeWidth: 3, strokeOpacity: 0.95, highlight: false, straightFirst: true, straightLast: true });
+    tag(line, "bi-line", "result");
+
+    // arcA = the arc from A (خطوة ٢); arcB = the arc from B + the two crossings (خطوة ٣).
+    // Splitting the arcs is what makes "same opening" visible as a separate step.
+    return { given: [seg, A, B], arcA: [cA], arcB: [cB, P, Q], result: [line] };
+  }
+
+  function buildAngle() {
+    const V = givenPoint([1.5, 1], "V", "an-V");
+    // U, W are unlabeled drag-handles that set each side's direction — the rays are the
+    // visible "given"; the handles read as grab-points, not book-labelled vertices.
+    const handle = (coords, id) => {
+      const p = board.create("point", coords, {
+        name: "", size: 4, face: "o", fillColor: C.ash, strokeColor: C.ash,
+        fixed: false, showInfobox: false, highlightFillColor: C.teal,
+        label: { visible: false }
+      });
+      tag(p, id, "given");
+      return p;
+    };
+    const U = handle([8, 1], "an-U2");
+    const W = handle([6.5, 4], "an-W2");
+    // JSXGraph has no "ray" type — a ray is a line with straightFirst:false,
+    // straightLast:true + lastArrow. These are the visible sides of the angle.
+    const r1 = board.create("line", [V, U], { strokeColor: C.fog, strokeWidth: 2.5, strokeOpacity: 0.95, highlight: false, straightFirst: false, straightLast: true, lastArrow: { type: 1, size: 6 } });
+    const r2 = board.create("line", [V, W], { strokeColor: C.fog, strokeWidth: 2.5, strokeOpacity: 0.95, highlight: false, straightFirst: false, straightLast: true, lastArrow: { type: 1, size: 6 } });
+    tag(r1, "an-r1", "given"); tag(r2, "an-r2", "given");
+
+    // first arc from the vertex — radius driven by the spring
+    const r1Fn = () => 1.4 + 0.16 * widthSpring.get();
+    const cV = board.create("circle", [V, r1Fn], { strokeColor: C.teal, strokeWidth: 2.25, strokeOpacity: 0.95, dash: 2, fillOpacity: 0, highlight: false });
+    tag(cV, "an-cv", "arcs");
+
+    // where the first arc crosses each side — placed explicitly at distance r1 along
+    // V→U / V→W (avoids the ambiguity of circle-vs-infinite-line intersection, which
+    // can't tell which side of V the crossing is on). Function points track drags.
+    const along = (A, B) => [
+      () => A.X() + r1Fn() * (B.X() - A.X()) / A.Dist(B),
+      () => A.Y() + r1Fn() * (B.Y() - A.Y()) / A.Dist(B)
+    ];
+    const P = board.create("point", along(V, U), { name: "P", size: 4, fillColor: C.white, strokeColor: C.teal, fixed: true, showInfobox: false, label: { offset: [8, 12], fontSize: 16, color: C.fog } });
+    const Q = board.create("point", along(V, W), { name: "Q", size: 4, fillColor: C.white, strokeColor: C.teal, fixed: true, showInfobox: false, label: { offset: [8, 12], fontSize: 16, color: C.fog } });
+    tag(P, "an-P", "arcs"); tag(Q, "an-Q", "arcs");
+
+    // equal arcs from P and Q — radius = 0.8 × PQ (function so it tracks drag)
+    const r2Fn = () => P.Dist(Q) * 0.8;
+    const cP = board.create("circle", [P, r2Fn], { strokeColor: C.teal, strokeWidth: 2.25, strokeOpacity: 0.95, dash: 2, fillOpacity: 0, highlight: false });
+    const cQ = board.create("circle", [Q, r2Fn], { strokeColor: C.teal, strokeWidth: 2.25, strokeOpacity: 0.95, dash: 2, fillOpacity: 0, highlight: false });
+    tag(cP, "an-cp", "marks"); tag(cQ, "an-cq", "marks");
+
+    // R = the intersection of the two equal arcs farther from V
+    const i0 = board.create("intersection", [cP, cQ, 0], { name: "", size: 0, visible: false });
+    const i1 = board.create("intersection", [cP, cQ, 1], { name: "", size: 0, visible: false });
+    const R = board.create("point", [
+      () => (V.Dist(i0) > V.Dist(i1) ? i0.X() : i1.X()),
+      () => (V.Dist(i0) > V.Dist(i1) ? i0.Y() : i1.Y())
+    ], { name: "R", size: 4, fillColor: C.white, strokeColor: C.teal, fixed: true, showInfobox: false, label: { offset: [8, 12], fontSize: 16, color: C.fog } });
+    tag(R, "an-R", "marks");
+
+    const ray = board.create("line", [V, R], { strokeColor: C.green, strokeWidth: 3, strokeOpacity: 0.95, highlight: false, straightFirst: false, straightLast: true, lastArrow: { type: 1, size: 6 } });
+    tag(ray, "an-ray", "result");
+
+    return { given: [r1, r2, V], arcs: [cV, P, Q], marks: [cP, cQ, R], result: [ray] };
+  }
+
+  function buildScene() {
+    if (board) JXG.JSXGraph.freeBoard(board);
+    // clear any inline pixel size JSXGraph pinned on the container last time, so the
+    // fresh board reads the flex-driven size instead of a stale fixed size
+    boardEl.style.width = ""; boardEl.style.height = "";
+    makeBoard();
+    groups = mode === "bisector" ? buildBisector() : buildAngle();
+    // start fully unrevealed, then applyStep animates the given group in
+    Object.keys(groups).forEach(k => groups[k].forEach(el => { el.rendNode.style.opacity = "0"; }));
+    applyStep(step, true);
+  }
+
+  // ---- step reveal: show groups up to `step`, hide the rest -------------------
+  // Premium motion, mapped to the construction's own metaphor:
+  //  - solid strokes (the given segment, the result bisector) DRAW ON via
+  //    stroke-dashoffset — the straightedge sweeping a line;
+  //  - dashed compass arcs FADE + SCALE + DEBLUR in — the compass swinging into place;
+  //  - intersection points POP with an overshoot spring — the compass needle landing.
+  // Elements inside a group stagger ~60ms so a step "unfolds" instead of flashing.
+  function applyStep(s, instant) {
+    step = s;
+    stepReadout.textContent = (s + 1) + " / 4";
+    Object.keys(groups).forEach(k => {
+      const show = s >= THRESH[k];
+      groups[k].forEach((el, i) => {
+        const node = el.rendNode;
+        if (!node) return;
+        if (show && (node.style.opacity === "0" || node.style.opacity === "")) {
+          if (instant) {
+            node.style.opacity = "1"; node.style.filter = ""; node.style.transform = "";
+          } else {
+            // tiny per-element stagger so multi-element groups (arcB = arc+2 points)
+            // reveal in sequence rather than all at once
+            const delay = i * 0.06;
+            revealEl(el, delay);
+          }
+        } else if (!show) {
+          node.style.opacity = "0"; node.style.filter = ""; node.style.transform = "";
+        }
+      });
+    });
+    renderEquationBar();
+    highlightProcedure(s);
+    nbUpdate(); // keep the professor's notebook in sync with the new step
+  }
+
+  // per-element reveal dispatcher — picks the motion that matches what the element IS
+  function revealEl(el, delay) {
+    const node = el.rendNode;
+    const type = el.elType; // segment | line | circle | point | intersection
+    const dashed = !!(el.visProp && el.visProp.dash);
+    if ((type === "segment" || type === "line") && !dashed) {
+      draw(node, { duration: 0.8 }); // solid stroke draws itself
+    } else if (type === "circle" || dashed) {
+      appearLayered(node, delay);     // compass arc swings in
+    } else {
+      popPoint(node, delay);          // intersection point lands
+    }
+  }
+
+  // dashed arc: opacity 0→1, scale 0.97→1, blur 6px→0 — a soft "swing into place"
+  function appearLayered(node, delay) {
+    node.style.transformBox = "fill-box";
+    node.style.transformOrigin = "center";
+    node.style.opacity = "0";
+    node.style.filter = "blur(6px)";
+    node.style.transform = "scale(0.97)";
+    animate(node,
+      { opacity: [0, 1], filter: ["blur(6px)", "blur(0px)"], transform: ["scale(0.97)", "scale(1)"] },
+      { ease: EXPO, duration: 0.6, delay: delay || 0 });
+  }
+
+  // point: scale 0→1.12→1 overshoot spring + opacity — the needle landing with a tick
+  function popPoint(node, delay) {
+    node.style.transformBox = "fill-box";
+    node.style.transformOrigin = "center";
+    node.style.opacity = "0";
+    node.style.transform = "scale(0)";
+    animate(node,
+      { opacity: [0, 1], transform: ["scale(0)", "scale(1.12)", "scale(1)"] },
+      { ...STATE_SPRING, delay: delay || 0 });
+  }
+
+  function renderEquationBar() {
+    const t = T[i18n.lang];
+    eqSubLine.textContent = mode === "bisector" ? t.eqSubBisector : t.eqSubAngle;
+    // reveal the invariant progressively as the construction builds, matching the
+    // book's step order. Empty until the geometry that justifies it actually exists.
+    // Result color is green (the provably-correct token), never infrared.
+    const src = mode === "bisector"
+      ? (step < 2 ? ""
+        : step >= 3 ? `\\text{AP}=\\text{BP},\\;\\text{AQ}=\\text{BQ}\\;\\Rightarrow\\;\\color{${C.green}}{\\text{PQ}\\perp\\text{AB, bisecting it}}`
+        : `\\text{AP}=\\text{BP},\\;\\text{AQ}=\\text{BQ}`)
+      : (step < 1 ? ""
+        : step >= 3 ? `\\text{VP}=\\text{VQ},\\;\\text{PR}=\\text{QR}\\;\\Rightarrow\\;\\color{${C.green}}{\\text{VR bisects the angle}}`
+        : step >= 2 ? `\\text{VP}=\\text{VQ},\\;\\text{PR}=\\text{QR}`
+        : `\\text{VP}=\\text{VQ}`);
+    if (src) renderEquation(eqLine, src); else eqLine.innerHTML = "";
+  }
+
+  // ---- procedure panel (the textbook's own steps, live-highlighted) ----------
+  function renderProcedure() {
+    const t = T[i18n.lang];
+    const steps = t.proc[mode];
+    procList.innerHTML = "";
+    steps.forEach((body, i) => {
+      const row = document.createElement("div");
+      row.className = "proc-step" + (i === step ? " is-active" : "");
+      row.dataset.idx = i;
+      const num = document.createElement("div");
+      num.className = "proc-num" + (i18n.lang === "ar" ? " ar-ui" : "");
+      num.textContent = i + 1;
+      const txt = document.createElement("div");
+      txt.className = "proc-body" + (i18n.lang === "ar" ? " ar-body" : "");
+      txt.textContent = body;
+      row.appendChild(num); row.appendChild(txt);
+      row.addEventListener("click", () => { stopAuto(); stepSlider.value = i; applyStep(i); setSliderFill(stepSlider); });
+      procList.appendChild(row);
+    });
+    procWhy.innerHTML = t.why[mode];
+    procWhy.className = "proc-why" + (i18n.lang === "ar" ? " ar-body" : "");
+    procWhy.setAttribute("dir", i18n.lang === "ar" ? "rtl" : "ltr");
+  }
+  function highlightProcedure(s) {
+    Array.from(procList.children).forEach((row, i) =>
+      row.classList.toggle("is-active", i === s));
+  }
+
+  // ---- live auto-demo ---------------------------------------------------------
+  // When the notebook opens, the virtual cursor drives ITSELF through the construction
+  // (step 0→3) so the explanation is LIVE, not static. It STOPS after the last step — it
+  // does not loop — so the explanation ends when the construction ends. Any manual control
+  // (step slider / step click / mode / width) cancels it — the user takes over.
+  let autoTimer = null;
+  function stopAuto() { if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; } }
+  function startAuto() {
+    stopAuto();
+    const tick = () => {
+      if (step >= 3) { stopAuto(); return; } // end of construction → stop, don't loop
+      const next = step + 1;
+      stepSlider.value = next; applyStep(next); setSliderFill(stepSlider);
+      autoTimer = setTimeout(tick, 3000);
+    };
+    autoTimer = setTimeout(tick, 3000);
+  }
+
+  // ---- controls ---------------------------------------------------------------
+  modeToggle.querySelectorAll(".mode-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      stopAuto();
+      mode = btn.dataset.mode;
+      modeToggle.querySelectorAll(".mode-btn").forEach(b => b.classList.toggle("active", b === btn));
+      step = 0; stepSlider.value = 0;
+      setSliderFill(stepSlider);
+      buildScene(); renderProcedure();
+    });
+  });
+  // drive the slider's teal progress fill (a --fill var the CSS gradient reads)
+  function setSliderFill(slider) {
+    const max = parseFloat(slider.max) || 1;
+    slider.style.setProperty("--fill", (parseFloat(slider.value) / max * 100) + "%");
+  }
+  widthSlider.addEventListener("input", () => {
+    stopAuto();
+    const v = parseInt(widthSlider.value, 10);
+    widthReadout.textContent = v + 1;
+    widthSpring.set(v); // spring catches up → board.update() fires each frame
+    nbUpdate(); // the notebook's "{r}" tracks the new compass opening
+    setSliderFill(widthSlider);
+  });
+  stepSlider.addEventListener("input", () => { stopAuto(); applyStep(parseInt(stepSlider.value, 10)); setSliderFill(stepSlider); });
+
+  // ---- professor's notebook (state-aware "Explain this") ----------------------
+  // Replaces the fixed tour. The notebook overlays the right rail with a rich entry for
+  // the CURRENT state (mode × step × compass width × language), highlights the relevant
+  // board elements with a non-blocking ring, and never dims or blocks the board — you
+  // can keep dragging and stepping while it's open. Every state change calls .update()
+  // so the explanation tracks the page live.
+  notebook = buildNotebook(
+    document.getElementById("procedure"),
+    document.getElementById("stage"),
+    getEntry, () => i18n.lang,
+    { onClose: stopAuto });
+  function nbUpdate() { if (notebook && notebook.isOpen()) notebook.update(); }
+
+  // open the notebook for a chosen target. "Whole" (auto=true) starts at step 0 and
+  // auto-advances through every step, stopping at the end. A single step (auto=false)
+  // jumps there and explains just that one — no auto-advance. The live cursor + the
+  // notebook's typed sections do the explaining; the ring highlights the target ids.
+  function openExplain(auto, atStep) {
+    stopAuto();
+    const s = (atStep === undefined) ? 0 : atStep;
+    step = s; stepSlider.value = s; setSliderFill(stepSlider);
+    if (!notebook.isOpen()) notebook.open();
+    applyStep(s);
+    if (auto) startAuto();
+  }
+
+  // ---- premium Explain chooser popover ---------------------------------------
+  // The Explain button opens this chooser, not the notebook directly. "Whole
+  // construction" plays the full build; the step list lets you ask about one part —
+  // each step is labelled by the part it introduces (the given, the arc from A, …).
+  const explainBtn = document.getElementById("explainBtn");
+  const barRight = explainBtn.parentElement;
+  const pop = document.createElement("div");
+  pop.className = "explain-pop";
+  pop.setAttribute("id", "explainPop");
+  barRight.appendChild(pop);
+  if (getComputedStyle(barRight).position === "static") barRight.style.position = "relative";
+  pop.innerHTML =
+    '<button class="explain-pop-close" type="button" aria-label="close">&times;</button>' +
+    '<div class="explain-pop-title" data-i18n="explainTitle">Explain</div>' +
+    '<button class="explain-opt explain-opt--whole" type="button" data-i18n="explainWhole">Whole construction</button>' +
+    '<div class="explain-pop-divider" data-i18n="explainSingle">or a single step</div>' +
+    '<div class="explain-steps"></div>';
+  const stepsWrap = pop.querySelector(".explain-steps");
+  function buildStepChoices() {
+    const lang = i18n.lang;
+    const labels = T[lang].tour[mode];
+    stepsWrap.innerHTML = "";
+    labels.forEach((entry, i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "explain-step";
+      b.dataset.step = i;
+      const n = lang === "ar" ? arNum(i + 1) : (i + 1);
+      b.innerHTML = '<span class="explain-step-n">' + n + '</span><span class="explain-step-l">' + entry.label + '</span>';
+      b.addEventListener("click", () => { closePop(); openExplain(false, i); });
+      stepsWrap.appendChild(b);
+    });
+  }
+  function openPop() { buildStepChoices(); pop.classList.add("is-open"); }
+  function closePop() { pop.classList.remove("is-open"); }
+  function togglePop() { pop.classList.contains("is-open") ? closePop() : openPop(); }
+  pop.querySelector(".explain-pop-close").addEventListener("click", closePop);
+  pop.querySelector(".explain-opt--whole").addEventListener("click", () => { closePop(); openExplain(true, 0); });
+  explainBtn.addEventListener("click", (e) => { e.stopPropagation(); togglePop(); });
+  document.addEventListener("click", (e) => { if (!pop.contains(e.target) && e.target !== explainBtn) closePop(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closePop(); });
+
+  // magnetic Explain button — a premium microinteraction: the button drifts toward the
+  // cursor while hovered (0.3× parallax) and springs back on leave. Pointer-only, never
+  // fires on touch (matches coarse-pointer check) so mobile stays unaffected.
+  (function () {
+    const btn = document.getElementById("explainBtn");
+    const fine = window.matchMedia("(pointer: fine)").matches;
+    if (!fine) return;
+    let raf = 0, tx = 0, ty = 0;
+    btn.addEventListener("mousemove", (e) => {
+      const r = btn.getBoundingClientRect();
+      tx = (e.clientX - (r.left + r.width / 2)) * 0.3;
+      ty = (e.clientY - (r.top + r.height / 2)) * 0.3;
+      if (!raf) raf = requestAnimationFrame(() => { btn.style.transform = `translate(${tx}px, ${ty}px)`; raf = 0; });
+    });
+    btn.addEventListener("mouseleave", () => { btn.style.transform = ""; });
+  })();
+
+  // ---- i18n bootstrap ---------------------------------------------------------
+  const i18n = initI18n(T, {
+    onLangChange: () => { renderProcedure(); renderEquationBar(); nbUpdate(); if (pop && pop.classList.contains("is-open")) buildStepChoices(); }
+  });
+
+  // keep the JSXGraph canvas matched to its flex container on resize — the board now
+  // fills the workspace by flexbox, so its pixel size changes with the viewport. Measure
+  // the PARENT (.board-wrap), not the board element itself: JSXGraph pins an inline pixel
+  // size on the container, so reading the container would feed back that stale size.
+  function syncBoardSize() {
+    if (!board) return;
+    const wrap = boardEl.parentElement;
+    const r = wrap.getBoundingClientRect();
+    if (r.width > 0 && r.height > 0) { try { board.resizeContainer(r.width, r.height); } catch (e) {} }
+  }
+  window.addEventListener("resize", syncBoardSize);
+
+  // ---- mount ------------------------------------------------------------------
+  buildScene();
+  renderProcedure();
+  renderEquationBar();
+  widthReadout.textContent = (parseInt(widthSlider.value, 10) + 1);
+  setSliderFill(widthSlider); setSliderFill(stepSlider);
+  reveal(document.querySelector(".stage"));
+  reveal(document.querySelector(".app-bar-right"));
+  requestAnimationFrame(syncBoardSize);
+  // auto-play the construction 0 → 3 on load so the board visibly builds, then stops
+  setTimeout(startAuto, 900);
+</script>
+</body>
+</html>

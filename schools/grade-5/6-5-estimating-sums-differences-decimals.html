@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Estimating Sums and Differences of Decimals — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:30px 24px 30px; display:flex; flex-direction:column; align-items:center; gap:22px; }
+  .op-toggle{ display:flex; gap:6px; }
+  .mode-btn{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--pulse-ash); background:var(--core-black); border:1px solid rgba(255,255,255,.14); border-radius:100px; padding:6px 14px; cursor:pointer; }
+  .mode-btn.active{ color:var(--off-white); border-color:var(--electric-teal); background:rgba(92,147,159,.12); }
+
+  .rounder-row{ display:flex; align-items:center; gap:12px; width:100%; max-width:440px; }
+  .rounder-row .tag{ font-family:var(--mono); font-size:12px; width:20px; color:var(--off-white); font-weight:700; }
+  .rounder-row input[type="range"]{ flex:1; }
+  .rounder-row .val{ font-family:var(--mono); font-size:13px; width:56px; text-align:right; color:var(--neural-fog); direction:ltr; }
+
+  .compare-cards{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
+  .compare-card{ display:flex; flex-direction:column; align-items:center; gap:6px; padding:14px 20px; border-radius:12px; background:var(--urban-smoke); border:1px solid rgba(255,255,255,.1); min-width:130px; }
+  .compare-card .cap{ font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash); }
+  .compare-card .value{ font-family:var(--mono); font-size:22px; font-weight:700; direction:ltr; }
+  .compare-card.estimate .value{ color:var(--electric-teal); }
+  .compare-card.exact .value{ color:var(--infrared); }
+
+  .precision-toggle{ display:flex; gap:6px; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 6 · LESSON 5</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Estimating Sums and Differences of Decimals</h1>
+    <span class="title-secondary ar-display" id="titleAr">تقدير مجموع وفرق الكسور العشرية</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I estimate the sum or difference of two decimals by rounding each one first.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">round first, then check against the exact answer</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="op-toggle" id="opToggle" data-el="opToggle">
+        <button class="mode-btn active" data-op="add" data-i18n="opAdd">addition</button>
+        <button class="mode-btn" data-op="sub" data-i18n="opSub">subtraction</button>
+      </div>
+      <div class="precision-toggle" id="precToggle" data-el="precToggle" style="margin-inline-start:12px;">
+        <button class="mode-btn active" data-prec="1" data-i18n="precWhole">nearest whole</button>
+        <button class="mode-btn" data-prec="0.1" data-i18n="precTenth">nearest tenth</button>
+      </div>
+    </div>
+
+    <div class="control-row">
+      <div class="rounder-row">
+        <span class="tag">A</span>
+        <input type="range" id="sliderA" min="0" max="200" step="1" value="47" />
+        <span class="val" id="valA"></span>
+      </div>
+    </div>
+    <div class="control-row">
+      <div class="rounder-row">
+        <span class="tag">B</span>
+        <input type="range" id="sliderB" min="0" max="200" step="1" value="132" />
+        <span class="val" id="valB"></span>
+      </div>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="compare-cards" id="compareCards" data-el="compareCards"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Rounding both decimals to a chosen place before adding or subtracting gives a quick mental estimate — comparing it to the exact computed answer is a plausibility check that catches computation mistakes.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="6-4-rounding-decimals.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">6.4 · Rounding Decimals</b></a>
+    <a class="nav-pill next" href="6-6-adding-subtracting-decimals.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">6.6 · Adding and Subtracting Decimals</b></a>
+  </div>
+</div>
+
+<script>
+  const { initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 6 · LESSON 5",
+      objectiveLabel: "Objective —",
+      objectiveText: "I estimate the sum or difference of two decimals by rounding each one first.",
+      eqSub: "round first, then check against the exact answer",
+      explainBtn: "Explain this",
+      opAdd: "addition", opSub: "subtraction",
+      precWhole: "nearest whole", precTenth: "nearest tenth",
+      capEstimate: "estimate", capExact: "exact",
+      navPrevLabel: "—", navPrevText: "6.4 · Rounding Decimals",
+      navNextLabel: "next", navNext: "6.6 · Adding and Subtracting Decimals",
+      teachLabel: "What this teaches:",
+      teachBody: "Rounding both decimals to a chosen place before adding or subtracting gives a quick mental estimate — comparing it to the exact computed answer is a plausibility check that catches computation mistakes.",
+      tour: [
+        { ids: ["sliderA", "sliderB"], label: "Two decimals to combine", body: "Drag either slider to set the two values you're adding or subtracting." },
+        { elKey: "precToggle", label: "Round each one first", body: "Pick a rounding precision — both values snap to that place before the estimate is computed." },
+        { elKey: "compareCards", label: "Estimate vs. exact", body: "The rounded estimate should land close to the exact computed answer — a big gap usually means a mistake somewhere." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٦ · الدرس ٥",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أُقدِّر مجموع أو فرق عددين عشريين بتقريب كل منهما أولًا.",
+      eqSub: "قرّب أولًا، ثم تحقّق من الناتج الدقيق",
+      explainBtn: "اشرح هذا",
+      opAdd: "الجمع", opSub: "الطرح",
+      precWhole: "أقرب عدد صحيح", precTenth: "أقرب عُشر",
+      capEstimate: "التقدير", capExact: "الناتج الدقيق",
+      navPrevLabel: "—", navPrevText: "٦.٤ · تقريب الكسور العشرية",
+      navNextLabel: "التالي", navNext: "٦.٦ · جمع وطرح الكسور العشرية",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "تقريب كلا العددين العشريين إلى منزلة مُختارة قبل الجمع أو الطرح يعطي تقديرًا ذهنيًا سريعًا — ومقارنته بالناتج الدقيق المحسوب هي تحقّق من معقولية النتيجة يكشف أخطاء الحساب.",
+      tour: [
+        { ids: ["sliderA", "sliderB"], label: "عددان عشريّان لدمجهما", body: "اسحب أيّ شريط لتحديد القيمتين اللتين تجمعهما أو تطرحهما." },
+        { elKey: "precToggle", label: "قرّب كلًا منهما أولًا", body: "اختر دقّة التقريب — تنتقل كلتا القيمتين إلى تلك المنزلة قبل حساب التقدير." },
+        { elKey: "compareCards", label: "التقدير مقابل الناتج الدقيق", body: "يجب أن يقترب التقدير المقرَّب من الناتج الدقيق المحسوب — الفجوة الكبيرة عادة تعني وجود خطأ ما." }
+      ]
+    }
+  };
+
+  const sliderA = document.getElementById("sliderA"), sliderB = document.getElementById("sliderB");
+  const valAEl = document.getElementById("valA"), valBEl = document.getElementById("valB");
+  const opToggle = document.getElementById("opToggle");
+  const precToggle = document.getElementById("precToggle");
+  const compareCards = document.getElementById("compareCards");
+  const eqLine = document.getElementById("eqLine");
+
+  let op = "add", prec = 1;
+
+  function rawValue(sliderEl) { return parseInt(sliderEl.value, 10) / 10; } // slider 0-200 -> 0.0-20.0
+
+  function roundTo(v, p) { return Math.round(v / p) * p; }
+
+  function render() {
+    const t = T[i18n.lang];
+    const a = rawValue(sliderA), b = rawValue(sliderB);
+    valAEl.textContent = a.toFixed(1);
+    valBEl.textContent = b.toFixed(1);
+
+    const roundA = roundTo(a, prec), roundB = roundTo(b, prec);
+    const estimate = op === "add" ? roundA + roundB : roundA - roundB;
+    const exact = op === "add" ? a + b : a - b;
+    const opSym = op === "add" ? "+" : "-";
+
+    compareCards.innerHTML = "";
+    [["capEstimate", "estimate", estimate], ["capExact", "exact", exact]].forEach(([key, cls, val]) => {
+      const card = document.createElement("div");
+      card.className = "compare-card " + cls;
+      const cap = document.createElement("div");
+      cap.className = "cap";
+      cap.textContent = t[key];
+      const value = document.createElement("div");
+      value.className = "value";
+      value.textContent = val.toFixed(1);
+      card.appendChild(cap); card.appendChild(value);
+      compareCards.appendChild(card);
+    });
+
+    renderEquation(eqLine, `${roundA.toFixed(prec === 1 ? 0 : 1)} ${opSym} ${roundB.toFixed(prec === 1 ? 0 : 1)} \\approx \\color{#ed6d40}{${estimate.toFixed(1)}}`);
+  }
+
+  [sliderA, sliderB].forEach(el => el.addEventListener("input", render));
+  opToggle.addEventListener("click", (e) => {
+    const btn = e.target.closest(".mode-btn");
+    if (!btn) return;
+    op = btn.dataset.op;
+    opToggle.querySelectorAll(".mode-btn").forEach(b => b.classList.toggle("active", b === btn));
+    render();
+  });
+  precToggle.addEventListener("click", (e) => {
+    const btn = e.target.closest(".mode-btn");
+    if (!btn) return;
+    prec = parseFloat(btn.dataset.prec);
+    precToggle.querySelectorAll(".mode-btn").forEach(b => b.classList.toggle("active", b === btn));
+    render();
+  });
+
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

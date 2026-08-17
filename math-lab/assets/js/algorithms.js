@@ -194,6 +194,50 @@
     return seg.a + seg.b * dx + seg.c * dx * dx + seg.d * dx * dx * dx;
   };
 
+  function multiplyPoly(a, b) {
+    const out = new Array(a.length + b.length - 1).fill(0);
+    for (let i = 0; i < a.length; i++)
+      for (let j = 0; j < b.length; j++) out[i + j] += a[i] * b[j];
+    return out;
+  }
+
+  // points: [{x, y}, ...] with distinct x values. Ascending-power coefficients
+  // [c0, c1, ..., c_{n-1}] of the unique degree-(n-1) polynomial P(x) = c0 + c1*x + ...
+  // interpolating every point, built directly from the Lagrange basis (Burden & Faires §3.1).
+  // Moved here from lagrange.js (was page-local) so the Lagrange node host can call the same
+  // pure function the page uses — per the one-algorithm-one-file rule.
+  Algorithms.runLagrangeInterpolation = function (points) {
+    const n = points.length;
+    if (n < 1) throw new Error("At least one point is required.");
+    for (let i = 1; i < n; i++) {
+      for (let j = 0; j < i; j++) {
+        if (points[i].x === points[j].x) throw new Error(`Points ${j + 1} and ${i + 1} share the same x value (${points[i].x}) — x values must be distinct.`);
+      }
+    }
+    const total = new Array(n).fill(0);
+    for (let i = 0; i < n; i++) {
+      let poly = [1];
+      let denom = 1;
+      for (let j = 0; j < n; j++) {
+        if (j === i) continue;
+        poly = multiplyPoly(poly, [-points[j].x, 1]);
+        denom *= points[i].x - points[j].x;
+      }
+      const scale = points[i].y / denom;
+      for (let k = 0; k < poly.length; k++) total[k] += poly[k] * scale;
+    }
+    const maxAbs = Math.max(...total.map(Math.abs), 1);
+    return total.map((c) => (Math.abs(c) < maxAbs * 1e-10 ? 0 : c));
+  };
+
+  // coeffsAsc: [c0, c1, ..., c_{n-1}] ascending-power coefficients (as returned by
+  // runLagrangeInterpolation). Evaluates via Horner's method from the top power down.
+  Algorithms.evalPolyAscending = function (coeffsAsc, x) {
+    let result = 0;
+    for (let k = coeffsAsc.length - 1; k >= 0; k--) result = result * x + coeffsAsc[k];
+    return result;
+  };
+
   // f: number -> number, composite trapezoidal rule on [a, b] with n equal subintervals
   // (n >= 1). Returns one panel per subinterval plus the running cumulative total, so the
   // UI can step through the sum being built one trapezoid at a time.

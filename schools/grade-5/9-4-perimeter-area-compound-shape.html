@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Perimeter and Area of a Compound Shape — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:20px 20px 30px; display:flex; flex-direction:column; align-items:center; gap:18px; }
+  svg#shapeSvg{ direction:ltr; touch-action:none; }
+  .shape-fill{ fill:rgba(92,147,159,.18); stroke:var(--electric-teal); stroke-width:2.5; }
+  .ghost-fill{ fill:rgba(237,109,64,.1); stroke:var(--infrared); stroke-width:2; stroke-dasharray:5 4; }
+  .divider-line{ stroke:var(--infrared); stroke-width:2; stroke-dasharray:4 3; }
+  .region-label{ font-family:var(--mono); font-size:12px; font-weight:700; fill:var(--off-white); }
+  .handle{ fill:var(--off-white); stroke:rgba(0,0,0,.3); stroke-width:1; cursor:ns-resize; }
+
+  .mode-toggle{ display:flex; gap:6px; }
+  .mode-btn{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--pulse-ash); background:var(--core-black); border:1px solid rgba(255,255,255,.14); border-radius:100px; padding:6px 14px; cursor:pointer; }
+  .mode-btn.active{ color:var(--off-white); border-color:var(--electric-teal); background:rgba(92,147,159,.12); }
+
+  .total-line{ font-family:var(--mono); font-size:14px; color:var(--validation-green); direction:ltr; unicode-bidi:isolate; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 9 · LESSON 4</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Perimeter and Area of a Compound Shape</h1>
+    <span class="title-secondary ar-display" id="titleAr">محيط ومساحة شكل مركّب</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I find the area of an L-shaped compound figure by decomposing it into rectangles, or by completing and subtracting.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">two methods, same answer</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="mode-toggle" id="modeToggle" data-el="modeToggle">
+        <button class="mode-btn active" data-mode="decompose" data-i18n="modeDecompose">decompose &amp; sum</button>
+        <button class="mode-btn" data-mode="subtract" data-i18n="modeSubtract">complete &amp; subtract</button>
+      </div>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabel">notch size</label>
+      <input type="range" id="notchSlider" min="20" max="60" step="1" value="40" />
+    </div>
+
+    <div class="scene chart" id="scene">
+      <svg id="shapeSvg" width="300" height="220" viewBox="0 0 300 220" data-el="shapeSvg"></svg>
+      <div class="total-line" id="totalLine" data-el="totalLine"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">An L-shaped compound figure's area can be found two ways: splitting it into two rectangles and adding their areas, or completing it into one big rectangle and subtracting the missing notch — both methods land on the exact same total.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="9-3-time.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">9.3 · Time</b></a>
+    <a class="nav-pill next" href="../grade-5/10-1-the-mean.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">10.1 · The Mean</b></a>
+  </div>
+</div>
+
+<script>
+  const { groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+  const W = 220, H = 160, ORIGIN_X = 40, ORIGIN_Y = 190;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 9 · LESSON 4",
+      objectiveLabel: "Objective —",
+      objectiveText: "I find the area of an L-shaped compound figure by decomposing it into rectangles, or by completing and subtracting.",
+      eqSub: "two methods, same answer",
+      explainBtn: "Explain this",
+      modeDecompose: "decompose & sum", modeSubtract: "complete & subtract",
+      controlLabel: "notch size",
+      totalDecompose: (a, b, sum) => `${a} + ${b} = ${sum} sq units`,
+      totalSubtract: (full, notch, diff) => `${full} − ${notch} = ${diff} sq units`,
+      navPrevLabel: "—", navPrevText: "9.3 · Time",
+      navNextLabel: "next", navNext: "10.1 · The Mean",
+      teachLabel: "What this teaches:",
+      teachBody: "An L-shaped compound figure's area can be found two ways: splitting it into two rectangles and adding their areas, or completing it into one big rectangle and subtracting the missing notch — both methods land on the exact same total.",
+      tour: [
+        { ids: ["shapeSvg"], label: "An L-shaped figure", body: "This compound shape isn't a simple rectangle — it has a notch cut out of one corner." },
+        { ids: ["modeToggle"], label: "Method one: decompose", body: "Split the L into two rectangles, find each area, and add them together." },
+        { ids: ["modeToggle"], label: "Method two: complete and subtract", body: "Or picture the full rectangle with the notch filled in, then subtract the notch's area — same total either way." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٩ · الدرس ٤",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أجد مساحة شكل مركّب على هيئة حرف L بتجزئته إلى مستطيلات، أو بإكماله وطرح الجزء الزائد.",
+      eqSub: "طريقتان، الإجابة نفسها",
+      explainBtn: "اشرح هذا",
+      modeDecompose: "جزّئ واجمع", modeSubtract: "أكمل واطرح",
+      controlLabel: "حجم الفجوة",
+      totalDecompose: (a, b, sum) => `${a} + ${b} = ${sum} وحدة مربّعة`,
+      totalSubtract: (full, notch, diff) => `${full} − ${notch} = ${diff} وحدة مربّعة`,
+      navPrevLabel: "—", navPrevText: "٩.٣ · الزمن",
+      navNextLabel: "التالي", navNext: "١٠.١ · الوسط الحسابي",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "يمكن إيجاد مساحة شكل مركّب على هيئة حرف L بطريقتين: تجزئته إلى مستطيلين وجمع مساحتيهما، أو إكماله إلى مستطيل كبير واحد وطرح مساحة الفجوة الناقصة — وتصل كلتا الطريقتين إلى المجموع نفسه تمامًا.",
+      tour: [
+        { ids: ["shapeSvg"], label: "شكل على هيئة L", body: "هذا الشكل المركّب ليس مستطيلًا بسيطًا — به فجوة مقطوعة من إحدى زواياه." },
+        { ids: ["modeToggle"], label: "الطريقة الأولى: جزّئ", body: "قسّم شكل L إلى مستطيلين، أوجد مساحة كل منهما، واجمعهما معًا." },
+        { ids: ["modeToggle"], label: "الطريقة الثانية: أكمل واطرح", body: "أو تخيّل المستطيل الكامل مع ملء الفجوة، ثم اطرح مساحة الفجوة — المجموع نفسه بأيّ طريقة." }
+      ]
+    }
+  };
+
+  const modeToggle = document.getElementById("modeToggle");
+  const notchSlider = document.getElementById("notchSlider");
+  const shapeSvg = document.getElementById("shapeSvg");
+  const totalLine = document.getElementById("totalLine");
+  const eqLine = document.getElementById("eqLine");
+
+  let mode = "decompose";
+
+  function render() {
+    const t = T[i18n.lang];
+    const notch = parseInt(notchSlider.value, 10);
+    shapeSvg.innerHTML = "";
+
+    // L shape: full W x H rectangle minus a notch x notch square from top-right corner
+    const Lpts = [
+      { x: 0, y: 0 }, { x: W - notch, y: 0 }, { x: W - notch, y: notch }, { x: W, y: notch },
+      { x: W, y: H }, { x: 0, y: H }
+    ].map(p => ({ x: ORIGIN_X + p.x, y: ORIGIN_Y - H + p.y }));
+
+    const poly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+    poly.setAttribute("points", Lpts.map(p => `${p.x},${p.y}`).join(" "));
+    poly.setAttribute("class", "shape-fill");
+    shapeSvg.appendChild(poly);
+
+    const rectA_h = H - notch; // top rectangle height (below the notch)
+    const areaA = (W - notch) === 0 ? 0 : W * rectA_h; // wide bottom band... simplified below
+    // Actual decomposition: bottom rectangle W x (H-notch); left column notch-width x notch-height on top
+    const bottomArea = W * (H - notch);
+    const topLeftArea = (W - notch) * notch;
+    const fullArea = W * H;
+    const notchArea = notch * notch;
+
+    if (mode === "decompose") {
+      const divY = ORIGIN_Y - H + notch;
+      const div = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      div.setAttribute("x1", ORIGIN_X); div.setAttribute("x2", ORIGIN_X + W);
+      div.setAttribute("y1", divY); div.setAttribute("y2", divY);
+      div.setAttribute("class", "divider-line");
+      shapeSvg.appendChild(div);
+
+      const labelTop = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      labelTop.setAttribute("x", ORIGIN_X + (W - notch) / 2); labelTop.setAttribute("y", ORIGIN_Y - H + notch / 2);
+      labelTop.setAttribute("class", "region-label"); labelTop.setAttribute("text-anchor", "middle");
+      labelTop.textContent = topLeftArea;
+      shapeSvg.appendChild(labelTop);
+
+      const labelBottom = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      labelBottom.setAttribute("x", ORIGIN_X + W / 2); labelBottom.setAttribute("y", ORIGIN_Y - (H - notch) / 2);
+      labelBottom.setAttribute("class", "region-label"); labelBottom.setAttribute("text-anchor", "middle");
+      labelBottom.textContent = bottomArea;
+      shapeSvg.appendChild(labelBottom);
+
+      totalLine.textContent = t.totalDecompose(topLeftArea, bottomArea, topLeftArea + bottomArea);
+      renderEquation(eqLine, `${topLeftArea} + ${bottomArea} = \\color{#ed6d40}{${topLeftArea + bottomArea}}`);
+    } else {
+      const ghost = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      ghost.setAttribute("x", ORIGIN_X + W - notch); ghost.setAttribute("y", ORIGIN_Y - H);
+      ghost.setAttribute("width", notch); ghost.setAttribute("height", notch);
+      ghost.setAttribute("class", "ghost-fill");
+      shapeSvg.appendChild(ghost);
+
+      const labelFull = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      labelFull.setAttribute("x", ORIGIN_X + W / 2); labelFull.setAttribute("y", ORIGIN_Y - H / 2);
+      labelFull.setAttribute("class", "region-label"); labelFull.setAttribute("text-anchor", "middle");
+      labelFull.textContent = fullArea;
+      shapeSvg.appendChild(labelFull);
+
+      const labelNotch = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      labelNotch.setAttribute("x", ORIGIN_X + W - notch / 2); labelNotch.setAttribute("y", ORIGIN_Y - H + notch / 2);
+      labelNotch.setAttribute("class", "region-label"); labelNotch.setAttribute("text-anchor", "middle");
+      labelNotch.setAttribute("fill", "#ed6d40");
+      labelNotch.textContent = "−" + notchArea;
+      shapeSvg.appendChild(labelNotch);
+
+      totalLine.textContent = t.totalSubtract(fullArea, notchArea, fullArea - notchArea);
+      renderEquation(eqLine, `${fullArea} - ${notchArea} = \\color{#ed6d40}{${fullArea - notchArea}}`);
+    }
+  }
+
+  notchSlider.addEventListener("input", render);
+  modeToggle.addEventListener("click", (e) => {
+    const btn = e.target.closest(".mode-btn");
+    if (!btn) return;
+    mode = btn.dataset.mode;
+    modeToggle.querySelectorAll(".mode-btn").forEach(b => b.classList.toggle("active", b === btn));
+    render();
+  });
+
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

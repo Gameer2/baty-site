@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Integers &amp; Absolute Value — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: sea-level diver. This is 1.1-only — nothing here is shared. ---- */
+  .scene{ height:470px; }
+  .zone-sky{ position:absolute; inset:0 0 50% 0; background:linear-gradient(to bottom, #0c0e10, var(--rich-carbon)); }
+  .zone-water{ position:absolute; inset:50% 0 0 0; background:linear-gradient(to bottom, rgba(92,147,159,.18), rgba(92,147,159,.03) 60%, var(--rich-carbon)); }
+  .bubble{ position:absolute; border-radius:50%; background:rgba(92,147,159,.4); }
+
+  .ruler{ position:absolute; left:64px; top:30px; bottom:30px; width:1px; background:rgba(255,255,255,.06); }
+  .ruler .rung{ position:absolute; left:-5px; width:11px; height:1px; background:rgba(255,255,255,.16); }
+  .ruler .rung.zero{ display:none; }
+  .ruler .rung-label{ position:absolute; left:-40px; transform:translateY(-50%); font-family:var(--mono); font-size:10.5px; color:var(--pulse-ash); width:26px; text-align:right; direction:ltr; }
+  .ruler .rung-label.neg{ color:#7fa8b0; }
+  .ruler .rung-label.pos{ color:#b98a72; }
+
+  .sea-line-wrap{ position:absolute; left:0; right:0; height:22px; overflow:hidden; z-index:2; }
+  .sea-tile{ position:absolute; top:0; left:0; width:200%; height:100%; display:flex; }
+  .sea-tile svg{ width:50%; height:100%; display:block; }
+
+  .zero-badge{ position:absolute; left:88px; margin-top:-11px; font-family:var(--mono); font-size:10.5px; letter-spacing:.04em; color:var(--electric-teal); background:rgba(9,9,9,.7); border:1px solid rgba(92,147,159,.4); border-radius:100px; padding:3px 9px; white-space:nowrap; z-index:4; direction:ltr; }
+
+  .bracket-line{ position:absolute; left:104px; width:2px; background:var(--electric-teal); opacity:.7; z-index:2; }
+  .bracket-cap{ position:absolute; left:98px; width:14px; height:2px; background:var(--electric-teal); opacity:.7; z-index:2; }
+  .bracket-label{ position:absolute; left:126px; font-family:var(--mono); font-size:12.5px; color:var(--electric-teal); background:rgba(9,9,9,.65); padding:3px 10px; border-radius:100px; border:1px solid rgba(92,147,159,.35); white-space:nowrap; z-index:2; direction:ltr; }
+
+  .diver{ position:absolute; left:64px; width:30px; height:30px; margin-left:-15px; margin-top:-15px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #8fbec6, var(--electric-teal) 70%); box-shadow:0 6px 18px rgba(92,147,159,.45), inset 0 0 0 2px rgba(9,9,9,.25); cursor:grab; touch-action:none; z-index:6; }
+  .diver:active{ cursor:grabbing; }
+  .diver-tag{ position:absolute; left:88px; top:50%; transform:translateY(-50%); font-family:var(--mono); font-size:12px; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.12); border-radius:6px; padding:3px 8px; white-space:nowrap; z-index:6; direction:ltr; }
+
+  .ghost{ position:absolute; left:64px; width:22px; height:22px; margin-left:-11px; margin-top:-11px; border-radius:50%; border:2px solid var(--pulse-ash); background:var(--core-black); opacity:.8; z-index:2; }
+  .ghost-tag{ position:absolute; left:88px; top:50%; transform:translateY(-50%); font-family:var(--mono); font-size:11px; color:var(--pulse-ash); white-space:nowrap; z-index:2; direction:ltr; }
+
+  .drag-hint{ position:absolute; left:64px; transform:translateX(-50%); font-family:var(--mono); font-size:10.5px; letter-spacing:.03em; color:var(--pulse-ash); white-space:nowrap; z-index:6; transition:opacity .5s ease; animation:hintFloat 1.6s ease-in-out infinite; direction:ltr; }
+  @keyframes hintFloat{ 0%,100%{ transform:translateX(-50%) translateY(0);} 50%{ transform:translateX(-50%) translateY(4px);} }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 1 · LESSON 1</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Integers &amp; Absolute Value</h1>
+    <span class="title-secondary ar-display" id="titleAr">الأعداد الصحيحة والقيمة المطلقة</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I distinguish integers and their opposites; I find the absolute value of an integer.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">the diver's depth, and its distance from the surface</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabel">depth / height</label>
+      <input type="range" id="valSlider" min="-10" max="10" step="1" value="-4" />
+      <span class="control-val" id="sliderReadout">−4 m</span>
+    </div>
+
+    <div class="scene" id="scene">
+      <div class="zone-sky"></div>
+      <div class="zone-water"></div>
+      <div class="bubbles" id="bubbles"></div>
+
+      <div class="ruler" id="ruler"></div>
+
+      <div class="sea-line-wrap" id="seaWrap">
+        <div class="sea-tile" id="seaTile">
+          <svg viewBox="0 0 300 22" preserveAspectRatio="none"><path d="M0,11 Q37.5,2 75,11 T150,11 T225,11 T300,11" fill="none" stroke="#5c939f" stroke-width="1.6" opacity=".8"/></svg>
+          <svg viewBox="0 0 300 22" preserveAspectRatio="none"><path d="M0,11 Q37.5,2 75,11 T150,11 T225,11 T300,11" fill="none" stroke="#5c939f" stroke-width="1.6" opacity=".8"/></svg>
+        </div>
+      </div>
+      <div class="zero-badge dimmable" data-el="sea" data-role="ui" id="zeroBadge">0 — sea level</div>
+
+      <div class="bracket-cap dimmable" id="bracketCapTop"></div>
+      <div class="bracket-cap dimmable" id="bracketCapBottom"></div>
+      <div class="bracket-line dimmable" id="bracketLine"></div>
+      <div class="bracket-label dimmable" data-role="ui" id="bracketLabel">4 m</div>
+
+      <div class="ghost dimmable" data-el="ghost" id="ghost"></div>
+      <div class="ghost-tag dimmable" data-role="ui" id="ghostTag">opposite: 4</div>
+
+      <div class="diver dimmable" data-el="diver" id="diver"></div>
+      <div class="diver-tag" data-role="ui" id="diverTag">depth 4 m</div>
+      <div class="drag-hint" data-role="ui" data-i18n="dragHint" id="dragHint">drag, or use the slider</div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Integers extend whole numbers below zero (floors below ground, temperatures below freezing). Two numbers are opposites if equidistant from zero on opposite sides (zero is its own opposite, neither positive nor negative). Absolute value is the distance from zero, always non-negative, applied to real vertical-distance problems (bird above vs. fish below sea level, summed via |a|+|b|).</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <div class="nav-pill prev">— <b data-role="body" id="navPrevText">start of Grade 6, Unit 1</b></div>
+    <a class="nav-pill next" href="1-2-comparing-ordering-integers.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">1.2 · Comparing &amp; Ordering Integers</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 1 · LESSON 1",
+      objectiveLabel: "Objective —",
+      objectiveText: "I distinguish integers and their opposites; I find the absolute value of an integer.",
+      eqSub: "the diver's depth, and its distance from the surface",
+      explainBtn: "Explain this",
+      controlLabel: "depth / height",
+      dragHint: "drag, or use the slider",
+      depthWord: "depth ", heightWord: "height ", seaWord: "at sea level",
+      opposite: "opposite: ",
+      zeroWord: "sea level",
+      unit: "m",
+      teachLabel: "What this teaches:",
+      teachBody: "Integers extend whole numbers below zero (floors below ground, temperatures below freezing). Two numbers are opposites if equidistant from zero on opposite sides (zero is its own opposite, neither positive nor negative). Absolute value is the distance from zero, always non-negative, applied to real vertical-distance problems (bird above vs. fish below sea level, summed via |a|+|b|).",
+      navPrev: "start of Grade 6, Unit 1",
+      navNext: "1.2 · Comparing & Ordering Integers",
+      navNextLabel: "next",
+      tour: [
+        { elKey: "sea", label: "Sea level = zero", body: "This badge marks our zero reference. Every position on the ruler is measured as a signed distance from it." },
+        { elKey: "diver", label: "Reading a position", body: "Drag the diver, or use the slider above. Above the line is positive, below is negative — exactly like a floor below ground, or a temperature below freezing." },
+        { elKey: "ghost", label: "Opposites", body: "The pale ring on the other side is the opposite number — same distance from zero, opposite sign. Zero is the only number that's its own opposite." },
+        { ids: ["bracketCapTop", "bracketLine", "bracketCapBottom", "bracketLabel"], label: "Absolute value", body: "The bracket measures the distance from zero to the diver — always written as a positive number, no matter which side it's on." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ١ · الدرس ١",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أُميّز بين الأعداد الصحيحة ونظيراتها، وأجد القيمة المطلقة لعدد صحيح.",
+      eqSub: "عمق الغطّاس، والمسافة التي تفصله عن سطح الماء",
+      explainBtn: "اشرح هذا",
+      controlLabel: "العمق / الارتفاع",
+      dragHint: "اسحب الغطّاس، أو استخدم شريط التمرير",
+      depthWord: "عمق ", heightWord: "ارتفاع ", seaWord: "عند مستوى سطح البحر",
+      opposite: "النظير: ",
+      zeroWord: "سطح البحر",
+      unit: "م",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "تمتدّ الأعداد الصحيحة إلى ما دون الصفر (الطوابق تحت الأرض، ودرجات الحرارة تحت الصفر). يكون العددان نظيرَين إذا تساويا في البعد عن الصفر وكانا على جهتين متقابلتين — والصفر نظيرٌ لنفسه، فهو لا موجب ولا سالب. القيمة المطلقة هي المسافة عن الصفر، وهي دائمًا غير سالبة، وتُستعمل في مسائل واقعية على المسافات الرأسية، كطائر فوق سطح البحر وسمكة تحته، حيث يُجمع البعدان بالصيغة |a|+|b|.",
+      navPrev: "بداية الوحدة الأولى، الصف السادس",
+      navNext: "١.٢ · مقارنة الأعداد الصحيحة وترتيبها",
+      navNextLabel: "التالي",
+      tour: [
+        { elKey: "sea", label: "سطح البحر = الصفر", body: "تمثّل هذه البطاقة نقطة الصفر المرجعية. كل موضع على المسطرة يُقاس كمسافة موجّهة عنها." },
+        { elKey: "diver", label: "قراءة الموضع", body: "اسحب الغطّاس، أو استخدم شريط التمرير أعلاه. فوق الخط قيمة موجبة، وتحته قيمة سالبة — تمامًا مثل طابق تحت الأرض، أو درجة حرارة تحت الصفر." },
+        { elKey: "ghost", label: "الأعداد المتناظرة", body: "الحلقة الباهتة في الجهة المقابلة هي النظير — على المسافة نفسها من الصفر، بإشارة معاكسة. الصفر هو العدد الوحيد الذي يكون نظيرًا لنفسه." },
+        { ids: ["bracketCapTop", "bracketLine", "bracketCapBottom", "bracketLabel"], label: "القيمة المطلقة", body: "يقيس القوس المسافة من الصفر إلى الغطّاس — وتُكتب دائمًا عددًا موجبًا، بصرف النظر عن الجهة." }
+      ]
+    }
+  };
+
+  // ---------------- scale ----------------
+  const MIN = -10, MAX = 10;
+  const scene = document.getElementById("scene");
+  function bounds() {
+    const r = scene.getBoundingClientRect();
+    return { top: 36, bottom: r.height - 36, height: r.height };
+  }
+  function yFor(v) {
+    const b = bounds();
+    return b.top + (MAX - v) / (MAX - MIN) * (b.bottom - b.top);
+  }
+  function vFromClientY(clientY) {
+    const r = scene.getBoundingClientRect();
+    const b = bounds();
+    const y = clientY - r.top;
+    const raw = MAX - (y - b.top) / (b.bottom - b.top) * (MAX - MIN);
+    return Math.max(MIN, Math.min(MAX, Math.round(raw)));
+  }
+
+  // ---------------- ruler ----------------
+  const ruler = document.getElementById("ruler");
+  function buildRuler() {
+    ruler.innerHTML = "";
+    for (let v = MIN; v <= MAX; v++) {
+      const rung = document.createElement("div");
+      rung.className = "rung" + (v === 0 ? " zero" : "");
+      rung.style.top = (yFor(v) - 30) + "px";
+      ruler.appendChild(rung);
+      if (v % 2 === 0 && v !== 0) {
+        const label = document.createElement("div");
+        label.className = "rung-label " + (v < 0 ? "neg" : "pos");
+        label.style.top = (yFor(v) - 30) + "px";
+        label.textContent = digits(v, i18n.lang);
+        ruler.appendChild(label);
+      }
+    }
+  }
+
+  document.getElementById("seaWrap").style.top = (yFor(0) - 11) + "px";
+  document.getElementById("zeroBadge").style.top = yFor(0) + "px";
+
+  // ---------------- bubbles (ambient) ----------------
+  const bubbleLayer = document.getElementById("bubbles");
+  const seaY = yFor(0);
+  for (let i = 0; i < 9; i++) {
+    const b = document.createElement("div");
+    b.className = "bubble";
+    const size = 2.5 + Math.random() * 5.5;
+    const x = 140 + Math.random() * 740;
+    b.style.width = size + "px";
+    b.style.height = size + "px";
+    b.style.left = x + "px";
+    b.style.top = (seaY + 30) + "px";
+    b.style.opacity = 0;
+    bubbleLayer.appendChild(b);
+    gsap.set(b, { y: Math.random() * 260 });
+    gsap.to(b, {
+      y: -260, opacity: .55, duration: 5 + Math.random() * 4, repeat: -1, ease: "none",
+      delay: Math.random() * 5, yoyo: false,
+      onRepeat() { gsap.set(b, { y: 0 }); }
+    });
+  }
+
+  gsap.to("#seaTile", { xPercent: -50, duration: 6, repeat: -1, ease: "none" });
+
+  // ---------------- state ----------------
+  const diver = document.getElementById("diver");
+  const ghost = document.getElementById("ghost");
+  const diverTag = document.getElementById("diverTag");
+  const ghostTag = document.getElementById("ghostTag");
+  const bracketLine = document.getElementById("bracketLine");
+  const bracketCapTop = document.getElementById("bracketCapTop");
+  const bracketCapBottom = document.getElementById("bracketCapBottom");
+  const bracketLabel = document.getElementById("bracketLabel");
+  const eqLine = document.getElementById("eqLine");
+  const slider = document.getElementById("valSlider");
+  const sliderReadout = document.getElementById("sliderReadout");
+  const dragHint = document.getElementById("dragHint");
+  const zeroBadge = document.getElementById("zeroBadge");
+
+  let value = -4;
+  let hintDismissed = false;
+  function dismissHint() {
+    if (hintDismissed) return;
+    hintDismissed = true;
+    dragHint.style.opacity = "0";
+  }
+
+  function render(animate) {
+    const y = yFor(value);
+    const gy = yFor(-value);
+    const y0 = yFor(0);
+    const top = Math.min(y, y0), bottom = Math.max(y, y0);
+
+    const targets = animate ? { duration: .45, ease: "back.out(1.7)" } : { duration: 0 };
+    gsap.to(diver, { top: y, ...targets });
+    gsap.to(ghost, { top: gy, ...targets });
+    gsap.to(bracketLine, { top: top, height: Math.max(bottom - top, 0), ...targets });
+    gsap.to(bracketCapTop, { top: top, ...targets });
+    gsap.to(bracketCapBottom, { top: bottom, ...targets });
+    gsap.to(bracketLabel, { top: (top + bottom) / 2 - 11, ...targets });
+
+    const t = T[i18n.lang];
+    const posWord = value < 0 ? t.depthWord : value > 0 ? t.heightWord : t.seaWord;
+    diverTag.textContent = posWord + (value !== 0 ? digits(Math.abs(value), i18n.lang) + " " + t.unit : "");
+    ghostTag.textContent = t.opposite + digits(-value, i18n.lang);
+    ghostTag.style.display = value === 0 ? "none" : "block";
+    bracketLabel.textContent = digits(Math.abs(value), i18n.lang) + " " + t.unit;
+    bracketLabel.style.display = value === 0 ? "none" : "block";
+    bracketCapTop.style.display = bracketCapBottom.style.display = bracketLine.style.display = value === 0 ? "none" : "block";
+    zeroBadge.textContent = digits(0, i18n.lang) + " — " + t.zeroWord;
+
+    const eqSource = `|\\color{#5c939f}{${value}}| = \\color{#ed6d40}{${Math.abs(value)}}`;
+    renderEquation(eqLine, eqSource);
+
+    slider.value = value;
+    sliderReadout.textContent = (value > 0 ? "+" : "") + value + " m";
+  }
+
+  gsap.ticker.add(() => {
+    diverTag.style.top = diver.style.top;
+    ghostTag.style.top = ghost.style.top;
+    dragHint.style.top = (parseFloat(diver.style.top || 0) + 26) + "px";
+  });
+
+  // ---------------- drag ----------------
+  let dragging = false;
+  diver.addEventListener("pointerdown", e => { dragging = true; diver.setPointerCapture(e.pointerId); dismissHint(); });
+  diver.addEventListener("pointerup", () => dragging = false);
+  diver.addEventListener("pointermove", e => {
+    if (!dragging) return;
+    const v = vFromClientY(e.clientY);
+    if (v !== value) { value = v; render(true); }
+  });
+
+  slider.addEventListener("input", () => {
+    dismissHint();
+    const v = parseInt(slider.value, 10);
+    if (v !== value) { value = v; render(true); }
+  });
+
+  window.addEventListener("resize", () => { buildRuler(); render(false); });
+
+  const i18n = initI18n(T, {
+    onLangChange: () => { buildRuler(); render(false); }
+  });
+
+  buildRuler();
+  render(false);
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

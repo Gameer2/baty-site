@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Divisibility by 4, 6, 9 — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:34px 24px 30px; display:flex; flex-direction:column; align-items:center; gap:20px; }
+  .digit-row{ display:flex; gap:8px; direction:ltr; }
+  .digit{ font-family:var(--mono); font-size:34px; font-weight:700; color:var(--pulse-ash); width:44px; height:52px; display:flex; align-items:center; justify-content:center; border-radius:10px; background:var(--core-black); border:1px solid rgba(255,255,255,.08); transition:all .25s ease; }
+  .digit.lit{ color:var(--off-white); background:rgba(92,147,159,.14); border-color:rgba(92,147,159,.5); }
+  .rule-grid{ display:flex; flex-direction:column; gap:10px; width:100%; max-width:480px; }
+  .rule-card{ display:flex; align-items:center; justify-content:space-between; gap:14px; padding:12px 18px; border-radius:12px; background:var(--urban-smoke); border:1px solid rgba(255,255,255,.1); }
+  .rule-card .name{ font-family:var(--display); font-size:15px; font-weight:600; color:var(--off-white); }
+  .rule-card .check{ font-family:var(--mono); font-size:12.5px; color:var(--neural-fog); direction:ltr; unicode-bidi:isolate; }
+  .badge{ font-family:var(--mono); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; padding:5px 12px; border-radius:100px; }
+  .badge.yes{ color:var(--validation-green); background:rgba(107,181,124,.14); border:1px solid rgba(107,181,124,.4); }
+  .badge.no{ color:var(--infrared); background:rgba(237,109,64,.1); border:1px solid rgba(237,109,64,.35); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 3 · LESSON 1</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Divisibility by 4, 6, and 9</h1>
+    <span class="title-secondary ar-display" id="titleAr">قابلية القسمة على ٤، ٦، ٩</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I use divisibility rules to test whether a number is divisible by 4, 6, or 9 without dividing.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">a shortcut test, not a division</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabel">number</label>
+      <input type="range" id="numSlider" min="100" max="999" step="1" value="348" />
+      <span class="control-val" id="numReadout">348</span>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="digit-row" id="digitRow"></div>
+      <div class="rule-grid">
+        <div class="rule-card dimmable" id="ruleCard4" data-el="ruleCard4">
+          <div><div class="name" data-role="body" data-i18n="rule4Name">Divisible by 4?</div><div class="check" id="check4"></div></div>
+          <span class="badge" id="badge4"></span>
+        </div>
+        <div class="rule-card dimmable" id="ruleCard9" data-el="ruleCard9">
+          <div><div class="name" data-role="body" data-i18n="rule9Name">Divisible by 9?</div><div class="check" id="check9"></div></div>
+          <span class="badge" id="badge9"></span>
+        </div>
+        <div class="rule-card dimmable" id="ruleCard6" data-el="ruleCard6">
+          <div><div class="name" data-role="body" data-i18n="rule6Name">Divisible by 6?</div><div class="check" id="check6"></div></div>
+          <span class="badge" id="badge6"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Divisibility rules test a number without doing the division: the last two digits decide divisibility by 4, the digit sum decides divisibility by 9, and being both even and divisible by 3 decides divisibility by 6.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="../grade-5/2-5-dividing-whole-numbers.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">2.5 · Dividing Whole Numbers</b></a>
+    <a class="nav-pill next" href="3-2-prime-factorization.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">3.2 · Prime Factorization</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 3 · LESSON 1",
+      objectiveLabel: "Objective —",
+      objectiveText: "I use divisibility rules to test whether a number is divisible by 4, 6, or 9 without dividing.",
+      eqSub: "a shortcut test, not a division",
+      explainBtn: "Explain this",
+      controlLabel: "number",
+      rule4Name: "Divisible by 4?", rule9Name: "Divisible by 9?", rule6Name: "Divisible by 6?",
+      check4: (n2) => `last two digits: ${n2} ÷ 4`,
+      check9: (sum) => `digit sum: ${sum} ÷ 9`,
+      check6: (even, sum3) => `even: ${even} · digit sum ÷ 3: ${sum3}`,
+      yes: "yes", no: "no",
+      navPrevLabel: "—", navPrevText: "2.5 · Dividing Whole Numbers",
+      navNextLabel: "next", navNext: "3.2 · Prime Factorization",
+      teachLabel: "What this teaches:",
+      teachBody: "Divisibility rules test a number without doing the division: the last two digits decide divisibility by 4, the digit sum decides divisibility by 9, and being both even and divisible by 3 decides divisibility by 6.",
+      tour: [
+        { elKey: "ruleCard4", label: "Rule for 4", body: "Look only at the last two digits. If that two-digit number divides evenly by 4, so does the whole number." },
+        { elKey: "ruleCard9", label: "Rule for 9", body: "Add up every digit. If the digit sum divides evenly by 9, so does the whole number." },
+        { ids: ["ruleCard4", "ruleCard9", "ruleCard6"], label: "Rule for 6 — both at once", body: "6 = 2 × 3, so a number is divisible by 6 exactly when it's both even and divisible by 3 (a lighter version of the digit-sum check)." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٣ · الدرس ١",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أستخدم قواعد قابلية القسمة لأتحقّق هل عدد ما يقبل القسمة على ٤ أو ٦ أو ٩ دون تنفيذ القسمة.",
+      eqSub: "اختبار مختصر، لا قسمة فعلية",
+      explainBtn: "اشرح هذا",
+      controlLabel: "العدد",
+      rule4Name: "هل يقبل القسمة على ٤؟", rule9Name: "هل يقبل القسمة على ٩؟", rule6Name: "هل يقبل القسمة على ٦؟",
+      check4: (n2) => `آخر رقمين: ${n2} ÷ ٤`,
+      check9: (sum) => `مجموع الأرقام: ${sum} ÷ ٩`,
+      check6: (even, sum3) => `زوجي: ${even} · مجموع الأرقام ÷ ٣: ${sum3}`,
+      yes: "نعم", no: "لا",
+      navPrevLabel: "—", navPrevText: "٢.٥ · قسمة الأعداد الكلّية",
+      navNextLabel: "التالي", navNext: "٣.٢ · التحليل إلى العوامل الأوّلية",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "تختبر قواعد قابلية القسمة العدد دون تنفيذ القسمة: آخر رقمين يحدّدان القابلية للقسمة على ٤، ومجموع الأرقام يحدّد القابلية للقسمة على ٩، وكون العدد زوجيًا وقابلًا للقسمة على ٣ معًا يحدّد القابلية للقسمة على ٦.",
+      tour: [
+        { elKey: "ruleCard4", label: "قاعدة ٤", body: "انظر فقط إلى آخر رقمين. إذا كان هذا العدد المكوَّن من رقمين يقبل القسمة على ٤، فكذلك العدد كاملًا." },
+        { elKey: "ruleCard9", label: "قاعدة ٩", body: "اجمع كل الأرقام. إذا كان مجموع الأرقام يقبل القسمة على ٩، فكذلك العدد كاملًا." },
+        { ids: ["ruleCard4", "ruleCard9", "ruleCard6"], label: "قاعدة ٦ — الاثنان معًا", body: "٦ = ٢ × ٣، لذا يقبل العدد القسمة على ٦ عندما يكون زوجيًا وقابلًا للقسمة على ٣ معًا (نسخة أخفّ من فحص مجموع الأرقام)." }
+      ]
+    }
+  };
+
+  const numSlider = document.getElementById("numSlider");
+  const numReadout = document.getElementById("numReadout");
+  const digitRow = document.getElementById("digitRow");
+  const eqLine = document.getElementById("eqLine");
+  const check4 = document.getElementById("check4"), badge4 = document.getElementById("badge4");
+  const check9 = document.getElementById("check9"), badge9 = document.getElementById("badge9");
+  const check6 = document.getElementById("check6"), badge6 = document.getElementById("badge6");
+
+  function digitSum(n) { return String(n).split("").reduce((a, d) => a + parseInt(d, 10), 0); }
+
+  function render() {
+    const t = T[i18n.lang];
+    const n = parseInt(numSlider.value, 10);
+    numReadout.textContent = digits(n, i18n.lang);
+
+    const nStr = String(n);
+    digitRow.innerHTML = "";
+    nStr.split("").forEach((d, idx) => {
+      const span = document.createElement("span");
+      span.className = "digit";
+      span.textContent = digits(parseInt(d, 10), i18n.lang);
+      span.dataset.idx = idx;
+      digitRow.appendChild(span);
+    });
+
+    const last2 = n % 100;
+    const isDiv4 = last2 % 4 === 0;
+    const sum = digitSum(n);
+    const isDiv9 = sum % 9 === 0;
+    const isEven = n % 2 === 0;
+    const isDiv3 = sum % 3 === 0;
+    const isDiv6 = isEven && isDiv3;
+
+    document.querySelectorAll(".digit").forEach((el, idx) => {
+      el.classList.toggle("lit", idx >= nStr.length - 2);
+    });
+
+    check4.textContent = t.check4(groupInt(last2, "en"));
+    badge4.textContent = isDiv4 ? t.yes : t.no;
+    badge4.className = "badge " + (isDiv4 ? "yes" : "no");
+
+    check9.textContent = t.check9(groupInt(sum, "en"));
+    badge9.textContent = isDiv9 ? t.yes : t.no;
+    badge9.className = "badge " + (isDiv9 ? "yes" : "no");
+
+    check6.textContent = t.check6(isEven ? t.yes : t.no, groupInt(sum, "en"));
+    badge6.textContent = isDiv6 ? t.yes : t.no;
+    badge6.className = "badge " + (isDiv6 ? "yes" : "no");
+
+    const eqSource = `${groupInt(n, "en")}: \\;4\\!\\to\\!\\color{${isDiv4 ? "#6bb57c" : "#ed6d40"}}{${isDiv4 ? "\\checkmark" : "\\times"}}\\;\\; 9\\!\\to\\!\\color{${isDiv9 ? "#6bb57c" : "#ed6d40"}}{${isDiv9 ? "\\checkmark" : "\\times"}}\\;\\; 6\\!\\to\\!\\color{${isDiv6 ? "#6bb57c" : "#ed6d40"}}{${isDiv6 ? "\\checkmark" : "\\times"}}`;
+    renderEquation(eqLine, eqSource);
+  }
+
+  numSlider.addEventListener("input", render);
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

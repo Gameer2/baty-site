@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>function-plot — integration demo</title>
+<style>
+@font-face{font-family:'Roc Grotesk';src:url('../../math-lab/assets/fonts/roc-grotesk-regular.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'Roc Grotesk';src:url('../../math-lab/assets/fonts/roc-grotesk-medium.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:'Azeret Mono';src:url('../../math-lab/assets/fonts/azeret-mono-regular.otf') format('opentype');font-weight:400;font-display:swap}
+@font-face{font-family:'Fraunces';src:url('../../math-lab/assets/fonts/fraunces-variable.woff2') format('woff2');font-weight:300 600;font-display:swap}
+</style>
+<script src="vendor/function-plot.js"></script>
+<style>
+:root{--core-black:#090909;--rich-carbon:#111;--urban-smoke:#1b1b1b;--pulse-ash:#7d858c;--off-white:#e7e7e7;--neural-fog:#dadada;--electric-teal:#5c939f;--infrared:#ed6d40;--validation-green:#59a993;--validation-red:#cb3500;--font-display:"Roc Grotesk","Helvetica Neue",Arial,sans-serif;--font-mono:"Azeret Mono",ui-monospace,monospace;--font-serif:"Fraunces",Georgia,serif;--radius-sm:4px;--radius-md:8px;--radius-lg:20px;--container-w:1280px}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{background:var(--core-black);color:var(--off-white);font-family:var(--font-display);line-height:1.55}
+.container{max-width:var(--container-w);margin:0 auto;padding:0 24px}
+header.top{position:fixed;top:20px;left:0;right:0;z-index:50}
+.top-inner{max-width:var(--container-w);margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:12px;font-family:var(--font-mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase}
+.brand{display:inline-flex;align-items:center;gap:8px;color:var(--off-white);text-decoration:none}.brand .dot{width:8px;height:8px;border-radius:50%;background:var(--infrared)}
+.top-inner a.lk{color:var(--pulse-ash);text-decoration:none;margin-left:auto}.top-inner a.lk:hover{color:var(--electric-teal)}
+.hero{padding:120px 0 20px}
+.eyebrow{font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--electric-teal);display:inline-flex;align-items:center;gap:8px;margin-bottom:16px}
+.eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.h1{font-family:var(--font-serif);font-weight:350;font-size:clamp(38px,5.6vw,72px);line-height:.98;letter-spacing:-.02em;margin:0 0 14px}
+.p1{font-size:17px;color:var(--neural-fog);max-width:640px;margin:0}
+.section{padding:24px 0 80px}
+.card{background:var(--rich-carbon);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-lg);padding:24px}
+.grid{display:grid;gap:22px;grid-template-columns:1.3fr .7fr}
+@media(max-width:980px){.grid{grid-template-columns:1fr}}
+#plot{width:100%;height:480px;background:var(--core-black);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius-md);overflow:hidden}
+#plot svg{background:transparent!important}
+label{font-family:var(--font-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--pulse-ash);display:block;margin-bottom:8px}
+.fnrow{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.fnrow .swatch{width:14px;height:14px;border-radius:3px;flex:none}
+.fnrow input{flex:1;background:var(--core-black);border:1px solid rgba(255,255,255,.16);border-radius:var(--radius-sm);color:var(--off-white);font-family:var(--font-mono);font-size:13px;padding:8px 10px}
+.fnrow input:focus{outline:none;border-color:var(--electric-teal)}
+.fnrow .x{font-family:var(--font-mono);font-size:11px;color:var(--pulse-ash);width:22px;text-align:center}
+.btn{font-family:var(--font-mono);text-transform:uppercase;font-size:11px;letter-spacing:.1em;padding:8px 14px;border-radius:var(--radius-sm);border:1px solid var(--pulse-ash);color:var(--neural-fog);background:transparent;cursor:pointer;transition:.3s}
+.btn:hover{color:var(--core-black);border-color:var(--electric-teal);background:var(--electric-teal)}
+.btn--primary{border-color:var(--infrared);color:var(--core-black);background:var(--infrared)}
+.btn--primary:hover{background:#ff8a5c;border-color:#ff8a5c}
+.controls{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
+.tip{font-family:var(--font-mono);font-size:12px;color:var(--pulse-ash);margin-top:12px;line-height:1.6}
+.tip b{color:var(--electric-teal)}
+.callout{margin-top:24px;font-size:14px;color:var(--neural-fog);line-height:1.6}.callout b{color:var(--off-white)}
+code{font-family:var(--font-mono);font-size:12px;color:var(--electric-teal)}
+.err{color:var(--validation-red);font-family:var(--font-mono);font-size:12px;margin-top:6px;min-height:16px}
+footer{padding:30px 0 60px;color:var(--pulse-ash);font-size:13px;font-family:var(--font-mono)}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-inner"><a class="brand" href="./index.html"><span class="dot"></span>BACK · DEMOS</a><a class="lk" href="./function-plot.html">function-plot</a></div></header>
+
+<section class="hero">
+  <div class="container">
+    <span class="eyebrow">Plotting</span>
+    <h1 class="h1">Desmos, basically.</h1>
+    <p class="p1">Scroll to zoom, drag to pan, hover to read coordinates. Edit the functions in the panel — they re-render live. function-plot is the ~30 KB library behind this; compared to Plotly it's purpose-built for <code>f(x)</code> graphing and gives you trace/readout for free.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="card">
+      <div class="grid">
+        <div>
+          <label>Plot · scroll-zoom · drag-pan · hover-trace</label>
+          <div id="plot"></div>
+        </div>
+        <div>
+          <label>Functions · type and press Enter</label>
+          <div id="fnlist"></div>
+          <div class="controls">
+            <button class="btn" id="addFn">+ Add function</button>
+            <button class="btn btn--primary" id="render">Render</button>
+          </div>
+          <div class="err" id="err"></div>
+          <div class="tip"><b>Try:</b> <code>sin(x)*exp(-x/5)</code> · <code>x^3-3x</code> · <code>1/x</code> · <code>tan(x)</code></div>
+        </div>
+      </div>
+      <div class="callout">
+        <b>What this shows.</b> The "graph <code>f(x)</code>" case done right — interactions students actually expect (zoom/pan/trace) with no chart-config boilerplate. A drop-in for the many engine pages that currently hand-roll a Plotly chart just to draw one or two curves. Keep Plotly for the statistics engine's multi-series dashboards; use this wherever the page is really just "draw this function."
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer><div class="container">function-plot · d3-based graphing</div></footer>
+
+<script>
+const COLORS=['#5c939f','#ed6d40','#59a993','#d9a24e','#9b8bd9'];
+let fns=[
+  {fn:'sin(x)', color:COLORS[0]},
+  {fn:'x^3/8 - x', color:COLORS[1]},
+];
+const list=document.getElementById('fnlist');
+function renderList(){
+  list.innerHTML='';
+  fns.forEach((f,i)=>{
+    const row=document.createElement('div');row.className='fnrow';
+    const sw=document.createElement('div');sw.className='swatch';sw.style.background=f.color;
+    const inp=document.createElement('input');inp.value=f.fn;inp.placeholder='f(x)';
+    inp.addEventListener('change',()=>{f.fn=inp.value;render();});
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')render();});
+    const x=document.createElement('div');x.className='x';x.textContent='×';x.style.cursor='pointer';x.title='remove';
+    x.addEventListener('click',()=>{fns.splice(i,1);renderList();render();});
+    row.append(sw,inp,x);list.appendChild(row);
+  });
+}
+function render(){
+  const err=document.getElementById('err');err.textContent='';
+  const root=document.getElementById('plot');root.innerHTML='';
+  try{
+    functionPlot({
+      target:'#plot',
+      width:root.clientWidth,
+      height:480,
+      xDomain:[-6,6],yDomain:[-6,6],
+      grid:true,
+      xAxis:{domain:[-6,6],label:'x'},
+      yAxis:{domain:[-6,6],label:'y'},
+      data:fns.map(f=>({
+        fn:f.fn, color:f.color,
+        graphType:'polyline', sampler:'interval',
+        closed:false
+      })),
+      tip:{xRenderer:x=>'x = '+parseFloat(x).toFixed(2), yRenderer:y=>'y = '+parseFloat(y).toFixed(2)},
+      disableZoom:false
+    });
+    // restyle after render
+    const svg=root.querySelector('svg');if(svg){svg.style.background='transparent';}
+    root.querySelectorAll('.axis path, .axis line').forEach(n=>n.style.stroke='rgba(255,255,255,.18)');
+    root.querySelectorAll('.axis text').forEach(n=>{n.style.fill='#7d858c';n.style.fontFamily='Azeret Mono,monospace';n.style.fontSize='11px';});
+    root.querySelectorAll('.grid path').forEach(n=>n.style.stroke='rgba(255,255,255,.05)');
+  }catch(e){ err.textContent='parse error: '+(e.message||e); }
+}
+document.getElementById('addFn').onclick=()=>{fns.push({fn:'cos(x)',color:COLORS[fns.length%COLORS.length]});renderList();render();};
+document.getElementById('render').onclick=render;
+renderList();render();
+window.addEventListener('resize',()=>{clearTimeout(window._rt);window._rt=setTimeout(render,150);});
+</script>
+</body>
+</html>

@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Greatest Common Factor — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:30px 20px 30px; display:flex; flex-direction:column; align-items:center; gap:18px; }
+  .venn-wrap{ position:relative; width:100%; max-width:460px; height:230px; }
+  .circle{ position:absolute; top:14px; width:270px; height:200px; border-radius:50%; border:2px solid; display:flex; }
+  .circle.a{ left:0; border-color:rgba(92,147,159,.55); background:rgba(92,147,159,.06); }
+  .circle.b{ right:0; border-color:rgba(237,109,64,.55); background:rgba(237,109,64,.06); }
+  .zone-label{ position:absolute; top:-4px; font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash); }
+  .zone-label.a{ left:16px; } .zone-label.b{ right:16px; }
+  .chip-pool{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; max-width:460px; }
+  .chip{ font-family:var(--mono); font-size:14px; font-weight:700; color:var(--off-white); background:var(--core-black); border:1px solid rgba(255,255,255,.18); border-radius:8px; padding:6px 12px; cursor:pointer; direction:ltr; user-select:none; }
+  .chip.placed{ opacity:.35; cursor:default; }
+  .zone-chips{ position:absolute; top:70px; display:flex; flex-wrap:wrap; gap:6px; width:110px; justify-content:center; }
+  .zone-chips.left{ left:22px; }
+  .zone-chips.right{ right:22px; }
+  .zone-chips.mid{ left:50%; transform:translateX(-50%); width:100px; }
+  .placed-chip{ font-family:var(--mono); font-size:13px; font-weight:700; color:var(--off-white); background:rgba(255,255,255,.08); border-radius:6px; padding:4px 9px; direction:ltr; }
+  .placed-chip.gcf{ color:var(--validation-green); background:rgba(107,181,124,.16); border:1px solid rgba(107,181,124,.5); }
+  .inputs{ display:flex; gap:16px; }
+  .input-group{ display:flex; align-items:center; gap:8px; }
+  .input-group label{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash); }
+  .input-group input{ font-family:var(--mono); font-size:15px; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.16); border-radius:8px; padding:7px 10px; width:74px; direction:ltr; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 3 · LESSON 3</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Greatest Common Factor</h1>
+    <span class="title-secondary ar-display" id="titleAr">القاسم المشترك الأكبر</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I find the greatest common factor of two whole numbers by sorting their factors into a Venn diagram.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">tap each factor to sort it</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="inputs">
+        <div class="input-group"><label data-role="ui" data-i18n="labelA">number A</label><input type="number" id="inputA" value="24" min="2" max="99" /></div>
+        <div class="input-group"><label data-role="ui" data-i18n="labelB">number B</label><input type="number" id="inputB" value="36" min="2" max="99" /></div>
+      </div>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="chip-pool" id="chipPool" data-el="chipPool"></div>
+      <div class="venn-wrap" id="vennWrap" data-el="vennWrap">
+        <span class="zone-label a" id="labelA"></span>
+        <span class="zone-label b" id="labelB"></span>
+        <div class="circle a"></div>
+        <div class="circle b"></div>
+        <div class="zone-chips left" id="zoneA"></div>
+        <div class="zone-chips mid" id="zoneMid" data-el="zoneMid"></div>
+        <div class="zone-chips right" id="zoneB"></div>
+      </div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Every factor of a number sorts into exactly one region of the Venn diagram; the numbers shared by both circles are common factors, and the largest of those is the greatest common factor.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="3-2-prime-factorization.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">3.2 · Prime Factorization</b></a>
+    <a class="nav-pill next" href="3-4-least-common-multiple.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">3.4 · Least Common Multiple</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 3 · LESSON 3",
+      objectiveLabel: "Objective —",
+      objectiveText: "I find the greatest common factor of two whole numbers by sorting their factors into a Venn diagram.",
+      eqSub: "tap each factor to sort it",
+      explainBtn: "Explain this",
+      controlLabel: "", labelA: "number A", labelB: "number B",
+      zoneLabelA: (a) => `only ${a}`, zoneLabelB: (b) => `only ${b}`,
+      navPrevLabel: "—", navPrevText: "3.2 · Prime Factorization",
+      navNextLabel: "next", navNext: "3.4 · Least Common Multiple",
+      teachLabel: "What this teaches:",
+      teachBody: "Every factor of a number sorts into exactly one region of the Venn diagram; the numbers shared by both circles are common factors, and the largest of those is the greatest common factor.",
+      tour: [
+        { elKey: "chipPool", label: "List every factor", body: "These chips are every factor of both numbers, all mixed together." },
+        { elKey: "vennWrap", label: "Sort each one", body: "Tap a chip — it lands in A's circle only, B's circle only, or the overlap if it factors both numbers." },
+        { elKey: "zoneMid", label: "The overlap is the common factors", body: "Whatever ends up in the middle divides both numbers evenly." },
+        { ids: ["eqLine"], label: "The greatest common factor", body: "The largest number sitting in the overlap is the GCF — useful for simplifying fractions." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٣ · الدرس ٣",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أجد القاسم المشترك الأكبر لعددين كليّين بفرز عواملهما في مخطط فن.",
+      eqSub: "انقر على كل عامل لفرزه",
+      explainBtn: "اشرح هذا",
+      controlLabel: "", labelA: "العدد A", labelB: "العدد B",
+      zoneLabelA: (a) => `${a} فقط`, zoneLabelB: (b) => `${b} فقط`,
+      navPrevLabel: "—", navPrevText: "٣.٢ · التحليل إلى العوامل الأوّلية",
+      navNextLabel: "التالي", navNext: "٣.٤ · المضاعف المشترك الأصغر",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "كل عامل لعدد يُفرز في منطقة واحدة فقط من مخطط فن؛ والأعداد المشتركة بين الدائرتين هي العوامل المشتركة، وأكبرها هو القاسم المشترك الأكبر.",
+      tour: [
+        { elKey: "chipPool", label: "اسرد كل العوامل", body: "هذه الرقائق هي كل عوامل العددين، مختلطة معًا." },
+        { elKey: "vennWrap", label: "افرز كل واحدة", body: "انقر على رقاقة — تستقر في دائرة A فقط، أو B فقط، أو في المنطقة المشتركة إن كانت تقسم العددين معًا." },
+        { elKey: "zoneMid", label: "المنطقة المشتركة هي العوامل المشتركة", body: "كل ما ينتهي في المنتصف يقسم العددين كليهما دون باقٍ." },
+        { ids: ["eqLine"], label: "القاسم المشترك الأكبر", body: "أكبر عدد في المنطقة المشتركة هو القاسم المشترك الأكبر — مفيد في تبسيط الكسور." }
+      ]
+    }
+  };
+
+  const inputA = document.getElementById("inputA");
+  const inputB = document.getElementById("inputB");
+  const eqLine = document.getElementById("eqLine");
+  const chipPool = document.getElementById("chipPool");
+  const zoneA = document.getElementById("zoneA");
+  const zoneB = document.getElementById("zoneB");
+  const zoneMid = document.getElementById("zoneMid");
+  const labelAEl = document.getElementById("labelA");
+  const labelBEl = document.getElementById("labelB");
+
+  function factorsOf(n) {
+    const out = [];
+    for (let f = 1; f <= n; f++) if (n % f === 0) out.push(f);
+    return out;
+  }
+
+  let A, B, allFactors, placed;
+
+  function setup() {
+    A = Math.max(2, Math.min(99, parseInt(inputA.value, 10) || 24));
+    B = Math.max(2, Math.min(99, parseInt(inputB.value, 10) || 36));
+    const fA = factorsOf(A), fB = factorsOf(B);
+    const union = Array.from(new Set([...fA, ...fB])).sort((a, b) => a - b);
+    allFactors = union.map(v => ({ value: v, inA: fA.includes(v), inB: fB.includes(v) }));
+    placed = {};
+  }
+
+  function gcf() {
+    return Math.max(...allFactors.filter(f => f.inA && f.inB).map(f => f.value));
+  }
+
+  function renderPool() {
+    chipPool.innerHTML = "";
+    allFactors.forEach(f => {
+      const chip = document.createElement("div");
+      chip.className = "chip" + (placed[f.value] ? " placed" : "");
+      chip.textContent = digits(f.value, i18n.lang);
+      if (!placed[f.value]) {
+        chip.addEventListener("click", () => {
+          placed[f.value] = true;
+          renderAll();
+        });
+      }
+      chipPool.appendChild(chip);
+    });
+  }
+
+  function renderZones() {
+    zoneA.innerHTML = ""; zoneB.innerHTML = ""; zoneMid.innerHTML = "";
+    const g = gcf();
+    allFactors.forEach(f => {
+      if (!placed[f.value]) return;
+      const el = document.createElement("div");
+      el.className = "placed-chip" + (f.inA && f.inB && f.value === g ? " gcf" : "");
+      el.textContent = digits(f.value, i18n.lang);
+      if (f.inA && f.inB) zoneMid.appendChild(el);
+      else if (f.inA) zoneA.appendChild(el);
+      else zoneB.appendChild(el);
+      gsap.fromTo(el, { scale: 0 }, { scale: 1, duration: .25, ease: "back.out(1.7)" });
+    });
+  }
+
+  function updateEquation() {
+    const allPlaced = allFactors.every(f => placed[f.value]);
+    if (allPlaced) {
+      renderEquation(eqLine, `\\gcd(${groupInt(A, "en")}, ${groupInt(B, "en")}) = \\color{#ed6d40}{${groupInt(gcf(), "en")}}`);
+    } else {
+      renderEquation(eqLine, `\\gcd(${groupInt(A, "en")}, ${groupInt(B, "en")}) = \\;?`);
+    }
+  }
+
+  function renderAll() {
+    const t = T[i18n.lang];
+    labelAEl.textContent = t.zoneLabelA(groupInt(A, "en"));
+    labelBEl.textContent = t.zoneLabelB(groupInt(B, "en"));
+    renderPool();
+    renderZones();
+    updateEquation();
+  }
+
+  function fullRender() {
+    setup();
+    renderAll();
+  }
+
+  inputA.addEventListener("input", fullRender);
+  inputB.addEventListener("input", fullRender);
+  const i18n = initI18n(T, { onLangChange: renderAll });
+  fullRender();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

@@ -2,6 +2,7 @@
 (function () {
   "use strict";
   LinAlgPage.init({
+    storeKey: "engine-lab:linear-algebra-cholesky",
     square: true,
     example: { A: [[4, 2, -2], [2, 10, 2], [-2, 2, 5]] },
     compute: (A) => ({ chol: LinAlg.cholesky(A), lu: LinAlg.luDecompose(A) }),

@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Area of a Triangle — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: a rotated copy of the triangle swings 180° to combine with the
+     original into a parallelogram, deriving the ½ factor. Forks 7.2's combine grammar. ---- */
+  .chart{ padding:26px 20px 30px; display:flex; flex-direction:column; align-items:center; gap:16px; }
+  svg#triSvg{ direction:ltr; }
+  .tri-orig{ fill:rgba(92,147,159,.28); stroke:var(--electric-teal); stroke-width:2.5; }
+  .tri-copy{ fill:rgba(237,109,64,.2); stroke:var(--infrared); stroke-width:2.5; }
+  .dim-label{ font-family:var(--mono); font-size:12px; fill:var(--neural-fog); }
+
+  .action-btn{ font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--electric-teal); background:none; border:1px solid rgba(92,147,159,.45); border-radius:100px; padding:8px 16px; cursor:pointer; }
+  .action-btn:hover{ background:rgba(92,147,159,.14); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 7 · LESSON 3</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Area of a Triangle</h1>
+    <span class="title-secondary ar-display" id="titleAr">مساحة المثلث</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I find the area of a triangle.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">two congruent triangles make one parallelogram</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <button class="action-btn" id="combineBtn" data-role="ui" data-i18n="combineBtn">rotate &amp; combine</button>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <svg id="triSvg" width="320" height="220" viewBox="0 0 320 220" data-el="triSvg"></svg>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Preceded by a concept activity showing two congruent triangles combine into a parallelogram, giving Area = ½ × base × height.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="7-2-area-of-a-parallelogram.html">— <b data-role="body" id="navPrevText">7.2 · Area of a Parallelogram</b></a>
+    <a class="nav-pill next" href="7-4-area-of-a-trapezoid.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">7.4 · Area of a Trapezoid</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const A = { x: 70, y: 190 }, B = { x: 190, y: 190 }, C = { x: 130, y: 90 };
+  const BASE_UNITS = 12, HEIGHT_UNITS = 10;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 7 · LESSON 3",
+      objectiveLabel: "Objective —",
+      objectiveText: "I find the area of a triangle.",
+      eqSub: "two congruent triangles make one parallelogram",
+      explainBtn: "Explain this",
+      combineBtn: "rotate & combine", resetBtn: "reset",
+      teachLabel: "What this teaches:",
+      teachBody: "Preceded by a concept activity showing two congruent triangles combine into a parallelogram, giving Area = ½ × base × height.",
+      navPrev: "7.2 · Area of a Parallelogram",
+      navNext: "7.4 · Area of a Trapezoid",
+      navNextLabel: "next",
+      tour: [
+        { ids: ["triSvg"], label: "One triangle, copied", body: "The orange copy is congruent to the teal original — same base, same height." },
+        { ids: ["combineBtn"], label: "Rotate 180°", body: "Spin the copy 180° about the midpoint of the shared side — it swings around to attach on the other side." },
+        { ids: ["eqLine"], label: "Half the parallelogram", body: "Together they form a parallelogram with the same base and height — so one triangle is exactly half of base × height." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ٧ · الدرس ٣",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أجد مساحة المثلث.",
+      eqSub: "مثلثان متطابقان يُكوّنان متوازي أضلاع واحدًا",
+      explainBtn: "اشرح هذا",
+      combineBtn: "دوّر وادمج", resetBtn: "إعادة",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "يسبقه نشاط مفهومي يُظهر أن مثلثين متطابقين يتّحدان لتكوين متوازي أضلاع، مما يعطي المساحة = ½ × القاعدة × الارتفاع.",
+      navPrev: "٧.٢ · مساحة متوازي الأضلاع",
+      navNext: "٧.٤ · مساحة شبه المنحرف",
+      navNextLabel: "التالي",
+      tour: [
+        { ids: ["triSvg"], label: "مثلث واحد، منسوخ", body: "النسخة البرتقالية مطابقة للأصل التركوازي — القاعدة نفسها، والارتفاع نفسه." },
+        { ids: ["combineBtn"], label: "دوّر ١٨٠°", body: "أدر النسخة ١٨٠° حول منتصف الضلع المشترك — تدور لتلتحم بالجهة الأخرى." },
+        { ids: ["eqLine"], label: "نصف متوازي الأضلاع", body: "معًا يُكوّنان متوازي أضلاع بالقاعدة والارتفاع نفسيهما — فالمثلث الواحد نصف القاعدة × الارتفاع بالضبط." }
+      ]
+    }
+  };
+
+  const triSvg = document.getElementById("triSvg");
+  const combineBtn = document.getElementById("combineBtn");
+  const eqLine = document.getElementById("eqLine");
+
+  // copy vertices start as A,B,C; rotated (combined) target maps A->A', B->C, C->B
+  const M = { x: (B.x + C.x) / 2, y: (B.y + C.y) / 2 };
+  const Aprime = { x: 2 * M.x - A.x, y: 2 * M.y - A.y };
+  const startCopy = { ax: A.x, ay: A.y, bx: B.x, by: B.y, cx: C.x, cy: C.y };
+  const endCopy = { ax: Aprime.x, ay: Aprime.y, bx: C.x, by: C.y, cx: B.x, cy: B.y };
+  const copy = { ...startCopy };
+  let combined = false;
+
+  function render() {
+    const t = T[i18n.lang];
+    triSvg.innerHTML = "";
+
+    const orig = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+    orig.setAttribute("points", [A, B, C].map(p => p.x + "," + p.y).join(" "));
+    orig.setAttribute("class", "tri-orig");
+    triSvg.appendChild(orig);
+
+    const cop = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+    cop.setAttribute("points", `${copy.ax},${copy.ay} ${copy.bx},${copy.by} ${copy.cx},${copy.cy}`);
+    cop.setAttribute("class", "tri-copy");
+    triSvg.appendChild(cop);
+
+    const baseLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    baseLabel.setAttribute("x", (A.x + B.x) / 2); baseLabel.setAttribute("y", A.y + 20);
+    baseLabel.setAttribute("class", "dim-label"); baseLabel.setAttribute("text-anchor", "middle");
+    baseLabel.textContent = "b = " + digits(BASE_UNITS, i18n.lang);
+    triSvg.appendChild(baseLabel);
+
+    combineBtn.textContent = combined ? t.resetBtn : t.combineBtn;
+
+    const b = BASE_UNITS, h = HEIGHT_UNITS;
+    const eqSource = combined
+      ? `\\text{parallelogram} = b \\times h = ${b} \\times ${h} = ${b * h} \\;\\Rightarrow\\; \\text{triangle} = \\color{#ed6d40}{${(b * h) / 2}}`
+      : `\\tfrac{1}{2} \\times b \\times h = \\tfrac{1}{2} \\times ${b} \\times ${h} = \\color{#ed6d40}{${(b * h) / 2}}`;
+    renderEquation(eqLine, eqSource);
+  }
+
+  combineBtn.addEventListener("click", () => {
+    const target = combined ? startCopy : endCopy;
+    gsap.to(copy, { ...target, duration: .8, ease: "power2.inOut", onUpdate: render });
+    combined = !combined;
+  });
+
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

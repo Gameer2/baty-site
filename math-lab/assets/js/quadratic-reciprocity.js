@@ -67,5 +67,13 @@
     if (!NumberTheory.millerRabin(p).prime) return showError(`${p} is not prime.`);
     if (!NumberTheory.millerRabin(q).prime) return showError(`${q} is not prime.`);
     render(p, q);
+    Proto.saveState("engine-lab:number-theory-quadratic-reciprocity", { p: pInput.value, q: qInput.value });
   });
+
+  const saved = Proto.loadState("engine-lab:number-theory-quadratic-reciprocity");
+  if (saved) {
+    if (saved.p !== undefined) pInput.value = saved.p;
+    if (saved.q !== undefined) qInput.value = saved.q;
+    form.requestSubmit();
+  }
 })();

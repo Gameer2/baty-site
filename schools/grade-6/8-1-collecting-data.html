@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Collecting Data — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: sort sample data into numerical-discrete / numerical-continuous /
+     categorical, with instant reasoning. Forks Grade 5's 5.1 sort-with-feedback cards. ---- */
+  .chart{ padding:30px 22px 30px; display:flex; flex-direction:column; align-items:center; gap:20px; }
+  .q-list{ display:flex; flex-direction:column; gap:8px; width:100%; max-width:560px; }
+  .q-card{ display:flex; flex-direction:column; gap:8px; padding:12px 16px; border-radius:10px; background:var(--urban-smoke); border:1px solid rgba(255,255,255,.1); }
+  .q-card .qtext{ font-family:var(--display); font-size:14px; color:var(--off-white); }
+  .q-card .btns{ display:flex; gap:6px; flex-wrap:wrap; }
+  .sort-btn{ font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--pulse-ash); background:var(--core-black); border:1px solid rgba(255,255,255,.16); border-radius:100px; padding:5px 10px; cursor:pointer; }
+  .sort-btn.chosen-correct{ color:var(--validation-green); border-color:rgba(107,181,124,.5); background:rgba(107,181,124,.14); }
+  .sort-btn.chosen-wrong{ color:var(--infrared); border-color:rgba(237,109,64,.5); background:rgba(237,109,64,.1); }
+  .q-reason{ font-family:var(--mono); font-size:11.5px; color:var(--pulse-ash); display:none; }
+  .q-card.answered .q-reason{ display:block; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 8 · LESSON 1</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Collecting Data</h1>
+    <span class="title-secondary ar-display" id="titleAr">جمع البيانات</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I classify collected data.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">numeric? then: countable, or measured?</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="q-list" id="qList" data-el="qList"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Data splits into numerical (measurable, can be computed on and ordered) and categorical (non-numeric, observed only); numerical data further splits into discrete (countable exact values) and continuous (measurable, not exactly countable, often rounded). Applied to survey-design contexts like estimating how many students bring packed lunches.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="7-5-volume-surface-area-prism.html">— <b data-role="body" id="navPrevText">7.5 · Volume &amp; Surface Area of a Prism</b></a>
+    <a class="nav-pill next" href="8-2-frequency-tables.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">8.2 · Frequency Tables</b></a>
+  </div>
+</div>
+
+<script>
+  const { initI18n, renderEquation, buildTour } = LessonShell;
+
+  const SAMPLES = [
+    { en: "Number of pets each student owns", ar: "عدد الحيوانات الأليفة لكل طالب", type: "discrete",
+      reasonEn: "Numeric and countable in exact whole units — that's discrete.", reasonAr: "عددي وقابل للعدّ بوحدات كلّية دقيقة — هذا يجعله منفصلًا." },
+    { en: "Length of each fish, to the nearest tenth of a cm", ar: "طول كل سمكة، لأقرب عُشر سم", type: "continuous",
+      reasonEn: "Numeric but measured, not counted — any value in a range is possible, so it's continuous.", reasonAr: "عددي لكنه يُقاس لا يُعدّ — أي قيمة ضمن مدى ممكنة، فهو متصل." },
+    { en: "Favorite color of each student", ar: "اللون المفضّل لكل طالب", type: "categorical",
+      reasonEn: "Not a number at all — this is categorical data.", reasonAr: "ليس عددًا على الإطلاق — هذه بيانات نوعية." },
+    { en: "Number of siblings each student has", ar: "عدد إخوة كل طالب", type: "discrete",
+      reasonEn: "Numeric and countable in exact whole units — discrete again.", reasonAr: "عددي وقابل للعدّ بوحدات كلّية دقيقة — منفصل مرّة أخرى." },
+    { en: "Height of each plant, in centimeters", ar: "طول كل نبتة، بالسنتيمتر", type: "continuous",
+      reasonEn: "A measured quantity that can take any value — continuous.", reasonAr: "كمّية تُقاس ويمكن أن تأخذ أي قيمة — متصلة." },
+    { en: "Type of pet each student owns", ar: "نوع الحيوان الأليف الذي يملكه كل طالب", type: "categorical",
+      reasonEn: "A label, not a number — categorical data.", reasonAr: "تسمية لا عدد — بيانات نوعية." }
+  ];
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 8 · LESSON 1",
+      objectiveLabel: "Objective —",
+      objectiveText: "I classify collected data.",
+      eqSub: "numeric? then: countable, or measured?",
+      explainBtn: "Explain this",
+      btnDiscrete: "numerical — discrete", btnContinuous: "numerical — continuous", btnCategorical: "categorical",
+      navPrev: "7.5 · Volume & Surface Area of a Prism",
+      navNext: "8.2 · Frequency Tables",
+      navNextLabel: "next",
+      teachLabel: "What this teaches:",
+      teachBody: "Data splits into numerical (measurable, can be computed on and ordered) and categorical (non-numeric, observed only); numerical data further splits into discrete (countable exact values) and continuous (measurable, not exactly countable, often rounded). Applied to survey-design contexts like estimating how many students bring packed lunches.",
+      tour: [
+        { elKey: "qList", label: "Numeric or not?", body: "First question: is the data a number at all, or a label/category?" },
+        { elKey: "qList", label: "Countable, or measured?", body: "If it's numeric, ask whether it's counted in exact whole units (discrete) or measured and could be any value (continuous)." },
+        { elKey: "qList", label: "Check the reasoning", body: "Each answer explains exactly which property decided the classification." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ٨ · الدرس ١",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أُصنِّف البيانات المجمَّعة.",
+      eqSub: "عددية؟ ثم: قابلة للعدّ، أم للقياس؟",
+      explainBtn: "اشرح هذا",
+      btnDiscrete: "عددية — منفصلة", btnContinuous: "عددية — متصلة", btnCategorical: "نوعية",
+      navPrev: "٧.٥ · حجم المنشور الرباعي ومساحة سطحه",
+      navNext: "٨.٢ · الجداول التكرارية",
+      navNextLabel: "التالي",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "تنقسم البيانات إلى عددية (قابلة للقياس والحساب والترتيب) ونوعية (غير عددية، تُلاحَظ فقط)؛ وتنقسم البيانات العددية بدورها إلى منفصلة (قيم دقيقة قابلة للعدّ) ومتصلة (قابلة للقياس، غير قابلة للعدّ الدقيق، وغالبًا تُقرَّب). تُطبَّق على سياقات تصميم استبيانات كتقدير عدد الطلبة الذين يحضرون وجبات معبّأة.",
+      tour: [
+        { elKey: "qList", label: "عددية أم لا؟", body: "السؤال الأول: هل البيانات عدد أصلًا، أم تسمية/فئة؟" },
+        { elKey: "qList", label: "قابلة للعدّ، أم للقياس؟", body: "إن كانت عددية، اسأل هل تُعدّ بوحدات كلّية دقيقة (منفصلة) أم تُقاس ويمكن أن تأخذ أي قيمة (متصلة)." },
+        { elKey: "qList", label: "تحقّق من السبب", body: "توضّح كل إجابة بالضبط أي خاصية حدّدت التصنيف." }
+      ]
+    }
+  };
+
+  const qList = document.getElementById("qList");
+  const eqLine = document.getElementById("eqLine");
+
+  function buildQuestions() {
+    const t = T[i18n.lang];
+    qList.innerHTML = "";
+    SAMPLES.forEach(q => {
+      const card = document.createElement("div");
+      card.className = "q-card";
+      const qtext = document.createElement("div");
+      qtext.className = "qtext";
+      qtext.textContent = i18n.lang === "ar" ? q.ar : q.en;
+      const reason = document.createElement("div");
+      reason.className = "q-reason";
+      reason.textContent = i18n.lang === "ar" ? q.reasonAr : q.reasonEn;
+
+      const btns = document.createElement("div");
+      btns.className = "btns";
+      [["discrete", t.btnDiscrete], ["continuous", t.btnContinuous], ["categorical", t.btnCategorical]].forEach(([key, label]) => {
+        const btn = document.createElement("button");
+        btn.className = "sort-btn";
+        btn.textContent = label;
+        btn.addEventListener("click", () => {
+          btns.querySelectorAll(".sort-btn").forEach(b => b.classList.remove("chosen-correct", "chosen-wrong"));
+          btn.classList.add(key === q.type ? "chosen-correct" : "chosen-wrong");
+          card.classList.add("answered");
+        });
+        btns.appendChild(btn);
+      });
+
+      card.appendChild(qtext);
+      card.appendChild(btns);
+      card.appendChild(reason);
+      qList.appendChild(card);
+    });
+  }
+
+  function render() {
+    buildQuestions();
+    renderEquation(eqLine, `\\text{numeric?} \\to \\text{counted or measured?} \\;\\Rightarrow\\; \\color{#ed6d40}{\\text{classified}}`);
+  }
+
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

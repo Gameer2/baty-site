@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Problem-Solving Strategy: Draw a Model — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:34px 24px 34px; display:flex; flex-direction:column; align-items:center; gap:22px; }
+  .tape-wrap{ display:flex; flex-direction:column; gap:12px; width:100%; max-width:460px; direction:ltr; }
+  .tape-row{ display:flex; align-items:center; gap:10px; }
+  .tape-tag{ font-family:var(--mono); font-size:12px; font-weight:700; color:var(--off-white); width:70px; text-align:right; }
+  .tape-bar{ height:32px; border-radius:6px; background:var(--electric-teal); display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:12px; font-weight:700; color:var(--core-black); transition:width .4s ease; min-width:40px; }
+  .tape-bar.b{ background:var(--infrared); }
+  .tape-bar .extra{ background:rgba(255,255,255,.25); }
+  .diff-brace{ display:flex; align-items:center; gap:6px; }
+  .diff-brace .label{ font-family:var(--mono); font-size:11px; color:var(--pulse-ash); }
+
+  .known-input{ display:flex; align-items:center; gap:10px; }
+  .known-input label{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash); }
+  .known-input input{ font-family:var(--mono); font-size:15px; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.16); border-radius:8px; padding:7px 10px; width:80px; direction:ltr; }
+  .known-input input[type="range"]{ width:180px; padding:0; background:none; border:none; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 7 · LESSON 4</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Problem-Solving Strategy: Draw a Model</h1>
+    <span class="title-secondary ar-display" id="titleAr">استراتيجية حل المسألة: ارسم نموذجًا</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I solve real-life problems by building a tape diagram that turns the relationship between two quantities into an equation.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">the equation falls out of the diagram</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <p class="objective" data-role="body" id="storyText" style="text-align:center;"></p>
+
+    <div class="control-row">
+      <div class="known-input">
+        <label data-role="ui" data-i18n="knownLabel">Amal's stickers</label>
+        <input type="range" id="baseSlider" min="4" max="16" step="1" value="8" />
+        <span class="control-val" id="baseReadout"></span>
+      </div>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="tape-wrap" id="tapeWrap" data-el="tapeWrap"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Drawing a tape diagram — one bar per quantity, sized to show how they relate — turns a word problem's relationship into a visual you can read an equation straight off of, without guessing which operation to use.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="7-3-multiplication-division-equations.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">7.3 · Multiplication and Division Equations</b></a>
+    <a class="nav-pill next" href="../grade-5/8-1-sum-of-angles.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">8.1 · Sum of Angles on a Line and Around a Point</b></a>
+  </div>
+</div>
+
+<script>
+  const { groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+  const DIFF = 5; // Yousef has DIFF more stickers than Amal — the fixed relationship
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 7 · LESSON 4",
+      objectiveLabel: "Objective —",
+      objectiveText: "I solve real-life problems by building a tape diagram that turns the relationship between two quantities into an equation.",
+      eqSub: "the equation falls out of the diagram",
+      explainBtn: "Explain this",
+      knownLabel: "Amal's stickers",
+      story: (a) => `Amal has ${a} stickers. Yousef has ${DIFF} more stickers than Amal. How many does Yousef have?`,
+      tagA: "Amal", tagB: "Yousef", diffLabel: `+${DIFF}`,
+      navPrevLabel: "—", navPrevText: "7.3 · Multiplication and Division Equations",
+      navNextLabel: "next", navNext: "8.1 · Sum of Angles on a Line and Around a Point",
+      teachLabel: "What this teaches:",
+      teachBody: "Drawing a tape diagram — one bar per quantity, sized to show how they relate — turns a word problem's relationship into a visual you can read an equation straight off of, without guessing which operation to use.",
+      tour: [
+        { ids: ["tapeWrap"], label: "One bar per quantity", body: "Amal's bar shows her known amount; Yousef's bar is drawn the same length, plus the extra piece described in the problem." },
+        { elKey: "tapeWrap", label: "The relationship is visible", body: "The shaded extra segment is exactly the “more than” described in the story — you can see it before computing anything." },
+        { ids: ["eqLine"], label: "Read the equation off the tape", body: "Once the bars are drawn, the equation is just naming what's already visible: Amal's amount plus the extra equals Yousef's amount." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٧ · الدرس ٤",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أحلّ مسائل حياتية ببناء نموذج شريطي يحوّل العلاقة بين كمّيتين إلى معادلة.",
+      eqSub: "المعادلة تظهر من النموذج نفسه",
+      explainBtn: "اشرح هذا",
+      knownLabel: "ملصقات أمل",
+      story: (a) => `لدى أمل ${a} ملصقًا. لدى يوسف ${DIFF} ملصقات أكثر من أمل. كم ملصقًا لدى يوسف؟`,
+      tagA: "أمل", tagB: "يوسف", diffLabel: `+${DIFF}`,
+      navPrevLabel: "—", navPrevText: "٧.٣ · معادلات الضرب والقسمة",
+      navNextLabel: "التالي", navNext: "٨.١ · مجموع الزوايا على خط وحول نقطة",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "رسم نموذج شريطي — شريط واحد لكل كمّية، بطول يُظهر علاقتها بالأخرى — يحوّل علاقة مسألة لفظية إلى صورة يمكن قراءة معادلة منها مباشرة، دون تخمين العملية المطلوبة.",
+      tour: [
+        { ids: ["tapeWrap"], label: "شريط واحد لكل كمّية", body: "يُظهر شريط أمل كمّيتها المعروفة؛ ويُرسم شريط يوسف بالطول نفسه، إضافة إلى الجزء الإضافي الموصوف في المسألة." },
+        { elKey: "tapeWrap", label: "العلاقة مرئية", body: "الجزء الإضافي المظلَّل هو بالضبط «الأكثر من» الموصوف في القصّة — يمكن رؤيته قبل حساب أي شيء." },
+        { ids: ["eqLine"], label: "اقرأ المعادلة من الشريط", body: "بمجرّد رسم الشريطين، المعادلة هي فقط تسمية لما هو مرئي مسبقًا: كمّية أمل زائد الإضافي يساوي كمّية يوسف." }
+      ]
+    }
+  };
+
+  const baseSlider = document.getElementById("baseSlider");
+  const baseReadout = document.getElementById("baseReadout");
+  const storyText = document.getElementById("storyText");
+  const tapeWrap = document.getElementById("tapeWrap");
+  const eqLine = document.getElementById("eqLine");
+
+  const UNIT_PX = 22;
+
+  function render() {
+    const t = T[i18n.lang];
+    const a = parseInt(baseSlider.value, 10);
+    const b = a + DIFF;
+    baseReadout.textContent = groupInt(a, i18n.lang);
+    storyText.textContent = t.story(groupInt(a, i18n.lang));
+
+    tapeWrap.innerHTML = "";
+
+    const rowA = document.createElement("div");
+    rowA.className = "tape-row";
+    const tagA = document.createElement("span");
+    tagA.className = "tape-tag";
+    tagA.textContent = t.tagA;
+    const barA = document.createElement("div");
+    barA.className = "tape-bar";
+    barA.style.width = (a * UNIT_PX) + "px";
+    barA.textContent = groupInt(a, "en");
+    rowA.appendChild(tagA); rowA.appendChild(barA);
+    tapeWrap.appendChild(rowA);
+
+    const rowB = document.createElement("div");
+    rowB.className = "tape-row";
+    const tagB = document.createElement("span");
+    tagB.className = "tape-tag";
+    tagB.textContent = t.tagB;
+    const barBWrap = document.createElement("div");
+    barBWrap.style.display = "flex"; barBWrap.style.gap = "2px";
+    const barBBase = document.createElement("div");
+    barBBase.className = "tape-bar b";
+    barBBase.style.width = (a * UNIT_PX) + "px";
+    barBBase.textContent = groupInt(a, "en");
+    const barBExtra = document.createElement("div");
+    barBExtra.className = "tape-bar b extra";
+    barBExtra.style.width = (DIFF * UNIT_PX) + "px";
+    barBExtra.style.background = "rgba(237,109,64,.5)";
+    barBExtra.textContent = t.diffLabel;
+    barBWrap.appendChild(barBBase); barBWrap.appendChild(barBExtra);
+    rowB.appendChild(tagB); rowB.appendChild(barBWrap);
+    tapeWrap.appendChild(rowB);
+
+    renderEquation(eqLine, `${groupInt(a, "en")} + ${groupInt(DIFF, "en")} = \\color{#ed6d40}{${groupInt(b, "en")}}`);
+  }
+
+  baseSlider.addEventListener("input", render);
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

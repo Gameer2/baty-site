@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The School Lab — Interactive Study Tool</title>
+<style>
+  @font-face{font-family:"Roc Grotesk";src:url("../math-lab/assets/fonts/roc-grotesk-regular.woff2") format("woff2"),url("../math-lab/assets/fonts/roc-grotesk-regular.woff") format("woff");font-weight:400;font-display:swap}
+  @font-face{font-family:"Roc Grotesk";src:url("../math-lab/assets/fonts/roc-grotesk-medium.woff2") format("woff2"),url("../math-lab/assets/fonts/roc-grotesk-medium.woff") format("woff");font-weight:500;font-display:swap}
+  @font-face{font-family:"Azeret Mono";src:url("../math-lab/assets/fonts/azeret-mono-regular.otf") format("opentype");font-weight:400 700;font-display:swap}
+  @font-face{font-family:"Fraunces";src:url("../math-lab/assets/fonts/fraunces-variable.woff2") format("woff2");font-weight:300 600;font-display:swap}
+  :root{
+    --core-black:#090909; --rich-carbon:#111111; --urban-smoke:#1b1b1b;
+    --pulse-ash:#7d858c; --off-white:#e7e7e7; --neural-fog:#dadada;
+    --electric-teal:#5c939f; --infrared:#ed6d40;
+    --font-display:"Roc Grotesk","Helvetica Neue",Arial,sans-serif;
+    --font-mono:"Azeret Mono",ui-monospace,monospace;
+    --font-serif:"Fraunces",Georgia,serif;
+    --radius-sm:4px; --radius-md:8px; --radius-lg:20px;
+    --c-number:#5c939f; --c-algebra:#8570b3; --c-geometry:#d9a24e; --c-data:#4f8fc0; --c-func:#c15a86;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--core-black);color:var(--off-white);font-family:var(--font-display);line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+  .topbar{position:sticky;top:0;z-index:30;background:rgba(9,9,9,.94);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.1)}
+  .topbar .bar{max-width:1200px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .brand{font-family:var(--font-serif);font-size:18px;letter-spacing:-.01em;display:flex;align-items:center;gap:9px}
+  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--electric-teal)}
+  .brand small{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--pulse-ash);margin-left:4px}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+  .tab{background:var(--rich-carbon);border:1px solid rgba(255,255,255,.12);color:var(--pulse-ash);font-family:var(--font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;padding:8px 12px;border-radius:var(--radius-sm);cursor:pointer;display:flex;align-items:center;gap:8px;font-weight:600}
+  .tab .td{width:8px;height:8px;border-radius:50%;background:var(--ac)}
+  .tab[aria-selected="true"]{color:var(--off-white);border-color:var(--ac);box-shadow:inset 0 0 0 1px var(--ac)}
+
+  .stage{max-width:1200px;margin:0 auto;padding:30px 20px 100px}
+  .panel{display:none;grid-template-columns:1.5fr 1fr;gap:26px;align-items:start}
+  .panel.active{display:grid}
+  @media(max-width:860px){.panel.active{grid-template-columns:1fr}}
+
+  .p-eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ac);display:inline-flex;align-items:center;gap:8px}
+  .p-eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+  .p-title{font-family:var(--font-serif);font-weight:400;font-size:clamp(26px,3.6vw,38px);line-height:1.05;letter-spacing:-.01em;margin:10px 0 6px}
+  .p-teach{color:var(--neural-fog);font-size:15px;max-width:54ch;margin:0 0 22px}
+
+  .viz{background:var(--rich-carbon);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-lg);padding:26px;min-height:340px;position:relative;overflow:hidden}
+  .viz::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 18% 0%,color-mix(in srgb,var(--ac) 22%,transparent),transparent 55%);pointer-events:none}
+  .viz > *{position:relative}
+
+  .side{display:flex;flex-direction:column;gap:16px}
+  .card{background:var(--rich-carbon);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-md);padding:18px}
+  .card h4{margin:0 0 12px;font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--pulse-ash);font-weight:600}
+  .readout{display:grid;grid-template-columns:auto 1fr;gap:9px 14px;font-family:var(--font-mono);font-size:14px}
+  .readout .k{color:var(--pulse-ash)}
+  .readout .v{color:var(--off-white);font-variant-numeric:tabular-nums}
+  .readout .v.big{font-family:var(--font-serif);font-size:22px;color:var(--ac)}
+
+  .ctl{display:flex;flex-direction:column;gap:14px}
+  .ctl label{display:flex;flex-direction:column;gap:7px;font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--pulse-ash)}
+  .ctl .row{display:flex;justify-content:space-between;align-items:baseline}
+  .ctl .val{font-family:var(--font-serif);font-size:18px;color:var(--off-white);font-variant-numeric:tabular-nums}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;background:var(--urban-smoke);border-radius:4px;outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--ac);cursor:pointer;border:2px solid var(--core-black);box-shadow:0 0 0 1px var(--ac)}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--ac);cursor:pointer;border:2px solid var(--core-black)}
+  .btns{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{background:transparent;border:1px solid var(--ac);color:var(--ac);font-family:var(--font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;padding:9px 13px;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;transition:background .15s,color .15s}
+  .btn:hover{background:var(--ac);color:var(--core-black)}
+  .btn.ghost{border-color:rgba(255,255,255,.18);color:var(--pulse-ash)}
+  .btn.ghost:hover{background:rgba(255,255,255,.08);color:var(--off-white)}
+  .btn:disabled{opacity:.3;cursor:not-allowed}
+
+  .steps{font-family:var(--font-mono);font-size:13px;line-height:1.9;color:var(--neural-fog);min-height:1.9em}
+  .steps .done{color:var(--pulse-ash)}
+  .steps .now{color:var(--ac)}
+  .steps .res{color:var(--off-white)}
+
+  svg{display:block;width:100%;height:auto}
+  .gridline{stroke:rgba(255,255,255,.07)}
+  .axis{stroke:rgba(255,255,255,.28);stroke-width:1.4}
+  .axislbl{font-family:var(--font-mono);font-size:10px;fill:var(--pulse-ash)}
+  .note{font-family:var(--font-mono);font-size:11px;color:var(--pulse-ash);line-height:1.6}
+  .note b{color:var(--ac)}
+  .badge{display:inline-block;font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:100px;border:1px solid rgba(255,255,255,.14);color:var(--pulse-ash)}
+
+  /* ---- teaching layer: tokenized syntax line + "Explain this" tour ---- */
+  .syntax-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:0 0 18px}
+  .syntax-line{font-family:var(--font-mono);font-size:26px;color:var(--off-white);letter-spacing:.01em;line-height:1.5;position:relative}
+  .tok{transition:opacity .35s ease;padding:3px 4px;border-radius:6px;position:relative;cursor:default}
+  .tok-fn{color:var(--ac);font-weight:700}
+  .tok-num{color:var(--infrared);font-weight:700}
+  .syntax-line.tour-active .tok{opacity:.22}
+  .syntax-line.tour-active .tok.is-current{opacity:1}
+  .syntax-line.tour-active .tok.is-current::after{content:"";position:absolute;inset:-7px -9px;border:2px solid var(--infrared);border-radius:8px;box-shadow:0 0 0 6px rgba(237,109,64,.14);animation:tokPulse 1.4s ease-in-out infinite}
+  @keyframes tokPulse{0%,100%{opacity:.55}50%{opacity:1}}
+  .explain-btn{font-family:var(--font-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ac);background:none;border:1px solid color-mix(in srgb,var(--ac) 45%,transparent);border-radius:100px;padding:9px 16px;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:8px;font-weight:600}
+  .explain-btn::before{content:"?";display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;border:1px solid currentColor;font-size:11px}
+  .explain-btn:hover{background:color-mix(in srgb,var(--ac) 14%,transparent)}
+  .explain-btn.tour-on{background:var(--ac);color:var(--core-black)}
+  .cmd-block{position:relative}
+  .tour-tip{position:absolute;z-index:40;width:300px;background:var(--urban-smoke);border:1px solid color-mix(in srgb,var(--ac) 45%,transparent);border-radius:var(--radius-md);padding:18px 20px;box-shadow:0 14px 40px rgba(0,0,0,.5);opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .25s,transform .25s}
+  .tour-tip.is-visible{opacity:1;transform:translateY(0);pointer-events:auto}
+  .tour-tip-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ac);margin-bottom:8px}
+  .tour-tip-body{font-size:15px;color:var(--neural-fog);line-height:1.55;margin-bottom:16px}
+  .tour-tip-foot{display:flex;align-items:center;justify-content:space-between}
+  .tour-dots{display:flex;gap:6px}
+  .tour-dots span{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.2)}
+  .tour-dots span.is-active{background:var(--infrared)}
+  .tour-nav{display:flex;gap:10px}
+  .tour-nav button{font-family:var(--font-mono);font-size:12px;text-transform:uppercase;letter-spacing:.05em;background:none;border:none;color:var(--pulse-ash);cursor:pointer;padding:4px 6px}
+  .tour-nav button.primary{color:var(--off-white)}
+  .tour-nav button.primary:hover{color:var(--ac)}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<div class="topbar"><div class="bar">
+  <div class="brand"><span class="dot"></span>The School Lab<small>Interactive Study Tool</small></div>
+  <div class="tabs" id="tabs">
+    <button class="tab" data-tab="frac" style="--ac:var(--c-number)" aria-selected="true"><span class="td"></span>Fractions</button>
+    <button class="tab" data-tab="bal" style="--ac:var(--c-algebra)" aria-selected="false"><span class="td"></span>Equations</button>
+    <button class="tab" data-tab="quad" style="--ac:var(--c-func)" aria-selected="false"><span class="td"></span>Quadratics</button>
+    <button class="tab" data-tab="pyth" style="--ac:var(--c-geometry)" aria-selected="false"><span class="td"></span>Pythagoras</button>
+    <button class="tab" data-tab="stat" style="--ac:var(--c-data)" aria-selected="false"><span class="td"></span>Averages</button>
+  </div>
+</div></div>
+
+<div class="stage">
+
+  <!-- ============ FRACTIONS ============ -->
+  <section class="panel active" id="p-frac" style="--ac:var(--c-number)">
+    <div class="cmd-block">
+      <span class="p-eyebrow">Number · Grade 5–6</span>
+      <h2 class="p-title">Fraction Explorer</h2>
+      <p class="p-teach">A fraction is a number on the line. Change the top and bottom and watch the bar, the point on the number line, the decimal and the percent all stay the same number — just wearing different clothes.</p>
+      <div class="syntax-bar">
+        <span class="syntax-line" id="syn-frac">
+          <span class="tok tok-num" data-el="fN0">3</span><span class="tok" data-el="fSl">⁄</span><span class="tok tok-num" data-el="fD0">4</span><span class="tok" data-el="fEq1"> = </span><span class="tok tok-num" data-el="fDec0">0.75</span><span class="tok" data-el="fEq2"> = </span><span class="tok tok-num" data-el="fPct0">75%</span>
+        </span>
+        <button class="explain-btn" data-tour="frac">Explain this</button>
+      </div>
+      <div class="viz" id="fracViz"></div>
+    </div>
+    <div class="side">
+      <div class="card ctl">
+        <h4>Build the fraction</h4>
+        <label><span class="row"><span>Numerator (how many you have)</span><span class="val" id="fNum">3</span></span>
+          <input type="range" id="fNumR" min="0" max="24" value="3"></label>
+        <label><span class="row"><span>Denominator (how many in a whole)</span><span class="val" id="fDen">4</span></span>
+          <input type="range" id="fDenR" min="1" max="12" value="4"></label>
+      </div>
+      <div class="card">
+        <h4>The same number, four ways</h4>
+        <div class="readout">
+          <span class="k">Fraction</span><span class="v big" id="fFrac">3⁄4</span>
+          <span class="k">Decimal</span><span class="v" id="fDec">0.750</span>
+          <span class="k">Percent</span><span class="v" id="fPct">75%</span>
+          <span class="k">Simplest form</span><span class="v" id="fSimple">3⁄4</span>
+        </div>
+      </div>
+      <div class="card">
+        <h4>Equivalent fractions</h4>
+        <div class="readout" id="fEquiv"></div>
+        <p class="note" style="margin:12px 0 0">Multiply top <i>and</i> bottom by the same number and you get the <b>same point</b> on the line — a different name for the same amount.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ EQUATIONS / BALANCE ============ -->
+  <section class="panel" id="p-bal" style="--ac:var(--c-algebra)">
+    <div class="cmd-block">
+      <span class="p-eyebrow">Algebra · Grade 7</span>
+      <h2 class="p-title">Balance-Scale Solver</h2>
+      <p class="p-teach">An equation is a balanced scale. Whatever you do to one side you must do to the other, or it tips. Undo the operations one step at a time until <span style="font-family:var(--font-mono);color:var(--ac)">x</span> stands alone.</p>
+      <div class="syntax-bar">
+        <span class="syntax-line" id="syn-bal">
+          <span class="tok tok-num" data-el="bT0">2</span><span class="tok" data-el="bX0">·x</span><span class="tok" data-el="bPl0"> + </span><span class="tok tok-num" data-el="bB0">3</span><span class="tok" data-el="bEq0"> = </span><span class="tok tok-num" data-el="bC0">11</span>
+        </span>
+        <button class="explain-btn" data-tour="bal">Explain this</button>
+      </div>
+      <div class="viz" id="balViz"></div>
+    </div>
+    <div class="side">
+      <div class="card ctl">
+        <h4>Set the equation  a·x + b = c</h4>
+        <label><span class="row"><span>coefficient a</span><span class="val" id="bA">2</span></span><input type="range" id="bAR" min="1" max="5" value="2"></label>
+        <label><span class="row"><span>added b</span><span class="val" id="bB">3</span></span><input type="range" id="bBR" min="-6" max="6" value="3"></label>
+        <label><span class="row"><span>right side c</span><span class="val" id="bC">11</span></span><input type="range" id="bCR" min="-6" max="20" value="11"></label>
+        <div class="btns" style="margin-top:4px">
+          <button class="btn ghost" id="bReset">Reset</button>
+        </div>
+      </div>
+      <div class="card">
+        <h4>Keep it balanced</h4>
+        <div class="btns" id="bOps">
+          <button class="btn" data-op="subb">Subtract b from both sides</button>
+          <button class="btn" data-op="diva">Divide both sides by a</button>
+        </div>
+        <div class="steps" id="bSteps" style="margin-top:14px"></div>
+      </div>
+      <div class="card">
+        <h4>What this teaches</h4>
+        <p class="note" style="margin:0">Solving is <b>undoing</b>. The <b>−b</b> step cancels the add; the <b>÷a</b> step cancels the multiply. Each move keeps the scale level — that's why it's fair to do it to both sides.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ QUADRATICS ============ -->
+  <section class="panel" id="p-quad" style="--ac:var(--c-func)">
+    <div class="cmd-block">
+      <span class="p-eyebrow">Functions · Grade 9</span>
+      <h2 class="p-title">Quadratic Grapher</h2>
+      <p class="p-teach">A quadratic draws a parabola. Slide a, b and c and feel how each one bends it — the vertex slides, the roots appear or vanish, and the discriminant explains why.</p>
+      <div class="syntax-bar">
+        <span class="syntax-line" id="syn-quad">
+          <span class="tok" data-el="qY0">y</span><span class="tok" data-el="qEq0"> = </span><span class="tok tok-num" data-el="qA0">1</span><span class="tok" data-el="qX2">·x²</span><span class="tok" data-el="qPl1"> + </span><span class="tok tok-num" data-el="qB0">0</span><span class="tok" data-el="qX1">·x</span><span class="tok" data-el="qPl2"> + </span><span class="tok tok-num" data-el="qC0">-2</span>
+        </span>
+        <button class="explain-btn" data-tour="quad">Explain this</button>
+      </div>
+      <div class="viz" id="quadViz"></div>
+    </div>
+    <div class="side">
+      <div class="card ctl">
+        <h4>y = a·x² + b·x + c</h4>
+        <label><span class="row"><span>a — opens up/down &amp; width</span><span class="val" id="qA">1</span></span><input type="range" id="qAR" min="-3" max="3" step="0.1" value="1"></label>
+        <label><span class="row"><span>b — shifts the axis</span><span class="val" id="qB">0</span></span><input type="range" id="qBR" min="-6" max="6" step="0.1" value="0"></label>
+        <label><span class="row"><span>c — lifts the whole curve</span><span class="val" id="qC">-2</span></span><input type="range" id="qCR" min="-8" max="8" step="0.1" value="-2"></label>
+      </div>
+      <div class="card">
+        <h4>Read the curve</h4>
+        <div class="readout">
+          <span class="k">Discriminant Δ</span><span class="v" id="qDisc">8.00</span>
+          <span class="k">Roots</span><span class="v" id="qRoots">x ≈ -1.41, 1.41</span>
+          <span class="k">Vertex</span><span class="v" id="qVert">(0, -2)</span>
+          <span class="k">Axis of symmetry</span><span class="v" id="qAxis">x = 0</span>
+          <span class="k">y-intercept</span><span class="v" id="qYint">(0, -2)</span>
+        </div>
+        <p class="note" id="qExplain" style="margin:12px 0 0"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PYTHAGORAS ============ -->
+  <section class="panel" id="p-pyth" style="--ac:var(--c-geometry)">
+    <div class="cmd-block">
+      <span class="p-eyebrow">Geometry · Grade 8</span>
+      <h2 class="p-title">Pythagoras, Visualised</h2>
+      <p class="p-teach">In a right triangle, the square on the hypotenuse equals the squares on the two legs added together. Drag the legs and watch the areas add up — a² + b² = c², drawn, not just stated.</p>
+      <div class="syntax-bar">
+        <span class="syntax-line" id="syn-pyth">
+          <span class="tok tok-num" data-el="yA0">3</span><span class="tok" data-el="yA2">²</span><span class="tok" data-el="yPl"> + </span><span class="tok tok-num" data-el="yB0">4</span><span class="tok" data-el="yB2">²</span><span class="tok" data-el="yEq"> = </span><span class="tok tok-num" data-el="yC0">5</span><span class="tok" data-el="yC2">²</span>
+        </span>
+        <button class="explain-btn" data-tour="pyth">Explain this</button>
+      </div>
+      <div class="viz" id="pythViz"></div>
+    </div>
+    <div class="side">
+      <div class="card ctl">
+        <h4>The two legs</h4>
+        <label><span class="row"><span>leg a</span><span class="val" id="yA">3</span></span><input type="range" id="yAR" min="1" max="9" step="0.5" value="3"></label>
+        <label><span class="row"><span>leg b</span><span class="val" id="yB">4</span></span><input type="range" id="yBR" min="1" max="9" step="0.5" value="4"></label>
+      </div>
+      <div class="card">
+        <h4>The three squares</h4>
+        <div class="readout">
+          <span class="k">a²</span><span class="v" id="yA2">9</span>
+          <span class="k">b²</span><span class="v" id="yB2">16</span>
+          <span class="k">a² + b²</span><span class="v" id="ySum">25</span>
+          <span class="k">c² (hypotenuse²)</span><span class="v" id="yC2">25</span>
+          <span class="k">c (hypotenuse)</span><span class="v big" id="yC">5</span>
+        </div>
+        <p class="note" style="margin:12px 0 0">The two smaller squares always tile exactly into the big one. That's the whole theorem — <b>a² + b² = c²</b>, as area.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ AVERAGES ============ -->
+  <section class="panel" id="p-stat" style="--ac:var(--c-data)">
+    <div class="cmd-block">
+      <span class="p-eyebrow">Data &amp; Chance · Grade 7–8</span>
+      <h2 class="p-title">Mean · Median · Mode Tug</h2>
+      <p class="p-teach">Three ways to describe the “middle” of a dataset, and they move differently. Drag any dot and watch: the mean gets pulled toward the outlier, the median hardly flinches, the mode only cares about repeats.</p>
+      <div class="syntax-bar">
+        <span class="syntax-line" id="syn-stat">
+          <span class="tok tok-fn" data-el="sM0">mean</span><span class="tok" data-el="sEq0"> = </span><span class="tok" data-el="sSum0">(x₁ + x₂ + … + xₙ)</span><span class="tok" data-el="sDiv"> ÷ </span><span class="tok tok-num" data-el="sN0">5</span>
+        </span>
+        <button class="explain-btn" data-tour="stat">Explain this</button>
+      </div>
+      <div class="viz" id="statViz"></div>
+    </div>
+    <div class="side">
+      <div class="card">
+        <h4>The three averages</h4>
+        <div class="readout">
+          <span class="k">Mean (balance point)</span><span class="v" id="sMean">—</span>
+          <span class="k">Median (middle value)</span><span class="v" id="sMed">—</span>
+          <span class="k">Mode (most frequent)</span><span class="v" id="sMode">—</span>
+          <span class="k">Range</span><span class="v" id="sRange">—</span>
+          <span class="k">Count</span><span class="v" id="sCount">—</span>
+        </div>
+      </div>
+      <div class="card">
+        <h4>Edit the data</h4>
+        <div class="btns">
+          <button class="btn" id="sAdd">+ Add a point</button>
+          <button class="btn ghost" id="sRemove">− Remove last</button>
+          <button class="btn ghost" id="sRand">Random set</button>
+        </div>
+        <p class="note" style="margin:12px 0 0">Drag the dots along the line. Try dragging one far to the right — the <b>mean</b> chases it, the <b>median</b> barely moves. That's why “average” is a loaded word.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ---------- tab switching ---------- */
+(function(){
+  var tabs=document.querySelectorAll(".tab"), panels=document.querySelectorAll(".panel");
+  tabs.forEach(function(t){t.addEventListener("click",function(){
+    tabs.forEach(function(x){x.setAttribute("aria-selected",x===t?"true":"false")});
+    panels.forEach(function(p){p.classList.toggle("active",p.id==="p-"+t.dataset.tab)});
+    // close any open teaching tour on the panel we're leaving
+    if(window.tourHandles){Object.keys(window.tourHandles).forEach(function(k){var h=window.tourHandles[k];if(h.isActive()){h.end();var b=document.querySelector('.explain-btn[data-tour="'+k+'"]');if(b)b.classList.remove("tour-on");}});}
+  });});
+})();
+
+/* ---------- helpers ---------- */
+function svgEl(n,a){var e=document.createElementNS("http://www.w3.org/2000/svg",n);if(a)for(var k in a)e.setAttribute(k,a[k]);return e;}
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){var t=b;b=a%b;a=t;}return a||1;}
+function sup(n){return String(n).split("").map(function(d){return "⁰¹²³⁴⁵⁶⁷⁸⁹"[+d]||d;}).join("");}
+function fracStr(n,d){var g=gcd(n,d);return (n/g)+"⁄"+(d/g);}
+
+/* ---------- teaching layer: generic "Explain this" token-spotlight tour ---------- */
+var TOUR_STEPS={
+  frac:[
+    {el:"fN0",label:"Numerator",body:"How many equal parts you have. This is the top of the fraction."},
+    {el:"fSl",label:"The bar",body:"The fraction bar means ‘out of’ — it tells you to divide the top by the bottom."},
+    {el:"fD0",label:"Denominator",body:"How many equal parts make one whole. This is the bottom of the fraction."},
+    {el:"fEq1",label:"Equals",body:"These are all the same number — just written in different ways."},
+    {el:"fDec0",label:"Decimal",body:"Top ÷ bottom, written as a decimal. Drag the sliders and watch it change."},
+    {el:"fEq2",label:"Equals",body:"Still the same number."},
+    {el:"fPct0",label:"Percent",body:"The decimal × 100, with a % sign. ‘Per cent’ means ‘out of 100’."}
+  ],
+  bal:[
+    {el:"bT0",label:"Coefficient",body:"How many x’s are on the left side. Here, the number multiplying x."},
+    {el:"bX0",label:"The unknown",body:"x — the number we’re trying to find. It’s unknown for now."},
+    {el:"bPl0",label:"Combine",body:"A number is being added to (or subtracted from) the x’s. The sign tells you which."},
+    {el:"bB0",label:"Added number",body:"What’s been added to the x’s on the left side."},
+    {el:"bEq0",label:"Equals",body:"The scale is balanced — the left side weighs the same as the right. Whatever you do to one side, do to the other, and it stays balanced."},
+    {el:"bC0",label:"Right side",body:"What the left side is worth. Undo the operations and x will equal this."}
+  ],
+  quad:[
+    {el:"qY0",label:"Output",body:"y — how high or low the curve is at each value of x."},
+    {el:"qEq0",label:"Equals",body:"y is built from the expression on the right."},
+    {el:"qA0",label:"Coefficient a",body:"Controls whether the parabola opens up or down, and how wide it is. Slide it through zero and watch it flip."},
+    {el:"qX2",label:"The squared term",body:"x² — this is what makes the graph a parabola instead of a straight line."},
+    {el:"qPl1",label:"Plus"},
+    {el:"qB0",label:"Coefficient b",body:"Shifts the parabola left and right, and moves the axis of symmetry."},
+    {el:"qX1",label:"The linear term",body:"x — the straight-line part."},
+    {el:"qPl2",label:"Plus"},
+    {el:"qC0",label:"Constant c",body:"The y-intercept — where the curve crosses the y-axis. It lifts or drops the whole curve."}
+  ],
+  pyth:[
+    {el:"yA0",label:"Leg a",body:"One leg of the right triangle — a side next to the right angle."},
+    {el:"yA2",label:"Squared",body:"² means squared. a² is the area of the square built on leg a."},
+    {el:"yPl",label:"Plus",body:"Add the two square areas together."},
+    {el:"yB0",label:"Leg b",body:"The other leg of the right triangle."},
+    {el:"yB2",label:"Squared",body:"b² — the area of the square built on leg b."},
+    {el:"yEq",label:"Equals",body:"The two smaller squares add up to…"},
+    {el:"yC0",label:"Hypotenuse c",body:"The hypotenuse — the longest side, opposite the right angle."},
+    {el:"yC2",label:"Squared",body:"c² — the area of the square on the hypotenuse. The two smaller squares always equal this one. That’s the whole theorem."}
+  ],
+  stat:[
+    {el:"sM0",label:"The mean",body:"The ‘balance point’ of the data. If the dots were weights on a beam, the mean is where it balances."},
+    {el:"sEq0",label:"Equals",body:"The mean is found by…"},
+    {el:"sSum0",label:"Add them all",body:"Add up every value — x₁ + x₂ + … + xₙ, all the dots together."},
+    {el:"sDiv",label:"Divided by",body:"Then divide that total by…"},
+    {el:"sN0",label:"How many",body:"n — the number of values. So the mean is: total ÷ count."}
+  ]
+};
+function buildTour(blockEl,steps){
+  var syntaxLine=blockEl.querySelector(".syntax-line");
+  var tip=document.createElement("div");tip.className="tour-tip";
+  tip.innerHTML='<div class="tour-tip-label"></div><div class="tour-tip-body"></div><div class="tour-tip-foot"><div class="tour-dots"></div><div class="tour-nav"><button class="tSkip">Skip</button><button class="tNext primary">Next →</button></div></div>';
+  blockEl.appendChild(tip);
+  var dotsWrap=tip.querySelector(".tour-dots");
+  steps.forEach(function(){dotsWrap.appendChild(document.createElement("span"));});
+  var i=0;
+  function position(target){var b=blockEl.getBoundingClientRect(),t=target.getBoundingClientRect();var left=t.left-b.left-20;left=Math.max(12,Math.min(left,b.width-312));tip.style.top=(t.bottom-b.top+14)+"px";tip.style.left=left+"px";}
+  function show(idx){syntaxLine.querySelectorAll(".tok").forEach(function(t){t.classList.remove("is-current");});var st=steps[idx];var el=blockEl.querySelector('[data-el="'+st.el+'"]');el.classList.add("is-current");tip.querySelector(".tour-tip-label").textContent=st.label;tip.querySelector(".tour-tip-body").textContent=st.body||"";dotsWrap.querySelectorAll("span").forEach(function(d,di){d.classList.toggle("is-active",di===idx);});tip.querySelector(".tNext").textContent=idx===steps.length-1?"Done":"Next →";position(el);tip.classList.add("is-visible");}
+  function start(){i=0;syntaxLine.classList.add("tour-active");show(i);}
+  function end(){syntaxLine.classList.remove("tour-active");syntaxLine.querySelectorAll(".tok").forEach(function(t){t.classList.remove("is-current");});tip.classList.remove("is-visible");}
+  tip.querySelector(".tSkip").addEventListener("click",end);
+  tip.querySelector(".tNext").addEventListener("click",function(){if(i===steps.length-1){end();return;}i++;show(i);});
+  return {start:start,end:end,isActive:function(){return syntaxLine.classList.contains("tour-active");}};
+}
+var tourHandles={};window.tourHandles=tourHandles;
+document.querySelectorAll(".explain-btn").forEach(function(btn){
+  var key=btn.getAttribute("data-tour");
+  var block=btn.closest(".cmd-block");
+  tourHandles[key]=buildTour(block,TOUR_STEPS[key]);
+  btn.addEventListener("click",function(){
+    var h=tourHandles[key];
+    if(h.isActive()){h.end();btn.classList.remove("tour-on");}else{h.start();btn.classList.add("tour-on");}
+  });
+});
+
+/* ============================================================
+   FRACTIONS
+   ============================================================ */
+(function(){
+  var numR=document.getElementById("fNumR"),denR=document.getElementById("fDenR");
+  var viz=document.getElementById("fracViz");
+  function draw(){
+    var n=+numR.value,d=+denR.value;
+    document.getElementById("fNum").textContent=n;
+    document.getElementById("fDen").textContent=d;
+    var dec=n/d;
+    document.getElementById("fFrac").textContent=n+"⁄"+d;
+    document.getElementById("fDec").textContent=dec.toFixed(3);
+    document.getElementById("fPct").textContent=(dec*100).toFixed(dec*100%1?1:0)+"%";
+    document.getElementById("fSimple").textContent=fracStr(n,d);
+    // live syntax-line tokens
+    document.getElementById("fN0").textContent=n;
+    document.getElementById("fD0").textContent=d;
+    document.getElementById("fDec0").textContent=dec.toFixed(2);
+    document.getElementById("fPct0").textContent=(dec*100).toFixed(dec*100%1?1:0)+"%";
+    // equivalents
+    var eq=document.getElementById("fEquiv");eq.innerHTML="";
+    for(var m=2;m<=4;m++){var k=document.createElement("span");k.className="k";k.textContent="×"+m;var v=document.createElement("span");v.className="v";v.textContent=(n*m)+"⁄"+(d*m);eq.appendChild(k);eq.appendChild(v);}
+    // visual: bar + number line
+    var W=560,H=210,vb="0 0 560 210";
+    while(viz.firstChild)viz.removeChild(viz.firstChild);
+    var s=svgEl("svg",{viewBox:vb,role:"img"});
+    // bar
+    var barY=20,barH=46,barW=520,barX=20;
+    s.appendChild(svgEl("rect",{x:barX,y:barY,width:barW,height:barH,fill:"none",stroke:"rgba(255,255,255,.25)","stroke-width":1.5}));
+    var seg=barW/d;
+    for(var i=0;i<d;i++){var filled=i<n;s.appendChild(svgEl("rect",{x:barX+i*seg+1,y:barY+1,width:seg-2,height:barH-2,fill:filled?"var(--c-number)":"rgba(255,255,255,.05)",rx:2}));if(d<=16)s.appendChild(svgEl("line",{x1:barX+i*seg,y1:barY,x2:barX+i*seg,y2:barY+barH,stroke:"rgba(255,255,255,.25)"}));}
+    // number line
+    var ly=150,lx0=20,lx1=540;var whole=Math.max(1,Math.ceil(dec+0.001));var span=whole;
+    s.appendChild(svgEl("line",{x1:lx0,y1:ly,x2:lx1,y2:ly,stroke:"rgba(255,255,255,.4)","stroke-width":1.5}));
+    for(var t=0;t<=span;t++){var xx=lx0+(lx1-lx0)*(t/span);s.appendChild(svgEl("line",{x1:xx,y1:ly-6,x2:xx,y2:ly+6,stroke:"rgba(255,255,255,.4)"}));var lbl=svgEl("text",{x:xx,y:ly+22,"text-anchor":"middle",class:"axislbl"});lbl.textContent=t;s.appendChild(lbl);}
+    // point
+    var px=lx0+(lx1-lx0)*(dec/span);
+    s.appendChild(svgEl("line",{x1:px,y1:barY+barH+6,x2:px,y2:ly-6,stroke:"var(--c-number)","stroke-width":1.4,"stroke-dasharray":"3 3"}));
+    s.appendChild(svgEl("circle",{cx:px,cy:ly,r:8,fill:"var(--c-number)",stroke:"#000","stroke-width":2}));
+    var pt=svgEl("text",{x:px,y:ly-16,"text-anchor":"middle",fill:"var(--c-number)","font-family":"Azeret Mono","font-size":13});pt.textContent=fracStr(n,d);s.appendChild(pt);
+    viz.appendChild(s);
+  }
+  numR.addEventListener("input",draw);denR.addEventListener("input",draw);draw();
+})();
+
+/* ============================================================
+   BALANCE / EQUATIONS
+   ============================================================ */
+(function(){
+  var aR=document.getElementById("bAR"),bR=document.getElementById("bBR"),cR=document.getElementById("bCR");
+  var viz=document.getElementById("balViz"),stepsEl=document.getElementById("bSteps");
+  var state={a:2,b:3,c:11,stepA:1,stepB:0,stepC:11,solved:false};
+  function read(){state.a=+aR.value;state.b=+bR.value;state.c=+cR.value;reset();}
+  function reset(){state.stepA=state.a;state.stepB=state.b;state.stepC=state.c;state.solved=false;render();}
+  function fmt(aa,bb,cc){return lhs(aa,bb)+" = "+cc;}
+  function lhs(aa,bb){var s="";if(aa!==1)s+=aa+"·x";else s+="x";if(bb>0)s+=" + "+bb;else if(bb<0)s+=" − "+(-bb);return s;}
+  function render(){
+    document.getElementById("bA").textContent=state.a;document.getElementById("bB").textContent=state.b;document.getElementById("bC").textContent=state.c;
+    document.getElementById("bT0").textContent=state.a;
+    document.getElementById("bPl0").textContent=state.b>=0?" + ":" − ";
+    document.getElementById("bB0").textContent=Math.abs(state.b);
+    document.getElementById("bC0").textContent=state.c;
+    var W=560,H=230;while(viz.firstChild)viz.removeChild(viz.firstChild);
+    var s=svgEl("svg",{viewBox:"0 0 560 230",role:"img"});
+    var fulcrumX=280,beamY=70;
+    // beam
+    s.appendChild(svgEl("line",{x1:60,y1:beamY,x2:500,y2:beamY,stroke:"rgba(255,255,255,.5)","stroke-width":3}));
+    s.appendChild(svgEl("polygon",{points:(fulcrumX-16)+","+(beamY+2)+" "+(fulcrumX+16)+","+(beamY+2)+" "+fulcrumX+","+(beamY+34),fill:"var(--c-algebra)"}));
+    // pans
+    function pan(x,label,accent){
+      s.appendChild(svgEl("line",{x1:x,y1:beamY,x2:x,y2:beamY+16,stroke:"rgba(255,255,255,.4)","stroke-width":1.5}));
+      s.appendChild(svgEl("path",{d:"M "+(x-46)+" "+(beamY+16)+" Q "+x+" "+(beamY+34)+" "+(x+46)+" "+(beamY+16),fill:"none",stroke:"rgba(255,255,255,.4)","stroke-width":1.5}));
+      var t=svgEl("text",{x:x,y:beamY+70,"text-anchor":"middle",fill:"var(--off-white)","font-family":"Azeret Mono","font-size":15});t.textContent=label;s.appendChild(t);
+    }
+    pan(140,lhs(state.stepA,state.stepB),"l");
+    pan(420,String(state.stepC),"r");
+    // labels under
+    var lt=svgEl("text",{x:140,y:170,"text-anchor":"middle",fill:"var(--pulse-ash)","font-family":"Azeret Mono","font-size":11});lt.textContent="LEFT SIDE";s.appendChild(lt);
+    var rt=svgEl("text",{x:420,y:170,"text-anchor":"middle",fill:"var(--pulse-ash)","font-family":"Azeret Mono","font-size":11});rt.textContent="RIGHT SIDE";s.appendChild(rt);
+    // tile counts
+    function tiles(x,counts,accent){
+      var y=beamY+44;var cx=x-((counts-1)*13)/2;
+      for(var i=0;i<counts;i++){s.appendChild(svgEl("rect",{x:cx+i*13-5,y:y,width:10,height:10,fill:accent,rx:2}));}
+    }
+    tiles(140,Math.abs(state.stepB),"var(--c-algebra)");
+    tiles(420,Math.abs(state.stepC),"rgba(255,255,255,.55)");
+    viz.appendChild(s);
+    // steps text
+    var h="";
+    h+='<div class="done">Start: '+fmt(state.a,state.b,state.c)+'</div>';
+    if(state.stepB!==0){
+      h+='<div class="now">Next: subtract '+state.stepB+' from both sides → '+fmt(state.stepA,0,state.stepC-state.b===state.stepC?state.stepC:state.stepC)+'</div>';
+    } else if(state.stepA!==1){
+      h+='<div class="now">Next: divide both sides by '+state.stepA+'</div>';
+    } else {
+      var x=(state.stepC)/state.stepA;
+      h+='<div class="res">x = '+ (Math.abs(x-Math.round(x))<1e-9?Math.round(x):x.toFixed(2)) +'</div>';
+      state.solved=true;
+    }
+    if(state.stepB===0 && state.stepA!==1){
+      h='<div class="done">Start: '+fmt(state.a,state.b,state.c)+'</div><div class="done">Subtract '+state.b+': '+fmt(state.a,0,state.c-state.b)+'</div><div class="now">Now divide by '+state.stepA+'</div>';
+    }
+    stepsEl.innerHTML=h;
+    // enable buttons
+    var sub=document.querySelector('#bOps [data-op="subb"]'),div=document.querySelector('#bOps [data-op="diva"]');
+    sub.disabled=state.stepB===0;div.disabled=state.stepA===1;
+  }
+  document.getElementById("bOps").addEventListener("click",function(e){
+    var b=e.target.closest("button");if(!b)return;
+    if(b.dataset.op==="subb"&&state.stepB!==0){state.stepC-=state.stepB;state.stepB=0;render();}
+    else if(b.dataset.op==="diva"&&state.stepA!==1){state.stepC/=state.stepA;state.stepB/=state.stepA;state.stepA=1;render();}
+  });
+  document.getElementById("bReset").addEventListener("click",reset);
+  aR.addEventListener("input",read);bR.addEventListener("input",read);cR.addEventListener("input",read);
+  render();
+})();
+
+/* ============================================================
+   QUADRATICS
+   ============================================================ */
+(function(){
+  var aR=document.getElementById("qAR"),bR=document.getElementById("qBR"),cR=document.getElementById("qCR");
+  var viz=document.getElementById("quadViz");
+  var XMIN=-8,XMAX=8,YMIN=-8,YMAX=10,W=560,H=340;
+  function sx(x){return (x-XMIN)/(XMAX-XMIN)*W;}
+  function sy(y){return H-(y-YMIN)/(YMAX-YMIN)*H;}
+  function draw(){
+    var a=+aR.value,b=+bR.value,c=+cR.value;
+    document.getElementById("qA").textContent=(+a.toFixed(1));document.getElementById("qB").textContent=(+b.toFixed(1));document.getElementById("qC").textContent=(+c.toFixed(1));
+    document.getElementById("qA0").textContent=(+a.toFixed(1));
+    document.getElementById("qPl1").textContent=b>=0?" + ":" − ";
+    document.getElementById("qB0").textContent=Math.abs(b).toFixed(1);
+    document.getElementById("qPl2").textContent=c>=0?" + ":" − ";
+    document.getElementById("qC0").textContent=Math.abs(c).toFixed(1);
+    while(viz.firstChild)viz.removeChild(viz.firstChild);
+    var s=svgEl("svg",{viewBox:"0 0 "+W+" "+H,role:"img"});
+    // grid
+    for(var gx=Math.ceil(XMIN);gx<=XMAX;gx++){s.appendChild(svgEl("line",{x1:sx(gx),y1:0,x2:sx(gx),y2:H,class:"gridline"}));}
+    for(var gy=Math.ceil(YMIN);gy<=YMAX;gy++){s.appendChild(svgEl("line",{x1:0,y1:sy(gy),x2:W,y2:sy(gy),class:"gridline"}));}
+    // axes
+    s.appendChild(svgEl("line",{x1:0,y1:sy(0),x2:W,y2:sy(0),class:"axis"}));
+    s.appendChild(svgEl("line",{x1:sx(0),y1:0,x2:sx(0),y2:H,class:"axis"}));
+    for(var lx=XMIN;lx<=XMAX;lx+=2){if(lx===0)continue;var t=svgEl("text",{x:sx(lx),y:sy(0)+14,"text-anchor":"middle",class:"axislbl"});t.textContent=lx;s.appendChild(t);}
+    // curve
+    var pts=[];for(var i=0;i<=400;i++){var x=XMIN+(XMAX-XMIN)*i/400;var y=a*x*x+b*x+c;if(y>=YMIN-2&&y<=YMAX+2)pts.push(sx(x)+","+sy(y));}
+    if(pts.length>1)s.appendChild(svgEl("polyline",{points:pts.join(" "),fill:"none",stroke:"var(--c-func)","stroke-width":2.6,"stroke-linejoin":"round"}));
+    // vertex
+    var vx=-b/(2*a),vy=c-b*b/(4*a);
+    if(a!==0&&vy>=YMIN&&vy<=YMAX){s.appendChild(svgEl("circle",{cx:sx(vx),cy:sy(vy),r:4,fill:"var(--off-white)"}));}
+    // roots
+    var disc=b*b-4*a*c;
+    var rootsTxt="",explain="";
+    if(a===0){rootsTxt="not quadratic (a=0)";explain="With <b>a=0</b> this is a straight line, not a parabola.";}
+    else if(disc>0){var r1=(-b+Math.sqrt(disc))/(2*a),r2=(-b-Math.sqrt(disc))/(2*a);rootsTxt="x ≈ "+r1.toFixed(2)+", "+r2.toFixed(2);s.appendChild(svgEl("circle",{cx:sx(r1),cy:sy(0),r:4,fill:"var(--c-func)"}));s.appendChild(svgEl("circle",{cx:sx(r2),cy:sy(0),r:4,fill:"var(--c-func)"}));explain="<b>Δ &gt; 0</b>: two real roots — the curve crosses the x-axis twice.";}
+    else if(disc===0){var r=-b/(2*a);rootsTxt="x = "+(+r.toFixed(2));s.appendChild(svgEl("circle",{cx:sx(r),cy:sy(0),r:4,fill:"var(--c-func)"}));explain="<b>Δ = 0</b>: one repeated root — the curve just touches the axis at the vertex.";}
+    else{rootsTxt="no real roots";explain="<b>Δ &lt; 0</b>: no real roots — the parabola floats clear of the x-axis.";}
+    // y-intercept
+    s.appendChild(svgEl("circle",{cx:sx(0),cy:sy(c),r:4,fill:"rgba(255,255,255,.6)"}));
+    viz.appendChild(s);
+    document.getElementById("qDisc").textContent=(a===0?"—":disc.toFixed(2));
+    document.getElementById("qRoots").textContent=rootsTxt;
+    document.getElementById("qVert").textContent=a===0?"—":"("+(+vx.toFixed(2))+", "+(+vy.toFixed(2))+")";
+    document.getElementById("qAxis").textContent=a===0?"—":"x = "+(+vx.toFixed(2));
+    document.getElementById("qYint").textContent="(0, "+(+c.toFixed(2))+")";
+    document.getElementById("qExplain").innerHTML=explain;
+  }
+  aR.addEventListener("input",draw);bR.addEventListener("input",draw);cR.addEventListener("input",draw);draw();
+})();
+
+/* ============================================================
+   PYTHAGORAS
+   ============================================================ */
+(function(){
+  var aR=document.getElementById("yAR"),bR=document.getElementById("yBR"),viz=document.getElementById("pythViz");
+  var W=560,H=320;
+  function draw(){
+    var a=+aR.value,b=+bR.value;var c=Math.sqrt(a*a+b*b);
+    document.getElementById("yA").textContent=a;document.getElementById("yB").textContent=b;
+    document.getElementById("yA0").textContent=a;document.getElementById("yB0").textContent=b;document.getElementById("yC0").textContent=(Math.abs(c-Math.round(c))<1e-9?Math.round(c):c.toFixed(2));
+    document.getElementById("yA2").textContent=(a*a).toFixed(a%1?1:0);
+    document.getElementById("yB2").textContent=(b*b).toFixed(b%1?1:0);
+    document.getElementById("ySum").textContent=(a*a+b*b).toFixed((a*a+b*b)%1?1:0);
+    document.getElementById("yC2").textContent=(c*c).toFixed(1);
+    document.getElementById("yC").textContent=c.toFixed(2);
+    while(viz.firstChild)viz.removeChild(viz.firstChild);
+    var s=svgEl("svg",{viewBox:"0 0 "+W+" "+H,role:"img"});
+    var scale=16; // px per unit
+    var ox=150,oy=250; // right-angle corner
+    var ax=ox,ay=oy-a*scale;      // up the a leg
+    var bx=ox+b*scale,by=oy;      // along the b leg
+    // triangle
+    s.appendChild(svgEl("polygon",{points:ox+","+oy+" "+ax+","+ay+" "+bx+","+by,fill:"rgba(217,162,78,.12)",stroke:"var(--c-geometry)","stroke-width":2}));
+    // right-angle square mark
+    s.appendChild(svgEl("rect",{x:ox,y:oy-12,width:12,height:12,fill:"none",stroke:"var(--c-geometry)","stroke-width":1.4}));
+    // square on leg a (to the left of the a-leg)
+    s.appendChild(svgEl("rect",{x:ox-a*scale,y:oy-a*scale,width:a*scale,height:a*scale,fill:"rgba(217,162,78,.18)",stroke:"var(--c-geometry)","stroke-width":1.4}));
+    var ta=svgEl("text",{x:ox-a*scale/2,y:oy-a*scale/2+4,"text-anchor":"middle",fill:"var(--c-geometry)","font-family":"Azeret Mono","font-size":12});ta.textContent="a²="+ (a*a).toFixed(a%1?1:0);s.appendChild(ta);
+    // square on leg b (below the b-leg)
+    s.appendChild(svgEl("rect",{x:ox,y:oy,width:b*scale,height:b*scale,fill:"rgba(217,162,78,.18)",stroke:"var(--c-geometry)","stroke-width":1.4}));
+    var tb=svgEl("text",{x:ox+b*scale/2,y:oy+b*scale/2+4,"text-anchor":"middle",fill:"var(--c-geometry)","font-family":"Azeret Mono","font-size":12});tb.textContent="b²="+ (b*b).toFixed(b%1?1:0);s.appendChild(tb);
+    // square on hypotenuse (drawn as a rotated square using the hypotenuse as one side)
+    var hx=bx-ox,hy=by-ay; // hypotenuse vector from ax,ay to bx,by
+    // perpendicular (outward) unit = rotate (hx,hy) by -90 => (hy,-hx) normalized
+    var len=c*scale;var nx=hy,ny=-hx;var nlen=Math.sqrt(nx*nx+ny*ny);nx/=nlen;ny/=nlen;
+    var p1x=ax,p1y=ay,p2x=bx,p2y=by,p3x=bx+nx*len,p3y=by+ny*len,p4x=ax+nx*len,p4y=ay+ny*len;
+    s.appendChild(svgEl("polygon",{points:p1x+","+p1y+" "+p2x+","+p2y+" "+p3x+","+p3y+" "+p4x+","+p4y,fill:"rgba(237,109,64,.16)",stroke:"var(--infrared)","stroke-width":1.6}));
+    var tcx=(p1x+p2x+p3x+p4x)/4,tcy=(p1y+p2y+p3y+p4y)/4;
+    var tc=svgEl("text",{x:tcx,y:tcy+4,"text-anchor":"middle",fill:"var(--infrared)","font-family":"Azeret Mono","font-size":12});tc.textContent="c²="+ (c*c).toFixed(1);s.appendChild(tc);
+    // labels on legs
+    var la=svgEl("text",{x:ox-8,y:(oy+ay)/2,"text-anchor":"end",fill:"var(--off-white)","font-family":"Azeret Mono","font-size":12});la.textContent="a="+a;s.appendChild(la);
+    var lb=svgEl("text",{x:(ox+bx)/2,y:oy-8,"text-anchor":"middle",fill:"var(--off-white)","font-family":"Azeret Mono","font-size":12});lb.textContent="b="+b;s.appendChild(lb);
+    viz.appendChild(s);
+  }
+  aR.addEventListener("input",draw);bR.addEventListener("input",draw);draw();
+})();
+
+/* ============================================================
+   AVERAGES (draggable dots)
+   ============================================================ */
+(function(){
+  var viz=document.getElementById("statViz");
+  var W=560,H=200,XMIN=0,XMAX=20;
+  var data=[2,4,4,5,9]; // values on 0..20
+  var scale=26,ox=30,oy=120;
+  function sx(v){return ox+v*scale;}
+  function recalc(){
+    var arr=data.slice().sort(function(a,b){return a-b;});
+    var mean=data.length?data.reduce(function(s,v){return s+v;},0)/data.length:0;
+    var med=data.length?(arr.length%2?arr[(arr.length-1)/2]:(arr[arr.length/2-1]+arr[arr.length/2])/2):0;
+    // mode
+    var freq={},best=0,mode="none";
+    data.forEach(function(v){freq[v]=(freq[v]||0)+1;if(freq[v]>best){best=freq[v];mode=v;}});
+    if(best<2)mode="none";
+    var range=data.length?(Math.max.apply(null,data)-Math.min.apply(null,data)):0;
+    document.getElementById("sMean").textContent=data.length?mean.toFixed(2):"—";
+    document.getElementById("sMed").textContent=data.length?(typeof med==="number"?med.toFixed(1):med):"—";
+    document.getElementById("sMode").textContent=mode;
+    document.getElementById("sRange").textContent=data.length?range.toFixed(1):"—";
+    document.getElementById("sCount").textContent=data.length;
+    document.getElementById("sN0").textContent=data.length;
+  }
+  function draw(){
+    while(viz.firstChild)viz.removeChild(viz.firstChild);
+    var s=svgEl("svg",{viewBox:"0 0 "+W+" "+H,role:"img"});
+    // axis
+    s.appendChild(svgEl("line",{x1:ox,y1:oy,x2:ox+XMAX*scale,y2:oy,stroke:"rgba(255,255,255,.4)","stroke-width":1.5}));
+    for(var t=0;t<=XMAX;t++){var xx=sx(t);s.appendChild(svgEl("line",{x1:xx,y1:oy-5,x2:xx,y2:oy+5,stroke:"rgba(255,255,255,.4)"}));if(t%2===0){var lbl=svgEl("text",{x:xx,y:oy+20,"text-anchor":"middle",class:"axislbl"});lbl.textContent=t;s.appendChild(lbl);}}
+    // mean marker
+    if(data.length){var m=data.reduce(function(s,v){return s+v;},0)/data.length;s.appendChild(svgEl("line",{x1:sx(m),y1:30,x2:sx(m),y2:oy-12,stroke:"var(--c-data)","stroke-width":1.4,"stroke-dasharray":"4 3"}));var mt=svgEl("text",{x:sx(m),y:24,"text-anchor":"middle",fill:"var(--c-data)","font-family":"Azeret Mono","font-size":11});mt.textContent="mean "+m.toFixed(1);s.appendChild(mt);}
+    // dots
+    data.forEach(function(v,i){
+      var g=svgEl("g",{transform:"translate("+sx(v)+",0)",class:"dot","data-i":i});
+      var c=svgEl("circle",{cx:0,cy:oy-18,r:11,fill:"var(--c-data)",stroke:"#000","stroke-width":2});
+      g.appendChild(c);
+      s.appendChild(g);
+    });
+    viz.appendChild(s);
+    recalc();
+    // drag
+    var dots=s.querySelectorAll("g.dot");
+    dots.forEach(function(g){
+      var i=+g.getAttribute("data-i");
+      g.style.cursor="grab";
+      g.addEventListener("pointerdown",function(e){e.preventDefault();g.setPointerCapture(e.pointerId);g.style.cursor="grabbing";var rect=s.getBoundingClientRect(),scaleX=W/rect.width;
+        function mv(ev){var x=(ev.clientX-rect.left)*scaleX;var v=(x-ox)/scale;v=Math.max(0,Math.min(XMAX,Math.round(v*2)/2));data[i]=v;draw();}
+        function up(ev){g.releasePointerCapture(ev.pointerId);document.removeEventListener("pointermove",mv);document.removeEventListener("pointerup",up);g.style.cursor="grab";}
+        document.addEventListener("pointermove",mv);document.addEventListener("pointerup",up);
+      });
+    });
+  }
+  document.getElementById("sAdd").addEventListener("click",function(){if(data.length<12){data.push(Math.round(Math.random()*20*2)/2);draw();}});
+  document.getElementById("sRemove").addEventListener("click",function(){data.pop();draw();});
+  document.getElementById("sRand").addEventListener("click",function(){var n=5+Math.floor(Math.random()*4);data=[];for(var i=0;i<n;i++)data.push(Math.round(Math.random()*20*2)/2);draw();});
+  draw();
+})();
+</script>
+</body>
+</html>

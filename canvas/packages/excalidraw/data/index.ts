@@ -170,6 +170,42 @@ export const exportCanvas = async (
     exportingFrame,
   });
 
+  if (type === "pdf") {
+    // Single-page PDF wrapping a PNG raster of the exported canvas — the same "render to image,
+    // hand it to the existing image pipeline" approach data/pdf.ts uses for PDF *import* (no new
+    // "PDF element" type there either), just inverted. pdf-lib is lazy-loaded so it doesn't add to
+    // the main bundle for the (much more common) PNG/SVG export path.
+    const { PDFDocument } = await import("pdf-lib");
+    const pngBlob = await canvasToBlob(tempCanvas);
+    const pngBytes = new Uint8Array(await pngBlob.arrayBuffer());
+    const pdfDoc = await PDFDocument.create();
+    const pngImage = await pdfDoc.embedPng(pngBytes);
+    // 1 canvas px = 1 PDF pt: the page is exactly the rendered image's size, not fitted to a
+    // fixed paper size — consistent with PNG/SVG export, which also just export "what you see"
+    // at whatever the canvas's content bounds happen to be, no page-layout assumptions.
+    const page = pdfDoc.addPage([pngImage.width, pngImage.height]);
+    page.drawImage(pngImage, {
+      x: 0,
+      y: 0,
+      width: pngImage.width,
+      height: pngImage.height,
+    });
+    const pdfBytes = await pdfDoc.save();
+    // pdf-lib's Uint8Array return type is generic over ArrayBufferLike (which also covers
+    // SharedArrayBuffer), stricter than Blob's BlobPart — it's always a plain freshly-allocated
+    // ArrayBuffer in practice here, so this cast is safe.
+    return fileSave(
+      new Blob([pdfBytes.buffer as ArrayBuffer], { type: MIME_TYPES.pdf }),
+      {
+        description: "Export to PDF",
+        name,
+        extension: "pdf",
+        mimeTypes: [MIME_TYPES.pdf],
+        fileHandle,
+      },
+    );
+  }
+
   if (type === "png") {
     let blob = canvasToBlob(tempCanvas);
 

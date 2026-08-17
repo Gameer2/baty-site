@@ -2,6 +2,7 @@
 (function () {
   "use strict";
   LinAlgPage.init({
+    storeKey: "engine-lab:linear-algebra-diagonalization",
     square: true,
     example: { A: [[4, -2, 1], [-2, 4, -2], [1, -2, 4]] },
     compute: (A) => LinAlg.diagonalize(A),

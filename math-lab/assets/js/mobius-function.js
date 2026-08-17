@@ -69,5 +69,12 @@
     let n;
     try { n = parseInput(nInput.value); } catch (err) { return showError(err.message); }
     render(n);
+    Proto.saveState("engine-lab:number-theory-mobius-function", { n: nInput.value });
   });
+
+  const saved = Proto.loadState("engine-lab:number-theory-mobius-function");
+  if (saved) {
+    if (saved.n !== undefined) nInput.value = saved.n;
+    form.requestSubmit();
+  }
 })();

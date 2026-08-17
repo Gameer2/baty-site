@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Percentage &amp; Common Fractions — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: a 100-cell grid shaded to match a fraction — direct fork of
+     Grade 5's 6.8 percentage grid, framed around fraction↔percent conversion. ---- */
+  .chart{ padding:30px 24px 30px; display:flex; flex-direction:column; align-items:center; gap:22px; }
+  .grid100{ display:grid; grid-template-columns:repeat(10, 16px); grid-gap:2px; direction:ltr; user-select:none; }
+  .g-cell{ width:16px; height:16px; border-radius:2px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); cursor:pointer; }
+  .g-cell.on{ background:var(--electric-teal); border-color:rgba(92,147,159,.7); }
+
+  .readouts{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
+  .readout-card{ display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 18px; border-radius:10px; background:var(--urban-smoke); border:1px solid rgba(255,255,255,.1); min-width:100px; }
+  .readout-card .cap{ font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash); }
+  .readout-card .val{ font-family:var(--mono); font-size:17px; font-weight:700; color:var(--infrared); direction:ltr; }
+
+  .frac-fields{ display:flex; align-items:center; gap:8px; }
+  .frac-fields select, .frac-fields input{ font-family:var(--mono); font-size:14px; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.16); border-radius:6px; padding:5px 8px; direction:ltr; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 6 · LESSON 3</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Percentage &amp; Common Fractions</h1>
+    <span class="title-secondary ar-display" id="titleAr">النسبة المئوية والكسور العادية</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I convert between percentages and common fractions.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">scale the fraction until it's out of 100</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="frac-fields">
+        <input type="number" id="numInput" value="3" min="0" />
+        <span>/</span>
+        <select id="denSelect">
+          <option value="2">2</option><option value="4" selected>4</option><option value="5">5</option>
+          <option value="10">10</option><option value="20">20</option><option value="25">25</option><option value="50">50</option>
+        </select>
+      </div>
+    </div>
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabel">shade</label>
+      <input type="range" id="pctSlider" min="0" max="100" step="1" value="75" />
+      <span class="control-val" id="pctReadout"></span>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="grid100 dimmable" data-el="grid100" id="grid100"></div>
+      <div class="readouts dimmable" data-el="readouts">
+        <div class="readout-card"><span class="cap" id="capFrac"></span><span class="val" id="valFrac"></span></div>
+        <div class="readout-card"><span class="cap" id="capOut100"></span><span class="val" id="valOut100"></span></div>
+        <div class="readout-card"><span class="cap" id="capPct"></span><span class="val" id="valPct"></span></div>
+      </div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Percentages convert to fractions over 100 (then simplified) and fractions convert to percentages by finding an equivalent fraction with denominator 100 or via division.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="6-2-equivalent-ratios.html">— <b data-role="body" id="navPrevText">6.2 · Equivalent Ratios</b></a>
+    <a class="nav-pill next" href="6-4-percentage-decimal-fractions.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">6.4 · Percentage &amp; Decimal Fractions</b></a>
+  </div>
+</div>
+
+<script>
+  const { groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 6 · LESSON 3",
+      objectiveLabel: "Objective —",
+      objectiveText: "I convert between percentages and common fractions.",
+      eqSub: "scale the fraction until it's out of 100",
+      explainBtn: "Explain this",
+      controlLabel: "shade",
+      capFrac: "fraction", capOut100: "out of 100", capPct: "percent",
+      teachLabel: "What this teaches:",
+      teachBody: "Percentages convert to fractions over 100 (then simplified) and fractions convert to percentages by finding an equivalent fraction with denominator 100 or via division.",
+      navPrev: "6.2 · Equivalent Ratios",
+      navNext: "6.4 · Percentage & Decimal Fractions",
+      navNextLabel: "next",
+      tour: [
+        { ids: ["denSelect"], label: "Pick a denominator that scales to 100", body: "2, 4, 5, 10, 20, 25, 50 — each one multiplies evenly up to 100." },
+        { elKey: "grid100", label: "Scale the fraction up", body: "Multiplying both numerator and denominator by the same factor lands the fraction exactly on a whole number of hundredths." },
+        { elKey: "readouts", label: "Fraction and percent, matched", body: "Once it's out of 100, the numerator itself is the percent — no extra work needed." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ٦ · الدرس ٣",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أحوّل بين النسب المئوية والكسور العادية.",
+      eqSub: "قِس الكسر حتى يصبح من كل مئة",
+      explainBtn: "اشرح هذا",
+      controlLabel: "ظلّل",
+      capFrac: "الكسر", capOut100: "من كل مئة", capPct: "النسبة المئوية",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "تتحوّل النسب المئوية إلى كسور من مئة (ثم تُبسَّط)، وتتحوّل الكسور إلى نسب مئوية بإيجاد كسر مكافئ مقامه ١٠٠ أو بالقسمة.",
+      navPrev: "٦.٢ · النسب المتكافئة",
+      navNext: "٦.٤ · النسبة المئوية والكسور العشرية",
+      navNextLabel: "التالي",
+      tour: [
+        { ids: ["denSelect"], label: "اختر مقامًا يُقاس إلى ١٠٠", body: "٢، ٤، ٥، ١٠، ٢٠، ٢٥، ٥٠ — كل منها يُضرب بانتظام حتى يصل إلى ١٠٠." },
+        { elKey: "grid100", label: "قِس الكسر لأعلى", body: "ضرب البسط والمقام في العامل نفسه يضع الكسر بالضبط عند عدد كلّي من الأجزاء من مئة." },
+        { elKey: "readouts", label: "الكسر والنسبة المئوية، متطابقان", body: "بمجرّد أن يصبح الكسر من كل مئة، يصبح البسط نفسه هو النسبة المئوية — دون عمل إضافي." }
+      ]
+    }
+  };
+
+  const numInput = document.getElementById("numInput"), denSelect = document.getElementById("denSelect");
+  const pctSlider = document.getElementById("pctSlider"), pctReadout = document.getElementById("pctReadout");
+  const grid100 = document.getElementById("grid100");
+  const eqLine = document.getElementById("eqLine");
+  const capFrac = document.getElementById("capFrac"), valFrac = document.getElementById("valFrac");
+  const capOut100 = document.getElementById("capOut100"), valOut100 = document.getElementById("valOut100");
+  const capPct = document.getElementById("capPct"), valPct = document.getElementById("valPct");
+
+  const cells = [];
+  function buildGrid() {
+    grid100.innerHTML = "";
+    for (let i = 0; i < 100; i++) {
+      const cell = document.createElement("div");
+      cell.className = "g-cell";
+      cell.addEventListener("click", () => { pctSlider.value = i + 1; syncFromPct(); render(); });
+      grid100.appendChild(cell);
+      cells.push(cell);
+    }
+  }
+
+  function syncFromFraction() {
+    const num = Math.max(0, parseInt(numInput.value, 10) || 0);
+    const den = parseInt(denSelect.value, 10);
+    const scale = 100 / den;
+    pctSlider.value = Math.min(100, Math.round(num * scale));
+  }
+  function syncFromPct() {
+    // leave fraction inputs as-is; grid/slider is the primary control once touched directly
+  }
+
+  function render() {
+    const t = T[i18n.lang];
+    const pct = parseInt(pctSlider.value, 10);
+    pctReadout.textContent = pct + "%";
+    cells.forEach((cell, idx) => cell.classList.toggle("on", idx < pct));
+
+    const num = Math.max(0, parseInt(numInput.value, 10) || 0);
+    const den = parseInt(denSelect.value, 10);
+    const scale = 100 / den;
+    const out100 = num * scale;
+
+    capFrac.textContent = t.capFrac; capOut100.textContent = t.capOut100; capPct.textContent = t.capPct;
+    valFrac.textContent = groupInt(num, "en") + "/" + groupInt(den, "en");
+    valOut100.textContent = groupInt(out100, "en") + "/100";
+    valPct.textContent = pct + "%";
+
+    const eqSource = `\\dfrac{${groupInt(num, "en")}}{${groupInt(den, "en")}} = \\dfrac{${groupInt(num, "en")} \\times ${groupInt(scale, "en")}}{${groupInt(den, "en")} \\times ${groupInt(scale, "en")}} = \\color{#ed6d40}{${groupInt(out100, "en")}\\%}`;
+    renderEquation(eqLine, eqSource);
+  }
+
+  numInput.addEventListener("input", () => { syncFromFraction(); render(); });
+  denSelect.addEventListener("input", () => { syncFromFraction(); render(); });
+  pctSlider.addEventListener("input", render);
+
+  buildGrid();
+  syncFromFraction();
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

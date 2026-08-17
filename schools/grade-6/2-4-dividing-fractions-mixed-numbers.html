@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dividing Fractions &amp; Mixed Numbers — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: "how many copies fit", generalized to a multi-whole dividend track.
+     Forks Grade 5's 4.6 measure/shortcut toggle. ---- */
+  .chart{ padding:30px 24px 30px; display:flex; flex-direction:column; align-items:center; gap:20px; }
+  .mode-toggle{ display:flex; gap:6px; margin-inline-start:12px; }
+  .mode-btn{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--pulse-ash); background:var(--core-black); border:1px solid rgba(255,255,255,.14); border-radius:100px; padding:6px 14px; cursor:pointer; }
+  .mode-btn.active{ color:var(--off-white); border-color:var(--electric-teal); background:rgba(92,147,159,.12); }
+
+  .measure-row{ display:flex; gap:6px; direction:ltr; width:100%; max-width:460px; flex-wrap:wrap; }
+  .unit-track{ display:flex; flex:1; min-width:60px; height:44px; border:1px solid rgba(255,255,255,.16); border-radius:8px; overflow:hidden; }
+  .dividend-cell{ background:rgba(92,147,159,.28); border-inline-end:1px solid rgba(255,255,255,.1); }
+  .unit-track .empty-cell{ background:rgba(255,255,255,.03); }
+  .copy-row{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; max-width:440px; }
+  .copy-chip{ font-family:var(--mono); font-size:12px; font-weight:700; color:var(--off-white); background:rgba(237,109,64,.18); border:1px solid rgba(237,109,64,.5); border-radius:6px; padding:5px 10px; opacity:0; direction:ltr; }
+  .copy-chip.partial{ background:rgba(237,109,64,.08); border-style:dashed; }
+
+  .count-line{ font-family:var(--mono); font-size:14px; color:var(--neural-fog); direction:ltr; unicode-bidi:isolate; text-align:center; }
+  .count-line b{ color:var(--infrared); }
+
+  .inputs{ display:flex; gap:22px; align-items:center; flex-wrap:wrap; justify-content:center; }
+  .mixed-input{ display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .mixed-input label{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash); }
+  .mixed-fields{ display:flex; align-items:center; gap:6px; }
+  .mixed-fields input{ font-family:var(--mono); font-size:14px; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.16); border-radius:6px; padding:4px 6px; text-align:center; direction:ltr; }
+  .mixed-fields input.whole{ width:34px; }
+  .frac-fields{ display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .frac-fields input{ width:40px; }
+  .frac-fields .bar-div{ width:26px; height:1px; background:rgba(255,255,255,.3); margin:3px 0; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 2 · LESSON 4</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Dividing Fractions &amp; Mixed Numbers</h1>
+    <span class="title-secondary ar-display" id="titleAr">قسمة الكسور والأعداد الكسرية</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I find the quotient of fractions and mixed numbers in simplest form.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">how many divisor-copies fit in the dividend?</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="inputs">
+        <div class="mixed-input">
+          <label data-role="ui" data-i18n="labelA">dividend</label>
+          <div class="mixed-fields">
+            <input type="number" class="whole" id="wholeA" value="1" min="0" max="3" />
+            <div class="frac-fields"><input type="number" id="numA" value="1" min="1" max="5" /><div class="bar-div"></div><input type="number" id="denA" value="2" min="2" max="6" /></div>
+          </div>
+        </div>
+        <div class="mixed-input">
+          <label data-role="ui" data-i18n="labelB">divisor</label>
+          <div class="mixed-fields">
+            <input type="number" class="whole" id="wholeB" value="0" min="0" max="3" />
+            <div class="frac-fields"><input type="number" id="numB" value="1" min="1" max="5" /><div class="bar-div"></div><input type="number" id="denB" value="4" min="2" max="6" /></div>
+          </div>
+        </div>
+      </div>
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="modeMeasure" data-role="ui" data-i18n="modeMeasure">measure it out</button>
+        <button class="mode-btn" id="modeShortcut" data-role="ui" data-i18n="modeShortcut">shortcut</button>
+      </div>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div id="measureView" data-el="measureView">
+        <div class="measure-row" id="measureRow"></div>
+        <div class="copy-row" id="copyRow" style="margin-top:14px;"></div>
+        <div class="count-line" id="countLine" style="margin-top:12px;"></div>
+      </div>
+      <div id="shortcutView" data-el="shortcutView" style="display:none;">
+        <div class="count-line" id="shortcutLine"></div>
+      </div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Convert mixed numbers to improper fractions, then divide by multiplying by the reciprocal of the divisor, simplifying the result. Applied to rate problems (train speed in km per minute, solving for time to cover a given distance).</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="2-3-multiplying-fractions-mixed-numbers.html">— <b data-role="body" id="navPrevText">2.3 · Multiplying Fractions &amp; Mixed Numbers</b></a>
+    <a class="nav-pill next" href="3-1-multiplying-decimals.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">3.1 · Multiplying Decimals</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 2 · LESSON 4",
+      objectiveLabel: "Objective —",
+      objectiveText: "I find the quotient of fractions and mixed numbers in simplest form.",
+      eqSub: "how many divisor-copies fit in the dividend?",
+      explainBtn: "Explain this",
+      labelA: "dividend", labelB: "divisor",
+      modeMeasure: "measure it out", modeShortcut: "shortcut",
+      countLine: (q, pct) => `${q} whole copies fit, with ~${pct}% of one more`,
+      countLineExact: (q) => `exactly ${q} copies fit`,
+      shortcutLine: (impA, dA, impB, dB, nQ, dQ) => `${impA}/${dA} ÷ ${impB}/${dB} = ${impA}/${dA} × ${dB}/${impB} = ${nQ}/${dQ}`,
+      teachLabel: "What this teaches:",
+      teachBody: "Convert mixed numbers to improper fractions, then divide by multiplying by the reciprocal of the divisor, simplifying the result. Applied to rate problems (train speed in km per minute, solving for time to cover a given distance).",
+      navPrev: "2.3 · Multiplying Fractions & Mixed Numbers",
+      navNext: "3.1 · Multiplying Decimals",
+      navNextLabel: "next",
+      tour: [
+        { elKey: "measureView", label: "The dividend, as whole units", body: "Each teal-filled unit track is one whole; the last one may be only partly filled — together they equal the dividend." },
+        { ids: ["copyRow"], label: "Lay down copies of the divisor", body: "Each chip is one copy of the divisor's value — count how many whole copies fit across the dividend, plus any partial copy left over." },
+        { ids: ["modeShortcut"], label: "Same answer, the fast way", body: "Switch to shortcut mode — convert both to improper fractions, flip the divisor, multiply. Same quotient, instantly." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ٢ · الدرس ٤",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أجد ناتج قسمة كسور وأعداد كسرية بأبسط صورة.",
+      eqSub: "كم نسخة من المقسوم عليه تتّسع داخل المقسوم؟",
+      explainBtn: "اشرح هذا",
+      labelA: "المقسوم", labelB: "المقسوم عليه",
+      modeMeasure: "قِس بالقياس المباشر", modeShortcut: "الاختصار",
+      countLine: (q, pct) => `تتّسع ${q} نسخة كاملة، مع ~${pct}% من نسخة إضافية`,
+      countLineExact: (q) => `تتّسع ${q} نسخة تمامًا`,
+      shortcutLine: (impA, dA, impB, dB, nQ, dQ) => `${impA}/${dA} ÷ ${impB}/${dB} = ${impA}/${dA} × ${dB}/${impB} = ${nQ}/${dQ}`,
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "حوّل الأعداد الكسرية إلى كسور غير حقيقية، ثم اقسم بضرب المقسوم بمقلوب المقسوم عليه، وبسّط الناتج. يُطبَّق على مسائل المعدّل (سرعة قطار بالكيلومتر في الدقيقة، وإيجاد الزمن اللازم لقطع مسافة معيّنة).",
+      navPrev: "٢.٣ · ضرب الكسور والأعداد الكسرية",
+      navNext: "٣.١ · ضرب الأعداد العشرية",
+      navNextLabel: "التالي",
+      tour: [
+        { elKey: "measureView", label: "المقسوم، كوحدات كاملة", body: "كل مسار مظلّل بالتركواز هو وحدة كاملة؛ وقد يكون الأخير مظلّلًا جزئيًا فقط — مجموعها كلّها هو المقسوم." },
+        { ids: ["copyRow"], label: "ضع نُسخًا من المقسوم عليه", body: "كل رقاقة هي نسخة من قيمة المقسوم عليه — عُدّ كم نسخة كاملة تتّسع عبر المقسوم، وأيّ جزء متبقٍّ." },
+        { ids: ["modeShortcut"], label: "الإجابة نفسها، بالطريقة السريعة", body: "بدّل إلى وضع الاختصار — حوّل كليهما إلى كسر غير حقيقي، اقلب المقسوم عليه، واضرب. الناتج نفسه، فورًا." }
+      ]
+    }
+  };
+
+  const wholeA = document.getElementById("wholeA"), numA = document.getElementById("numA"), denA = document.getElementById("denA");
+  const wholeB = document.getElementById("wholeB"), numB = document.getElementById("numB"), denB = document.getElementById("denB");
+  const eqLine = document.getElementById("eqLine");
+  const measureRow = document.getElementById("measureRow");
+  const copyRow = document.getElementById("copyRow");
+  const countLine = document.getElementById("countLine");
+  const measureView = document.getElementById("measureView");
+  const shortcutView = document.getElementById("shortcutView");
+  const shortcutLine = document.getElementById("shortcutLine");
+  const modeMeasure = document.getElementById("modeMeasure");
+  const modeShortcut = document.getElementById("modeShortcut");
+
+  function gcdOf(a, b) { return b === 0 ? a : gcdOf(b, a % b); }
+  function simplify(n, d) { const g = gcdOf(n, d) || 1; return [n / g, d / g]; }
+
+  function render() {
+    const t = T[i18n.lang];
+    const wA = Math.max(0, parseInt(wholeA.value, 10) || 0), nA = Math.max(1, parseInt(numA.value, 10) || 1), dA = Math.max(2, parseInt(denA.value, 10) || 2);
+    const wB = Math.max(0, parseInt(wholeB.value, 10) || 0), nB = Math.max(1, parseInt(numB.value, 10) || 1), dB = Math.max(2, parseInt(denB.value, 10) || 2);
+    const impA = wA * dA + nA, impB = wB * dB + nB;
+
+    const valA = impA / dA, valB = impB / dB;
+    const quotientExact = valA / valB;
+    const wholeCopies = Math.floor(quotientExact + 1e-9);
+    const remFraction = quotientExact - wholeCopies;
+
+    measureRow.innerHTML = "";
+    const wholeUnits = Math.floor(valA + 1e-9);
+    const fracRemainder = valA - wholeUnits;
+    for (let i = 0; i < wholeUnits; i++) {
+      const track = document.createElement("div");
+      track.className = "unit-track";
+      const fill = document.createElement("div");
+      fill.className = "dividend-cell";
+      fill.style.flex = "1";
+      track.appendChild(fill);
+      measureRow.appendChild(track);
+    }
+    if (fracRemainder > 1e-9) {
+      const track = document.createElement("div");
+      track.className = "unit-track";
+      const fill = document.createElement("div");
+      fill.className = "dividend-cell";
+      fill.style.flex = String(fracRemainder);
+      track.appendChild(fill);
+      const empty = document.createElement("div");
+      empty.className = "empty-cell";
+      empty.style.flex = String(1 - fracRemainder);
+      track.appendChild(empty);
+      measureRow.appendChild(track);
+    }
+
+    copyRow.innerHTML = "";
+    for (let i = 0; i < wholeCopies; i++) {
+      const chip = document.createElement("div");
+      chip.className = "copy-chip";
+      chip.textContent = digits(nB, i18n.lang) + "/" + digits(dB, i18n.lang) + (wB > 0 ? " (" + digits(wB, i18n.lang) + " " + digits(nB, i18n.lang) + "/" + digits(dB, i18n.lang) + ")" : "");
+      copyRow.appendChild(chip);
+      gsap.to(chip, { opacity: 1, duration: .25, delay: i * .15 });
+    }
+    if (remFraction > 1e-9) {
+      const chip = document.createElement("div");
+      chip.className = "copy-chip partial";
+      chip.textContent = "~" + Math.round(remFraction * 100) + "%";
+      copyRow.appendChild(chip);
+      gsap.to(chip, { opacity: 1, duration: .25, delay: wholeCopies * .15 });
+    }
+
+    if (remFraction > 1e-9) {
+      countLine.textContent = t.countLine(digits(wholeCopies, i18n.lang), digits(Math.round(remFraction * 100), i18n.lang));
+    } else {
+      countLine.textContent = t.countLineExact(digits(wholeCopies, i18n.lang));
+    }
+
+    const qNum = impA * dB, qDen = dA * impB;
+    const [simN, simD] = simplify(qNum, qDen);
+    shortcutLine.textContent = t.shortcutLine(groupInt(impA, "en"), groupInt(dA, "en"), groupInt(impB, "en"), groupInt(dB, "en"), groupInt(simN, "en"), groupInt(simD, "en"));
+
+    const eqSource = `${groupInt(wA, "en")}\\tfrac{${groupInt(nA, "en")}}{${groupInt(dA, "en")}} \\div ${groupInt(wB, "en")}\\tfrac{${groupInt(nB, "en")}}{${groupInt(dB, "en")}} = \\dfrac{${groupInt(impA, "en")}}{${groupInt(dA, "en")}} \\div \\dfrac{${groupInt(impB, "en")}}{${groupInt(dB, "en")}} = \\color{#ed6d40}{\\dfrac{${groupInt(simN, "en")}}{${groupInt(simD, "en")}}}`;
+    renderEquation(eqLine, eqSource);
+  }
+
+  [wholeA, numA, denA, wholeB, numB, denB].forEach(el => el.addEventListener("input", render));
+  modeMeasure.addEventListener("click", () => {
+    modeMeasure.classList.add("active"); modeShortcut.classList.remove("active");
+    measureView.style.display = ""; shortcutView.style.display = "none";
+  });
+  modeShortcut.addEventListener("click", () => {
+    modeShortcut.classList.add("active"); modeMeasure.classList.remove("active");
+    measureView.style.display = "none"; shortcutView.style.display = "";
+  });
+
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

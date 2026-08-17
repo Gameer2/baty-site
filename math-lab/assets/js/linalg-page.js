@@ -8,7 +8,12 @@
 
   const LinAlgPage = {};
 
-  // config: { square, vector, example: {A, b}, compute(A, b) -> result, render(result, ui) }
+  // config: { square, vector, example: {A, b}, compute(A, b) -> result, render(result, ui),
+  //   storeKey } — storeKey is optional; when present the page's starting matrix (and vector,
+  //   if config.vector) round-trips through Proto.saveState/loadState under that key instead of
+  //   always starting from config.example, the same convention every other engine's pages
+  //   already use. This is what lets the canvas node's "Open in the lab" portal actually prefill
+  //   a linear-algebra page — see canvas/syntropy-app/syntropy/portalPrefill.ts.
   LinAlgPage.init = function (config) {
     const form = document.getElementById("laForm");
     const rowsInput = document.getElementById("rowsInput");
@@ -236,6 +241,15 @@
       resultsArea.style.display = "";
       statusLine.className = "status-line ok";
       statusText.textContent = "Computed.";
+      // Serialized the same delimited-string way every other engine's port spec already stores
+      // its inputs ("1,2;3,4" rows, "1,2,3" vector) — not a raw array — so this round-trips
+      // through portalPrefill.ts's generic buildPageState() without that seam needing to know
+      // about matrix/vector shapes specifically. See parseComposite.ts for the parse side.
+      if (config.storeKey && window.Proto) {
+        const stateOut = { A: A.map((row) => row.join(",")).join(";") };
+        if (config.vector) stateOut.b = b.join(",");
+        Proto.saveState(config.storeKey, stateOut);
+      }
       try { config.render(result, makeUI(), A, b); }
       catch (err) { showError("Rendering failed: " + err.message); }
     });
@@ -251,15 +265,37 @@
       statusText.textContent = "Example loaded — press Compute.";
     });
 
-    // Start with the example in place so the page is never blank.
-    rowsInput.value = String(config.example.A.length);
-    if (colsInput) colsInput.value = String(config.example.A[0].length);
-    rebuildGrid(config.example.A);
-    if (config.vector && config.example.b) {
+    // Parses the same "1,2;3,4" / "1,2,3" delimited strings parseComposite.ts's
+    // parseMatrix/parseNumberList use — see the save side above for why it's a string, not a
+    // real array.
+    function parseMatrixString(s) {
+      return String(s).split(";").map((r) => r.split(",").map(Number));
+    }
+    function parseVectorString(s) {
+      return String(s).split(",").map(Number);
+    }
+
+    // Start from a node's prefilled values if the portal opened this page with any (see
+    // storeKey above); otherwise the example, so the page is never blank either way.
+    const saved = config.storeKey && window.Proto ? Proto.loadState(config.storeKey) : null;
+    const savedA = saved && saved.A !== undefined ? parseMatrixString(saved.A) : null;
+    const savedB = saved && saved.b !== undefined ? parseVectorString(saved.b) : null;
+    const validA = savedA && savedA.length && savedA.every((row) =>
+      row.length === savedA[0].length && row.every(Number.isFinite));
+    const startA = validA ? savedA : config.example.A;
+    const startB = validA && savedB && savedB.every(Number.isFinite) ? savedB : config.example.b;
+    rowsInput.value = String(startA.length);
+    if (colsInput) colsInput.value = String(startA[0].length);
+    rebuildGrid(startA);
+    if (config.vector && startB) {
       const cells = vectorGrid.querySelectorAll("input.matrix-cell");
-      if (cells.length === config.example.b.length) {
-        cells.forEach((c) => { c.value = String(config.example.b[Number(c.dataset.row)]); });
+      if (cells.length === startB.length) {
+        cells.forEach((c) => { c.value = String(startB[Number(c.dataset.row)]); });
       }
+    }
+    if (saved) {
+      statusLine.className = "status-line";
+      statusText.textContent = "Loaded from the canvas node — press Compute.";
     }
   };
 

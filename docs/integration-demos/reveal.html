@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>reveal.js — integration demo</title>
+<style>
+@font-face{font-family:'Roc Grotesk';src:url('../../math-lab/assets/fonts/roc-grotesk-regular.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'Roc Grotesk';src:url('../../math-lab/assets/fonts/roc-grotesk-medium.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:'Azeret Mono';src:url('../../math-lab/assets/fonts/azeret-mono-regular.otf') format('opentype');font-weight:400;font-display:swap}
+@font-face{font-family:'Fraunces';src:url('../../math-lab/assets/fonts/fraunces-variable.woff2') format('woff2');font-weight:300 600;font-display:swap}
+</style>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css">
+<link rel="stylesheet" href="vendor/reveal.css">
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<script src="../../math-lab/assets/vendor/plotly-cartesian.min.js"></script>
+<script src="vendor/reveal.js"></script>
+<style>
+:root{--core-black:#090909;--rich-carbon:#111;--urban-smoke:#1b1b1b;--pulse-ash:#7d858c;--off-white:#e7e7e7;--neural-fog:#dadada;--electric-teal:#5c939f;--infrared:#ed6d40;--font-mono:"Azeret Mono",ui-monospace,monospace;--font-serif:"Fraunces",Georgia,serif}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--core-black)}
+body{font-family:"Inter","Helvetica Neue",Arial,sans-serif}
+/* chrome around the deck */
+header.top{position:fixed;top:20px;left:0;right:0;z-index:100}
+.top-inner{max-width:1280px;margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:12px;font-family:var(--font-mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase}
+.brand{display:inline-flex;align-items:center;gap:8px;color:var(--off-white);text-decoration:none}.brand .dot{width:8px;height:8px;border-radius:50%;background:var(--infrared)}
+.top-inner a.lk{color:var(--pulse-ash);text-decoration:none;margin-left:auto}.top-inner a.lk:hover{color:var(--electric-teal)}
+.hintbar{position:fixed;bottom:18px;left:0;right:0;text-align:center;font-family:var(--font-mono);font-size:12px;color:var(--pulse-ash);z-index:100;letter-spacing:.06em}
+.hintbar kbd{font-family:var(--font-mono);background:var(--urban-smoke);border:1px solid rgba(255,255,255,.18);border-radius:4px;padding:2px 7px;color:var(--off-white);font-size:11px}
+
+/* reveal override → project identity */
+.reveal{background:var(--core-black);color:var(--off-white)}
+.reveal .slides{text-align:left}
+.reveal section{padding:60px 80px}
+.reveal .eyebrow{font-family:var(--font-mono);font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--electric-teal);display:inline-flex;align-items:center;gap:8px;margin-bottom:22px}
+.reveal .eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.reveal h1,.reveal h2,.reveal h3{font-family:var(--font-serif);color:var(--off-white);text-transform:none;letter-spacing:-.01em}
+.reveal h1{font-weight:350;font-size:1.8em;line-height:1.0;margin:0 0 30px}
+.reveal h2{font-weight:400;font-size:1.3em;line-height:1.1;margin:0 0 24px}
+.reveal p,.reveal li{font-size:0.62em;line-height:1.6;color:var(--neural-fog)}
+.reveal .lead{font-size:0.72em;color:var(--neural-fog);max-width:620px}
+.reveal .mono{font-family:var(--font-mono);color:var(--electric-teal);font-size:0.6em}
+.reveal .katex{color:var(--off-white)}
+.reveal .katex-display{margin:30px 0}
+.eqwrap{background:var(--rich-carbon);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:30px 40px;margin:20px 0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:center}
+.controls{margin-top:18px;font-family:var(--font-mono)}
+.controls label{font-family:var(--font-mono);font-size:0.5em;letter-spacing:.08em;text-transform:uppercase;color:var(--pulse-ash);display:flex;justify-content:space-between;margin-bottom:6px}
+.controls label .v{color:var(--infrared)}
+.controls input[type=range]{-webkit-appearance:none;width:100%;height:3px;background:rgba(255,255,255,.15);border-radius:2px;outline:none}
+.controls input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--infrared);cursor:pointer}
+.controls input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--infrared);cursor:pointer;border:none}
+.next{position:fixed;right:30px;bottom:30px;font-family:var(--font-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--infrared);z-index:100}
+#chart{width:100%;height:300px}
+.reveal .progress{color:var(--infrared)}
+.reveal .controls{color:var(--pulse-ash)}
+.reveal section.dark{background:var(--urban-smoke)}
+.callout-note{font-family:var(--font-mono);font-size:0.5em;color:var(--pulse-ash);border-left:2px solid var(--electric-teal);padding-left:16px;margin-top:20px;max-width:620px}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-inner"><a class="brand" href="./index.html"><span class="dot"></span>BACK · DEMOS</a><a class="lk" href="./reveal.html">reveal.js</a></div></header>
+
+<div class="reveal"><div class="slides">
+
+  <section>
+    <span class="eyebrow">Lesson 04 · Calculus</span>
+    <h1>The derivative,<br>visually.</h1>
+    <p class="lead">A 5-slide lesson deck rendered by reveal.js — themed to your identity, with a live KaTeX equation and a Plotly chart embedded in the slides. This is what "publish the curriculum as slide-shaped lessons" looks like.</p>
+  </section>
+
+  <section class="dark">
+    <span class="eyebrow">Definition</span>
+    <h2>The derivative is a limit of slopes.</h2>
+    <div class="eqwrap" id="eq1"></div>
+    <p>It gives the slope of the tangent line at a single point — the instantaneous rate of change.</p>
+  </section>
+
+  <section>
+    <span class="eyebrow">Worked example</span>
+    <h2>Power rule, on a parabola.</h2>
+    <div class="two">
+      <div>
+        <div class="eqwrap" id="eq2"></div>
+        <p>For <span class="mono">f(x) = x²</span>, the slope at any point is <span class="mono">2x</span>. The chart traces both.</p>
+        <div class="callout-note">Theme is one CSS override block — every slide reads your tokens, just like the site.</div>
+      </div>
+      <div id="chart"></div>
+    </div>
+  </section>
+
+  <section class="dark">
+    <span class="eyebrow">Try it</span>
+    <h2>Steepness follows the tangent.</h2>
+    <p>Drag the slider to move the point along the curve. Watch the tangent line rotate and the slope value update.</p>
+    <div id="chart2"></div>
+    <div class="controls">
+      <label>x position <span class="v" id="xv">0.0</span></label>
+      <input type="range" id="xslider" min="-2" max="2" step="0.05" value="0">
+    </div>
+  </section>
+
+  <section>
+    <span class="eyebrow">Recap</span>
+    <h2>Three things to remember.</h2>
+    <p>1 — The derivative is a limit of secant slopes as the gap shrinks to zero.</p>
+    <p>2 — For <span class="mono">xⁿ</span>, the power rule gives <span class="mono">n·xⁿ⁻¹</span> in one line.</p>
+    <p>3 — Geometrically, it's the slope of the tangent line at the point.</p>
+    <div class="callout-note">Press ← → to navigate. Esc for the slide overview. Press S for speaker notes, F for fullscreen.</div>
+  </section>
+
+</div></div>
+
+<div class="next">→ next</div>
+<div class="hintbar"><kbd>←</kbd> <kbd>→</kbd> navigate &nbsp;·&nbsp; <kbd>Esc</kbd> overview &nbsp;·&nbsp; <kbd>F</kbd> fullscreen</div>
+
+<script>
+Reveal.initialize({hash:true,slideNumber:'c/t',transition:'slide',backgroundTransition:'fade',controls:true,progress:true,width:1200,height:720,margin:0.05});
+
+const baseLayout={paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',
+  font:{family:'Azeret Mono, monospace',color:'#7d858c',size:11},
+  xaxis:{gridcolor:'rgba(255,255,255,.07)',zerolinecolor:'rgba(255,255,255,.2)',tickfont:{color:'#7d858c'}},
+  yaxis:{gridcolor:'rgba(255,255,255,.07)',zerolinecolor:'rgba(255,255,255,.2)',tickfont:{color:'#7d858c'}},
+  margin:{t:10,r:10,b:30,l:40},showlegend:true,legend:{font:{color:'#dadada'},x:0.55,y:0.95}};
+
+// render equations
+function eq(id, tex){ katex.render(tex, document.getElementById(id), {displayMode:true, throwOnError:false}); }
+eq('eq1','f\'(x) = \\lim_{h\\to 0}\\frac{f(x+h)-f(x)}{h}');
+eq('eq2','f(x)=x^{2} \\quad\\Rightarrow\\quad f\'(x)=2x');
+
+// slide 3 chart: parabola + its derivative line
+const xs=[];for(let i=-2;i<=2;i+=0.05)xs.push(i);
+Plotly.newPlot('chart',[
+  {x:xs,y:xs.map(x=>x*x),name:'f(x)=x²',line:{color:'#5c939f',width:2.5}},
+  {x:xs,y:xs.map(x=>2*x),name:"f'(x)=2x",line:{color:'#ed6d40',width:2}}
+],[{...baseLayout,xaxis:{...baseLayout.xaxis,range:[-2.2,2.2]},yaxis:{...baseLayout.yaxis,range:[-4.5,4.5]}}],{displayModeBar:false,staticPlot:true});
+
+// slide 4 interactive tangent
+const xs2=[];for(let i=-2;i<=2;i+=0.04)xs2.push(i);
+const curve={x:xs2,y:xs2.map(x=>x*x),mode:'lines',line:{color:'#5c939f',width:2.5},name:'f(x)=x²'};
+const tang={x:[0,0],y:[0,0],mode:'lines',line:{color:'#ed6d40',width:2.5},name:'tangent'};
+const pt={x:[0],y:[0],mode:'markers',marker:{color:'#ed6d40',size:10},name:'point'};
+Plotly.newPlot('chart2',[curve,tang,pt],
+  [{...baseLayout,xaxis:{...baseLayout.xaxis,range:[-2.2,2.2]},yaxis:{...baseLayout.yaxis,range:[-4.5,4.5]}}],
+  {displayModeBar:false,staticPlot:false});
+function updateTangent(x){
+  const y=x*x, slope=2*x;
+  const x0=x-1.2, x1=x+1.2;
+  Plotly.restyle('chart2',{x:[[x0,x1]],y:[[slope*(x0-x)+y, slope*(x1-x)+y]]},[1]);
+  Plotly.restyle('chart2',{x:[[x]],y:[[y]]},[2]);
+  document.getElementById('xv').textContent=x.toFixed(2);
+}
+document.getElementById('xslider').addEventListener('input',e=>updateTangent(parseFloat(e.target.value)));
+updateTangent(0);
+</script>
+</body>
+</html>

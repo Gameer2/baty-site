@@ -2,7 +2,7 @@
 
 const fs = require("fs");
 const path = require("path");
-// Runs from excalidraw-app/ (yarn --cwd). The build's outDir is "../dist"
+// Runs from syntropy-app/ (yarn --cwd). The build's outDir is "../dist"
 // (canvas/dist), so version metadata + the {version} placeholder in the
 // built index.html live one level up, not under the old "build/" dir.
 const versionFile = path.join("..", "dist", "version.json");

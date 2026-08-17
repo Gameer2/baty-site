@@ -43,7 +43,17 @@ export const getDefaultAppState = (): Omit<
     currentItemFontSize: DEFAULT_FONT_SIZE,
     currentItemOpacity: DEFAULT_ELEMENT_PROPS.opacity,
     currentItemRoughness: DEFAULT_ELEMENT_PROPS.roughness,
-    currentItemStrokeVariability: "constant",
+    // Upstream Excalidraw has no constant-width mode at all — every freedraw stroke is always
+    // the pressure-variable perfect-freehand render. Default to that here too ("variable") so a
+    // fresh note gets the original pen from the very first stroke, rather than depending on the
+    // fragile first-real-stylus-touch detection below (togglePenMode / the pointerType === "pen"
+    // check in App.tsx) to flip it over — devices/browsers that never report pointerType "pen"
+    // for a real stylus would otherwise get stuck on the flat, uniform-width "laser" look forever.
+    currentItemStrokeVariability: "variable",
+    // 0 = untouched (exact current per-pointer-type streamline baseline — see
+    // handleFreeDrawElementOnPointerDown in App.tsx). Additive on top of that baseline rather than
+    // replacing it, so leaving this at its default changes nothing about existing drawing feel.
+    currentItemStrokeSmoothing: 0,
     currentItemStartArrowhead: null,
     currentItemStrokeColor: DEFAULT_ELEMENT_PROPS.strokeColor,
     currentItemRoundness: isTestEnv() ? "sharp" : "round",
@@ -205,6 +215,11 @@ const APP_STATE_STORAGE_CONF = (<
   currentItemOpacity: { browser: true, export: false, server: false },
   currentItemRoughness: { browser: true, export: false, server: false },
   currentItemStrokeVariability: {
+    browser: true,
+    export: false,
+    server: false,
+  },
+  currentItemStrokeSmoothing: {
     browser: true,
     export: false,
     server: false,

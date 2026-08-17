@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ts-fsrs — integration demo</title>
+<style>
+@font-face{font-family:'Roc Grotesk';src:url('../../math-lab/assets/fonts/roc-grotesk-regular.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'Roc Grotesk';src:url('../../math-lab/assets/fonts/roc-grotesk-medium.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:'Azeret Mono';src:url('../../math-lab/assets/fonts/azeret-mono-regular.otf') format('opentype');font-weight:400;font-display:swap}
+@font-face{font-family:'Fraunces';src:url('../../math-lab/assets/fonts/fraunces-variable.woff2') format('woff2');font-weight:300 600;font-display:swap}
+</style>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css">
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<style>
+:root{--core-black:#090909;--rich-carbon:#111;--urban-smoke:#1b1b1b;--pulse-ash:#7d858c;--off-white:#e7e7e7;--neural-fog:#dadada;--electric-teal:#5c939f;--infrared:#ed6d40;--validation-green:#59a993;--validation-red:#cb3500;--font-display:"Roc Grotesk","Helvetica Neue",Arial,sans-serif;--font-mono:"Azeret Mono",ui-monospace,monospace;--font-serif:"Fraunces",Georgia,serif;--radius-sm:4px;--radius-md:8px;--radius-lg:20px;--container-w:1280px}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{background:var(--core-black);color:var(--off-white);font-family:var(--font-display);line-height:1.55}
+.container{max-width:var(--container-w);margin:0 auto;padding:0 24px}
+header.top{position:fixed;top:20px;left:0;right:0;z-index:50}
+.top-inner{max-width:var(--container-w);margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:12px;font-family:var(--font-mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase}
+.brand{display:inline-flex;align-items:center;gap:8px;color:var(--off-white);text-decoration:none}.brand .dot{width:8px;height:8px;border-radius:50%;background:var(--infrared)}
+.top-inner a.lk{color:var(--pulse-ash);text-decoration:none;margin-left:auto}.top-inner a.lk:hover{color:var(--electric-teal)}
+.hero{padding:120px 0 20px}
+.eyebrow{font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--electric-teal);display:inline-flex;align-items:center;gap:8px;margin-bottom:16px}
+.eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.h1{font-family:var(--font-serif);font-weight:350;font-size:clamp(38px,5.6vw,72px);line-height:.98;letter-spacing:-.02em;margin:0 0 14px}
+.p1{font-size:17px;color:var(--neural-fog);max-width:640px;margin:0}
+.section{padding:24px 0 80px}
+.card{background:var(--rich-carbon);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-lg);padding:28px;max-width:760px;margin:0 auto}
+.flash{background:var(--core-black);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius-lg);padding:40px 30px;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px}
+.flash .q{font-family:var(--font-serif);font-size:clamp(20px,2.4vw,28px);color:var(--off-white);min-height:60px}
+.flash .a{font-family:var(--font-serif);font-size:clamp(26px,3.4vw,40px);color:var(--electric-teal);min-height:50px}
+.flash .tag{font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--pulse-ash)}
+.actions{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:20px}
+@media(max-width:640px){.actions{grid-template-columns:repeat(2,1fr)}}
+.rate{font-family:var(--font-mono);text-transform:uppercase;font-size:11px;letter-spacing:.08em;padding:14px 10px;border-radius:var(--radius-sm);border:1px solid rgba(255,255,255,.18);background:var(--urban-smoke);color:var(--off-white);cursor:pointer;transition:.25s;display:flex;flex-direction:column;align-items:center;gap:6px}
+.rate:hover{transform:translateY(-2px)}
+.rate .lab{font-size:12px}
+.rate .iv{font-size:10px;color:var(--pulse-ash)}
+.rate[data-r="1"]{border-color:var(--validation-red)}
+.rate[data-r="1"]:hover{background:var(--validation-red);color:var(--core-black)}
+.rate[data-r="2"]:hover{background:#d9a24e;color:var(--core-black);border-color:#d9a24e}
+.rate[data-r="3"]:hover{background:var(--electric-teal);color:var(--core-black);border-color:var(--electric-teal)}
+.rate[data-r="4"]:hover{background:var(--validation-green);color:var(--core-black);border-color:var(--validation-green)}
+.show{display:block}
+.hide{display:none}
+.flipbtn{font-family:var(--font-mono);text-transform:uppercase;font-size:12px;letter-spacing:.1em;padding:12px 22px;border-radius:var(--radius-sm);border:1px solid var(--infrared);background:var(--infrared);color:var(--core-black);cursor:pointer;margin:16px auto 0;display:block}
+.flipbtn:hover{background:#ff8a5c;border-color:#ff8a5c}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-md);overflow:hidden;margin-top:20px}
+.stat{background:var(--rich-carbon);padding:14px}
+.stat .k{font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--pulse-ash)}
+.stat .v{font-family:var(--font-mono);font-size:20px;color:var(--off-white);margin-top:4px}
+.stat.accent{background:var(--infrared)}.stat.accent .k,.stat.accent .v{color:var(--core-black)}
+.log{margin-top:20px;font-family:var(--font-mono);font-size:12px;color:var(--pulse-ash);max-height:120px;overflow:auto;background:var(--core-black);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-md);padding:12px}
+.log .l{padding:3px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.log .l b{color:var(--electric-teal)}
+.callout{margin-top:24px;font-size:14px;color:var(--neural-fog);line-height:1.6}.callout b{color:var(--off-white)}
+code{font-family:var(--font-mono);font-size:12px;color:var(--electric-teal)}
+.err{color:var(--validation-red);font-family:var(--font-mono);font-size:13px;text-align:center;margin-top:14px}
+footer{padding:30px 0 60px;color:var(--pulse-ash);font-size:13px;font-family:var(--font-mono)}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-inner"><a class="brand" href="./index.html"><span class="dot"></span>BACK · DEMOS</a><a class="lk" href="./fsrs.html">ts-fsrs</a></div></header>
+
+<section class="hero">
+  <div class="container">
+    <span class="eyebrow">Review</span>
+    <h1 class="h1">Cards that<br>remember you.</h1>
+    <p class="p1">A spaced-repetition reviewer powered by ts-fsrs — the algorithm behind modern Anki. Rate each card Again/Hard/Good/Easy and watch the scheduler pick the next review interval. This is the review engine a Schools or Universities lab would use to turn lessons into a durable memory.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="card">
+      <div class="flash" id="flash">
+        <span class="tag" id="tag">Question · card 1 / 6</span>
+        <div class="q" id="question"></div>
+        <div class="a hide" id="answer"></div>
+      </div>
+      <button class="flipbtn" id="flip">Show answer</button>
+      <div class="actions hide" id="actions">
+        <button class="rate" data-r="1"><span class="lab">Again</span><span class="iv" id="iv1">—</span></button>
+        <button class="rate" data-r="2"><span class="lab">Hard</span><span class="iv" id="iv2">—</span></button>
+        <button class="rate" data-r="3"><span class="lab">Good</span><span class="iv" id="iv3">—</span></button>
+        <button class="rate" data-r="4"><span class="lab">Easy</span><span class="iv" id="iv4">—</span></button>
+      </div>
+      <div class="err hide" id="err">Failed to load ts-fsrs from CDN. Check your connection and reload.</div>
+
+      <div class="stats">
+        <div class="stat"><div class="k">Reviewed</div><div class="v" id="sRev">0</div></div>
+        <div class="stat"><div class="k">Card state</div><div class="v" id="sState">New</div></div>
+        <div class="stat accent"><div class="k">Next due</div><div class="v" id="sDue">—</div></div>
+        <div class="stat"><div class="k">Reps / Lapses</div><div class="v" id="sReps">0 / 0</div></div>
+      </div>
+      <div class="log" id="log"><div class="l">— review log —</div></div>
+      <div class="callout">
+        <b>What this shows.</b> Real FSRS scheduling: each rating button shows the interval it would produce <i>before</i> you click (the small grey text). "Again" resets to ~10 min, "Easy" pushes the card out days or weeks. The card's state (New → Learning → Review) and lapses update live. ts-fsrs is a ~20 KB pure-JS library; you'd store each card's <code>due</code>/<code>stability</code>/<code>difficulty</code> alongside the lesson, and the lab tells a student "3 cards due today."
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer><div class="container">ts-fsrs · the modern spaced-repetition algorithm (Anki FSRS)</div></footer>
+
+<script type="module">
+let FSRS, Rating, State, createEmptyCard;
+try {
+  const m = await import('./vendor/ts-fsrs.mjs');
+  FSRS = m.FSRS; Rating = m.Rating; State = m.State; createEmptyCard = m.createEmptyCard;
+} catch (e) {
+  document.getElementById('err').classList.remove('hide');
+  document.getElementById('flip').disabled = true;
+  throw e;
+}
+
+const f = new FSRS({});
+const DECK = [
+  { q:'Derivative of \\(\\sin x\\)?', a:'\\(\\cos x\\)'},
+  { q:'\\(\\int_0^1 x\\,dx = \\;?\\)', a:'\\(\\tfrac12\\)'},
+  { q:'Eigenvalues of a triangular matrix are…', a:'the diagonal entries'},
+  { q:'Pythagorean identity?', a:'\\(\\sin^2\\!x+\\cos^2\\!x=1\\)'},
+  { q:'\\(e^{i\\pi}+1 = \\;?\\)', a:'\\(0\\)'},
+  { q:'Is 1 a prime?', a:'No — primes have exactly two positive divisors; 1 has one.'},
+];
+let cards = DECK.map(()=>createEmptyCard());
+let idx=0, reviewed=0, shown=false;
+const qEl=document.getElementById('question'), aEl=document.getElementById('answer'),
+  tagEl=document.getElementById('tag'), flipBtn=document.getElementById('flip'),
+  actionsEl=document.getElementById('actions'), logEl=document.getElementById('log');
+
+function renderMath(el, tex){
+  el.innerHTML='';
+  // strip \( \) wrappers for katex inline
+  const cleaned=tex.replace(/\\\(|\\\)/g,'');
+  try{ katex.render(cleaned, el, {throwOnError:false, displayMode:false}); }catch(e){ el.textContent=tex; }
+}
+function stateName(s){ return ['New','Learning','Review','Relearning'][s]||'—'; }
+function humanize(days){
+  if(days<1/1440) return '<1m';
+  if(days<1/24) return Math.round(days*24*60)+'m';
+  if(days<1) return Math.round(days*24)+'h';
+  if(days<30) return Math.round(days)+'d';
+  return Math.round(days/30)+'mo';
+}
+
+function showCard(){
+  shown=false;
+  tagEl.textContent=`Question · card ${idx+1} / ${DECK.length}`;
+  renderMath(qEl, DECK[idx].q);
+  aEl.classList.add('hide'); aEl.innerHTML='';
+  flipBtn.textContent='Show answer';
+  actionsEl.classList.add('hide');
+  updateStats();
+  previewIntervals();
+}
+function previewIntervals(){
+  const now=new Date();
+  const res=f.repeat(cards[idx], now);
+  for(const r of [1,2,3,4]){
+    const iv=res[r].card.scheduled_days;
+    document.getElementById('iv'+r).textContent='→ '+humanize(iv);
+  }
+}
+function updateStats(){
+  const c=cards[idx];
+  document.getElementById('sRev').textContent=reviewed;
+  document.getElementById('sState').textContent=stateName(c.state);
+  document.getElementById('sDue').textContent = c.due ? new Date(c.due).toLocaleDateString() : '—';
+  document.getElementById('sReps').textContent=`${c.reps} / ${c.lapses}`;
+}
+
+flipBtn.onclick=()=>{
+  if(!shown){
+    shown=true;
+    renderMath(aEl, DECK[idx].a);
+    aEl.classList.remove('hide');
+    flipBtn.textContent='Hide answer';
+    actionsEl.classList.remove('hide');
+  } else {
+    showCard();
+  }
+};
+
+document.getElementById('actions').addEventListener('click', e=>{
+  const b=e.target.closest('.rate'); if(!b) return;
+  const r=parseInt(b.dataset.r);
+  const now=new Date();
+  const res=f.repeat(cards[idx], now);
+  const updated=res[r].card;
+  const iv=updated.scheduled_days;
+  const logLine=document.createElement('div');logLine.className='l';
+  logLine.innerHTML=`<b>#${idx+1}</b> ${['Again','Hard','Good','Easy'][r-1]} → next in ${humanize(iv)} (state: ${stateName(updated.state)})`;
+  logEl.prepend(logLine);
+  cards[idx]=updated;
+  reviewed++;
+  idx=(idx+1)%DECK.length;
+  showCard();
+});
+
+showCard();
+</script>
+</body>
+</html>

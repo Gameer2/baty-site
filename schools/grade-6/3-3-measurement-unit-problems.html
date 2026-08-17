@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Problems with Different Measurement Units — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: mismatched-unit quantities drop through a conversion funnel
+     before the calculation proceeds. ---- */
+  .chart{ padding:30px 24px 34px; display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .chip-row{ display:flex; gap:40px; }
+  .chip{ font-family:var(--mono); font-size:15px; font-weight:700; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.16); border-radius:10px; padding:10px 16px; direction:ltr; }
+  .chip.a{ border-color:rgba(92,147,159,.5); color:var(--electric-teal); }
+  .chip.b{ border-color:rgba(185,138,114,.5); color:#b98a72; }
+
+  .funnel-wrap{ position:relative; width:220px; height:90px; margin:4px 0; }
+  .funnel-shape{ position:absolute; inset:0; background:rgba(255,255,255,.04); clip-path:polygon(0 0, 100% 0, 58% 100%, 42% 100%); border-top:1px solid rgba(255,255,255,.12); }
+  .funnel-label{ position:absolute; top:8px; left:50%; transform:translateX(-50%); font-family:var(--mono); font-size:10px; color:var(--pulse-ash); text-transform:uppercase; letter-spacing:.06em; white-space:nowrap; }
+
+  .out-row{ display:flex; gap:14px; align-items:center; }
+  .out-chip{ font-family:var(--mono); font-size:16px; font-weight:700; color:var(--off-white); background:rgba(89,169,147,.12); border:1px solid rgba(89,169,147,.4); border-radius:10px; padding:10px 16px; direction:ltr; }
+  .op-sym{ font-family:var(--mono); font-size:20px; color:var(--neural-fog); }
+  .result-line{ margin-top:8px; font-family:var(--mono); font-size:15px; color:var(--infrared); direction:ltr; }
+
+  .inputs{ display:flex; gap:20px; align-items:center; flex-wrap:wrap; justify-content:center; }
+  .qty-input{ display:flex; align-items:center; gap:6px; }
+  .qty-input label{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash); }
+  .qty-input input{ font-family:var(--mono); font-size:14px; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.16); border-radius:6px; padding:5px 8px; width:66px; text-align:center; direction:ltr; }
+  .qty-input select{ font-family:var(--mono); font-size:13px; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.16); border-radius:6px; padding:5px 6px; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 3 · LESSON 3</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Problems with Different Measurement Units</h1>
+    <span class="title-secondary ar-display" id="titleAr">حل مسائل تتضمّن وحدات قياس مختلفة</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I solve problems requiring decimal operations on mixed measurement units.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">unify the units first, then compute</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="inputs">
+        <div class="qty-input">
+          <label data-role="ui" data-i18n="labelA">total paint</label>
+          <input type="number" id="qtyA" value="2.5" step="0.1" min="0.1" />
+          <select id="unitA"><option value="L">L</option><option value="mL">mL</option></select>
+        </div>
+        <div class="qty-input">
+          <label data-role="ui" data-i18n="labelB">per box</label>
+          <input type="number" id="qtyB" value="250" step="10" min="1" />
+          <select id="unitB"><option value="mL" selected>mL</option><option value="L">L</option></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="chip-row dimmable" data-el="chips">
+        <div class="chip a" id="chipA"></div>
+        <div class="chip b" id="chipB"></div>
+      </div>
+      <div class="funnel-wrap dimmable" data-el="funnel">
+        <div class="funnel-shape"></div>
+        <div class="funnel-label" id="funnelLabel">convert to a shared unit</div>
+      </div>
+      <div class="out-row dimmable" data-el="out">
+        <div class="out-chip" id="outA"></div>
+        <span class="op-sym">÷</span>
+        <div class="out-chip" id="outB"></div>
+      </div>
+      <div class="result-line dimmable" data-el="result" id="resultLine"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Before computing, unify all quantities to one unit using known conversion relationships (mL↔L, etc.), then simplify/cancel the shared unit, applied to paint-coverage-per-box calculations.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="3-2-dividing-decimals.html">— <b data-role="body" id="navPrevText">3.2 · Dividing Decimals</b></a>
+    <a class="nav-pill next" href="3-4-solve-a-simpler-problem.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">3.4 · Solve a Simpler Problem</b></a>
+  </div>
+</div>
+
+<script>
+  const { initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 3 · LESSON 3",
+      objectiveLabel: "Objective —",
+      objectiveText: "I solve problems requiring decimal operations on mixed measurement units.",
+      eqSub: "unify the units first, then compute",
+      explainBtn: "Explain this",
+      labelA: "total paint", labelB: "per box",
+      funnelLabel: "convert to a shared unit",
+      resultLine: (n) => `${n} boxes needed`,
+      teachLabel: "What this teaches:",
+      teachBody: "Before computing, unify all quantities to one unit using known conversion relationships (mL↔L, etc.), then simplify/cancel the shared unit, applied to paint-coverage-per-box calculations.",
+      navPrev: "3.2 · Dividing Decimals",
+      navNext: "3.4 · Solve a Simpler Problem",
+      navNextLabel: "next",
+      tour: [
+        { elKey: "chips", label: "Mismatched units", body: "These two quantities can't be combined as-is — they're measured in different units." },
+        { elKey: "funnel", label: "Convert to a shared unit", body: "Both quantities drop through the funnel and come out the other side measured in the same unit." },
+        { elKey: "out", label: "Now compute normally", body: "With both values in the same unit, the units themselves cancel — only the numbers matter for the calculation." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ٣ · الدرس ٣",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أحلّ مسائل تتطلّب عمليات على أعداد عشرية بوحدات قياس مختلطة.",
+      eqSub: "وحّد الوحدات أولًا، ثم احسب",
+      explainBtn: "اشرح هذا",
+      labelA: "إجمالي الدهان", labelB: "لكل علبة",
+      funnelLabel: "حوّل إلى وحدة مشتركة",
+      resultLine: (n) => `يلزم ${n} علبة`,
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "قبل الحساب، وحّد جميع الكمّيّات إلى وحدة واحدة باستخدام علاقات التحويل المعروفة (مل↔ل، وغيرها)، ثم بسّط/اختصر الوحدة المشتركة، ويُطبَّق ذلك على حسابات تغطية الدهان لكل علبة.",
+      navPrev: "٣.٢ · قسمة الأعداد العشرية",
+      navNext: "٣.٤ · خطة حل المسألة: حل مسألة أبسط",
+      navNextLabel: "التالي",
+      tour: [
+        { elKey: "chips", label: "وحدات غير متطابقة", body: "لا يمكن جمع هاتين الكمّيّتين كما هما — فهما مقاسّتان بوحدتين مختلفتين." },
+        { elKey: "funnel", label: "حوّل إلى وحدة مشتركة", body: "تمرّ كلتا الكمّيّتين عبر القمع وتخرجان من الجهة الأخرى مقاسّتين بالوحدة نفسها." },
+        { elKey: "out", label: "الآن احسب بشكل طبيعي", body: "مع وجود القيمتين بالوحدة نفسها، تُختصر الوحدة نفسها — ويبقى الحساب على الأرقام فقط." }
+      ]
+    }
+  };
+
+  const qtyA = document.getElementById("qtyA"), unitA = document.getElementById("unitA");
+  const qtyB = document.getElementById("qtyB"), unitB = document.getElementById("unitB");
+  const chipA = document.getElementById("chipA"), chipB = document.getElementById("chipB");
+  const outA = document.getElementById("outA"), outB = document.getElementById("outB");
+  const funnelLabel = document.getElementById("funnelLabel");
+  const resultLine = document.getElementById("resultLine");
+  const eqLine = document.getElementById("eqLine");
+
+  const TO_ML = { L: 1000, mL: 1 };
+
+  function render() {
+    const t = T[i18n.lang];
+    const vA = parseFloat(qtyA.value) || 0, uA = unitA.value;
+    const vB = parseFloat(qtyB.value) || 0, uB = unitB.value;
+
+    chipA.textContent = vA + " " + uA;
+    chipB.textContent = vB + " " + uB;
+    funnelLabel.textContent = t.funnelLabel;
+
+    const mlA = vA * TO_ML[uA];
+    const mlB = vB * TO_ML[uB];
+    outA.textContent = mlA + " mL";
+    outB.textContent = mlB + " mL";
+
+    const boxes = mlB > 0 ? mlA / mlB : 0;
+    const boxesDisplay = Number.isInteger(boxes) ? boxes : boxes.toFixed(2);
+    resultLine.textContent = t.resultLine(boxesDisplay);
+
+    const eqSource = `${vA}\\,\\text{${uA}} \\div ${vB}\\,\\text{${uB}} = ${mlA}\\,\\text{mL} \\div ${mlB}\\,\\text{mL} = \\color{#ed6d40}{${boxesDisplay}}`;
+    renderEquation(eqLine, eqSource);
+  }
+
+  [qtyA, unitA, qtyB, unitB].forEach(el => el.addEventListener("input", render));
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

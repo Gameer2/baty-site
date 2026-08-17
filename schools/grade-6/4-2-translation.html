@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Translation in the Coordinate Plane — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: a shape slides by (a, b); its image traces behind it live.
+     Forks 4.1's four-quadrant grid. ---- */
+  .chart{ padding:26px 20px 30px; display:flex; flex-direction:column; align-items:center; gap:16px; }
+  svg#gridSvg{ direction:ltr; }
+  .grid-line{ stroke:rgba(255,255,255,.08); stroke-width:1; }
+  .axis-line{ stroke:rgba(255,255,255,.4); stroke-width:1.5; }
+  .axis-num{ font-family:var(--mono); font-size:10px; fill:var(--pulse-ash); }
+  .shape-orig{ fill:rgba(92,147,159,.28); stroke:var(--electric-teal); stroke-width:2; }
+  .shape-image{ fill:rgba(237,109,64,.16); stroke:var(--infrared); stroke-width:2; stroke-dasharray:5 4; }
+  .vertex-dot{ fill:var(--off-white); stroke:none; }
+  .vertex-dot.image{ fill:var(--infrared); }
+  .vertex-label{ font-family:var(--mono); font-size:10.5px; fill:var(--neural-fog); }
+  .vertex-label.image{ fill:var(--infrared); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 4 · LESSON 2</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Translation in the Coordinate Plane</h1>
+    <span class="title-secondary ar-display" id="titleAr">الانسحاب في المستوى الإحداثي</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I draw a translation in the coordinate plane.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">(x, y) → (x + a, y + b)</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="labelA">horizontal (a)</label>
+      <input type="range" id="sliderA" min="-5" max="5" step="1" value="3" />
+      <span class="control-val" id="readoutA">+3</span>
+    </div>
+    <div class="control-row">
+      <label data-role="ui" data-i18n="labelB">vertical (b)</label>
+      <input type="range" id="sliderB" min="-5" max="5" step="1" value="-2" />
+      <span class="control-val" id="readoutB">−2</span>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <svg id="gridSvg" width="380" height="380" viewBox="0 0 380 380" data-el="gridSvg"></svg>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">A translation slides every point of a shape the same horizontal and vertical amount without rotating, producing a congruent image. Students describe a given translation from a diagram, and execute one by moving each vertex a stated number of units right/left and up/down, both by hand and via coordinates ((x,y)→(x+a, y+b)).</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="4-1-coordinate-plane.html">— <b data-role="body" id="navPrevText">4.1 · The Coordinate Plane</b></a>
+    <a class="nav-pill next" href="4-3-reflection.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">4.3 · Reflection in the Coordinate Plane</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, initI18n, renderEquation, buildTour } = LessonShell;
+  const N = 6;
+  const PAD = 30, SIZE = 380, CELL = (SIZE - PAD * 2) / (2 * N);
+  const SHAPE = [{ x: -3, y: -2 }, { x: -1, y: -2 }, { x: -2, y: 0 }];
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 4 · LESSON 2",
+      objectiveLabel: "Objective —",
+      objectiveText: "I draw a translation in the coordinate plane.",
+      eqSub: "(x, y) → (x + a, y + b)",
+      explainBtn: "Explain this",
+      labelA: "horizontal (a)", labelB: "vertical (b)",
+      teachLabel: "What this teaches:",
+      teachBody: "A translation slides every point of a shape the same horizontal and vertical amount without rotating, producing a congruent image. Students describe a given translation from a diagram, and execute one by moving each vertex a stated number of units right/left and up/down, both by hand and via coordinates ((x,y)→(x+a, y+b)).",
+      navPrev: "4.1 · The Coordinate Plane",
+      navNext: "4.3 · Reflection in the Coordinate Plane",
+      navNextLabel: "next",
+      tour: [
+        { ids: ["gridSvg"], label: "The original shape", body: "The solid teal triangle is the original — its vertices each have their own (x, y) coordinates." },
+        { ids: ["gridSvg"], label: "Slide by (a, b)", body: "Every vertex moves the same amount: a units horizontally, b units vertically — the dashed orange image is the result." },
+        { ids: ["eqLine"], label: "Same shift, every vertex", body: "Each vertex's new coordinate is just the old one plus (a, b) — that's the whole rule." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ٤ · الدرس ٢",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أرسم انسحابًا في المستوى الإحداثي.",
+      eqSub: "(x, y) ← (x + a, y + b)",
+      explainBtn: "اشرح هذا",
+      labelA: "أفقيًا (a)", labelB: "عموديًا (b)",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "الانسحاب يُحرّك كل نقطة من الشكل بالمقدار الأفقي والعمودي نفسه دون دوران، لينتج صورة متطابقة معه. يصف الطلبة انسحابًا معطى من رسم، وينفّذون انسحابًا بتحريك كل رأس عددًا معلومًا من الوحدات يمينًا/يسارًا وأعلى/أسفل، يدويًا وبالإحداثيات ((x,y)→(x+a, y+b)).",
+      navPrev: "٤.١ · المستوى الإحداثي",
+      navNext: "٤.٣ · الانعكاس في المستوى الإحداثي",
+      navNextLabel: "التالي",
+      tour: [
+        { ids: ["gridSvg"], label: "الشكل الأصلي", body: "المثلث التركوازي المصمت هو الأصلي — لكل رأس فيه إحداثيات (x, y) خاصة به." },
+        { ids: ["gridSvg"], label: "انزلق بمقدار (a, b)", body: "يتحرّك كل رأس بالمقدار نفسه: a وحدة أفقيًا، وb وحدة عموديًا — الصورة البرتقالية المتقطّعة هي الناتج." },
+        { ids: ["eqLine"], label: "الإزاحة نفسها، لكل رأس", body: "إحداثي كل رأس الجديد هو ببساطة القديم زائد (a, b) — هذه هي القاعدة كاملة." }
+      ]
+    }
+  };
+
+  const gridSvg = document.getElementById("gridSvg");
+  const eqLine = document.getElementById("eqLine");
+  const sliderA = document.getElementById("sliderA"), sliderB = document.getElementById("sliderB");
+  const readoutA = document.getElementById("readoutA"), readoutB = document.getElementById("readoutB");
+
+  function gx(x) { return PAD + (x + N) * CELL; }
+  function gy(y) { return SIZE - PAD - (y + N) * CELL; }
+
+  function buildGrid() {
+    gridSvg.innerHTML = "";
+    for (let i = -N; i <= N; i++) {
+      const vline = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      vline.setAttribute("x1", gx(i)); vline.setAttribute("x2", gx(i));
+      vline.setAttribute("y1", gy(-N)); vline.setAttribute("y2", gy(N));
+      vline.setAttribute("class", i === 0 ? "axis-line" : "grid-line");
+      gridSvg.appendChild(vline);
+      const hline = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      hline.setAttribute("y1", gy(i)); hline.setAttribute("y2", gy(i));
+      hline.setAttribute("x1", gx(-N)); hline.setAttribute("x2", gx(N));
+      hline.setAttribute("class", i === 0 ? "axis-line" : "grid-line");
+      gridSvg.appendChild(hline);
+      if (i !== 0 && i % 2 === 0) {
+        const xn = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        xn.setAttribute("x", gx(i)); xn.setAttribute("y", gy(0) + 14);
+        xn.setAttribute("class", "axis-num"); xn.setAttribute("text-anchor", "middle");
+        xn.textContent = digits(i, i18n.lang);
+        gridSvg.appendChild(xn);
+        const yn = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        yn.setAttribute("x", gx(0) - 10); yn.setAttribute("y", gy(i) + 3);
+        yn.setAttribute("class", "axis-num"); yn.setAttribute("text-anchor", "end");
+        yn.textContent = digits(i, i18n.lang);
+        gridSvg.appendChild(yn);
+      }
+    }
+  }
+
+  function polygonPoints(verts) { return verts.map(v => gx(v.x) + "," + gy(v.y)).join(" "); }
+
+  function drawShape(verts, cls, dotCls, labelCls) {
+    const poly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+    poly.setAttribute("points", polygonPoints(verts));
+    poly.setAttribute("class", cls);
+    gridSvg.appendChild(poly);
+    verts.forEach(v => {
+      const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      dot.setAttribute("cx", gx(v.x)); dot.setAttribute("cy", gy(v.y)); dot.setAttribute("r", 4);
+      dot.setAttribute("class", "vertex-dot " + dotCls);
+      gridSvg.appendChild(dot);
+      const lbl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      lbl.setAttribute("x", gx(v.x) + 8); lbl.setAttribute("y", gy(v.y) - 8);
+      lbl.setAttribute("class", "vertex-label " + labelCls);
+      lbl.textContent = `(${digits(v.x, i18n.lang)}, ${digits(v.y, i18n.lang)})`;
+      gridSvg.appendChild(lbl);
+    });
+  }
+
+  function render() {
+    buildGrid();
+    const a = parseInt(sliderA.value, 10), b = parseInt(sliderB.value, 10);
+
+    drawShape(SHAPE, "shape-orig", "", "");
+    const image = SHAPE.map(v => ({ x: v.x + a, y: v.y + b }));
+    drawShape(image, "shape-image", "image", "image");
+
+    readoutA.textContent = (a > 0 ? "+" : "") + a;
+    readoutB.textContent = (b > 0 ? "+" : "") + b;
+
+    const v0 = SHAPE[0];
+    const eqSource = `(${v0.x}, ${v0.y}) \\to (${v0.x}+${a}, ${v0.y}+${b}) = \\color{#ed6d40}{(${v0.x + a}, ${v0.y + b})}`;
+    renderEquation(eqLine, eqSource);
+  }
+
+  sliderA.addEventListener("input", render);
+  sliderB.addEventListener("input", render);
+
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

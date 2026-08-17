@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Prime Factorization — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:30px 16px 30px; display:flex; flex-direction:column; align-items:center; gap:18px; min-height:280px; justify-content:center; }
+  .mode-toggle{ display:flex; gap:6px; }
+  .mode-btn{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--pulse-ash); background:var(--core-black); border:1px solid rgba(255,255,255,.14); border-radius:100px; padding:6px 14px; cursor:pointer; }
+  .mode-btn.active{ color:var(--off-white); border-color:var(--electric-teal); background:rgba(92,147,159,.12); }
+
+  .tree{ position:relative; width:100%; max-width:520px; min-height:220px; }
+  .tree-row{ display:flex; justify-content:center; gap:16px; margin-bottom:36px; position:relative; }
+  .tnode{ font-family:var(--mono); font-size:16px; font-weight:700; width:52px; height:52px; border-radius:12px; display:flex; align-items:center; justify-content:center; background:var(--core-black); border:1px solid rgba(255,255,255,.14); color:var(--off-white); cursor:pointer; direction:ltr; position:relative; z-index:2; }
+  .tnode.prime{ color:var(--infrared); border-color:rgba(237,109,64,.45); background:rgba(237,109,64,.08); cursor:default; }
+  .tnode.split{ cursor:default; opacity:.5; }
+  .tree-connectors{ position:absolute; inset:0; pointer-events:none; }
+
+  .ladder{ display:flex; flex-direction:column; gap:6px; font-family:var(--mono); direction:ltr; }
+  .ladder-row{ display:flex; align-items:center; gap:10px; opacity:0; }
+  .ladder-row .div{ color:var(--electric-teal); font-weight:700; width:34px; text-align:right; }
+  .ladder-row .val{ color:var(--off-white); font-weight:700; font-size:16px; }
+  .ladder-row .val.prime-val{ color:var(--infrared); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 3 · LESSON 2</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Prime Factorization</h1>
+    <span class="title-secondary ar-display" id="titleAr">التحليل إلى العوامل الأوّلية</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I write a whole number as a product of its prime factors, using a factor tree or a repeated-division ladder.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">tap a number to split it</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabel">start with</label>
+      <input type="range" id="numSlider" min="12" max="96" step="1" value="60" />
+      <span class="control-val" id="numReadout">60</span>
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="modeTree" data-role="ui" data-i18n="modeTree">tree</button>
+        <button class="mode-btn" id="modeLadder" data-role="ui" data-i18n="modeLadder">ladder</button>
+      </div>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="tree" id="treeView" data-el="treeView"></div>
+      <div class="ladder" id="ladderView" data-el="ladderView" style="display:none;"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Every whole number greater than 1 breaks down into a unique product of prime numbers — the factor tree and the repeated-division ladder are two different routes to the exact same prime factorization.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="3-1-divisibility-4-6-9.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">3.1 · Divisibility by 4, 6, 9</b></a>
+    <a class="nav-pill next" href="3-3-greatest-common-factor.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">3.3 · Greatest Common Factor</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 3 · LESSON 2",
+      objectiveLabel: "Objective —",
+      objectiveText: "I write a whole number as a product of its prime factors, using a factor tree or a repeated-division ladder.",
+      eqSub: "tap a number to split it",
+      explainBtn: "Explain this",
+      controlLabel: "start with",
+      modeTree: "tree", modeLadder: "ladder",
+      navPrevLabel: "—", navPrevText: "3.1 · Divisibility by 4, 6, 9",
+      navNextLabel: "next", navNext: "3.3 · Greatest Common Factor",
+      teachLabel: "What this teaches:",
+      teachBody: "Every whole number greater than 1 breaks down into a unique product of prime numbers — the factor tree and the repeated-division ladder are two different routes to the exact same prime factorization.",
+      tour: [
+        { elKey: "treeView", label: "Split a composite number", body: "Tap any number that isn't prime — it splits into a factor pair, and the tree grows a level." },
+        { elKey: "treeView", label: "Keep going until every branch is prime", body: "A number outlined in orange is prime — it can't split any further. Keep tapping composite nodes until all the leaves are prime." },
+        { elKey: "ladderView", label: "The same answer, a different route", body: "The repeated-division ladder divides by the smallest prime possible at each step — it lands on the exact same set of prime factors." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٣ · الدرس ٢",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أكتب عددًا كليًا كحاصل ضرب لعوامله الأوّلية، باستخدام شجرة العوامل أو سلّم القسمة المتكرّرة.",
+      eqSub: "انقر على عدد لتقسيمه",
+      explainBtn: "اشرح هذا",
+      controlLabel: "ابدأ بـ",
+      modeTree: "الشجرة", modeLadder: "السلّم",
+      navPrevLabel: "—", navPrevText: "٣.١ · قابلية القسمة على ٤، ٦، ٩",
+      navNextLabel: "التالي", navNext: "٣.٣ · القاسم المشترك الأكبر",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "كل عدد كلّي أكبر من ١ يتفكّك إلى حاصل ضرب فريد من الأعداد الأوّلية — شجرة العوامل وسلّم القسمة المتكرّرة طريقان مختلفان يؤديان إلى التحليل الأوّلي نفسه تمامًا.",
+      tour: [
+        { elKey: "treeView", label: "قسّم عددًا مركّبًا", body: "انقر على أي عدد ليس أوّليًا — ينقسم إلى زوج من العوامل، وتنمو الشجرة مستوى إضافيًا." },
+        { elKey: "treeView", label: "استمرّ حتى يصبح كل فرع أوّليًا", body: "العدد المحاط بإطار برتقالي هو عدد أوّلي — لا يمكن تقسيمه أكثر. استمرّ بالنقر على العقد المركّبة حتى تصبح كل الأطراف أوّلية." },
+        { elKey: "ladderView", label: "الإجابة نفسها، طريق مختلف", body: "يقسم سلّم القسمة المتكرّرة على أصغر عدد أوّلي ممكن في كل خطوة — ويصل إلى مجموعة العوامل الأوّلية نفسها تمامًا." }
+      ]
+    }
+  };
+
+  const numSlider = document.getElementById("numSlider");
+  const numReadout = document.getElementById("numReadout");
+  const eqLine = document.getElementById("eqLine");
+  const treeView = document.getElementById("treeView");
+  const ladderView = document.getElementById("ladderView");
+  const modeTree = document.getElementById("modeTree");
+  const modeLadder = document.getElementById("modeLadder");
+
+  let mode = "tree";
+  let treeNodes = []; // {value, isPrime, split, id, row}
+
+  function isPrime(n) {
+    if (n < 2) return false;
+    for (let i = 2; i * i <= n; i++) if (n % i === 0) return false;
+    return true;
+  }
+  function smallestFactorPair(n) {
+    for (let f = 2; f <= Math.sqrt(n); f++) {
+      if (n % f === 0) return [f, n / f];
+    }
+    return [1, n];
+  }
+  function smallestPrimeFactor(n) {
+    for (let f = 2; f <= n; f++) if (n % f === 0) return f;
+    return n;
+  }
+
+  function collectPrimeLeaves() {
+    return treeNodes.filter(n => n.isPrime).map(n => n.value).sort((a, b) => a - b);
+  }
+
+  function buildTreeFor(root) {
+    treeNodes = [{ id: 0, value: root, isPrime: isPrime(root), split: false, parent: null, row: 0 }];
+  }
+
+  function splitNode(id) {
+    const node = treeNodes.find(n => n.id === id);
+    if (!node || node.isPrime || node.split) return;
+    const [a, b] = smallestFactorPair(node.value);
+    node.split = true;
+    const nextId1 = treeNodes.length;
+    const nextId2 = treeNodes.length + 1;
+    treeNodes.push({ id: nextId1, value: a, isPrime: isPrime(a), split: false, parent: id, row: node.row + 1 });
+    treeNodes.push({ id: nextId2, value: b, isPrime: isPrime(b), split: false, parent: id, row: node.row + 1 });
+    renderTree();
+  }
+
+  function renderTree() {
+    const t = T[i18n.lang];
+    treeView.innerHTML = "";
+    const maxRow = Math.max(...treeNodes.map(n => n.row));
+    for (let r = 0; r <= maxRow; r++) {
+      const rowEl = document.createElement("div");
+      rowEl.className = "tree-row";
+      treeNodes.filter(n => n.row === r).forEach(node => {
+        const el = document.createElement("div");
+        el.className = "tnode" + (node.isPrime ? " prime" : node.split ? " split" : "");
+        el.textContent = digits(node.value, i18n.lang);
+        if (!node.isPrime && !node.split) {
+          el.addEventListener("click", () => splitNode(node.id));
+        }
+        rowEl.appendChild(el);
+      });
+      treeView.appendChild(rowEl);
+    }
+    updateEquation();
+  }
+
+  function buildLadder(root) {
+    ladderView.innerHTML = "";
+    let n = root;
+    const rows = [];
+    while (n > 1) {
+      const p = smallestPrimeFactor(n);
+      rows.push({ p, n });
+      n = n / p;
+    }
+    rows.forEach((row, idx) => {
+      const el = document.createElement("div");
+      el.className = "ladder-row";
+      const divSpan = document.createElement("span");
+      divSpan.className = "div";
+      divSpan.textContent = digits(row.p, i18n.lang) + " |";
+      const valSpan = document.createElement("span");
+      valSpan.className = "val" + (row.n === row.p ? " prime-val" : "");
+      valSpan.textContent = digits(row.n, i18n.lang);
+      el.appendChild(divSpan);
+      el.appendChild(valSpan);
+      ladderView.appendChild(el);
+      gsap.to(el, { opacity: 1, duration: .3, delay: idx * .12 });
+    });
+    const finalEl = document.createElement("div");
+    finalEl.className = "ladder-row";
+    finalEl.innerHTML = `<span class="div"></span><span class="val prime-val">1</span>`;
+    ladderView.appendChild(finalEl);
+    gsap.to(finalEl, { opacity: 1, duration: .3, delay: rows.length * .12 });
+  }
+
+  function updateEquation() {
+    const root = parseInt(numSlider.value, 10);
+    const leaves = mode === "tree" ? collectPrimeLeaves() : (() => {
+      let n = root, out = [];
+      while (n > 1) { const p = smallestPrimeFactor(n); out.push(p); n = n / p; }
+      return out.sort((a, b) => a - b);
+    })();
+    const allSplit = mode === "tree" ? treeNodes.every(nd => nd.isPrime || nd.split) : true;
+    if (leaves.length && (mode === "ladder" || allSplit)) {
+      const factorsStr = leaves.map(f => groupInt(f, "en")).join(" \\times ");
+      renderEquation(eqLine, `${groupInt(root, "en")} = \\color{#ed6d40}{${factorsStr}}`);
+    } else {
+      renderEquation(eqLine, `${groupInt(root, "en")} = \\;?`);
+    }
+  }
+
+  function render() {
+    const root = parseInt(numSlider.value, 10);
+    numReadout.textContent = digits(root, i18n.lang);
+    buildTreeFor(root);
+    renderTree();
+    buildLadder(root);
+  }
+
+  numSlider.addEventListener("input", render);
+  modeTree.addEventListener("click", () => {
+    mode = "tree"; modeTree.classList.add("active"); modeLadder.classList.remove("active");
+    treeView.style.display = ""; ladderView.style.display = "none";
+    updateEquation();
+  });
+  modeLadder.addEventListener("click", () => {
+    mode = "ladder"; modeLadder.classList.add("active"); modeTree.classList.remove("active");
+    treeView.style.display = "none"; ladderView.style.display = "";
+    updateEquation();
+  });
+
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

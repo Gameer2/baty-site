@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Multiplication and Division Equations — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:30px 24px 30px; display:flex; flex-direction:column; align-items:center; gap:22px; }
+  .mat{ display:flex; align-items:flex-end; gap:26px; direction:ltr; }
+  .pan{ display:flex; flex-direction:column; align-items:center; gap:8px; min-width:160px; }
+  .pan-plate{ min-width:160px; min-height:90px; border-radius:10px; background:var(--urban-smoke); border:2px solid rgba(255,255,255,.16); display:flex; align-items:center; justify-content:center; padding:10px; gap:8px; }
+  .pan-base{ width:6px; height:22px; background:rgba(255,255,255,.2); }
+  .equals-sym{ font-family:var(--mono); font-size:26px; color:var(--neural-fog); padding-bottom:36px; }
+  .x-tile{ width:34px; height:34px; border-radius:7px; background:var(--electric-teal); border:1px solid rgba(92,147,159,.7); display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-weight:700; color:var(--core-black); font-size:13px; }
+  .x-tile.wide{ width:150px; position:relative; }
+  .x-tile.wide .divider{ position:absolute; top:0; bottom:0; width:1px; background:rgba(0,0,0,.35); border-left:1px dashed rgba(0,0,0,.4); }
+  .unit-tile{ width:16px; height:16px; border-radius:4px; background:var(--infrared); border:1px solid rgba(237,109,64,.7); }
+  .group-cluster{ display:flex; flex-wrap:wrap; gap:3px; padding:6px; border-radius:8px; border:1px dashed transparent; }
+  .group-cluster.split{ border-color:rgba(107,181,124,.5); background:rgba(107,181,124,.08); }
+  .group-cluster.winner .unit-tile{ background:var(--validation-green); border-color:rgba(107,181,124,.7); }
+  .plate-groups{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+
+  .type-toggle{ display:flex; gap:6px; }
+  .mode-btn{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--pulse-ash); background:var(--core-black); border:1px solid rgba(255,255,255,.14); border-radius:100px; padding:6px 14px; cursor:pointer; }
+  .mode-btn.active{ color:var(--off-white); border-color:var(--electric-teal); background:rgba(92,147,159,.12); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 7 · LESSON 3</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Multiplication and Division Equations</h1>
+    <span class="title-secondary ar-display" id="titleAr">معادلات الضرب والقسمة</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I solve one-step multiplication and division equations by splitting or merging equal groups on both sides.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">equal groups on both sides reveal x</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="type-toggle" id="typeToggle" data-el="typeToggle">
+        <button class="mode-btn active" data-type="mul">3x = 12</button>
+        <button class="mode-btn" data-type="div">x ÷ 4 = 5</button>
+      </div>
+    </div>
+
+    <div class="control-row">
+      <button class="explain-btn" id="actionBtn" data-role="ui"></button>
+      <button class="explain-btn" id="resetBtn" data-role="ui" data-i18n="resetBtn">reset</button>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="mat" id="mat" data-el="mat"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Solving 3x = 12 means splitting both sides into 3 equal groups — one group is x. Solving x ÷ 4 = 5 means the reverse: x was already split into 4 groups of 5, so merging those groups back together reveals x.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="7-2-addition-subtraction-equations.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">7.2 · Addition and Subtraction Equations</b></a>
+    <a class="nav-pill next" href="7-4-draw-a-model.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">7.4 · Problem-Solving Strategy: Draw a Model</b></a>
+  </div>
+</div>
+
+<script>
+  const { groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const PROBLEMS = {
+    mul: { coeff: 3, result: 12, x: 4 },  // 3x = 12
+    div: { coeff: 4, result: 5, x: 20 }   // x / 4 = 5
+  };
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 7 · LESSON 3",
+      objectiveLabel: "Objective —",
+      objectiveText: "I solve one-step multiplication and division equations by splitting or merging equal groups on both sides.",
+      eqSub: "equal groups on both sides reveal x",
+      explainBtn: "Explain this",
+      resetBtn: "reset",
+      splitBtn: "split into equal groups",
+      mergeBtn: "merge the groups",
+      navPrevLabel: "—", navPrevText: "7.2 · Addition and Subtraction Equations",
+      navNextLabel: "next", navNext: "7.4 · Problem-Solving Strategy: Draw a Model",
+      teachLabel: "What this teaches:",
+      teachBody: "Solving 3x = 12 means splitting both sides into 3 equal groups — one group is x. Solving x ÷ 4 = 5 means the reverse: x was already split into 4 groups of 5, so merging those groups back together reveals x.",
+      tour: [
+        { elKey: "mat", label: "Groups on both sides", body: "The number of x-tiles (or subdivisions of the x-tile) tells you how many equal groups both sides split into." },
+        { ids: ["actionBtn"], label: "Split or merge", body: "Press the action — matching groups appear on both sides at once, keeping the equation balanced." },
+        { elKey: "mat", label: "One group is x", body: "Once grouped, one highlighted group's count — on either side — is the value of x." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٧ · الدرس ٣",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أحلّ معادلات ضرب وقسمة من خطوة واحدة بتقسيم أو دمج مجموعات متساوية في الطرفين.",
+      eqSub: "المجموعات المتساوية في الطرفين تكشف x",
+      explainBtn: "اشرح هذا",
+      resetBtn: "إعادة",
+      splitBtn: "قسّم إلى مجموعات متساوية",
+      mergeBtn: "ادمج المجموعات",
+      navPrevLabel: "—", navPrevText: "٧.٢ · معادلات الجمع والطرح",
+      navNextLabel: "التالي", navNext: "٧.٤ · استراتيجية حل المسألة: ارسم نموذجًا",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "حلّ ٣x = ١٢ يعني تقسيم الطرفين إلى ٣ مجموعات متساوية — إحداها هي x. وحلّ x ÷ ٤ = ٥ يعني العكس: كان x مقسومًا مسبقًا إلى ٤ مجموعات من ٥، فدمج تلك المجموعات معًا يكشف x.",
+      tour: [
+        { elKey: "mat", label: "مجموعات في الطرفين", body: "عدد قطع x (أو تقسيمات قطعة x) يخبرك بعدد المجموعات المتساوية التي ينقسم إليها الطرفان." },
+        { ids: ["actionBtn"], label: "قسّم أو ادمج", body: "اضغط الإجراء — تظهر مجموعات متطابقة في الطرفين معًا، ويبقى توازن المعادلة قائمًا." },
+        { elKey: "mat", label: "مجموعة واحدة هي x", body: "بمجرّد التقسيم، عدد أي مجموعة مُميَّزة — في أي طرف — هو قيمة x." }
+      ]
+    }
+  };
+
+  const typeToggle = document.getElementById("typeToggle");
+  const actionBtn = document.getElementById("actionBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  const mat = document.getElementById("mat");
+  const eqLine = document.getElementById("eqLine");
+
+  let type = "mul";
+  let grouped = false;
+
+  function buildClusterGroups(count, perGroup, extraCls) {
+    const wrap = document.createElement("div");
+    wrap.className = "plate-groups";
+    for (let g = 0; g < count; g++) {
+      const cluster = document.createElement("div");
+      cluster.className = "group-cluster split" + (g === 0 ? " winner" : "") + (extraCls ? " " + extraCls : "");
+      for (let i = 0; i < perGroup; i++) {
+        const u = document.createElement("div");
+        u.className = "unit-tile";
+        cluster.appendChild(u);
+      }
+      wrap.appendChild(cluster);
+    }
+    return wrap;
+  }
+
+  function buildFlatUnits(total) {
+    const wrap = document.createElement("div");
+    wrap.className = "group-cluster";
+    for (let i = 0; i < total; i++) {
+      const u = document.createElement("div");
+      u.className = "unit-tile";
+      wrap.appendChild(u);
+    }
+    return wrap;
+  }
+
+  function render() {
+    const t = T[i18n.lang];
+    const p = PROBLEMS[type];
+    mat.innerHTML = "";
+
+    const leftPan = document.createElement("div");
+    leftPan.className = "pan";
+    const leftPlate = document.createElement("div");
+    leftPlate.className = "pan-plate";
+
+    const rightPan = document.createElement("div");
+    rightPan.className = "pan";
+    const rightPlate = document.createElement("div");
+    rightPlate.className = "pan-plate";
+
+    if (type === "mul") {
+      const xWrap = document.createElement("div");
+      xWrap.style.display = "flex"; xWrap.style.gap = "4px";
+      for (let i = 0; i < p.coeff; i++) {
+        const xt = document.createElement("div");
+        xt.className = "x-tile" + (grouped && i === 0 ? "" : "");
+        xt.textContent = "x";
+        if (grouped && i === 0) xt.style.outline = "2px solid var(--validation-green)";
+        xWrap.appendChild(xt);
+      }
+      leftPlate.appendChild(xWrap);
+      rightPlate.appendChild(grouped ? buildClusterGroups(p.coeff, p.result / p.coeff) : buildFlatUnits(p.result));
+      actionBtn.textContent = t.splitBtn;
+    } else {
+      const xTile = document.createElement("div");
+      xTile.className = "x-tile wide";
+      xTile.textContent = "x";
+      if (grouped) {
+        for (let i = 1; i < p.coeff; i++) {
+          const div = document.createElement("div");
+          div.className = "divider";
+          div.style.left = (i * (100 / p.coeff)) + "%";
+          xTile.appendChild(div);
+        }
+      }
+      leftPlate.appendChild(xTile);
+      rightPlate.appendChild(grouped ? buildClusterGroups(p.coeff, p.result) : buildFlatUnits(p.result));
+      actionBtn.textContent = t.mergeBtn;
+    }
+
+    leftPan.appendChild(leftPlate);
+    const leftBase = document.createElement("div");
+    leftBase.className = "pan-base";
+    leftPan.appendChild(leftBase);
+    mat.appendChild(leftPan);
+
+    const eq = document.createElement("div");
+    eq.className = "equals-sym";
+    eq.textContent = "=";
+    mat.appendChild(eq);
+
+    rightPan.appendChild(rightPlate);
+    const rightBase = document.createElement("div");
+    rightBase.className = "pan-base";
+    rightPan.appendChild(rightBase);
+    mat.appendChild(rightPan);
+
+    actionBtn.disabled = grouped;
+    actionBtn.style.opacity = grouped ? .4 : 1;
+
+    const eqStr = type === "mul"
+      ? `${groupInt(p.coeff, "en")}x = ${groupInt(p.result, "en")}`
+      : `x \\div ${groupInt(p.coeff, "en")} = ${groupInt(p.result, "en")}`;
+    renderEquation(eqLine, grouped ? `${eqStr} \\;\\Rightarrow\\; x = \\color{#ed6d40}{${groupInt(p.x, "en")}}` : eqStr);
+  }
+
+  actionBtn.addEventListener("click", () => { grouped = true; render(); });
+  resetBtn.addEventListener("click", () => { grouped = false; render(); });
+  typeToggle.addEventListener("click", (e) => {
+    const btn = e.target.closest(".mode-btn");
+    if (!btn) return;
+    type = btn.dataset.type;
+    grouped = false;
+    typeToggle.querySelectorAll(".mode-btn").forEach(b => b.classList.toggle("active", b === btn));
+    render();
+  });
+
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

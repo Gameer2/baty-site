@@ -2,6 +2,7 @@
 (function () {
   "use strict";
   LinAlgPage.init({
+    storeKey: "engine-lab:linear-algebra-determinant",
     square: true,
     example: { A: [[2, -1, 0], [-1, 2, -1], [0, -1, 2]] },
     compute: (A) => {

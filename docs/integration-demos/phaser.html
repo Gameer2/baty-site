@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Phaser + Howler — integration demo</title>
+<style>
+@font-face{font-family:'Roc Grotesk';src:url('../../math-lab/assets/fonts/roc-grotesk-regular.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'Roc Grotesk';src:url('../../math-lab/assets/fonts/roc-grotesk-medium.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:'Azeret Mono';src:url('../../math-lab/assets/fonts/azeret-mono-regular.otf') format('opentype');font-weight:400;font-display:swap}
+@font-face{font-family:'Fraunces';src:url('../../math-lab/assets/fonts/fraunces-variable.woff2') format('woff2');font-weight:300 600;font-display:swap}
+</style>
+<script src="vendor/phaser.min.js"></script>
+<script src="vendor/howler.min.js"></script>
+<style>
+:root{--core-black:#090909;--rich-carbon:#111;--urban-smoke:#1b1b1b;--pulse-ash:#7d858c;--off-white:#e7e7e7;--neural-fog:#dadada;--electric-teal:#5c939f;--infrared:#ed6d40;--validation-green:#59a993;--validation-red:#cb3500;--font-display:"Roc Grotesk","Helvetica Neue",Arial,sans-serif;--font-mono:"Azeret Mono",ui-monospace,monospace;--font-serif:"Fraunces",Georgia,serif;--radius-sm:4px;--radius-md:8px;--radius-lg:20px;--container-w:1280px}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{background:var(--core-black);color:var(--off-white);font-family:var(--font-display);line-height:1.55}
+.container{max-width:var(--container-w);margin:0 auto;padding:0 24px}
+header.top{position:fixed;top:20px;left:0;right:0;z-index:50}
+.top-inner{max-width:var(--container-w);margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:12px;font-family:var(--font-mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase}
+.brand{display:inline-flex;align-items:center;gap:8px;color:var(--off-white);text-decoration:none}.brand .dot{width:8px;height:8px;border-radius:50%;background:var(--infrared)}
+.top-inner a.lk{color:var(--pulse-ash);text-decoration:none;margin-left:auto}.top-inner a.lk:hover{color:var(--electric-teal)}
+.hero{padding:120px 0 20px}
+.eyebrow{font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--electric-teal);display:inline-flex;align-items:center;gap:8px;margin-bottom:16px}
+.eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.h1{font-family:var(--font-serif);font-weight:350;font-size:clamp(38px,5.6vw,72px);line-height:.98;letter-spacing:-.02em;margin:0 0 14px}
+.p1{font-size:17px;color:var(--neural-fog);max-width:640px;margin:0}
+.section{padding:24px 0 80px}
+.card{background:var(--rich-carbon);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-lg);padding:24px}
+.grid{display:grid;gap:22px;grid-template-columns:1.5fr .8fr}
+@media(max-width:980px){.grid{grid-template-columns:1fr}}
+#game{width:100%;height:460px;background:var(--core-black);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius-md);overflow:hidden}
+#game canvas{display:block;width:100%!important;height:100%!important}
+label{font-family:var(--font-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--pulse-ash);display:flex;justify-content:space-between;margin:18px 0 8px}
+label .v{color:var(--infrared)}
+input[type=range]{-webkit-appearance:none;width:100%;height:3px;background:rgba(255,255,255,.15);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--infrared);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--infrared);cursor:pointer;border:none}
+.btn{font-family:var(--font-mono);text-transform:uppercase;font-size:12px;letter-spacing:.1em;padding:12px 20px;border-radius:var(--radius-sm);border:1px solid var(--infrared);background:var(--infrared);color:var(--core-black);cursor:pointer;transition:.3s;width:100%;margin-top:16px}
+.btn:hover{background:#ff8a5c;border-color:#ff8a5c}
+.btn:disabled{opacity:.4;cursor:default}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-md);overflow:hidden;margin-top:18px}
+.stat{background:var(--rich-carbon);padding:14px}
+.stat .k{font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--pulse-ash)}
+.stat .v{font-family:var(--font-mono);font-size:20px;color:var(--off-white);margin-top:4px}
+.stat.accent{background:var(--electric-teal)}.stat.accent .k,.stat.accent .v{color:var(--core-black)}
+.callout{margin-top:24px;font-size:14px;color:var(--neural-fog);line-height:1.6}.callout b{color:var(--off-white)}
+code{font-family:var(--font-mono);font-size:12px;color:var(--electric-teal)}
+.hint{font-family:var(--font-mono);font-size:12px;color:var(--pulse-ash);margin-top:14px;line-height:1.6}
+footer{padding:30px 0 60px;color:var(--pulse-ash);font-size:13px;font-family:var(--font-mono)}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-inner"><a class="brand" href="./index.html"><span class="dot"></span>BACK · DEMOS</a><a class="lk" href="./phaser.html">phaser + howler</a></div></header>
+
+<section class="hero">
+  <div class="container">
+    <span class="eyebrow">Game · Sound</span>
+    <h1 class="h1">Aim. Fire. Learn.</h1>
+    <p class="p1">A small projectile game built on Phaser 3 — set angle and power, fire, and watch the parabola. A hit plays a sound generated at runtime through Howler. This is the shape of a Games-lab activity: a real game loop, physics, and audio, all themable to your identity.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="card">
+      <div class="grid">
+        <div>
+          <div id="game"></div>
+        </div>
+        <div>
+          <label>Launch angle <span class="v" id="angV">45°</span></label>
+          <input type="range" id="angle" min="10" max="85" value="45">
+          <label>Power <span class="v" id="powV">60</span></label>
+          <input type="range" id="power" min="25" max="100" value="60">
+          <button class="btn" id="fireBtn">Fire</button>
+          <div class="hint">Target moves after each shot. The trajectory is the parabola y = v·sinθ·t − ½gt² — make it land on the marker.</div>
+          <div class="stats">
+            <div class="stat"><div class="k">Hits</div><div class="v" id="sHits">0</div></div>
+            <div class="stat accent"><div class="k">Shots</div><div class="v" id="sShots">0</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="callout">
+        <b>What this shows.</b> A complete game loop — input → physics → render → feedback — in ~40 lines of scene code. Phaser handles the canvas, loop, and rendering; Howler handles audio (the ping here is synthesized in-browser, so no audio files to ship). For a Games lab this is the foundation: number-line jumps, projectile parabolas, function-matching arcade. Pair with Matter.js (next demo) when you need collision and stacking rather than a custom physics loop.
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer><div class="container">Phaser 3 · Howler.js — game framework + audio</div></footer>
+
+<script>
+// --- generate a short WAV "ping" in-browser (no audio file needed) ---
+function makePingBlob(freq=880, dur=0.35, vol=0.4){
+  const sr=44100, n=Math.floor(sr*dur);
+  const buf=new ArrayBuffer(44+n*2);
+  const dv=new DataView(buf);
+  const w=(o,v)=>dv.setUint8(o,v);
+  // RIFF header
+  dv.setUint32(0, 0x52494646, false); // "RIFF" big? actually little
+  // write string little-endian via bytes
+  function str(o,s){for(let i=0;i<s.length;i++)dv.setUint8(o+i,s.charCodeAt(i));}
+  str(0,'RIFF'); dv.setUint32(4,36+n*2,true); str(8,'WAVE');
+  str(12,'fmt '); dv.setUint32(16,16,true); dv.setUint16(20,1,true); dv.setUint16(22,1,true);
+  dv.setUint32(24,sr,true); dv.setUint32(28,sr*2,true); dv.setUint16(32,2,true); dv.setUint16(34,16,true);
+  str(36,'data'); dv.setUint32(40,n*2,true);
+  for(let i=0;i<n;i++){
+    const t=i/sr;
+    const env=Math.exp(-t*7); // decay
+    const sample=Math.sin(2*Math.PI*freq*t)*env*vol;
+    dv.setInt16(44+i*2, Math.max(-1,Math.min(1,sample))*32767, true);
+  }
+  return new Blob([buf],{type:'audio/wav'});
+}
+const pingUrl=URL.createObjectURL(makePingBlob(880,0.35,0.5));
+const hitSound = new Howl({ src:[pingUrl], format:'wav' });
+
+// --- Phaser game ---
+const COLORS={bg:0x090909, teal:0x5c939f, red:0xed6d40, ash:0x7d858c, green:0x59a993, fog:0xdadada};
+let hits=0, shots=0;
+class Scene extends Phaser.Scene{
+  constructor(){super('s');}
+  create(){
+    const W=this.scale.width, H=this.scale.height;
+    this.W=W; this.H=H;
+    this.groundY=H-40;
+    // ground
+    this.add.rectangle(0,this.groundY,W,40,0x111111).setOrigin(0,0);
+    this.add.line(0,this.groundY,W,0,0x7d858c).setOrigin(0,0);
+    // cannon
+    this.cannon=this.add.rectangle(60,this.groundY-12,8,24,0x5c939f).setOrigin(0.5,1);
+    this.barrel=this.add.rectangle(60,this.groundY-12,34,6,0x5c939f);
+    this.barrel.setOrigin(0,0.5);
+    // target
+    this.target=this.add.rectangle(0,0,6,40,0xed6d40).setOrigin(0.5,1);
+    this.placeTarget();
+    this.aim();
+    this.proj=null; this.trail=this.add.group();
+    this.flying=false;
+    this.info=this.add.text(W/2,30,'',this.mono(16,'#dadada')).setOrigin(0.5,0);
+  }
+  mono(sz,col){return{fontFamily:'Azeret Mono, monospace',fontSize:sz+'px',color:col};}
+  placeTarget(){
+    const x=Phaser.Math.Between(this.W*0.5, this.W-70);
+    this.target.x=x; this.target.y=this.groundY;
+  }
+  aim(){
+    const ang=+document.getElementById('angle').value;
+    const rad=Phaser.Math.DegToRad(ang);
+    this.barrel.setRotation(-rad);
+  }
+  fire(){
+    if(this.flying)return;
+    this.flying=true; shots++; document.getElementById('sShots').textContent=shots;
+    const ang=+document.getElementById('angle').value;
+    const power=+document.getElementById('power').value;
+    const rad=Phaser.Math.DegToRad(ang);
+    const vx=Math.cos(rad)*power*4;
+    const vy=-Math.sin(rad)*power*4; // screen y down
+    const sx=60+Math.cos(rad)*30, sy=this.groundY-12-Math.sin(rad)*30;
+    this.proj=this.add.circle(sx,sy,6,0x5c939f);
+    this.vx=vx; this.vy=vy; this.px=sx; this.py=sy;
+    this.lastTrail=0;
+    this.info.setText('');
+  }
+  update(_,dt){
+    if(!this.proj||!this.flying)return;
+    const g=520; // gravity px/s^2
+    const s=dt/1000;
+    this.vy+=g*s;
+    this.px+=this.vx*s; this.py+=this.vy*s;
+    this.proj.x=this.px; this.proj.y=this.py;
+    // trail dot every ~60ms
+    if(this.time.now-this.lastTrail>60){
+      this.lastTrail=this.time.now;
+      const d=this.add.circle(this.px,this.py,3,0x5c939f,0.5);
+      this.tweens.add({targets:d,alpha:0,duration:600,delay:200,onComplete:()=>d.destroy()});
+    }
+    // hit target?
+    const tx=this.target.x;
+    if(this.py>=this.groundY-20 && Math.abs(this.px-tx)<14){
+      this.hit(); return;
+    }
+    // ground or off-screen
+    if(this.py>=this.groundY || this.px>this.W+20 || this.px<-20){
+      this.miss();
+    }
+  }
+  hit(){
+    hits++; document.getElementById('sHits').textContent=hits;
+    hitSound.play();
+    this.info.setText('HIT').setStyle({color:'#59a993'});
+    this.boom();
+    this.end();
+  }
+  miss(){
+    this.info.setText('MISS').setStyle({color:'#cb3500'});
+    this.end();
+  }
+  boom(){
+    const p=this.proj;
+    const ring=this.add.circle(p.x,p.y,8,0xed6d40,0);
+    this.tweens.add({targets:ring, radius:{from:8,to:60}, alpha:{from:0.9,to:0}, duration:500, onComplete:()=>ring.destroy()});
+  }
+  end(){
+    this.flying=false;
+    this.time.delayedCall(900,()=>{
+      if(this.proj){this.proj.destroy();this.proj=null;}
+      this.placeTarget(); this.aim(); this.info.setText('');
+    });
+  }
+}
+const config={type:Phaser.AUTO,parent:'game',width:760,height:460,
+  backgroundColor:'#090909',scale:{mode:Phaser.Scale.RESIZE},scene:Scene};
+const game=new Phaser.Game(config);
+const scene=game.scene.getScene('s');
+
+document.getElementById('angle').addEventListener('input',e=>{
+  document.getElementById('angV').textContent=e.target.value+'°';
+  if(scene&&scene.aim)scene.aim();
+});
+document.getElementById('power').addEventListener('input',e=>{
+  document.getElementById('powV').textContent=e.target.value;
+});
+document.getElementById('fireBtn').addEventListener('click',()=>scene.fire());
+</script>
+</body>
+</html>

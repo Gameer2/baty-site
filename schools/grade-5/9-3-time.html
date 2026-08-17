@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Time — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:26px 24px 30px; display:flex; flex-direction:column; align-items:center; gap:22px; }
+  .clocks-row{ display:flex; gap:26px; align-items:center; flex-wrap:wrap; justify-content:center; }
+  svg.clock-face{ overflow:visible; }
+  .clock-ring{ fill:var(--core-black); stroke:rgba(255,255,255,.16); stroke-width:2; }
+  .clock-tick{ stroke:rgba(255,255,255,.3); stroke-width:1.5; }
+  .clock-hand{ stroke-linecap:round; }
+  .clock-hand.hour{ stroke:var(--off-white); stroke-width:4; }
+  .clock-hand.minute{ stroke:var(--electric-teal); stroke-width:3; }
+  .digital-block{ display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .digital-time{ font-family:var(--mono); font-size:26px; font-weight:700; color:var(--off-white); direction:ltr; }
+  .digital-tag{ font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash); }
+  .arrow-sym{ font-family:var(--mono); font-size:20px; color:var(--infrared); }
+
+  .compound-line{ font-family:var(--mono); font-size:15px; color:var(--validation-green); direction:ltr; unicode-bidi:isolate; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 9 · LESSON 3</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Time</h1>
+    <span class="title-secondary ar-display" id="titleAr">الزمن</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I find elapsed time and convert it into compound days, hours, and minutes.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">start time + elapsed = end time</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabel">elapsed minutes</label>
+      <input type="range" id="elapsedSlider" min="0" max="4000" step="5" value="875" />
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="clocks-row" id="clocksRow" data-el="clocksRow"></div>
+      <div class="compound-line" id="compoundLine" data-el="compoundLine"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">A raw elapsed-minutes count converts into compound form (days, hours, minutes) the same way place value works: divide by 1440 for days, divide the remainder by 60 for hours, and whatever's left is minutes — then adding that elapsed time to a start time gives the end time.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="9-2-capacity-length.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">9.2 · Units of Capacity and Length</b></a>
+    <a class="nav-pill next" href="9-4-perimeter-area-compound-shape.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">9.4 · Perimeter and Area of a Compound Shape</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+  const START_HOUR = 8, START_MIN = 15; // 8:15 start time
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 9 · LESSON 3",
+      objectiveLabel: "Objective —",
+      objectiveText: "I find elapsed time and convert it into compound days, hours, and minutes.",
+      eqSub: "start time + elapsed = end time",
+      explainBtn: "Explain this",
+      controlLabel: "elapsed minutes",
+      tagStart: "start", tagEnd: "end",
+      compoundText: (d, h, m) => `${d} d, ${h} h, ${m} min elapsed`,
+      navPrevLabel: "—", navPrevText: "9.2 · Units of Capacity and Length",
+      navNextLabel: "next", navNext: "9.4 · Perimeter and Area of a Compound Shape",
+      teachLabel: "What this teaches:",
+      teachBody: "A raw elapsed-minutes count converts into compound form (days, hours, minutes) the same way place value works: divide by 1440 for days, divide the remainder by 60 for hours, and whatever's left is minutes — then adding that elapsed time to a start time gives the end time.",
+      tour: [
+        { elKey: "clocksRow", label: "Start and end", body: "The left clock is the fixed start time; the right clock is where you land after the elapsed minutes." },
+        { ids: ["elapsedSlider"], label: "Raw minutes", body: "Drag the slider — this is the elapsed time as one raw number of minutes." },
+        { elKey: "compoundLine", label: "Convert to compound form", body: "The same duration, broken into days, hours, and leftover minutes — much easier to picture than one large minute count." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٩ · الدرس ٣",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أجد الزمن المنقضي وأحوّله إلى صيغة مركّبة من الأيام والساعات والدقائق.",
+      eqSub: "وقت البداية + الزمن المنقضي = وقت النهاية",
+      explainBtn: "اشرح هذا",
+      controlLabel: "الدقائق المنقضية",
+      tagStart: "البداية", tagEnd: "النهاية",
+      compoundText: (d, h, m) => `${d} يوم، ${h} ساعة، ${m} دقيقة منقضية`,
+      navPrevLabel: "—", navPrevText: "٩.٢ · وحدات السعة والطول",
+      navNextLabel: "التالي", navNext: "٩.٤ · محيط ومساحة شكل مركّب",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "يتحوّل عدد الدقائق المنقضية الخام إلى صيغة مركّبة (أيام وساعات ودقائق) بالطريقة نفسها التي تعمل بها القيمة المنزلية: اقسم على ١٤٤٠ للأيام، ثم اقسم الباقي على ٦٠ للساعات، وما يتبقّى هو الدقائق — ثم إضافة ذلك الزمن المنقضي إلى وقت البداية يعطي وقت النهاية.",
+      tour: [
+        { elKey: "clocksRow", label: "البداية والنهاية", body: "الساعة اليسرى هي وقت البداية الثابت؛ واليمنى هي الوقت الذي تصل إليه بعد الدقائق المنقضية." },
+        { ids: ["elapsedSlider"], label: "دقائق خام", body: "اسحب شريط التمرير — هذا هو الزمن المنقضي كعدد خام واحد من الدقائق." },
+        { elKey: "compoundLine", label: "حوّل إلى الصيغة المركّبة", body: "المدّة نفسها، مقسّمة إلى أيام وساعات ودقائق متبقّية — أسهل بكثير للتخيّل من عدد دقائق كبير واحد." }
+      ]
+    }
+  };
+
+  const elapsedSlider = document.getElementById("elapsedSlider");
+  const clocksRow = document.getElementById("clocksRow");
+  const compoundLine = document.getElementById("compoundLine");
+  const eqLine = document.getElementById("eqLine");
+
+  function buildClock(hour24, minute, id) {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    const size = 110, cx = size / 2, cy = size / 2, r = size / 2 - 6;
+    svg.setAttribute("class", "clock-face");
+    svg.setAttribute("width", size); svg.setAttribute("height", size);
+    svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
+    const ring = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    ring.setAttribute("cx", cx); ring.setAttribute("cy", cy); ring.setAttribute("r", r);
+    ring.setAttribute("class", "clock-ring");
+    svg.appendChild(ring);
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2 - Math.PI / 2;
+      const x1 = cx + Math.cos(a) * (r - 6), y1 = cy + Math.sin(a) * (r - 6);
+      const x2 = cx + Math.cos(a) * r, y2 = cy + Math.sin(a) * r;
+      const tick = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      tick.setAttribute("x1", x1); tick.setAttribute("y1", y1);
+      tick.setAttribute("x2", x2); tick.setAttribute("y2", y2);
+      tick.setAttribute("class", "clock-tick");
+      svg.appendChild(tick);
+    }
+    const hour12 = hour24 % 12;
+    const hourAngle = ((hour12 + minute / 60) / 12) * Math.PI * 2 - Math.PI / 2;
+    const minAngle = (minute / 60) * Math.PI * 2 - Math.PI / 2;
+    const hourHand = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    hourHand.setAttribute("x1", cx); hourHand.setAttribute("y1", cy);
+    hourHand.setAttribute("x2", cx + Math.cos(hourAngle) * r * .5); hourHand.setAttribute("y2", cy + Math.sin(hourAngle) * r * .5);
+    hourHand.setAttribute("class", "clock-hand hour");
+    svg.appendChild(hourHand);
+    const minHand = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    minHand.setAttribute("x1", cx); minHand.setAttribute("y1", cy);
+    minHand.setAttribute("x2", cx + Math.cos(minAngle) * r * .75); minHand.setAttribute("y2", cy + Math.sin(minAngle) * r * .75);
+    minHand.setAttribute("class", "clock-hand minute");
+    svg.appendChild(minHand);
+    return svg;
+  }
+
+  function fmt(hour24, minute, lang) {
+    const period = hour24 >= 12 ? (lang === "ar" ? "م" : "PM") : (lang === "ar" ? "ص" : "AM");
+    const h12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
+    return `${digits(h12, lang)}:${String(minute).padStart(2, "0").split("").map(d => digits(parseInt(d,10), lang)).join("")} ${period}`;
+  }
+
+  function render() {
+    const t = T[i18n.lang];
+    const elapsedMin = parseInt(elapsedSlider.value, 10);
+
+    const startTotalMin = START_HOUR * 60 + START_MIN;
+    const endTotalMin = startTotalMin + elapsedMin;
+    const endHour24 = Math.floor(endTotalMin / 60) % 24;
+    const endMin = endTotalMin % 60;
+
+    clocksRow.innerHTML = "";
+    const startBlock = document.createElement("div");
+    startBlock.className = "digital-block";
+    startBlock.innerHTML = `<div class="digital-tag">${t.tagStart}</div>`;
+    startBlock.appendChild(buildClock(START_HOUR, START_MIN));
+    const startTime = document.createElement("div");
+    startTime.className = "digital-time";
+    startTime.textContent = fmt(START_HOUR, START_MIN, i18n.lang);
+    startBlock.appendChild(startTime);
+    clocksRow.appendChild(startBlock);
+
+    const arrow = document.createElement("div");
+    arrow.className = "arrow-sym";
+    arrow.textContent = "→";
+    clocksRow.appendChild(arrow);
+
+    const endBlock = document.createElement("div");
+    endBlock.className = "digital-block";
+    endBlock.innerHTML = `<div class="digital-tag">${t.tagEnd}</div>`;
+    endBlock.appendChild(buildClock(endHour24, endMin));
+    const endTime = document.createElement("div");
+    endTime.className = "digital-time";
+    endTime.textContent = fmt(endHour24, endMin, i18n.lang);
+    endBlock.appendChild(endTime);
+    clocksRow.appendChild(endBlock);
+
+    const days = Math.floor(elapsedMin / 1440);
+    const remAfterDays = elapsedMin % 1440;
+    const hours = Math.floor(remAfterDays / 60);
+    const mins = remAfterDays % 60;
+    compoundLine.textContent = t.compoundText(digits(days, i18n.lang), digits(hours, i18n.lang), digits(mins, i18n.lang));
+
+    renderEquation(eqLine, `${groupInt(elapsedMin, "en")}\\text{ min} = \\color{#ed6d40}{${days}\\text{d } ${hours}\\text{h } ${mins}\\text{m}}`);
+  }
+
+  elapsedSlider.addEventListener("input", render);
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

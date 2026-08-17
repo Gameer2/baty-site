@@ -62,5 +62,13 @@
     try { a = parseInput(aInput.value, "a"); n = parseInput(nInput.value, "n"); } catch (err) { return showError(err.message); }
     if (n <= 0n) return showError("n must be a positive modulus.");
     render(a, n);
+    Proto.saveState("engine-lab:number-theory-order-of-element", { a: aInput.value, n: nInput.value });
   });
+
+  const saved = Proto.loadState("engine-lab:number-theory-order-of-element");
+  if (saved) {
+    if (saved.a !== undefined) aInput.value = saved.a;
+    if (saved.n !== undefined) nInput.value = saved.n;
+    form.requestSubmit();
+  }
 })();

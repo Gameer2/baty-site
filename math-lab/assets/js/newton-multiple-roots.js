@@ -25,6 +25,16 @@
 
   let state = null;
   const CURRENT_TRACE = 2;
+  const STORE_KEY = "engine-lab:numerical-newton-multiple-roots";
+
+  function snapshot() {
+    return {
+      fx: fxInput.value,
+      x0: x0Input.value,
+      tol: tolInput.value,
+      maxIter: maxIterInput.value,
+    };
+  }
 
   function updatePreview() {
     Engine.renderKatex(fxPreview, `f(x) = ${Engine.toLatex(fxInput.value)}`, false);
@@ -154,8 +164,7 @@
 
   stepSlider.addEventListener("input", (e) => updateStep(Number(e.target.value)));
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+  function runCompute() {
     clearError();
 
     const compiled = Engine.compileFx(fxInput.value);
@@ -177,14 +186,29 @@
     try {
       const iterations = Algorithms.runNewtonMultiple(compiled.fn, fp.fn, fpp.fn, x0, tol, maxIter);
       render(iterations, compiled);
+      Proto.saveState(STORE_KEY, snapshot());
     } catch (err) {
       showError(err.message);
     }
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    runCompute();
   });
 
   Engine.attachMathKeypad(fxInput, document.getElementById("fxKeypad"));
   Engine.attachKeypadToggle(document.getElementById("keypadToggle"), document.getElementById("fxKeypad"));
 
+  const saved = Proto.loadState(STORE_KEY);
+  if (saved) {
+    if (saved.fx !== undefined) fxInput.value = saved.fx;
+    if (saved.x0 !== undefined) x0Input.value = saved.x0;
+    if (saved.tol !== undefined) tolInput.value = saved.tol;
+    if (saved.maxIter !== undefined) maxIterInput.value = saved.maxIter;
+  }
+
   updatePreview();
   updateStatus();
+  if (saved) runCompute();
 })();

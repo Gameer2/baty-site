@@ -2,6 +2,7 @@
 (function () {
   "use strict";
   LinAlgPage.init({
+    storeKey: "engine-lab:linear-algebra-least-squares",
     square: false, vector: true,
     example: { A: [[1, 0], [1, 1], [1, 2], [1, 3]], b: [1, 3, 4, 8] },
     compute: (A, b) => LinAlg.leastSquares(A, b),

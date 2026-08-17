@@ -1,0 +1,3 @@
+# The pyodide devDependency (tests/verify-sympy-ops.js) — includes cached sympy/mpmath wheels
+# after the first run, multi-MB, never meant to be committed. See package.json.
+node_modules

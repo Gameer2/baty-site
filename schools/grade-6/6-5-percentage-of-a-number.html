@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Percentage of a Number — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: a price tag — dragging a discount % live-recomputes the discount
+     amount and final price. ---- */
+  .chart{ padding:30px 24px 34px; display:flex; flex-direction:column; align-items:center; gap:22px; }
+  .tag{ position:relative; width:220px; padding:22px 24px; border-radius:14px; background:var(--urban-smoke); border:1px solid rgba(255,255,255,.14); display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .tag::before{ content:""; position:absolute; left:-11px; top:50%; transform:translateY(-50%); width:20px; height:20px; border-radius:50%; background:var(--core-black); border:1px solid rgba(255,255,255,.14); border-right:none; }
+  .price-old{ font-family:var(--mono); font-size:16px; color:var(--pulse-ash); text-decoration:line-through; direction:ltr; }
+  .price-new{ font-family:var(--mono); font-size:30px; font-weight:700; color:var(--infrared); direction:ltr; }
+  .discount-badge{ font-family:var(--mono); font-size:12px; color:var(--validation-green); background:rgba(107,181,124,.1); border:1px solid rgba(107,181,124,.4); border-radius:100px; padding:4px 12px; direction:ltr; }
+
+  .steps-line{ font-family:var(--mono); font-size:12.5px; color:var(--neural-fog); direction:ltr; text-align:center; }
+  .steps-line b{ color:var(--electric-teal); }
+
+  .inputs{ display:flex; align-items:center; gap:10px; }
+  .num-input{ font-family:var(--mono); font-size:14px; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.16); border-radius:6px; padding:5px 8px; width:80px; text-align:center; direction:ltr; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 6 · LESSON 5</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Percentage of a Number</h1>
+    <span class="title-secondary ar-display" id="titleAr">النسبة المئوية من عدد</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I find a percentage of a number.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">convert the percent, then multiply</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="labelPrice">price</label>
+      <input type="number" class="num-input" id="priceInput" value="80" min="1" />
+      <label data-role="ui" data-i18n="labelDiscount" style="margin-inline-start:14px;">discount</label>
+      <input type="range" id="discSlider" min="0" max="75" step="5" value="25" />
+      <span class="control-val" id="discReadout">25%</span>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="tag dimmable" data-el="tag" id="tag">
+        <span class="price-old" id="priceOld"></span>
+        <span class="price-new" id="priceNew"></span>
+        <span class="discount-badge" id="discountBadge"></span>
+      </div>
+      <div class="steps-line dimmable" data-el="steps" id="stepsLine"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Convert the percentage to a fraction or decimal, then multiply by the given number — applied to real discount-pricing problems (e.g. finding a bicycle's price after a percentage-off deduction).</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="6-4-percentage-decimal-fractions.html">— <b data-role="body" id="navPrevText">6.4 · Percentage &amp; Decimal Fractions</b></a>
+    <a class="nav-pill next" href="7-1-quadrilaterals.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">7.1 · Quadrilaterals</b></a>
+  </div>
+</div>
+
+<script>
+  const { digitsDecimal, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 6 · LESSON 5",
+      objectiveLabel: "Objective —",
+      objectiveText: "I find a percentage of a number.",
+      eqSub: "convert the percent, then multiply",
+      explainBtn: "Explain this",
+      labelPrice: "price", labelDiscount: "discount",
+      discountBadge: (amount) => `you save ${amount}`,
+      stepsLine: (pct, dec, price, amount) => `${pct}% = ${dec} → ${dec} × ${price} = ${amount} off`,
+      teachLabel: "What this teaches:",
+      teachBody: "Convert the percentage to a fraction or decimal, then multiply by the given number — applied to real discount-pricing problems (e.g. finding a bicycle's price after a percentage-off deduction).",
+      navPrev: "6.4 · Percentage & Decimal Fractions",
+      navNext: "7.1 · Quadrilaterals",
+      navNextLabel: "next",
+      tour: [
+        { elKey: "tag", label: "Original price", body: "The struck-through price is what it cost before any discount." },
+        { elKey: "steps", label: "Percent to decimal, then multiply", body: "Convert the discount percent to a decimal, then multiply by the original price — that's the amount taken off." },
+        { elKey: "tag", label: "The final price", body: "Subtract the discount amount from the original price — that's what's actually charged." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ٦ · الدرس ٥",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أجد النسبة المئوية من عدد.",
+      eqSub: "حوّل النسبة المئوية، ثم اضرب",
+      explainBtn: "اشرح هذا",
+      labelPrice: "السعر", labelDiscount: "الخصم",
+      discountBadge: (amount) => `توفّر ${amount}`,
+      stepsLine: (pct, dec, price, amount) => `${pct}% = ${dec} ← ${dec} × ${price} = ${amount} خصمًا`,
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "حوّل النسبة المئوية إلى كسر أو عشري، ثم اضربها في العدد المعطى — يُطبَّق ذلك على مسائل تسعير حقيقية بالخصم (مثل إيجاد سعر درّاجة بعد خصم نسبة مئوية).",
+      navPrev: "٦.٤ · النسبة المئوية والكسور العشرية",
+      navNext: "٧.١ · الأشكال الرباعية",
+      navNextLabel: "التالي",
+      tour: [
+        { elKey: "tag", label: "السعر الأصلي", body: "السعر المشطوب هو ما كانت عليه التكلفة قبل أي خصم." },
+        { elKey: "steps", label: "من نسبة مئوية إلى عشري، ثم اضرب", body: "حوّل نسبة الخصم إلى عدد عشري، ثم اضربها في السعر الأصلي — هذا هو المقدار المخصوم." },
+        { elKey: "tag", label: "السعر النهائي", body: "اطرح مقدار الخصم من السعر الأصلي — هذا ما يُدفع فعليًا." }
+      ]
+    }
+  };
+
+  const priceInput = document.getElementById("priceInput");
+  const discSlider = document.getElementById("discSlider");
+  const discReadout = document.getElementById("discReadout");
+  const priceOld = document.getElementById("priceOld"), priceNew = document.getElementById("priceNew");
+  const discountBadge = document.getElementById("discountBadge");
+  const stepsLine = document.getElementById("stepsLine");
+  const eqLine = document.getElementById("eqLine");
+
+  function render() {
+    const t = T[i18n.lang];
+    const price = Math.max(1, parseFloat(priceInput.value) || 0);
+    const pct = parseInt(discSlider.value, 10);
+    discReadout.textContent = pct + "%";
+
+    const dec = pct / 100;
+    const amount = +(price * dec).toFixed(2);
+    const final = +(price - amount).toFixed(2);
+
+    priceOld.textContent = "$" + price;
+    priceNew.textContent = "$" + final;
+    discountBadge.textContent = t.discountBadge("$" + amount);
+    stepsLine.textContent = t.stepsLine(pct, dec, price, amount);
+
+    const eqSource = `${pct}\\% \\times ${price} = ${dec} \\times ${price} = \\color{#ed6d40}{${amount}}`;
+    renderEquation(eqLine, eqSource);
+  }
+
+  priceInput.addEventListener("input", render);
+  discSlider.addEventListener("input", render);
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

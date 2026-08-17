@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Problem-Solving Strategy: Make a Table — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:34px 24px 30px; display:flex; flex-direction:column; align-items:center; gap:18px; }
+  .rule-line{ font-family:var(--mono); font-size:14px; color:var(--neural-fog); direction:ltr; unicode-bidi:isolate; }
+  .rule-line b{ color:var(--electric-teal); }
+  table.grow-table{ border-collapse:collapse; font-family:var(--mono); }
+  table.grow-table th{ font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash); padding:6px 20px; border-bottom:1px solid rgba(255,255,255,.14); }
+  table.grow-table td{ font-size:16px; font-weight:700; color:var(--off-white); text-align:center; padding:8px 20px; border-bottom:1px solid rgba(255,255,255,.06); direction:ltr; }
+  table.grow-table tr.target td{ color:var(--infrared); }
+  table.grow-table tr.hidden-row{ visibility:hidden; }
+  .green-dot, .red-dot{ display:inline-block; width:8px; height:8px; border-radius:50%; margin-inline-end:4px; }
+  .green-dot{ background:var(--validation-green); }
+  .red-dot{ background:var(--infrared); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 1 · LESSON 5</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Problem-Solving Strategy: Make a Table</h1>
+    <span class="title-secondary ar-display" id="titleAr">خطة حل المسألة: أنشئ جدولاً</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I solve real-life problems using the "make a table" strategy.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">the rule that fills every row</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabel">target row</label>
+      <input type="range" id="targetSlider" min="1" max="10" step="1" value="4" />
+      <span class="control-val" id="targetReadout">row 4</span>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="rule-line" id="ruleLine"></div>
+      <table class="grow-table" id="table">
+        <thead>
+          <tr>
+            <th data-role="ui" id="thGreen"><span class="green-dot"></span><span data-i18n="colGreen">green marbles</span></th>
+            <th data-role="ui" id="thRed"><span class="red-dot"></span><span data-i18n="colRed">red marbles</span></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">A dedicated problem-solving-strategy lesson (Understand/Plan/Solve/Check framework) where students build an explicit table of paired quantities at a fixed ratio to systematically find a target value, rather than computing directly.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="1-4-negative-numbers.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">1.4 · Negative Numbers</b></a>
+    <a class="nav-pill next" href="../grade-5/2-1-mental-multiplication.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">2.1 · Mental Multiplication</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, initI18n, renderEquation, buildTour } = LessonShell;
+  const RATIO = 3; // 3 red marbles per green marble — the textbook's own example
+  const MAXROW = 10;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 1 · LESSON 5",
+      objectiveLabel: "Objective —",
+      objectiveText: "I solve real-life problems using the “make a table” strategy.",
+      eqSub: "the rule that fills every row",
+      explainBtn: "Explain this",
+      controlLabel: "target row",
+      colGreen: "green marbles", colRed: "red marbles",
+      rule: "Rule: for every 1 green marble, there are 3 red marbles.",
+      navPrevLabel: "—", navPrevText: "1.4 · Negative Numbers",
+      navNextLabel: "next", navNext: "2.1 · Mental Multiplication",
+      teachLabel: "What this teaches:",
+      teachBody: "A dedicated problem-solving-strategy lesson (Understand/Plan/Solve/Check framework) where students build an explicit table of paired quantities at a fixed ratio to systematically find a target value, rather than computing directly.",
+      tour: [
+        { ids: ["thGreen", "thRed"], label: "The two quantities", body: "This problem links two amounts — every green marble always comes with the same number of red ones." },
+        { ids: ["ruleLine"], label: "State the rule once", body: "Find the rule connecting one row to the next — here, red is always 3 times green." },
+        { elKey: "targetRow", label: "Extend the table", body: "Drag the slider, or picture writing one more row at a time, until you reach the row you actually need." },
+        { ids: ["eqLine"], label: "Read off the answer", body: "The target row's red-marble count is the answer — found by extending the pattern, not by a shortcut formula." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ١ · الدرس ٥",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أحلّ مسائل حياتية باستخدام استراتيجية «أنشئ جدولاً».",
+      eqSub: "القاعدة التي تملأ كل صف",
+      explainBtn: "اشرح هذا",
+      controlLabel: "الصف المستهدف",
+      colGreen: "كريات خضراء", colRed: "كريات حمراء",
+      rule: "القاعدة: مقابل كل كرية خضراء واحدة، توجد ٣ كريات حمراء.",
+      navPrevLabel: "—", navPrevText: "١.٤ · الأعداد السالبة",
+      navNextLabel: "التالي", navNext: "٢.١ · الضرب الذهني",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "درس مخصّص لاستراتيجية حل المسألة (أفهم / أخطّط / أحلّ / أتحقّق) يبني فيه الطلبة جدولاً صريحًا لكمّيتين مرتبطتين بنسبة ثابتة، لإيجاد قيمة مستهدفة بشكل منظّم بدلًا من حسابها مباشرة.",
+      tour: [
+        { ids: ["thGreen", "thRed"], label: "الكمّيتان", body: "تربط هذه المسألة بين كمّيتين — كل كرية خضراء يرافقها دائمًا العدد نفسه من الكريات الحمراء." },
+        { ids: ["ruleLine"], label: "حدّد القاعدة مرّة واحدة", body: "أوجد القاعدة التي تربط كل صف بالتالي — هنا، عدد الحمراء يساوي دائمًا ٣ أضعاف الخضراء." },
+        { elKey: "targetRow", label: "وسّع الجدول", body: "اسحب شريط التمرير، أو تخيّل كتابة صف إضافي في كل مرّة، حتى تصل إلى الصف الذي تحتاجه فعلًا." },
+        { ids: ["eqLine"], label: "اقرأ الإجابة", body: "عدد الكريات الحمراء في الصف المستهدف هو الإجابة — وُجد بتمديد النمط، لا بصيغة مختصرة." }
+      ]
+    }
+  };
+
+  const targetSlider = document.getElementById("targetSlider");
+  const targetReadout = document.getElementById("targetReadout");
+  const ruleLine = document.getElementById("ruleLine");
+  const eqLine = document.getElementById("eqLine");
+  const tbody = document.getElementById("tbody");
+
+  const rows = [];
+  for (let g = 1; g <= MAXROW; g++) {
+    const tr = document.createElement("tr");
+    tr.className = "dimmable hidden-row";
+    const tdG = document.createElement("td");
+    const tdR = document.createElement("td");
+    tr.appendChild(tdG); tr.appendChild(tdR);
+    tbody.appendChild(tr);
+    rows.push({ g, r: g * RATIO, tr, tdG, tdR });
+  }
+
+  function render() {
+    const t = T[i18n.lang];
+    const target = parseInt(targetSlider.value, 10);
+    targetReadout.textContent = (i18n.lang === "ar" ? "" : "row ") + digits(target, i18n.lang) + (i18n.lang === "ar" ? " الصف" : "");
+
+    rows.forEach(row => {
+      row.tdG.textContent = digits(row.g, i18n.lang);
+      row.tdR.textContent = digits(row.r, i18n.lang);
+      row.tr.classList.toggle("target", row.g === target);
+      row.tr.dataset.el = row.g === target ? "targetRow" : "";
+      const shouldShow = row.g <= target;
+      const wasHidden = row.tr.classList.contains("hidden-row");
+      row.tr.classList.toggle("hidden-row", !shouldShow);
+      if (shouldShow && wasHidden) {
+        gsap.fromTo(row.tr, { opacity: 0, y: -6 }, { opacity: 1, y: 0, duration: .3 });
+      }
+    });
+
+    ruleLine.textContent = t.rule;
+
+    const targetRow = rows.find(r => r.g === target);
+    const eqSource = `\\text{green}=${target} \\;\\Rightarrow\\; \\text{red}= 3\\times ${target} = \\color{#ed6d40}{${targetRow.r}}`;
+    renderEquation(eqLine, eqSource);
+  }
+
+  targetSlider.addEventListener("input", render);
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

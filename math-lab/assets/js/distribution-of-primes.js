@@ -94,5 +94,12 @@
     let x;
     try { x = parseInput(nInput.value); } catch (err) { return showError(err.message); }
     render(x);
+    Proto.saveState("engine-lab:number-theory-distribution-of-primes", { x: nInput.value });
   });
+
+  const saved = Proto.loadState("engine-lab:number-theory-distribution-of-primes");
+  if (saved) {
+    if (saved.x !== undefined) nInput.value = saved.x;
+    form.requestSubmit();
+  }
 })();

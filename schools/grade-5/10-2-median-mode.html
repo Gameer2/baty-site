@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Median and Mode — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:30px 24px 30px; display:flex; flex-direction:column; align-items:center; gap:22px; }
+  .mode-toggle{ display:flex; gap:6px; }
+  .mode-btn{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--pulse-ash); background:var(--core-black); border:1px solid rgba(255,255,255,.14); border-radius:100px; padding:6px 14px; cursor:pointer; }
+  .mode-btn.active{ color:var(--off-white); border-color:var(--electric-teal); background:rgba(92,147,159,.12); }
+
+  .tile-row{ display:flex; gap:8px; direction:ltr; flex-wrap:wrap; justify-content:center; }
+  .data-tile{ width:38px; height:38px; border-radius:8px; background:var(--core-black); border:1px solid rgba(255,255,255,.14); display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:15px; font-weight:700; color:var(--off-white); position:relative; transition:opacity .3s ease; }
+  .data-tile.crossed{ opacity:.25; }
+  .data-tile.median-tile{ background:rgba(237,109,64,.2); border-color:var(--infrared); color:var(--infrared); }
+
+  .freq-cols{ display:flex; gap:10px; align-items:flex-end; height:120px; direction:ltr; }
+  .freq-col{ display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .freq-stack{ display:flex; flex-direction:column-reverse; gap:3px; }
+  .freq-cell{ width:26px; height:20px; border-radius:4px; background:var(--electric-teal); }
+  .freq-cell.mode-cell{ background:var(--validation-green); }
+  .freq-label{ font-family:var(--mono); font-size:11px; color:var(--pulse-ash); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 10 · LESSON 2</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">The Median and Mode</h1>
+    <span class="title-secondary ar-display" id="titleAr">الوسيط والمنوال</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I find the median by crossing off pairs from both ends, and the mode by finding the most frequent value.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">the middle value, and the most common one</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="mode-toggle" id="viewToggle" data-el="viewToggle">
+        <button class="mode-btn active" data-view="median" data-i18n="viewMedian">median</button>
+        <button class="mode-btn" data-view="mode" data-i18n="viewMode">mode</button>
+      </div>
+    </div>
+
+    <div class="control-row">
+      <button class="explain-btn" id="findBtn" data-role="ui" data-i18n="findBtn">find the median</button>
+      <button class="explain-btn" id="resetBtn" data-role="ui" data-i18n="resetBtn">reset</button>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="tile-row" id="tileRow" data-el="tileRow"></div>
+      <div class="freq-cols" id="freqCols" data-el="freqCols" style="display:none;"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Sorted data's median is found by crossing off the smallest and largest values in pairs until only the middle one (or two, averaged) remains; the mode is simply whichever value shows up most often, read straight off a frequency count.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="10-1-the-mean.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">10.1 · The Mean</b></a>
+    <a class="nav-pill next" href="10-3-the-range.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">10.3 · The Range</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const DATA = [7, 3, 9, 3, 5, 7, 3, 8];
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 10 · LESSON 2",
+      objectiveLabel: "Objective —",
+      objectiveText: "I find the median by crossing off pairs from both ends, and the mode by finding the most frequent value.",
+      eqSub: "the middle value, and the most common one",
+      explainBtn: "Explain this",
+      viewMedian: "median", viewMode: "mode",
+      findBtn: "find the median", resetBtn: "reset",
+      navPrevLabel: "—", navPrevText: "10.1 · The Mean",
+      navNextLabel: "next", navNext: "10.3 · The Range",
+      teachLabel: "What this teaches:",
+      teachBody: "Sorted data's median is found by crossing off the smallest and largest values in pairs until only the middle one (or two, averaged) remains; the mode is simply whichever value shows up most often, read straight off a frequency count.",
+      tour: [
+        { elKey: "tileRow", label: "Sort first", body: "The tiles are already sorted from smallest to largest — sorting always comes before finding the median." },
+        { ids: ["findBtn"], label: "Cross off from both ends", body: "Press find — the smallest and largest cross off together, then the next pair, working inward." },
+        { elKey: "tileRow", label: "What's left is the median", body: "Whatever remains in the middle — one tile, or two averaged together — is the median." },
+        { ids: ["viewToggle"], label: "Switch to mode", body: "The mode is different: it's whichever value appears most often, easiest to see as a frequency stack." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ١٠ · الدرس ٢",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أجد الوسيط بشطب أزواج من الطرفين، والمنوال بإيجاد القيمة الأكثر تكرارًا.",
+      eqSub: "القيمة الوسطى، والأكثر شيوعًا",
+      explainBtn: "اشرح هذا",
+      viewMedian: "الوسيط", viewMode: "المنوال",
+      findBtn: "أوجد الوسيط", resetBtn: "إعادة",
+      navPrevLabel: "—", navPrevText: "١٠.١ · الوسط الحسابي",
+      navNextLabel: "التالي", navNext: "١٠.٣ · المدى",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "يُوجد وسيط البيانات المرتَّبة بشطب أصغر وأكبر قيمة معًا زوجًا بعد زوج حتى تبقى القيمة الوسطى فقط (أو قيمتان، يُحسب متوسطهما)؛ والمنوال هو ببساطة القيمة الأكثر تكرارًا، تُقرأ مباشرة من عدّ التكرار.",
+      tour: [
+        { elKey: "tileRow", label: "رتّب أولًا", body: "الرقائق مرتّبة مسبقًا من الأصغر إلى الأكبر — الترتيب يسبق دائمًا إيجاد الوسيط." },
+        { ids: ["findBtn"], label: "اشطب من الطرفين", body: "اضغط أوجد — تُشطب أصغر وأكبر قيمة معًا، ثم الزوج التالي، بالتقدّم نحو الداخل." },
+        { elKey: "tileRow", label: "المتبقّي هو الوسيط", body: "ما يتبقّى في المنتصف — رقاقة واحدة، أو رقاقتان يُحسب متوسطهما — هو الوسيط." },
+        { ids: ["viewToggle"], label: "بدّل إلى المنوال", body: "المنوال مختلف: هو أيّ قيمة تظهر أكثر من غيرها، ويسهل رؤيته كعمود تكرار." }
+      ]
+    }
+  };
+
+  const tileRow = document.getElementById("tileRow");
+  const freqCols = document.getElementById("freqCols");
+  const viewToggle = document.getElementById("viewToggle");
+  const findBtn = document.getElementById("findBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  const eqLine = document.getElementById("eqLine");
+
+  let view = "median";
+  let crossedPairs = 0;
+  const sorted = [...DATA].sort((a, b) => a - b);
+
+  function renderMedian() {
+    tileRow.innerHTML = "";
+    const n = sorted.length;
+    sorted.forEach((v, idx) => {
+      const tile = document.createElement("div");
+      const isCrossed = idx < crossedPairs || idx >= n - crossedPairs;
+      const isMedianPos = crossedPairs * 2 >= n - 1 && !isCrossed;
+      tile.className = "data-tile" + (isCrossed ? " crossed" : "") + (isMedianPos ? " median-tile" : "");
+      tile.textContent = v;
+      tileRow.appendChild(tile);
+    });
+
+    const remaining = sorted.slice(crossedPairs, n - crossedPairs);
+    let medianVal = null;
+    if (remaining.length <= 2) {
+      medianVal = remaining.reduce((a, b) => a + b, 0) / remaining.length;
+    }
+
+    findBtn.disabled = remaining.length <= 2;
+    findBtn.style.opacity = remaining.length <= 2 ? .4 : 1;
+
+    if (medianVal !== null) {
+      renderEquation(eqLine, `\\text{median} = \\color{#ed6d40}{${medianVal}}`);
+    } else {
+      renderEquation(eqLine, `${sorted.join(",\\,")}`);
+    }
+  }
+
+  function renderMode() {
+    const freq = {};
+    DATA.forEach(v => { freq[v] = (freq[v] || 0) + 1; });
+    const maxFreq = Math.max(...Object.values(freq));
+    const modes = Object.keys(freq).filter(k => freq[k] === maxFreq).map(Number);
+
+    freqCols.innerHTML = "";
+    Object.keys(freq).sort((a, b) => a - b).forEach(k => {
+      const col = document.createElement("div");
+      col.className = "freq-col";
+      const stack = document.createElement("div");
+      stack.className = "freq-stack";
+      for (let i = 0; i < freq[k]; i++) {
+        const cell = document.createElement("div");
+        cell.className = "freq-cell" + (freq[k] === maxFreq ? " mode-cell" : "");
+        stack.appendChild(cell);
+      }
+      const label = document.createElement("div");
+      label.className = "freq-label";
+      label.textContent = k;
+      col.appendChild(stack); col.appendChild(label);
+      freqCols.appendChild(col);
+    });
+
+    renderEquation(eqLine, `\\text{mode} = \\color{#ed6d40}{${modes.join(", ")}}`);
+  }
+
+  function render() {
+    if (view === "median") {
+      tileRow.style.display = "flex"; freqCols.style.display = "none";
+      renderMedian();
+    } else {
+      tileRow.style.display = "none"; freqCols.style.display = "flex";
+      renderMode();
+    }
+  }
+
+  findBtn.addEventListener("click", () => {
+    crossedPairs++;
+    renderMedian();
+  });
+  resetBtn.addEventListener("click", () => { crossedPairs = 0; renderMedian(); });
+
+  viewToggle.addEventListener("click", (e) => {
+    const btn = e.target.closest(".mode-btn");
+    if (!btn) return;
+    view = btn.dataset.view;
+    viewToggle.querySelectorAll(".mode-btn").forEach(b => b.classList.toggle("active", b === btn));
+    render();
+  });
+
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

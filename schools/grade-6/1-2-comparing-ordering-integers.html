@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Comparing &amp; Ordering Integers — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: two depth markers on a shared ruler. Forks 1.1's ruler/scale. ---- */
+  .scene{ height:470px; }
+  .zone-sky{ position:absolute; inset:0 0 50% 0; background:linear-gradient(to bottom, #0c0e10, var(--rich-carbon)); }
+  .zone-water{ position:absolute; inset:50% 0 0 0; background:linear-gradient(to bottom, rgba(92,147,159,.18), rgba(92,147,159,.03) 60%, var(--rich-carbon)); }
+
+  .ruler{ position:absolute; left:64px; top:30px; bottom:30px; width:1px; background:rgba(255,255,255,.06); }
+  .ruler .rung{ position:absolute; left:-5px; width:11px; height:1px; background:rgba(255,255,255,.16); }
+  .ruler .rung.zero{ display:none; }
+  .ruler .rung-label{ position:absolute; left:-40px; transform:translateY(-50%); font-family:var(--mono); font-size:10.5px; color:var(--pulse-ash); width:26px; text-align:right; direction:ltr; }
+  .ruler .rung-label.neg{ color:#7fa8b0; }
+  .ruler .rung-label.pos{ color:#b98a72; }
+
+  .zero-badge{ position:absolute; left:88px; margin-top:-11px; font-family:var(--mono); font-size:10.5px; letter-spacing:.04em; color:var(--electric-teal); background:rgba(9,9,9,.7); border:1px solid rgba(92,147,159,.4); border-radius:100px; padding:3px 9px; white-space:nowrap; z-index:4; direction:ltr; }
+
+  .marker{ position:absolute; width:26px; height:26px; margin-top:-13px; border-radius:50%; cursor:grab; touch-action:none; z-index:6; box-shadow:0 6px 16px rgba(0,0,0,.4); }
+  .marker:active{ cursor:grabbing; }
+  .markerA{ left:64px; margin-left:-13px; background:radial-gradient(circle at 35% 30%, #8fbec6, var(--electric-teal) 70%); }
+  .markerB{ left:172px; margin-left:-13px; background:radial-gradient(circle at 35% 30%, #8fd6b8, var(--validation-green) 70%); }
+  .guideB{ position:absolute; left:70px; width:96px; height:1px; border-top:1px dashed rgba(89,169,147,.45); z-index:2; }
+  .marker-tag{ position:absolute; top:50%; transform:translateY(-50%); font-family:var(--mono); font-size:12px; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.12); border-radius:6px; padding:3px 8px; white-space:nowrap; z-index:6; direction:ltr; }
+  .tagA{ left:88px; }
+  .tagB{ left:196px; }
+
+  .compare-badge{ position:absolute; left:50%; top:16px; transform:translateX(-50%); font-family:var(--mono); font-size:12px; letter-spacing:.02em; color:var(--neural-fog); background:rgba(9,9,9,.7); border:1px solid rgba(255,255,255,.12); border-radius:100px; padding:6px 16px; white-space:nowrap; z-index:5; direction:ltr; }
+  .compare-badge b{ font-weight:700; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 1 · LESSON 2</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Comparing &amp; Ordering Integers</h1>
+    <span class="title-secondary ar-display" id="titleAr">مقارنة الأعداد الصحيحة وترتيبها</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I compare integers and order them.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">A compared to B</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabelA">depth A</label>
+      <input type="range" id="sliderA" min="-10" max="10" step="1" value="-3" />
+      <span class="control-val" id="readoutA">−3 m</span>
+    </div>
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabelB">depth B</label>
+      <input type="range" id="sliderB" min="-10" max="10" step="1" value="-8" />
+      <span class="control-val" id="readoutB">−8 m</span>
+    </div>
+
+    <div class="scene" id="scene">
+      <div class="zone-sky"></div>
+      <div class="zone-water"></div>
+
+      <div class="ruler" id="ruler"></div>
+
+      <div class="zero-badge dimmable" data-el="sea" data-role="ui" id="zeroBadge">0 — sea level</div>
+      <div class="compare-badge dimmable" data-el="compare" id="compareBadge"></div>
+
+      <div class="guideB dimmable" data-el="markerB" id="guideB"></div>
+      <div class="marker markerA dimmable" data-el="markerA" id="markerA"></div>
+      <div class="marker-tag tagA" data-role="ui" id="tagA">A: −3 m</div>
+      <div class="marker markerB dimmable" data-el="markerB" id="markerB"></div>
+      <div class="marker-tag tagB" data-role="ui" id="tagB">B: −8 m</div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">On a number line, values increase rightward/upward and decrease leftward/downward, so positive integers are always greater than negative ones; among negatives, the one closer to zero is greater. Applied to comparing burial/hole depths and similar below-ground measurements.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="1-1-integers-absolute-value.html">— <b data-role="body" id="navPrevText">1.1 · Integers &amp; Absolute Value</b></a>
+    <a class="nav-pill next" href="1-3-adding-integers.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">1.3 · Adding Integers</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 1 · LESSON 2",
+      objectiveLabel: "Objective —",
+      objectiveText: "I compare integers and order them.",
+      eqSub: "A compared to B",
+      explainBtn: "Explain this",
+      controlLabelA: "depth A", controlLabelB: "depth B",
+      zeroWord: "sea level",
+      unit: "m",
+      deeper: "deeper (more negative)",
+      greater: "is greater",
+      equalDepth: "A and B are equal",
+      teachLabel: "What this teaches:",
+      teachBody: "On a number line, values increase rightward/upward and decrease leftward/downward, so positive integers are always greater than negative ones; among negatives, the one closer to zero is greater. Applied to comparing burial/hole depths and similar below-ground measurements.",
+      navPrev: "1.1 · Integers & Absolute Value",
+      navNext: "1.3 · Adding Integers",
+      navNextLabel: "next",
+      tour: [
+        { ids: ["markerA", "markerB"], label: "Two positions", body: "A and B each sit at a signed depth on the same ruler. Drag either one, or use the sliders above." },
+        { elKey: "sea", label: "Above vs. below zero", body: "Higher on the ruler is always greater — a positive depth (height) beats any negative one." },
+        { elKey: "compare", label: "Which is deeper?", body: "Between two negatives, the one further down (further from zero) is the smaller value — 'deeper' means more negative, not greater." },
+        { ids: ["eqLine"], label: "The comparison", body: "The equation bar states it precisely: whichever value sits higher on the ruler is the greater one." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ١ · الدرس ٢",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أُقارن الأعداد الصحيحة وأرتّبها.",
+      eqSub: "مقارنة A بـ B",
+      explainBtn: "اشرح هذا",
+      controlLabelA: "عمق A", controlLabelB: "عمق B",
+      zeroWord: "سطح البحر",
+      unit: "م",
+      deeper: "أعمق (أكثر سالبية)",
+      greater: "أكبر",
+      equalDepth: "A و B متساويان",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "على خط الأعداد، تزداد القيم يمينًا/أعلى وتقلّ يسارًا/أسفل، لذا فإن الأعداد الصحيحة الموجبة أكبر دائمًا من السالبة؛ وبين عددين سالبين، يكون الأقرب إلى الصفر هو الأكبر. يُطبَّق هذا على مقارنة أعماق الحُفَر ونحوها من القياسات تحت سطح الأرض.",
+      navPrev: "١.١ · الأعداد الصحيحة والقيمة المطلقة",
+      navNext: "١.٣ · جمع الأعداد الصحيحة",
+      navNextLabel: "التالي",
+      tour: [
+        { ids: ["markerA", "markerB"], label: "موضعان", body: "يقع كل من A و B عند عمق موجّه على المسطرة نفسها. اسحب أيًّا منهما، أو استخدم شريطي التمرير أعلاه." },
+        { elKey: "sea", label: "فوق الصفر أم تحته", body: "الأعلى على المسطرة أكبر دائمًا — فأي عمق موجب (ارتفاع) يفوق أي عمق سالب." },
+        { elKey: "compare", label: "أيّهما أعمق؟", body: "بين عددين سالبين، الأبعد إلى الأسفل (الأبعد عن الصفر) هو الأصغر — فـ«الأعمق» يعني الأكثر سالبية، لا الأكبر." },
+        { ids: ["eqLine"], label: "المقارنة", body: "توضّح المعادلة الأمر بدقة: أيّهما يقع أعلى على المسطرة هو القيمة الأكبر." }
+      ]
+    }
+  };
+
+  const MIN = -10, MAX = 10;
+  const scene = document.getElementById("scene");
+  function bounds() {
+    const r = scene.getBoundingClientRect();
+    return { top: 36, bottom: r.height - 36, height: r.height };
+  }
+  function yFor(v) {
+    const b = bounds();
+    return b.top + (MAX - v) / (MAX - MIN) * (b.bottom - b.top);
+  }
+  function vFromClientY(clientY) {
+    const r = scene.getBoundingClientRect();
+    const b = bounds();
+    const y = clientY - r.top;
+    const raw = MAX - (y - b.top) / (b.bottom - b.top) * (MAX - MIN);
+    return Math.max(MIN, Math.min(MAX, Math.round(raw)));
+  }
+
+  const ruler = document.getElementById("ruler");
+  function buildRuler() {
+    ruler.innerHTML = "";
+    for (let v = MIN; v <= MAX; v++) {
+      const rung = document.createElement("div");
+      rung.className = "rung" + (v === 0 ? " zero" : "");
+      rung.style.top = (yFor(v) - 30) + "px";
+      ruler.appendChild(rung);
+      if (v % 2 === 0 && v !== 0) {
+        const label = document.createElement("div");
+        label.className = "rung-label " + (v < 0 ? "neg" : "pos");
+        label.style.top = (yFor(v) - 30) + "px";
+        label.textContent = digits(v, i18n.lang);
+        ruler.appendChild(label);
+      }
+    }
+  }
+  document.getElementById("zeroBadge").style.top = yFor(0) + "px";
+
+  let valueA = -3, valueB = -8;
+  const markerA = document.getElementById("markerA");
+  const markerB = document.getElementById("markerB");
+  const guideB = document.getElementById("guideB");
+  const tagA = document.getElementById("tagA");
+  const tagB = document.getElementById("tagB");
+  const sliderA = document.getElementById("sliderA");
+  const sliderB = document.getElementById("sliderB");
+  const readoutA = document.getElementById("readoutA");
+  const readoutB = document.getElementById("readoutB");
+  const compareBadge = document.getElementById("compareBadge");
+  const eqLine = document.getElementById("eqLine");
+
+  function render(animate) {
+    const t = T[i18n.lang];
+    const yA = yFor(valueA), yB = yFor(valueB);
+    const targets = animate ? { duration: .45, ease: "back.out(1.7)" } : { duration: 0 };
+    gsap.to(markerA, { top: yA, ...targets });
+    gsap.to(markerB, { top: yB, ...targets });
+    gsap.to(guideB, { top: yB, ...targets });
+
+    tagA.textContent = "A: " + digits(valueA, i18n.lang) + " " + t.unit;
+    tagB.textContent = "B: " + digits(valueB, i18n.lang) + " " + t.unit;
+
+    let badgeText;
+    if (valueA === valueB) badgeText = t.equalDepth;
+    else if (valueA > valueB) badgeText = "A " + t.greater;
+    else badgeText = "B " + t.greater;
+    compareBadge.textContent = badgeText;
+
+    const rel = valueA === valueB ? "=" : (valueA > valueB ? ">" : "<");
+    const eqSource = `\\color{#5c939f}{${valueA}} \\; ${rel} \\; \\color{#59a993}{${valueB}}`;
+    renderEquation(eqLine, eqSource);
+
+    sliderA.value = valueA; sliderB.value = valueB;
+    readoutA.textContent = (valueA > 0 ? "+" : "") + valueA + " m";
+    readoutB.textContent = (valueB > 0 ? "+" : "") + valueB + " m";
+  }
+
+  gsap.ticker.add(() => {
+    tagA.style.top = markerA.style.top;
+    tagB.style.top = markerB.style.top;
+  });
+
+  function attachDrag(marker, setter) {
+    let dragging = false;
+    marker.addEventListener("pointerdown", e => { dragging = true; marker.setPointerCapture(e.pointerId); });
+    marker.addEventListener("pointerup", () => dragging = false);
+    marker.addEventListener("pointermove", e => {
+      if (!dragging) return;
+      const v = vFromClientY(e.clientY);
+      setter(v);
+    });
+  }
+  attachDrag(markerA, v => { if (v !== valueA) { valueA = v; render(true); } });
+  attachDrag(markerB, v => { if (v !== valueB) { valueB = v; render(true); } });
+
+  sliderA.addEventListener("input", () => { const v = parseInt(sliderA.value, 10); if (v !== valueA) { valueA = v; render(true); } });
+  sliderB.addEventListener("input", () => { const v = parseInt(sliderB.value, 10); if (v !== valueB) { valueB = v; render(true); } });
+
+  window.addEventListener("resize", () => { buildRuler(); render(false); });
+
+  const i18n = initI18n(T, {
+    onLangChange: () => { buildRuler(); render(false); }
+  });
+
+  buildRuler();
+  render(false);
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

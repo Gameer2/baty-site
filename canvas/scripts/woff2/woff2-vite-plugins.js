@@ -1,9 +1,9 @@
-// define `EXCALIDRAW_ASSET_PATH` as a SSOT
+// define `SYNTROPY_ASSET_PATH` as a SSOT
 const OSS_FONTS_CDN = "https://excalidraw.nyc3.cdn.digitaloceanspaces.com/oss/";
 const OSS_FONTS_FALLBACK = "/";
 
 /**
- * Custom vite plugin for auto-prefixing `EXCALIDRAW_ASSET_PATH` woff2 fonts in `excalidraw-app`.
+ * Custom vite plugin for auto-prefixing `SYNTROPY_ASSET_PATH` woff2 fonts in `syntropy-app`.
  *
  * @returns {import("vite").PluginOption}
  */
@@ -18,9 +18,9 @@ module.exports.woff2BrowserPlugin = () => {
     },
     transform(code, id) {
       // using copy / replace as fonts defined in the `.css` don't have to be manually copied over (vite/rollup does this automatically),
-      // but at the same time can't be easily prefixed with the `EXCALIDRAW_ASSET_PATH` only for the `excalidraw-app`
+      // but at the same time can't be easily prefixed with the `SYNTROPY_ASSET_PATH` only for the `syntropy-app`
       if (!isDev && id.endsWith("/excalidraw/fonts/fonts.css")) {
-        return `/* WARN: The following content is generated during excalidraw-app build */
+        return `/* WARN: The following content is generated during syntropy-app build */
 
       @font-face {
         font-family: "Assistant";
@@ -63,12 +63,12 @@ module.exports.woff2BrowserPlugin = () => {
       }`;
       }
 
-      if (!isDev && id.endsWith("excalidraw-app/index.html")) {
+      if (!isDev && id.endsWith("syntropy-app/index.html")) {
         return code.replace(
           "<!-- PLACEHOLDER:EXCALIDRAW_APP_FONTS -->",
           `<script>
         // point into our CDN in prod, fallback to root (excalidraw.com) domain in case of issues
-        window.EXCALIDRAW_ASSET_PATH = [
+        window.SYNTROPY_ASSET_PATH = [
           "${OSS_FONTS_CDN}",
           "${OSS_FONTS_FALLBACK}",
         ];

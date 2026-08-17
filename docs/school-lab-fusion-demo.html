@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>School Lab — Fusion Demo (Pythagoras)</title>
+<style>
+  @font-face{font-family:"Roc Grotesk";src:url("../math-lab/assets/fonts/roc-grotesk-regular.woff2") format("woff2"),url("../math-lab/assets/fonts/roc-grotesk-regular.woff") format("woff");font-weight:400;font-display:swap}
+  @font-face{font-family:"Roc Grotesk";src:url("../math-lab/assets/fonts/roc-grotesk-medium.woff2") format("woff2"),url("../math-lab/assets/fonts/roc-grotesk-medium.woff") format("woff");font-weight:500;font-display:swap}
+  @font-face{font-family:"Azeret Mono";src:url("../math-lab/assets/fonts/azeret-mono-regular.otf") format("opentype");font-weight:400 700;font-display:swap}
+  @font-face{font-family:"Fraunces";src:url("../math-lab/assets/fonts/fraunces-variable.woff2") format("woff2");font-weight:300 600;font-display:swap}
+  :root{
+    --core-black:#090909; --rich-carbon:#111111; --urban-smoke:#1b1b1b;
+    --pulse-ash:#7d858c; --off-white:#e7e7e7; --neural-fog:#dadada;
+    --electric-teal:#5c939f; --infrared:#ed6d40;
+    --font-display:"Roc Grotesk","Helvetica Neue",Arial,sans-serif;
+    --font-mono:"Azeret Mono",ui-monospace,monospace;
+    --font-serif:"Fraunces",Georgia,serif;
+    --radius-sm:4px; --radius-md:8px; --radius-lg:20px;
+    --ac:#d9a24e; /* geometry amber */
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--core-black);color:var(--off-white);font-family:var(--font-display);line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+  .stage{max-width:980px;margin:0 auto;padding:44px 22px 90px}
+  .eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ac);display:inline-flex;align-items:center;gap:8px}
+  .eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+  h1{font-family:var(--font-serif);font-weight:400;font-size:clamp(30px,4.6vw,46px);line-height:1.04;letter-spacing:-.01em;margin:12px 0 8px}
+  .pitch{color:var(--neural-fog);font-size:16px;max-width:62ch;margin:0 0 26px}
+  .pitch b{color:var(--ac)}
+
+  /* the visual is the hero */
+  .viz{background:var(--rich-carbon);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-lg);padding:0;position:relative;overflow:hidden}
+  .viz::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 22% 8%,rgba(217,162,78,.16),transparent 55%);pointer-events:none}
+  .viz svg{display:block;width:100%;height:auto;position:relative}
+  /* expression pill — small, live, follows the picture */
+  .expr{position:absolute;top:16px;right:18px;font-family:var(--font-mono);font-size:15px;color:var(--pulse-ash);background:rgba(9,9,9,.6);border:1px solid rgba(255,255,255,.12);border-radius:100px;padding:8px 16px;display:flex;gap:6px;align-items:center;backdrop-filter:blur(4px)}
+  .expr .t{transition:color .25s,opacity .25s;opacity:.5}
+  .expr .t.lit{color:var(--infrared);opacity:1;font-weight:700}
+  .expr .num{color:var(--off-white);font-variant-numeric:tabular-nums}
+  .expr .sep{opacity:.4}
+
+  /* caption bar — the teacher narrating the picture */
+  .caption{background:var(--urban-smoke);border:1px solid rgba(255,255,255,.08);border-left:3px solid var(--ac);border-radius:0 0 var(--radius-lg) var(--radius-lg);padding:18px 22px;display:flex;align-items:center;gap:16px;min-height:64px}
+  .caption .dot{width:9px;height:9px;border-radius:50%;background:var(--ac);flex:none;box-shadow:0 0 0 4px rgba(217,162,78,.18);animation:pulse 1.6s ease-in-out infinite}
+  .caption.idle .dot{animation:none;box-shadow:none;background:var(--pulse-ash)}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 4px rgba(217,162,78,.18)}50%{box-shadow:0 0 0 7px rgba(217,162,78,.05)}}
+  .caption .txt{font-family:var(--font-serif);font-size:18px;color:var(--off-white);line-height:1.4}
+  .caption.idle .txt{color:var(--neural-fog);font-family:var(--font-display);font-size:15px}
+
+  /* controls */
+  .controls{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-top:22px}
+  .walk{font-family:var(--font-mono);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--core-black);background:var(--ac);border:none;border-radius:100px;padding:13px 22px;cursor:pointer;font-weight:700;display:flex;align-items:center;gap:10px;transition:filter .15s}
+  .walk:hover{filter:brightness(1.1)}
+  .walk::before{content:"▶";font-size:11px}
+  .walk.running{background:var(--urban-smoke);color:var(--off-white);border:1px solid rgba(255,255,255,.2)}
+  .walk.running::before{content:"■"}
+  .sliders{display:flex;gap:20px;flex-wrap:wrap;flex:1;min-width:240px}
+  .sl{display:flex;flex-direction:column;gap:6px;flex:1;min-width:140px}
+  .sl .row{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--pulse-ash)}
+  .sl .val{font-family:var(--font-serif);font-size:17px;color:var(--off-white);font-variant-numeric:tabular-nums}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;background:var(--urban-smoke);border-radius:4px;outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--ac);cursor:pointer;border:2px solid var(--core-black)}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--ac);cursor:pointer;border:2px solid var(--core-black)}
+  .progress{display:flex;gap:6px;margin-left:auto;align-items:center}
+  .progress span{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.18);transition:background .2s,transform .2s}
+  .progress span.done{background:var(--ac)}
+  .progress span.now{background:var(--infrared);transform:scale(1.4)}
+
+  .readouts{display:flex;gap:14px;flex-wrap:wrap;margin-top:18px;font-family:var(--font-mono);font-size:13px}
+  .ro{background:var(--rich-carbon);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-md);padding:12px 16px;flex:1;min-width:120px}
+  .ro .k{color:var(--pulse-ash);font-size:10px;letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px}
+  .ro .v{color:var(--off-white);font-size:18px;font-variant-numeric:tabular-nums}
+  .ro .v.big{font-family:var(--font-serif);color:var(--ac);font-size:22px}
+
+  .what{margin-top:30px;padding-top:18px;border-top:1px solid rgba(255,255,255,.08);color:var(--pulse-ash);font-family:var(--font-mono);font-size:12px;line-height:1.7;max-width:70ch}
+  .what b{color:var(--neural-fog)}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="stage">
+  <span class="eyebrow">Geometry · Grade 8 · Fusion demo</span>
+  <h1>Pythagoras, performed.</h1>
+  <p class="pitch">Not a formula to memorise — a picture that builds itself. Press <b>Walk me through it</b> and the theorem constructs in front of you: the squares grow, the caption narrates what each one means, and the expression lights up in sync with the part of the diagram being explained. Then grab the legs and explore — the equality never breaks.</p>
+
+  <div class="viz" id="viz">
+    <div class="expr" id="expr">
+      <span class="t" data-t="a">a²</span>
+      <span class="sep">+</span>
+      <span class="t" data-t="b">b²</span>
+      <span class="sep">=</span>
+      <span class="t" data-t="c">c²</span>
+      <span class="sep" style="margin:0 4px">·</span>
+      <span class="num" id="exprNum">9 + 16 = 25</span>
+    </div>
+    <svg id="fig" viewBox="-40 -40 640 400" role="img" aria-label="Right triangle with squares on each side"></svg>
+  </div>
+
+  <div class="caption idle" id="cap"><span class="dot"></span><span class="txt" id="capTxt">Press “Walk me through it” to see the theorem build itself — or drag the legs to explore.</span></div>
+
+  <div class="controls">
+    <button class="walk" id="walk">Walk me through it</button>
+    <div class="sliders">
+      <div class="sl"><div class="row"><span>leg a</span><span class="val" id="aVal">3</span></div><input type="range" id="aR" min="1" max="9" step="0.5" value="3"></div>
+      <div class="sl"><div class="row"><span>leg b</span><span class="val" id="bVal">4</span></div><input type="range" id="bR" min="1" max="9" step="0.5" value="4"></div>
+    </div>
+    <div class="progress" id="prog"></div>
+  </div>
+
+  <div class="readouts">
+    <div class="ro"><span class="k">a²</span><span class="v" id="rA2">9</span></div>
+    <div class="ro"><span class="k">b²</span><span class="v" id="rB2">16</span></div>
+    <div class="ro"><span class="k">a² + b²</span><span class="v" id="rSum">25</span></div>
+    <div class="ro"><span class="k">c²</span><span class="v" id="rC2">25</span></div>
+    <div class="ro"><span class="k">hypotenuse c</span><span class="v big" id="rC">5</span></div>
+  </div>
+
+  <p class="what"><b>What's different here:</b> the teaching isn't a separate "Explain this" text tour bolted on top — it's the visual performing the concept, step by step, while a caption narrates the part that's changing. The expression is a small live readout that lights up in sync with the square being built, so the symbols and the picture stay tied together — but the picture leads, the symbols follow. Drag the legs any time and the walkthrough hands control back to you.</p>
+</div>
+
+<script>
+(function(){
+  var svg=document.getElementById("fig");
+  var NS="http://www.w3.org/2000/svg";
+  function el(n,a){var e=document.createElementNS(NS,n);if(a)for(var k in a)e.setAttribute(k,a[k]);return e;}
+  var ox=170,oy=300,s=15; // right-angle corner, px per unit
+  // state
+  var state={a:3,b:4,revA:0,revB:0,revC:0,active:[],running:false};
+  var activeSet={};
+  function setActive(arr){state.active=arr;activeSet={};arr.forEach(function(k){activeSet[k]=1;});syncExpr();}
+  function syncExpr(){
+    document.querySelectorAll(".expr .t").forEach(function(t){t.classList.toggle("lit",!!activeSet[t.getAttribute("data-t")]);});
+  }
+
+  function render(){
+    var a=state.a,b=state.b,c=Math.sqrt(a*a+b*b);
+    // numeric readouts
+    document.getElementById("aVal").textContent=a;
+    document.getElementById("bVal").textContent=b;
+    document.getElementById("rA2").textContent=(a*a).toFixed(a%1?1:0);
+    document.getElementById("rB2").textContent=(b*b).toFixed(b%1?1:0);
+    document.getElementById("rSum").textContent=(a*a+b*b).toFixed((a*a+b*b)%1?1:0);
+    document.getElementById("rC2").textContent=(c*c).toFixed(1);
+    document.getElementById("rC").textContent=(Math.abs(c-Math.round(c))<1e-9?Math.round(c):c.toFixed(2));
+    document.getElementById("exprNum").textContent=(a*a).toFixed(a%1?1:0)+" + "+(b*b).toFixed(b%1?1:0)+" = "+(c*c).toFixed(1);
+
+    while(svg.firstChild)svg.removeChild(svg.firstChild);
+    var T={x:ox,y:oy-a*s};      // top (end of leg a)
+    var R={x:ox+b*s,y:oy};      // right (end of leg b)
+    // axes hint
+    svg.appendChild(el("line",{x1:ox-4,y1:oy,x2:ox+18,y2:oy,stroke:"rgba(255,255,255,.08)","stroke-width":1}));
+    svg.appendChild(el("line",{x1:ox,y1:oy+4,x2:ox,y2:oy-18,stroke:"rgba(255,255,255,.08)","stroke-width":1}));
+
+    function lit(k){return state.running ? !!activeSet[k] : true; }
+    function opFor(k){return state.running ? (activeSet[k]?1:0.22) : 1; }
+
+    // square on leg a (to the left)
+    var ra=state.revA, sa=a*s*ra;
+    var ga=el("g",{opacity:opFor("a")});
+    ga.appendChild(el("rect",{x:ox-sa,y:oy-sa,width:sa,height:sa,fill:lit("a")?"rgba(217,162,78,.28)":"rgba(217,162,78,.1)",stroke:"#d9a24e","stroke-width":lit("a")?2.4:1.4,rx:2}));
+    if(ra>0.02){var ta=el("text",{x:ox-sa/2,y:oy-sa/2+4,"text-anchor":"middle",fill:"#d9a24e","font-family":"Azeret Mono","font-size":12,"opacity":ra});ta.textContent="a²="+(a*a).toFixed(a%1?1:0);ga.appendChild(ta);}
+    svg.appendChild(ga);
+
+    // square on leg b (below)
+    var rb=state.revB, sb=b*s*rb;
+    var gb=el("g",{opacity:opFor("b")});
+    gb.appendChild(el("rect",{x:ox,y:oy,width:sb,height:sb,fill:lit("b")?"rgba(217,162,78,.28)":"rgba(217,162,78,.1)",stroke:"#d9a24e","stroke-width":lit("b")?2.4:1.4,rx:2}));
+    if(rb>0.02){var tb=el("text",{x:ox+sb/2,y:oy+sb/2+4,"text-anchor":"middle",fill:"#d9a24e","font-family":"Azeret Mono","font-size":12,"opacity":rb});tb.textContent="b²="+(b*b).toFixed(b%1?1:0);gb.appendChild(tb);}
+    svg.appendChild(gb);
+
+    // square on hypotenuse (grows outward from the hypotenuse)
+    var rc=state.revC, sc=c*s*rc;
+    var nx=a/c, ny=-b/c; // unit outward normal (up-right)
+    var P3={x:R.x+nx*sc,y:R.y+ny*sc}, P4={x:T.x+nx*sc,y:T.y+ny*sc};
+    var gc=el("g",{opacity:opFor("c")});
+    if(rc>0.01){
+      gc.appendChild(el("polygon",{points:T.x+","+T.y+" "+R.x+","+R.y+" "+P3.x+","+P3.y+" "+P4.x+","+P4.y,fill:lit("c")?"rgba(237,109,64,.22)":"rgba(237,109,64,.08)",stroke:"#ed6d40","stroke-width":lit("c")?2.4:1.4}));
+      var ccx=(T.x+R.x+P3.x+P4.x)/4, ccy=(T.y+R.y+P3.y+P4.y)/4;
+      var tc=el("text",{x:ccx,y:ccy+4,"text-anchor":"middle",fill:"#ed6d40","font-family":"Azeret Mono","font-size":12,opacity:rc});tc.textContent="c²="+(c*c).toFixed(1);gc.appendChild(tc);
+    }
+    svg.appendChild(gc);
+
+    // triangle (on top)
+    var tri=el("polygon",{points:ox+","+oy+" "+T.x+","+T.y+" "+R.x+","+R.y,fill:"rgba(231,231,231,.06)",stroke:lit("right")||!state.running?"#e7e7e7":"rgba(231,231,231,.5)","stroke-width":2});
+    svg.appendChild(tri);
+    // right-angle mark
+    svg.appendChild(el("rect",{x:ox,y:oy-12,width:12,height:12,fill:"none",stroke:lit("right")?"#ed6d40":"#e7e7e7","stroke-width":lit("right")?2:1.4}));
+    // leg labels
+    var la=el("text",{x:ox-9,y:(oy+T.y)/2,"text-anchor":"end",fill:"#e7e7e7","font-family":"Azeret Mono","font-size":12});la.textContent="a="+a;svg.appendChild(la);
+    var lb=el("text",{x:(ox+R.x)/2,y:oy-8,"text-anchor":"middle",fill:"#e7e7e7","font-family":"Azeret Mono","font-size":12});lb.textContent="b="+b;svg.appendChild(lb);
+    // hypotenuse label
+    var hmid={x:(T.x+R.x)/2,y:(T.y+R.y)/2};
+    var hl=el("text",{x:hmid.x+ (a/c)*8 , y:hmid.y - (b/c)*8 +4,"text-anchor":"middle",fill:"#ed6d40","font-family":"Azeret Mono","font-size":12});hl.textContent="c="+(Math.abs(c-Math.round(c))<1e-9?Math.round(c):c.toFixed(2));svg.appendChild(hl);
+  }
+
+  /* ---------- tween engine ---------- */
+  var tw=null;
+  function tweenTo(targets,dur,onDone){
+    if(tw)tw.cancel=true;
+    var from={};for(var k in targets)from[k]=state[k];
+    var start=performance.now();tw={cancel:false};
+    function step(now){if(tw.cancel)return;var t=Math.min(1,(now-start)/dur);var e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;for(var k in targets){state[k]=from[k]+(targets[k]-from[k])*e;}render();if(t<1)requestAnimationFrame(step);else{tw=null;onDone&&onDone();}}
+    requestAnimationFrame(step);
+  }
+
+  /* ---------- walkthrough ---------- */
+  var prog=document.getElementById("prog");
+  var STEPS=[
+    {cap:"A right triangle — one corner is a perfect 90°. The two short sides are the legs, a and b.", active:["right"], targets:{a:3,b:4,revA:0,revB:0,revC:0}, dur:500, hold:800},
+    {cap:"Build a square on leg a. Its area is a × a — that’s a².", active:["a"], targets:{revA:1}, dur:750, hold:650},
+    {cap:"Now a square on leg b. Its area is b².", active:["a","b"], targets:{revB:1}, dur:750, hold:650},
+    {cap:"Together, the two small squares cover an area of a² + b².", active:["a","b","plus"], targets:{}, dur:0, hold:1000},
+    {cap:"Now build the square on the hypotenuse — the longest side, c, opposite the right angle.", active:["c"], targets:{revC:1}, dur:850, hold:700},
+    {cap:"Its area is c². And it always equals the two smaller squares added together: a² + b² = c².", active:["a","b","plus","c","eq"], targets:{}, dur:0, hold:1300},
+    {cap:"That’s the whole theorem. Now drag the legs yourself — the equality never breaks.", active:[], targets:{}, dur:0, hold:600}
+  ];
+  STEPS.forEach(function(){var d=document.createElement("span");prog.appendChild(d);});
+  var dots=prog.querySelectorAll("span");
+  var running=false, idx=-1, timer=null;
+  var walkBtn=document.getElementById("walk");
+  var capEl=document.getElementById("cap"), capTxt=document.getElementById("capTxt");
+
+  function setCaption(t,idle){capTxt.textContent=t;capEl.classList.toggle("idle",!!idle);}
+  function markProgress(i){dots.forEach(function(d,di){d.className=di<i?"done":(di===i?"now":"");});}
+
+  function runStep(i){
+    if(!running)return;
+    if(i>=STEPS.length){endWalk(true);return;}
+    idx=i;markProgress(i);
+    var st=STEPS[i];setCaption(st.cap,false);setActive(st.active);
+    var next=function(){if(!running)return;timer=setTimeout(function(){runStep(i+1);},st.hold);};
+    if(st.targets && Object.keys(st.targets).length){tweenTo(st.targets,st.dur||600,next);}
+    else{render();next();}
+  }
+  function startWalk(){
+    running=true;walkBtn.classList.add("running");walkBtn.textContent="Stop";walkBtn.disabled=false;
+    setCaption(STEPS[0].cap,false);
+    runStep(0);
+  }
+  function endWalk(finished){
+    running=false;if(timer)clearTimeout(timer);if(tw)tw.cancel=true;
+    walkBtn.classList.remove("running");walkBtn.textContent="Walk me through it";
+    setActive([]);
+    if(finished){markProgress(STEPS.length);setCaption("Drag the legs — a² + b² always equals c². Press Walk to replay.",false);}
+    else{markProgress(0);setCaption("Press “Walk me through it” to see the theorem build itself — or drag the legs to explore.",true);}
+    render();
+  }
+  walkBtn.addEventListener("click",function(){if(running)endWalk(false);else startWalk();});
+
+  /* ---------- user interaction (interrupts walkthrough) ---------- */
+  function userMove(){if(running)endWalk(false);}
+  var aR=document.getElementById("aR"),bR=document.getElementById("bR");
+  aR.addEventListener("input",function(){state.a=+aR.value;state.revA=state.revB=state.revC=1;userMove();render();});
+  bR.addEventListener("input",function(){state.b=+bR.value;state.revA=state.revB=state.revC=1;userMove();render();});
+
+  // initial: show the full figure (all squares revealed) so it's not empty before walking
+  state.revA=state.revB=state.revC=1;
+  render();
+})();
+</script>
+</body>
+</html>

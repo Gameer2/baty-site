@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JSXGraph — integration demo</title>
+<style>
+@font-face{font-family:'Roc Grotesk';src:url('../../math-lab/assets/fonts/roc-grotesk-regular.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'Roc Grotesk';src:url('../../math-lab/assets/fonts/roc-grotesk-medium.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:'Azeret Mono';src:url('../../math-lab/assets/fonts/azeret-mono-regular.otf') format('opentype');font-weight:400;font-display:swap}
+@font-face{font-family:'Fraunces';src:url('../../math-lab/assets/fonts/fraunces-variable.woff2') format('woff2');font-weight:300 600;font-display:swap}
+</style>
+<link rel="stylesheet" href="vendor/jsxgraph.css">
+<script src="vendor/jsxgraph.js"></script>
+<style>
+:root{--core-black:#090909;--rich-carbon:#111;--urban-smoke:#1b1b1b;--pulse-ash:#7d858c;--off-white:#e7e7e7;--neural-fog:#dadada;--electric-teal:#5c939f;--infrared:#ed6d40;--validation-green:#59a993;--validation-red:#cb3500;--font-display:"Roc Grotesk","Helvetica Neue",Arial,sans-serif;--font-mono:"Azeret Mono",ui-monospace,monospace;--font-serif:"Fraunces",Georgia,serif;--radius-sm:4px;--radius-md:8px;--radius-lg:20px;--container-w:1280px}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{background:var(--core-black);color:var(--off-white);font-family:var(--font-display);line-height:1.55}
+.container{max-width:var(--container-w);margin:0 auto;padding:0 24px}
+header.top{position:fixed;top:20px;left:0;right:0;z-index:50}
+.top-inner{max-width:var(--container-w);margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:12px;font-family:var(--font-mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase}
+.brand{display:inline-flex;align-items:center;gap:8px;color:var(--off-white);text-decoration:none}.brand .dot{width:8px;height:8px;border-radius:50%;background:var(--infrared)}
+.top-inner a.lk{color:var(--pulse-ash);text-decoration:none;margin-left:auto}.top-inner a.lk:hover{color:var(--electric-teal)}
+.hero{padding:120px 0 20px}
+.eyebrow{font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--electric-teal);display:inline-flex;align-items:center;gap:8px;margin-bottom:16px}
+.eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.h1{font-family:var(--font-serif);font-weight:350;font-size:clamp(38px,5.6vw,72px);line-height:.98;letter-spacing:-.02em;margin:0 0 14px}
+.p1{font-size:17px;color:var(--neural-fog);max-width:640px;margin:0}
+.section{padding:24px 0 80px}
+.card{background:var(--rich-carbon);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-lg);padding:24px}
+.grid{display:grid;gap:22px;grid-template-columns:1.3fr .7fr}
+@media(max-width:980px){.grid{grid-template-columns:1fr}}
+#board{width:100%;height:460px;background:var(--core-black);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius-md);overflow:hidden}
+label{font-family:var(--font-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--pulse-ash);display:block;margin-bottom:10px}
+.readout{display:flex;flex-direction:column;gap:10px}
+.row{display:flex;justify-content:space-between;align-items:baseline;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.07);font-family:var(--font-mono)}
+.row .k{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--pulse-ash)}
+.row .v{font-size:17px;color:var(--off-white)}
+.row .v.b{color:var(--infrared)}
+.callout{margin-top:24px;font-size:14px;color:var(--neural-fog);line-height:1.6}
+.callout b{color:var(--off-white)}
+code{font-family:var(--font-mono);font-size:12px;color:var(--electric-teal)}
+.btn{position:relative;display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);text-transform:uppercase;font-size:12px;letter-spacing:.1em;padding:10px 18px;border-radius:var(--radius-sm);border:1px solid var(--pulse-ash);color:var(--neural-fog);background:transparent;cursor:pointer;transition:.3s cubic-bezier(.16,1,.3,1)}
+.btn:hover{color:var(--core-black);border-color:var(--electric-teal);background:var(--electric-teal)}
+.btn--primary{border-color:var(--infrared);color:var(--core-black);background:var(--infrared)}
+.btn--primary:hover{background:#ff8a5c;border-color:#ff8a5c;color:var(--core-black)}
+.controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+footer{padding:30px 0 60px;color:var(--pulse-ash);font-size:13px;font-family:var(--font-mono)}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-inner"><a class="brand" href="./index.html"><span class="dot"></span>BACK · DEMOS</a><a class="lk" href="./jsxgraph.html">jsxgraph</a></div></header>
+
+<section class="hero">
+  <div class="container">
+    <span class="eyebrow">Geometry</span>
+    <h1 class="h1">Drag the triangle.</h1>
+    <p class="p1">A live JSXGraph construction. Grab any vertex and the side lengths, angles, area, and the circumscribed circle all recompute. This is geometry as construction — something Plotly (charts) and three.js (3D meshes) genuinely cannot do. The slider drives a function plot inside the same board to show both worlds in one canvas.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="card">
+      <div class="grid">
+        <div>
+          <label>Construction · drag the blue points</label>
+          <div id="board"></div>
+          <div class="controls">
+            <button class="btn" id="resetBtn">Reset triangle</button>
+            <button class="btn btn--primary" id="toggleSlider">Toggle f(x) plot</button>
+          </div>
+        </div>
+        <div>
+          <label>Live readout</label>
+          <div class="readout" id="readout">
+            <div class="row"><span class="k">Side a (BC)</span><span class="v" id="sa">—</span></div>
+            <div class="row"><span class="k">Side b (AC)</span><span class="v" id="sb">—</span></div>
+            <div class="row"><span class="k">Side c (AB)</span><span class="v" id="sc">—</span></div>
+            <div class="row"><span class="k">∠A</span><span class="v" id="angA">—</span></div>
+            <div class="row"><span class="k">∠B</span><span class="v" id="angB">—</span></div>
+            <div class="row"><span class="k">∠C</span><span class="v" id="angC">—</span></div>
+            <div class="row"><span class="k">Area</span><span class="v b" id="area">—</span></div>
+            <div class="row"><span class="k">Right angle?</span><span class="v" id="right">—</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="callout">
+        <b>What this shows.</b> Constructions with constraints, locuses, sliders, and live measurement — exactly what a geometry lesson or a "construct the circumcircle" exercise needs. JSXGraph is pure JS, ~140 KB, themable to your dark palette (the board here already uses your tokens). Strong candidate for Number Theory (Möbius transforms, modular geometry) and Complex Analysis (domain coloring scaffolding), not just a future geometry engine.
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer><div class="container">JSXGraph · pure-JS interactive geometry</div></footer>
+
+<script>
+const TEAL='#5c939f', INFRARED='#ed6d40', ASH='#7d858c', FOG='#dadada';
+JXG.Options.text.color=FOG;
+JXG.Options.text.fontSize=14;
+JXG.Options.point.face='o';
+JXG.Options.point.strokeColor=INFRARED;
+JXG.Options.point.fillColor=INFRARED;
+JXG.Options.point.size=4;
+JXG.Options.line.strokeColor=TEAL;
+JXG.Options.line.strokeWidth=2;
+JXG.Options.circle.strokeColor=ASH;
+JXG.Options.polygon.fillColor='rgba(92,147,159,.12)';
+JXG.Options.polygon.strokeColor=TEAL;
+
+const board = JXG.JSXGraph.initBoard('board',{boundingbox:[-6,6,6,-6],axis:true,showCopyright:false,showNavigation:false,grid:false,
+  defaultAxes:{x:{strokeColor:'rgba(255,255,255,.18)',ticks:{strokeColor:'rgba(255,255,255,.18)',label:{color:ASH}}},
+               y:{strokeColor:'rgba(255,255,255,.18)',ticks:{strokeColor:'rgba(255,255,255,.18)',label:{color:ASH}}}}});
+
+let A,B,C,poly,circ,labels=[],fplot=null,slider,ampSlider;
+
+function build(){
+  A=board.create('point',[3,2],{name:'A',label:{color:FOG}});
+  B=board.create('point',[-3,1.5],{name:'B',label:{color:FOG}});
+  C=board.create('point',[-1,-3],{name:'C',label:{color:FOG}});
+  poly=board.create('polygon',[A,B,C],{hasInnerPoints:false});
+  circ=board.create('circumcircle',[A,B,C],{strokeColor:INFRARED,strokeWidth:1,dash:1});
+  board.on('update',update);
+  update();
+}
+function update(){
+  const ax=A.X(),ay=A.Y(),bx=B.X(),by=B.Y(),cx=C.X(),cy=C.Y();
+  const sa=Math.hypot(bx-cx,by-cy);
+  const sb=Math.hypot(ax-cx,ay-cy);
+  const sc=Math.hypot(ax-bx,ay-by);
+  const angRad=(p,q,r)=>Math.acos(Math.max(-1,Math.min(1,(q*q+r*r-p*p)/(2*q*r))));
+  const Aa=angRad(sa,sb,sc),Bb=angRad(sb,sc,sa),Cc=angRad(sc,sa,sb);
+  const area=Math.abs((bx-ax)*(cy-ay)-(cx-ax)*(by-ay))/2;
+  const near=(x,y)=>Math.abs(x-y)<1e-6;
+  document.getElementById('sa').textContent=sa.toFixed(3);
+  document.getElementById('sb').textContent=sb.toFixed(3);
+  document.getElementById('sc').textContent=sc.toFixed(3);
+  document.getElementById('angA').textContent=(Aa*180/Math.PI).toFixed(1)+'°';
+  document.getElementById('angB').textContent=(Bb*180/Math.PI).toFixed(1)+'°';
+  document.getElementById('angC').textContent=(Cc*180/Math.PI).toFixed(1)+'°';
+  document.getElementById('area').textContent=area.toFixed(3);
+  const right = near(Aa,Math.PI/2)||near(Bb,Math.PI/2)||near(Cc,Math.PI/2);
+  const r=document.getElementById('right');
+  r.textContent=right?'YES':'no';
+  r.style.color=right?'var(--validation-green)':'var(--pulse-ash)';
+}
+build();
+
+document.getElementById('resetBtn').onclick=()=>{
+  board.suspendUpdate();
+  A.moveTo([3,2]);B.moveTo([-3,1.5]);C.moveTo([-1,-3]);
+  board.unsuspendUpdate();
+};
+
+let sliderOn=false;
+function addSlider(){
+  ampSlider=board.create('slider',[[-4,-4.6],[2,-4.6],[0,1,3]],{name:'amp',strokeColor:INFRARED,highlightFillColor:INFRARED,label:{color:FOG}});
+  fplot=board.create('functiongraph',[x=>ampSlider.Value()*Math.sin(x)],{strokeColor:INFRARED,strokeWidth:2});
+  sliderOn=true;
+}
+function removeSlider(){
+  if(fplot){board.removeObject(fplot);fplot=null;}
+  if(ampSlider){board.removeObject(ampSlider);ampSlider=null;}
+  sliderOn=false;
+}
+document.getElementById('toggleSlider').onclick=()=>{ sliderOn?removeSlider():addSlider(); board.update(); };
+</script>
+</body>
+</html>

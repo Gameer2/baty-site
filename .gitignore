@@ -1,6 +1,10 @@
 # Course reference material — copyrighted, kept local only
 reference/
 
+# Curriculum reference PDFs (Jordan MoE + Cambridge) — copyrighted source
+# textbooks/syllabi, kept local only. Extracted text/ mirror stays tracked.
+docs/curriculum-references/**/*.pdf
+
 # Archived pre-redesign build + unrelated template (large binaries, superseded)
 archive/*
 !archive/docs/

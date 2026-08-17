@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dividing Decimals — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: shift both decimal points to clear the divisor, then run the
+     same long-division staircase as Grade 5's 2.5. ---- */
+  .chart{ padding:34px 24px 30px; display:flex; flex-direction:column; align-items:center; gap:26px; }
+  .step-cap{ font-family:var(--mono); font-size:11.5px; color:var(--pulse-ash); text-transform:uppercase; letter-spacing:.06em; direction:ltr; }
+
+  .shift-pair{ display:flex; flex-direction:column; gap:22px; align-items:center; }
+  .shift-row{ display:flex; align-items:center; gap:14px; }
+  .shift-label{ font-family:var(--mono); font-size:12px; color:var(--pulse-ash); width:64px; direction:ltr; }
+  .digit-strip-wrap{ position:relative; padding-top:22px; }
+  .digit-strip{ display:flex; gap:4px; position:relative; }
+  .digit-box{ width:32px; height:40px; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:20px; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.14); border-radius:6px; }
+  .point-caret{ position:absolute; top:-12px; width:2px; height:60px; background:var(--infrared); border-radius:1px; }
+  .point-caret::before{ content:"↓"; position:absolute; top:-16px; left:50%; transform:translateX(-50%); font-size:11px; color:var(--infrared); }
+
+  .steps-col{ display:flex; flex-direction:column; gap:8px; width:100%; max-width:460px; }
+  .step-card{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 16px; border-radius:10px; background:var(--core-black); border:1px solid rgba(255,255,255,.08); opacity:.25; transition:opacity .3s ease; direction:ltr; }
+  .step-card.active{ opacity:1; border-color:rgba(92,147,159,.4); background:rgba(92,147,159,.08); }
+  .step-card .desc{ font-family:var(--mono); font-size:12.5px; color:var(--neural-fog); }
+  .step-card .qd{ font-family:var(--mono); font-size:16px; font-weight:700; color:var(--electric-teal); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 3 · LESSON 2</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Dividing Decimals</h1>
+    <span class="title-secondary ar-display" id="titleAr">قسمة الأعداد العشرية</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I divide decimals.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">shift both points so the divisor becomes whole</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabel">step</label>
+      <input type="range" id="stepSlider" min="0" max="1" step="1" value="0" />
+      <span class="control-val" id="stepReadout">1 / 1</span>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="step-cap dimmable" data-el="shift">shift both points together</div>
+      <div class="shift-pair dimmable" data-el="shift">
+        <div class="shift-row">
+          <span class="shift-label" id="dividendLabel">dividend</span>
+          <div class="digit-strip-wrap"><div class="digit-strip" id="dividendStrip"></div><div class="point-caret" id="dividendCaret"></div></div>
+        </div>
+        <div class="shift-row">
+          <span class="shift-label" id="divisorLabel">divisor</span>
+          <div class="digit-strip-wrap"><div class="digit-strip" id="divisorStrip"></div><div class="point-caret" id="divisorCaret"></div></div>
+        </div>
+      </div>
+
+      <div class="step-cap dimmable" data-el="staircase">now divide as whole numbers</div>
+      <div class="steps-col dimmable" data-el="staircase" id="stepsCol"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Dividing decimal quantities (e.g. total sales ÷ ticket price), by shifting both dividend and divisor's decimal points to clear the divisor to a whole number, then standard long division.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="3-1-multiplying-decimals.html">— <b data-role="body" id="navPrevText">3.1 · Multiplying Decimals</b></a>
+    <a class="nav-pill next" href="3-3-measurement-unit-problems.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">3.3 · Problems with Different Units</b></a>
+  </div>
+</div>
+
+<script>
+  const { groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const DIVIDEND_RAW = "7.5", DIVISOR_RAW = "1.5"; // shift 1 place → 75 ÷ 15 = 5
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 3 · LESSON 2",
+      objectiveLabel: "Objective —",
+      objectiveText: "I divide decimals.",
+      eqSub: "shift both points so the divisor becomes whole",
+      explainBtn: "Explain this",
+      controlLabel: "step",
+      dividendLabel: "dividend", divisorLabel: "divisor",
+      shiftCap: "shift both points together", staircaseCap: "now divide as whole numbers",
+      bring: "bring down",
+      teachLabel: "What this teaches:",
+      teachBody: "Dividing decimal quantities (e.g. total sales ÷ ticket price), by shifting both dividend and divisor's decimal points to clear the divisor to a whole number, then standard long division.",
+      navPrev: "3.1 · Multiplying Decimals",
+      navNext: "3.3 · Problems with Different Units",
+      navNextLabel: "next",
+      tour: [
+        { elKey: "shift", label: "Shift together, by the same amount", body: "Both points move right by exactly how many places the divisor needs to become whole — moving only one would change the answer." },
+        { elKey: "staircase", label: "Now it's whole-number division", body: "Once the divisor is whole, this is the exact same long-division staircase from Grade 5 — divide, multiply, subtract, bring down." },
+        { ids: ["eqLine"], label: "Read the quotient", body: "The quotient is the same whether you divide the original decimals or the shifted whole numbers — shifting both points together never changes the result." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ٣ · الدرس ٢",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أقسم الأعداد العشرية.",
+      eqSub: "أزح الفاصلتين معًا حتى يصبح المقسوم عليه عددًا كليًا",
+      explainBtn: "اشرح هذا",
+      controlLabel: "الخطوة",
+      dividendLabel: "المقسوم", divisorLabel: "المقسوم عليه",
+      shiftCap: "أزح الفاصلتين معًا", staircaseCap: "الآن اقسم كأعداد كلّية",
+      bring: "أنزل",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "قسمة كمّيّات عشرية (كإجمالي المبيعات ÷ سعر التذكرة)، بإزاحة فاصلتَي المقسوم والمقسوم عليه حتى يصبح المقسوم عليه عددًا كليًا، ثم القسمة المطوّلة المعتادة.",
+      navPrev: "٣.١ · ضرب الأعداد العشرية",
+      navNext: "٣.٣ · مسائل بوحدات قياس مختلفة",
+      navNextLabel: "التالي",
+      tour: [
+        { elKey: "shift", label: "أزح معًا، بالمقدار نفسه", body: "تتحرّك كلتا الفاصلتين يمينًا بعدد المنازل اللازم بالضبط ليصبح المقسوم عليه عددًا كليًا — إزاحة واحدة فقط تُغيّر الناتج." },
+        { elKey: "staircase", label: "الآن هي قسمة أعداد كلّية", body: "بعد أن يصبح المقسوم عليه عددًا كليًا، هذه هي قسمة السلّم المطوّلة نفسها من الصف الخامس — اقسم، اضرب، اطرح، أنزل." },
+        { ids: ["eqLine"], label: "اقرأ خارج القسمة", body: "خارج القسمة نفسه سواء قسمت العددين العشريين الأصليين أو العددين الكليين بعد الإزاحة — إزاحة الفاصلتين معًا لا تُغيّر الناتج أبدًا." }
+      ]
+    }
+  };
+
+  function placesOf(str) { const p = str.split("."); return p[1] ? p[1].length : 0; }
+  function digitsOnly(str) { return str.replace(".", ""); }
+
+  const shift = placesOf(DIVISOR_RAW);
+  const dividendDigits = digitsOnly(DIVIDEND_RAW);
+  const divisorDigits = digitsOnly(DIVISOR_RAW);
+  const shiftedDividend = parseInt(dividendDigits, 10);
+  const shiftedDivisor = parseInt(divisorDigits, 10);
+
+  function longDivisionSteps(D, d) {
+    const Dstr = String(D);
+    const steps = [];
+    let remainder = 0, started = false, qDigits = [];
+    for (let i = 0; i < Dstr.length; i++) {
+      const digit = parseInt(Dstr[i], 10);
+      const current = remainder * 10 + digit;
+      const qd = Math.floor(current / d);
+      if (!started && qd === 0 && i < Dstr.length - 1) {
+        steps.push({ digit, current, qd: null, rem: current });
+        remainder = current;
+        continue;
+      }
+      started = true;
+      const sub = qd * d;
+      const newRem = current - sub;
+      qDigits.push(qd);
+      steps.push({ digit, current, qd, sub, rem: newRem });
+      remainder = newRem;
+    }
+    return { steps, quotient: parseInt(qDigits.join("") || "0", 10), remainder };
+  }
+
+  const { steps, quotient, remainder } = longDivisionSteps(shiftedDividend, shiftedDivisor);
+
+  const dividendStrip = document.getElementById("dividendStrip"), dividendCaret = document.getElementById("dividendCaret");
+  const divisorStrip = document.getElementById("divisorStrip"), divisorCaret = document.getElementById("divisorCaret");
+  const dividendLabel = document.getElementById("dividendLabel"), divisorLabel = document.getElementById("divisorLabel");
+  const stepSlider = document.getElementById("stepSlider");
+  const stepReadout = document.getElementById("stepReadout");
+  const stepsCol = document.getElementById("stepsCol");
+  const eqLine = document.getElementById("eqLine");
+
+  stepSlider.max = steps.length - 1;
+  stepSlider.value = steps.length - 1;
+
+  function buildStrip(strip, caret, digitsStr, places) {
+    strip.innerHTML = "";
+    digitsStr.split("").forEach(ch => {
+      const box = document.createElement("div");
+      box.className = "digit-box";
+      box.textContent = ch;
+      strip.appendChild(box);
+    });
+    const step = 36;
+    const len = digitsStr.length;
+    const startLeft = (len - places) * step;
+    const targetLeft = len * step;
+    gsap.set(caret, { left: startLeft });
+    gsap.to(caret, { left: targetLeft, duration: .6, delay: .2, ease: "power2.inOut" });
+  }
+
+  function buildSteps() {
+    const t = T[i18n.lang];
+    stepsCol.innerHTML = "";
+    steps.forEach((s, idx) => {
+      const card = document.createElement("div");
+      card.className = "step-card";
+      card.id = "step_" + idx;
+      const desc = document.createElement("span");
+      desc.className = "desc";
+      desc.textContent = s.qd === null
+        ? `${t.bring} ${groupInt(s.digit, "en")} → ${groupInt(s.current, "en")}`
+        : `${t.bring} ${groupInt(s.digit, "en")} → ${groupInt(s.current, "en")} ÷ ${groupInt(shiftedDivisor, "en")} = ${groupInt(s.qd, "en")}`;
+      const qd = document.createElement("span");
+      qd.className = "qd";
+      qd.textContent = s.qd === null ? "—" : groupInt(s.qd, "en");
+      card.appendChild(desc);
+      card.appendChild(qd);
+      stepsCol.appendChild(card);
+    });
+  }
+
+  function render() {
+    const t = T[i18n.lang];
+    dividendLabel.textContent = t.dividendLabel;
+    divisorLabel.textContent = t.divisorLabel;
+    buildStrip(dividendStrip, dividendCaret, dividendDigits, placesOf(DIVIDEND_RAW));
+    buildStrip(divisorStrip, divisorCaret, divisorDigits, shift);
+
+    const cur = parseInt(stepSlider.value, 10);
+    stepReadout.textContent = groupInt(cur + 1, "en") + " / " + groupInt(steps.length, "en");
+    document.querySelectorAll(".step-card").forEach((c, idx) => c.classList.toggle("active", idx <= cur));
+
+    const isLast = cur === steps.length - 1;
+    const partialQuotient = steps.slice(0, cur + 1).filter(s => s.qd !== null).map(s => s.qd).join("");
+
+    const eqSource = isLast
+      ? `${DIVIDEND_RAW} \\div ${DIVISOR_RAW} = ${shiftedDividend} \\div ${shiftedDivisor} = \\color{#ed6d40}{${quotient}}`
+      : `${DIVIDEND_RAW} \\div ${DIVISOR_RAW} = ${shiftedDividend} \\div ${shiftedDivisor} \\;\\Rightarrow\\; ${partialQuotient || "\\,\\cdot\\,"}\\ldots`;
+    renderEquation(eqLine, eqSource);
+  }
+
+  stepSlider.addEventListener("input", render);
+  const i18n = initI18n(T, { onLangChange: () => { buildSteps(); render(); } });
+  buildSteps();
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

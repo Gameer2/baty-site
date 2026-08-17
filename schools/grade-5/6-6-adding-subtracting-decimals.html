@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Adding and Subtracting Decimals — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:40px 24px 26px; display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .col-set{ display:flex; flex-direction:column; align-items:center; }
+  .carry-row, .num-row, .result-row{ display:flex; gap:5px; }
+  .carry-row{ height:22px; margin-bottom:2px; }
+  .carry{ width:44px; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:12px; font-weight:700; color:var(--infrared); opacity:0; direction:ltr; }
+  .num-row{ margin-bottom:6px; }
+  .op-cell{ width:44px; height:52px; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:22px; color:var(--pulse-ash); }
+  .cell{ width:44px; height:52px; border-radius:8px; background:var(--core-black); border:1px solid rgba(255,255,255,.1); display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:21px; font-weight:700; color:var(--off-white); direction:ltr; }
+  .cell.padded{ color:var(--pulse-ash); border-style:dashed; border-color:rgba(237,109,64,.4); }
+  .point-cell{ width:16px; height:52px; display:flex; align-items:flex-end; justify-content:center; padding-bottom:8px; font-family:var(--mono); font-size:26px; font-weight:900; color:var(--infrared); }
+  .result-row{ border-top:2px solid rgba(255,255,255,.25); padding-top:8px; margin-top:4px; }
+  .result-row .cell{ background:rgba(92,147,159,.14); border-color:rgba(92,147,159,.4); color:var(--electric-teal); }
+
+  .inputs{ display:flex; gap:20px; flex-wrap:wrap; justify-content:center; align-items:center; }
+  .input-group{ display:flex; align-items:center; gap:10px; }
+  .input-group label{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash); }
+  .input-group input{ font-family:var(--mono); font-size:15px; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.16); border-radius:8px; padding:7px 10px; width:100px; direction:ltr; }
+  .op-toggle{ display:flex; border:1px solid rgba(255,255,255,.16); border-radius:100px; overflow:hidden; }
+  .op-toggle button{ font-family:var(--mono); font-size:16px; color:var(--pulse-ash); background:none; border:none; padding:8px 16px; cursor:pointer; }
+  .op-toggle button.active{ background:var(--electric-teal); color:var(--core-black); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 6 · LESSON 6</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Adding and Subtracting Decimals</h1>
+    <span class="title-secondary ar-display" id="titleAr">جمع وطرح الكسور العشرية</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I add or subtract decimals by aligning their decimal points, padding missing places with zero.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">align the points, pad with zero, carry as usual</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="inputs">
+        <div class="input-group"><label data-role="ui" data-i18n="labelA">A</label><input type="text" id="inputA" value="24.6" /></div>
+        <div class="op-toggle" id="opToggle">
+          <button data-op="add" class="active">+</button>
+          <button data-op="sub">−</button>
+        </div>
+        <div class="input-group"><label data-role="ui" data-i18n="labelB">B</label><input type="text" id="inputB" value="8.75" /></div>
+      </div>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="col-set">
+        <div class="carry-row" id="carryRow"></div>
+        <div class="num-row" id="rowA"></div>
+        <div class="num-row" id="rowB"></div>
+        <div class="result-row" id="rowResult"></div>
+      </div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Adding or subtracting decimals starts with lining up the decimal points so matching place values sit in the same column — any place one number is "missing" gets a zero pad — then the same carry/borrow process from whole-number addition runs unchanged, with the decimal point simply dropped straight down into the answer.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="6-5-estimating-sums-differences-decimals.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">6.5 · Estimating Sums and Differences</b></a>
+    <a class="nav-pill next" href="6-7-multiplying-dividing-decimals-powers-ten.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">6.7 · Multiplying and Dividing by Powers of Ten</b></a>
+  </div>
+</div>
+
+<script>
+  const { groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+  const DEC_DIGITS = 2, WHOLE_DIGITS = 3;
+  const POS = [2, 1, 0, -1, -2]; // hundreds..ones, tenths, hundredths
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 6 · LESSON 6",
+      objectiveLabel: "Objective —",
+      objectiveText: "I add or subtract decimals by aligning their decimal points, padding missing places with zero.",
+      eqSub: "align the points, pad with zero, carry as usual",
+      explainBtn: "Explain this",
+      labelA: "A", labelB: "B",
+      navPrevLabel: "—", navPrevText: "6.5 · Estimating Sums and Differences",
+      navNextLabel: "next", navNext: "6.7 · Multiplying and Dividing by Powers of Ten",
+      teachLabel: "What this teaches:",
+      teachBody: "Adding or subtracting decimals starts with lining up the decimal points so matching place values sit in the same column — any place one number is “missing” gets a zero pad — then the same carry/borrow process from whole-number addition runs unchanged, with the decimal point simply dropped straight down into the answer.",
+      tour: [
+        { ids: ["rowA", "rowB"], label: "Align the decimal points", body: "Both numbers are stacked so their decimal points sit in the same column — that's what makes place values match up." },
+        { elKey: "padCell", label: "Pad the missing places", body: "If one number has fewer decimal digits, a dashed zero fills that column — it doesn't change the value, just makes the columns line up." },
+        { elKey: "carryTok", label: "Carry or borrow as usual", body: "From here it's the exact same carrying/borrowing process as whole numbers — the decimal point doesn't change that at all." },
+        { ids: ["rowResult"], label: "Drop the point straight down", body: "The decimal point in the answer lines up directly below the points in A and B." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٦ · الدرس ٦",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أجمع أو أطرح كسورًا عشرية بمحاذاة فواصلها العشرية، وأملأ المنازل الناقصة بصفر.",
+      eqSub: "حاذِ الفواصل، املأ بصفر، احمل كالمعتاد",
+      explainBtn: "اشرح هذا",
+      labelA: "A", labelB: "B",
+      navPrevLabel: "—", navPrevText: "٦.٥ · تقدير مجموع وفرق الكسور العشرية",
+      navNextLabel: "التالي", navNext: "٦.٧ · الضرب والقسمة على قوى العشرة",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "يبدأ جمع أو طرح الكسور العشرية بمحاذاة فواصلها العشرية بحيث تتحاذى المنازل المتماثلة في العمود نفسه — وأي منزلة «ناقصة» في أحد العددين تُملأ بصفر — ثم تسير عملية الحمل والاستلاف نفسها من جمع الأعداد الكلّية دون تغيير، مع إنزال الفاصلة العشرية مباشرة إلى الناتج.",
+      tour: [
+        { ids: ["rowA", "rowB"], label: "حاذِ الفواصل العشرية", body: "يُرتَّب العددان بحيث تتحاذى فاصلتاهما العشريتان في العمود نفسه — وهذا ما يجعل المنازل المتماثلة تتطابق." },
+        { elKey: "padCell", label: "املأ المنازل الناقصة", body: "إن كان لأحد العددين منازل عشرية أقل، يُملأ ذلك العمود بصفر متقطّع الحدود — لا يغيّر القيمة، بل يجعل الأعمدة متحاذية فقط." },
+        { elKey: "carryTok", label: "احمل أو استلف كالمعتاد", body: "من هنا، العملية هي نفسها تمامًا عملية الحمل والاستلاف في الأعداد الكلّية — الفاصلة العشرية لا تغيّر ذلك إطلاقًا." },
+        { ids: ["rowResult"], label: "أنزل الفاصلة مباشرة", body: "تتحاذى الفاصلة العشرية في الناتج مباشرة أسفل فاصلتَي A و B." }
+      ]
+    }
+  };
+
+  const rowA = document.getElementById("rowA");
+  const rowB = document.getElementById("rowB");
+  const rowResult = document.getElementById("rowResult");
+  const carryRow = document.getElementById("carryRow");
+  const inputA = document.getElementById("inputA");
+  const inputB = document.getElementById("inputB");
+  const eqLine = document.getElementById("eqLine");
+  let op = "add";
+
+  function digitAt(scaled, pos) { return Math.floor(Math.abs(scaled) / Math.pow(10, pos + DEC_DIGITS)) % 10; }
+
+  function buildRow(container, withOp) {
+    container.innerHTML = "";
+    if (withOp) {
+      const opCell = document.createElement("div");
+      opCell.className = "op-cell";
+      container.appendChild(opCell);
+    }
+    const cells = {};
+    POS.forEach(pos => {
+      if (pos === -1) {
+        const ptSpacer = document.createElement("div");
+        ptSpacer.className = "point-cell";
+        ptSpacer.id = container.id + "_point";
+        container.appendChild(ptSpacer);
+      }
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      container.appendChild(cell);
+      cells[pos] = cell;
+    });
+    return cells;
+  }
+  function buildCarryRow() {
+    carryRow.innerHTML = "";
+    const spacer = document.createElement("div");
+    spacer.className = "op-cell";
+    carryRow.appendChild(spacer);
+    const toks = {};
+    POS.forEach(pos => {
+      if (pos === -1) {
+        const sp = document.createElement("div");
+        sp.className = "point-cell";
+        carryRow.appendChild(sp);
+      }
+      const tok = document.createElement("div");
+      tok.className = "carry";
+      carryRow.appendChild(tok);
+      toks[pos] = tok;
+    });
+    return toks;
+  }
+
+  const cellsA = buildRow(rowA, true);
+  const cellsB = buildRow(rowB, true);
+  const cellsResult = buildRow(rowResult, true);
+  const carryToks = buildCarryRow();
+
+  function parseDecimals(str) {
+    const parts = String(str).split(".");
+    return parts[1] ? parts[1].length : 0;
+  }
+
+  function render() {
+    const t = T[i18n.lang];
+    let rawA = inputA.value.trim() || "0";
+    let rawB = inputB.value.trim() || "0";
+    const decA = parseDecimals(rawA), decB = parseDecimals(rawB);
+    let A = Math.round(parseFloat(rawA) * 100) || 0;
+    let B = Math.round(parseFloat(rawB) * 100) || 0;
+    if (op === "sub" && B > A) {
+      [A, B] = [B, A];
+      [rawA, rawB] = [rawB, rawA];
+      inputA.value = rawA; inputB.value = rawB;
+    }
+
+    let result = op === "add" ? A + B : A - B;
+    const carry = {};
+    let c = 0;
+    POS.slice().reverse().forEach(pos => {
+      const da = digitAt(A, pos), db = digitAt(B, pos);
+      if (op === "add") {
+        const sum = da + db + c;
+        carry[pos + 1] = sum >= 10 ? 1 : 0;
+        c = sum >= 10 ? 1 : 0;
+      } else {
+        let diff = da - db - c;
+        if (diff < 0) { carry[pos + 1] = 1; c = 1; } else { carry[pos + 1] = 0; c = 0; }
+      }
+    });
+
+    POS.forEach(pos => {
+      const isPaddedA = pos < 0 && (-pos) > decA;
+      const isPaddedB = pos < 0 && (-pos) > decB;
+      cellsA[pos].textContent = digitAt(A, pos);
+      cellsA[pos].classList.toggle("padded", isPaddedA);
+      if (isPaddedA) cellsA[pos].dataset.el = "padCell";
+      cellsB[pos].textContent = digitAt(B, pos);
+      cellsB[pos].classList.toggle("padded", isPaddedB);
+      if (isPaddedB) cellsB[pos].dataset.el = "padCell";
+      cellsResult[pos].textContent = digitAt(result, pos);
+      const tok = carryToks[pos];
+      const show = !!carry[pos];
+      tok.textContent = show ? "1" : "";
+      tok.dataset.el = show ? "carryTok" : "";
+      if (show) gsap.fromTo(tok, { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: .35 });
+      else gsap.set(tok, { opacity: 0 });
+    });
+
+    rowA.querySelector(".op-cell").textContent = "";
+    rowB.querySelector(".op-cell").textContent = op === "add" ? "+" : "−";
+    rowResult.querySelector(".op-cell").textContent = "";
+    ["rowA_point", "rowB_point", "rowResult_point"].forEach(id => {
+      document.getElementById(id).textContent = ".";
+    });
+
+    const exactA = (A / 100).toFixed(2), exactB = (B / 100).toFixed(2), exactResult = (result / 100).toFixed(2);
+    const eqSource = `${exactA} ${op === "add" ? "+" : "-"} ${exactB} = \\color{#ed6d40}{${exactResult}}`;
+    renderEquation(eqLine, eqSource);
+  }
+
+  inputA.addEventListener("input", render);
+  inputB.addEventListener("input", render);
+  document.getElementById("opToggle").addEventListener("click", e => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+    op = btn.dataset.op;
+    document.querySelectorAll("#opToggle button").forEach(b => b.classList.toggle("active", b === btn));
+    render();
+  });
+
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

@@ -85,5 +85,12 @@
     if (base < 2n) return showError("Fermat base a must be at least 2.");
     if (base >= n) return showError("Fermat base a must be smaller than n.");
     render(n, base);
+    Proto.saveState("engine-lab:number-theory-primality-testing", { n: nInput.value });
   });
+
+  const saved = Proto.loadState("engine-lab:number-theory-primality-testing");
+  if (saved) {
+    if (saved.n !== undefined) nInput.value = saved.n;
+    form.requestSubmit();
+  }
 })();

@@ -2,6 +2,7 @@
 (function () {
   "use strict";
   LinAlgPage.init({
+    storeKey: "engine-lab:linear-algebra-conjugate-gradient",
     square: true, vector: true,
     example: { A: [[4, -1, 0], [-1, 4, -1], [0, -1, 4]], b: [15, 10, 10] },
     compute: (A, b) => {

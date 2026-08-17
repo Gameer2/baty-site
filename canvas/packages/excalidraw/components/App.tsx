@@ -29,7 +29,6 @@ import {
   CURSOR_TYPE,
   DEFAULT_ERASER_SIZE,
   DEFAULT_STROKE_STREAMLINE,
-  DEFAULT_STROKE_STREAMLINE_PRECISE,
   DEFAULT_TRANSFORM_HANDLE_SPACING,
   DEFAULT_VERTICAL_ALIGN,
   DRAGGING_THRESHOLD,
@@ -438,7 +437,6 @@ import { withBatchedUpdates, withBatchedUpdatesThrottled } from "../reactUtils";
 import { isPointHittingTextAutoResizeHandle } from "../textAutoResizeHandle";
 import { textWysiwyg } from "../wysiwyg/textWysiwyg";
 import { isOverScrollBars } from "../scene/scrollbars";
-import { isMaybeMermaidDefinition } from "../mermaid";
 import { LassoTrail } from "../lasso";
 import { EraserTrail } from "../eraser";
 import {
@@ -4713,32 +4711,6 @@ class App extends React.Component<AppProps, AppState> {
     // ------------------- Only textual stuff remaining -------------------
     if (!data.text) {
       return;
-    }
-
-    // ------------------- Successful Mermaid -------------------
-    if (!isPlainPaste && isMaybeMermaidDefinition(data.text)) {
-      const api = await import("@excalidraw/mermaid-to-excalidraw");
-      try {
-        const { elements: skeletonElements, files = {} } =
-          await api.parseMermaidToExcalidraw(data.text);
-
-        const elements = convertToExcalidrawElements(skeletonElements, {
-          regenerateIds: true,
-        });
-
-        this.addElementsFromPasteOrLibrary({
-          elements,
-          files,
-          position:
-            this.editorInterface.formFactor === "desktop" ? "cursor" : "center",
-        });
-
-        return;
-      } catch (err: any) {
-        console.warn(
-          `parsing pasted text as mermaid definition failed: ${err.message}`,
-        );
-      }
     }
 
     // ------------------- Pure embeddable URLs -------------------
@@ -10031,6 +10003,24 @@ class App extends React.Component<AppProps, AppState> {
 
     const strokeVariability = this.state.currentItemStrokeVariability;
 
+    // Real-time handwriting stabilization (Syntropy addition): perfect-freehand's own
+    // `streamline` option already smooths the captured input path as points come in — it's what
+    // makes the LIVE preview while drawing look calmer, not just the final render, since the
+    // in-progress stroke is recomputed from this option on every point. Baseline is upstream
+    // Excalidraw's own constant (0.5, same for every pointer type — verified against
+    // excalidraw/excalidraw v0.18.0's getFreeDrawSvgPath). A prior version of this fork lowered
+    // it to 0.2 for pen/touch input specifically, which is far less smoothing than mouse got and
+    // made stylus strokes noticeably rougher/jitterier than the original pen — reverted.
+    // `currentItemStrokeSmoothing` (0 by default, so no behavior change unless a user turns it
+    // up) blends the baseline toward 1.0 for extra stabilization, the same "intensity" concept
+    // as GoodNotes-style note apps' pen stabilizers.
+    const baselineStreamline = DEFAULT_STROKE_STREAMLINE;
+    const strokeSmoothing = this.state.currentItemStrokeSmoothing || 0;
+    const streamline =
+      strokeSmoothing > 0
+        ? baselineStreamline + strokeSmoothing * (1 - baselineStreamline)
+        : baselineStreamline;
+
     const element = newFreeDrawElement({
       type: elementType,
       x: gridX,
@@ -10046,10 +10036,7 @@ class App extends React.Component<AppProps, AppState> {
       simulatePressure,
       strokeOptions: {
         variability: strokeVariability,
-        streamline:
-          event.pointerType !== "mouse"
-            ? DEFAULT_STROKE_STREAMLINE_PRECISE
-            : DEFAULT_STROKE_STREAMLINE,
+        streamline,
       },
       locked: false,
       frameId: topLayerFrame ? topLayerFrame.id : null,

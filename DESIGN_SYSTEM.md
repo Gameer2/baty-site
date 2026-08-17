@@ -248,3 +248,77 @@ Three.js (hero/3D canvases), GSAP (entrance timelines), Plotly (2D charts, theme
 - Two/three-column grids collapse to one column below 900px.
 - Side-by-side form rows (`.field-row`) stack below 520px.
 - `engine-card` padding steps down (40px→28px) and its title shrinks (30px→24px) below 700px.
+
+---
+
+## 14. Schools vertical — typography variant & lesson page pattern
+
+Everything below is **scoped to the Schools vertical only** (Jordan National Curriculum, grades 5–10) — it does not change sections 1–13, which remain the identity for math-lab/the main site. Schools reuses the same palette (section 1), radii, hairline-border language, and motion curve, but swaps one typeface role and adds a bilingual (Arabic/English) layer the main site doesn't have.
+
+Living reference implementation: `prototypes/lesson-g6-1-1-integers-absolute-value.html` — a single, complete lesson page. Read the file directly for exact code; this section explains the *decisions* behind it and how to replicate the pattern across the other ~280 curriculum lessons.
+
+### 14.1 Typography — settled system
+
+| Role | Font | Changed from main identity? |
+|---|---|---|
+| Display / headings | **Bricolage Grotesque** | Yes — replaces Fraunces for this vertical. Fraunces (and a second candidate, Instrument Serif) were tried and rejected: too literary/precious for a math *lab* tool aimed at grades 5–10. Bricolage Grotesque is geometric and confident but not sterile — it has real expressive/quirky character in its letterforms, just arrived at through grotesque-sans construction instead of an old-style serif's ink-traps. |
+| Body / UI chrome | **Roc Grotesk** | No — same as main identity (section 2). An earlier pass tried Figtree here; reverted. Roc Grotesk was never actually the problem. |
+| Mono / UI labels, data, badges | **Azeret Mono** | No — same as main identity. Already has enough quirky personality; alternates tried (JetBrains Mono, Space Mono) read as colder/more generic and were dropped. **Not used for the equation bar itself** — see 14.3.5. |
+
+**Arabic companions** (the main site has none — Schools is bilingual, the main site isn't):
+
+| Role | Font | Why |
+|---|---|---|
+| Display / headings | **El Messiri** | Naskh-based but "drawn as if with a brush" per its own designer — organic, ink-flow warmth. Chosen over the more classical/formal **Amiri** (still valid, more literary) and over Reem Kufi/IBM Plex Sans Arabic/Readex Pro (all tried and dropped — geometric-Kufi or corporate-grotesque, no warmth, didn't share a voice with the rest of the system). |
+| Body + UI / labels | **Vazirmatn** | One font covers both roles (not split) — humanist-geometric, warm enough to sit next to El Messiri without a personality clash, legible at small sizes. |
+
+Open item, noted honestly rather than papered over: El Messiri's warmth was originally chosen to match **Fraunces's** ink-trap softness. Fraunces has since been dropped in favor of Bricolage Grotesque's more geometric-expressive voice. The pairing still reads as coherent (Bricolage is expressive/quirky, not sterile — it's not a personality clash the way Inter or IBM Plex Sans Arabic were), but if a future pass wants to re-audit the Arabic display pick specifically against Bricolage Grotesque rather than against Fraunces, that's a legitimate thing to revisit — it just hasn't been tested head-to-head.
+
+All six fonts (English: Bricolage Grotesque, Roc Grotesk, Azeret Mono; Arabic: El Messiri, Vazirmatn) are **free for commercial use (OFL)** and self-hostable. The prototype currently loads El Messiri/Vazirmatn/Bricolage Grotesque via the Google Fonts CDN for iteration speed — **before shipping**, self-host them into `math-lab/assets/fonts/` alongside the existing files (Roc Grotesk and Azeret Mono are already self-hosted there; Bricolage Grotesque/El Messiri/Vazirmatn need `.woff2` files added and `@font-face` rules matching the existing pattern in the prototype's `<style>` block).
+
+### 14.2 Lesson page architecture
+
+One HTML file per lesson (not a multi-lesson index or scrollable list of cards — that was tried first, in a discarded pilot, and rejected as reading like "bad slides" with no identity). Every lesson page has the same five regions, top to bottom:
+
+1. **Breadcrumb** (`.crumb`) — mono, small, uppercase in English / no uppercase-transform in Arabic: `JORDAN NATIONAL CURRICULUM · GRADE N · UNIT N · LESSON N`.
+2. **Bilingual title block** — both the English and Arabic lesson title are always shown together; which one is visually primary (large/serif-role font) vs. secondary (smaller, muted) flips with the language toggle, not which one exists. Below it, one objective sentence sourced verbatim from the curriculum doc (`docs/curriculum-references/topics/gradeNN-topics.md`).
+3. **The stage** (`.stage`) — a single card containing, in order:
+   - **Equation bar** — the lesson's core relationship (e.g. `|−4| = 4`), rendered by **KaTeX**, not styled mono text — see 14.3.5. Re-rendered on every value change; the container flashes on update. **Always Western digits, `direction:ltr; unicode-bidi:isolate`, regardless of page language** — this is a firm rule, not a per-lesson choice, and it's now more than a style preference: Arabic-Indic digits fed into KaTeX corrupt the whole expression's layout (see 14.4).
+   - **An explicit numeric control** (slider or equivalent) that mirrors whatever direct-manipulation interaction the visual offers — confirmed requirement from the user: dragging alone isn't enough, there must be a control where a value can be set directly and the animation reacts the same way.
+   - **The bespoke, concept-native visual** — see 14.3, this is the part that is *not* a shared component.
+   - **Teach caption** (`.teach`) — the curriculum doc's "What's taught" paragraph, verbatim, in the active language.
+4. **"Explain this" tour** — a generic, reusable engine (`buildTour()` in the prototype), not rebuilt per lesson. Spotlights one element (or a union bounding box across several, e.g. all four bracket pieces together) with a pulsing ring, dims everything else via a `.dim`/`.dimmable`/`.is-current` class scheme, and steps through a `{label, body}` array per language. Closes on Skip/Done, clicking the scrim, or Escape.
+5. **Prev/next nav pills** — styled, dashed border, even before the neighboring lesson pages exist (they currently point nowhere functional; wire them up once sibling lesson pages are built).
+
+### 14.3 Why each lesson gets a bespoke visual, not a shared "primitive"
+
+An earlier plan (see `docs/curriculum-references/topics/implementation-roadmap-by-primitive.md`) proposed grouping all ~280 lessons into ~31 shared interactive primitives (number line, coordinate plane, area model, etc.) to maximize reuse. That plan is still useful **as a content/authoring roadmap** (which lessons cluster around which concept), but the actual validated visual-design direction — established via the "Mathematica Canvas" spec (`docs/superpowers/specs/2026-08-01-mathematica-canvas-design.md`, mockup at `docs/superpowers/specs/assets/2026-08-01-mathematica-canvas-v4-mockup.html`) and confirmed again on this lesson page — is the opposite of a shared widget:
+
+> There is no default visual. Each concept's visual is chosen to match what that concept actually *is*. A list command shows boxes. A shape command shows the shape. Absolute value shows a literal distance bracket on a sea-level scene, because that's what the textbook's own real-world framing already is.
+
+What genuinely *is* shared and reusable across all 280 lessons:
+- The page shell (sections 14.1–14.2), the bilingual/i18n system (14.4), the tour engine, the equation-bar token/flash mechanic, and the "one explicit control mirrors the direct-manipulation interaction" rule.
+- GSAP conventions: state changes animate via `back.out(1.7)` elastic ease (~0.45s); ambient decoration (bubbles, shimmer lines, anything not tied to the lesson's value) loops independently and never blocks or competes with the state-driven animation.
+
+What is *not* shared: the actual scene content. Budget real per-lesson design time for this — it is the expensive part, and the primitive roadmap's tier list is still the right way to sequence *which* lessons to build first (start with Tier 0/1 concepts that at least share simpler visual grammar — number lines, coordinate planes — even though each still gets its own bespoke treatment).
+
+### 14.3.5 The equation bar is KaTeX, not styled mono text
+
+Tested directly (`prototypes/test-katex-equation-bar.html`, `prototypes/test-katex-bilingual.html`) before rolling this out — don't take it on faith, the comparison is worth re-running if this ever gets questioned:
+
+- **KaTeX is already fully vendored in this repo**: `math-lab/assets/vendor/katex.min.js` + `katex.min.css` + every `KaTeX_*.woff2` font file under `math-lab/assets/vendor/fonts/`. No new dependency, no CDN call, free for commercial use (OFL — Computer Modern-derived).
+- Side by side, a plain mono-styled `|−4| = 4` reads flat and generic. The same string through `katex.render()` reads as authentic mathematical typesetting — correct italic proportions, correct operator spacing, and it's the one font family actually built to render fractions/roots/sums/summations correctly, which no amount of mono-font styling can fake. Use it for **every** lesson's equation bar, not just ones with fractions or roots — the quality difference shows even on `|−4| = 4`.
+- Implementation: give the equation bar a container (`<div class="eq-line" id="eqLine"></div>`), build a LaTeX source string per state change (color via `\color{#hex}{...}`, using the site's actual hex values — KaTeX doesn't read CSS custom properties), and call `katex.render(source, eqLine, { throwOnError: false })` only when the source string actually changed (compare against a cached previous value — don't re-render every animation frame). Flash the container's own class on change rather than trying to flash sub-spans inside KaTeX's generated markup, which is fragile to target.
+- `.eq-line` keeps `direction:ltr; unicode-bidi:isolate` regardless of page language (belt-and-suspenders — KaTeX's output is inherently LTR, but isolating the container guarantees the surrounding RTL paragraph can never reach in and reorder it).
+- **Hard rule, empirically confirmed, not just theorized: never feed Eastern Arabic-Indic digits into KaTeX.** Tried directly — `katex.render('|-٤| = ٤', ...)` does not throw, but it silently corrupts the whole expression's layout (the bars, minus sign, and digits all reorder into visual nonsense), because KaTeX's symbol table only understands Western digits as numeric literals; anything else falls through as bidi-reorderable raw text sitting inside an otherwise-LTR construction. Wrapping the Arabic digits in `\text{}` does not fix it. This is exactly why 14.2/14.4's "equation bar always stays Western digits" rule exists — it's not a style preference, it's the only configuration that renders correctly at all.
+
+### 14.4 Bilingual (EN/AR) implementation rules
+
+- Single `lang` state (`"en" | "ar"`) drives everything: `document.documentElement.dir` flips `ltr`/`rtl`, every translatable string is looked up from a `T[lang]` dictionary keyed by `data-i18n` attributes, and role classes (`.ar-display` / `.ar-body` / `.ar-ui`) apply the Arabic font stack from 14.1 to whichever elements currently hold Arabic text.
+- **Numerals**: Jordanian educational materials use Eastern Arabic-Indic digits (٠١٢٣...) in prose and labels — a `digits(n, lang)` helper converts any number to the correct digit set. **The equation bar is the one deliberate exception** (see 14.3.5): it stays in Western digits and LTR regardless of language, both because that's how Jordanian math textbooks render worked equations even in Arabic-medium instruction, and because it's the only thing that actually renders correctly through KaTeX.
+- **Resolved**: at UI sizes, Eastern Arabic-Indic ٠ (zero, a small dot) and ٥ (five, a small circle) render close enough to each other in both El Messiri and Vazirmatn that they're hard to tell apart (`prototypes/test-arabic-decimal-numerals.html`) — a real risk for Unit 6's decimal content. Decision: `digitsDecimal()` renders Western digits and a plain `.` in **both** languages, never Eastern Arabic-Indic — the same precedent as the KaTeX equation bar (§14.3.5), rather than a new font pairing (would fight 14.1's warmth-matching) or a size-floor patch (fragile, has to be re-applied everywhere). Whole numbers with no fractional part still use `digits()`/`groupInt()` and stay Eastern Arabic-Indic as before — only decimal-bearing values fall back to Western.
+- `digitsDecimal(value, lang, fixed)` in `schools/assets/js/lesson-shell.js` is Western-digit-only per the decision above; every element that renders it still needs `direction:ltr; unicode-bidi:isolate`, same as any other numeral that can carry a sign — the reordering risk is about bidi context, not digit script.
+- Negative numbers in Arabic prose/UI (not the KaTeX equation bar, which is immune per 14.3.5) have the same bidi risk KaTeX has: an unisolated minus sign can visually reorder to the wrong end of the number. Confirmed by testing (same test file). Every element that can show a signed number in Arabic — not just the ones already isolated in the G6 prototype (`diver-tag`, `ghost-tag`, `bracket-label`, `zero-badge`, `control-val`) — needs `direction:ltr; unicode-bidi:isolate` on that specific span. Treat this as a checklist item for every new numeric UI element, not a one-time fix.
+- Flexbox rows (crumb, equation bar's button placement, control row, nav pills) reorder automatically under `dir="rtl"` — no manual DOM reordering needed, just don't hardcode physical `text-align:left/right` where a logical `text-align:start/end` would do the same job correctly in both directions.
+- The interactive **scene itself is not mirrored** for RTL — it's a spatial/mathematical diagram, not text, and mirroring it would misrepresent the math (a number line's positive direction doesn't flip because the page language changed). Only text containers get `dir`-aware treatment; the scene's internal coordinate system stays fixed.
+- Full tashkeel (diacritics) must render correctly for grades 5–6 Arabic content — this was a factor in rejecting Kufi-style display faces (Reem Kufi, etc.), which are built for short undiacritized branding text, not vocalized running prose.

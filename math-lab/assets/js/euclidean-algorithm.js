@@ -127,5 +127,13 @@
     const result = NumberTheory.euclideanSteps(a, b);
     if (!result.ok) return showError(`Stopped early: ${result.reason}. Try smaller inputs.`);
     render(a, b, result);
+    Proto.saveState("engine-lab:number-theory-euclidean-algorithm", { a: aInput.value, b: bInput.value });
   });
+
+  const saved = Proto.loadState("engine-lab:number-theory-euclidean-algorithm");
+  if (saved) {
+    if (saved.a !== undefined) aInput.value = saved.a;
+    if (saved.b !== undefined) bInput.value = saved.b;
+    form.requestSubmit();
+  }
 })();

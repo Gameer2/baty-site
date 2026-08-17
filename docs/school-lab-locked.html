@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The School Lab — Locked Architecture (G4–10)</title>
+<style>
+  @font-face{font-family:"Roc Grotesk";src:url("../math-lab/assets/fonts/roc-grotesk-regular.woff2") format("woff2"),url("../math-lab/assets/fonts/roc-grotesk-regular.woff") format("woff");font-weight:400;font-display:swap}
+  @font-face{font-family:"Roc Grotesk";src:url("../math-lab/assets/fonts/roc-grotesk-medium.woff2") format("woff2"),url("../math-lab/assets/fonts/roc-grotesk-medium.woff") format("woff");font-weight:500;font-display:swap}
+  @font-face{font-family:"Azeret Mono";src:url("../math-lab/assets/fonts/azeret-mono-regular.otf") format("opentype");font-weight:400 700;font-display:swap}
+  @font-face{font-family:"Fraunces";src:url("../math-lab/assets/fonts/fraunces-variable.woff2") format("woff2");font-weight:300 600;font-display:swap}
+  :root{
+    --core-black:#090909; --rich-carbon:#111111; --urban-smoke:#1b1b1b;
+    --pulse-ash:#7d858c; --off-white:#e7e7e7; --neural-fog:#dadada;
+    --electric-teal:#5c939f; --infrared:#ed6d40;
+    --font-display:"Roc Grotesk","Helvetica Neue",Arial,sans-serif;
+    --font-mono:"Azeret Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --font-serif:"Fraunces",Georgia,"Times New Roman",serif;
+    --radius-sm:4px; --radius-md:8px; --radius-lg:20px;
+    --c-number:#5c939f; --c-algebra:#8570b3; --c-geometry:#d9a24e; --c-data:#4f8fc0; --c-func:#c15a86;
+    --u-numerical:#5c939f; --u-calc:#4f9e82; --u-linalg:#8570b3; --u-stats:#c99a3c; --u-ode:#4f8fc0; --u-nt:#a3623c; --u-complex:#b45fd0;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--core-black);color:var(--off-white);font-family:var(--font-display);line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1200px;margin:0 auto;padding:48px 24px 120px}
+  .eyebrow{font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--electric-teal);display:inline-flex;align-items:center;gap:8px}
+  .eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+  h1{font-family:var(--font-serif);font-weight:350;font-size:clamp(34px,5.4vw,62px);line-height:1;letter-spacing:-.02em;margin:14px 0 12px;text-wrap:balance}
+  .lede{color:var(--neural-fog);font-size:17px;max-width:70ch;margin:0 0 6px}
+  .statline{display:flex;gap:26px;flex-wrap:wrap;margin:22px 0 4px;font-family:var(--font-mono);font-size:12px;color:var(--pulse-ash);text-transform:uppercase;letter-spacing:.06em}
+  .statline b{color:var(--off-white);font-family:var(--font-serif);font-size:22px;font-weight:400;display:block;letter-spacing:0}
+
+  /* ladder mini */
+  .ladder{display:grid;grid-template-columns:repeat(12,1fr);gap:6px;margin:26px 0 10px}
+  .lk{height:30px;border-radius:5px;border-top:3px solid var(--ac);background:var(--rich-carbon);position:relative}
+  .lk.uni{opacity:.55}
+  .lk span{position:absolute;left:50%;bottom:-17px;transform:translateX(-50%);font-family:var(--font-mono);font-size:8.5px;color:var(--pulse-ash);white-space:nowrap;letter-spacing:.03em}
+  .ladder-cap{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--pulse-ash);margin:24px 0 0}
+  .ladder-cap b{color:var(--infrared)}
+
+  /* sticky filter */
+  .filters{position:sticky;top:0;z-index:20;background:rgba(9,9,9,.92);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius-md);padding:12px 14px;margin:30px 0 8px;display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+  .fgrp{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .fkey{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--pulse-ash)}
+  .seg{display:inline-flex;background:var(--core-black);border:1px solid rgba(255,255,255,.14);border-radius:var(--radius-sm);padding:3px;flex-wrap:wrap}
+  .seg button{border:0;background:transparent;color:var(--pulse-ash);font-family:var(--font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;padding:6px 10px;border-radius:3px;cursor:pointer;font-weight:600}
+  .seg button[aria-pressed="true"]{background:var(--electric-teal);color:var(--core-black)}
+  .seg.s-grade button[aria-pressed="true"]{background:var(--infrared)}
+  .count{margin-left:auto;font-family:var(--font-mono);font-size:11px;color:var(--pulse-ash);letter-spacing:.04em}
+  .count b{color:var(--off-white)}
+
+  /* engine section */
+  .engine{margin-top:54px;scroll-margin-top:90px}
+  .eng-head{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;border-left:4px solid var(--ac);padding-left:16px;margin-bottom:6px}
+  .eng-num{font-family:var(--font-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ac)}
+  .eng-name{font-family:var(--font-serif);font-weight:400;font-size:clamp(28px,4vw,42px);line-height:1.04;letter-spacing:-.01em;margin:0}
+  .eng-meta{font-family:var(--font-mono);font-size:12px;color:var(--pulse-ash);letter-spacing:.04em}
+  .eng-payoff{color:var(--neural-fog);font-size:15.5px;max-width:74ch;margin:10px 0 0;padding-left:20px}
+  .eng-payoff b{color:var(--ac);font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+  .eng-ladder{font-family:var(--font-mono);font-size:11px;color:var(--pulse-ash);margin:8px 0 0;padding-left:20px}
+  .eng-ladder a{color:var(--ac);text-decoration:none;border-bottom:1px dashed}
+
+  .phase{margin-top:30px}
+  .phase-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .phase-tag{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--pulse-ash)}
+  .phase-title{font-family:var(--font-serif);font-weight:450;font-size:21px;color:var(--off-white);margin:0}
+  .phase-desc{color:var(--pulse-ash);font-size:13.5px;margin:0 0 16px;max-width:72ch}
+
+  .mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+  .method{background:var(--rich-carbon);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-lg);padding:18px 18px 16px;position:relative;overflow:hidden;transition:opacity .2s,transform .2s,border-color .2s}
+  .method::before{content:"";position:absolute;top:-30%;left:-12%;width:65%;height:65%;background:radial-gradient(circle,var(--ac) 0%,transparent 72%);opacity:.12;filter:blur(6px);pointer-events:none}
+  .method:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.2)}
+  .method.dim{opacity:.18;transform:none}
+  .m-top{display:flex;align-items:center;justify-content:space-between;gap:8px;position:relative;margin-bottom:8px}
+  .m-level{font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ac);border:1px solid rgba(255,255,255,.14);border-radius:100px;padding:3px 8px}
+  .m-sys{font-family:var(--font-mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;border-radius:100px;font-weight:700}
+  .m-sys.jo{color:#e9b24b;border:1px solid rgba(217,162,78,.5)} .m-sys.ca{color:var(--electric-teal);border:1px solid rgba(92,147,159,.5)}
+  .m-name{font-family:var(--font-serif);font-weight:450;font-size:18px;color:var(--off-white);margin:0 0 6px;position:relative;line-height:1.15}
+  .m-visual{font-family:var(--font-mono);font-size:11.5px;color:var(--neural-fog);margin:0;position:relative;line-height:1.45}
+  .m-visual::before{content:"◐";color:var(--ac);margin-right:6px;opacity:.7}
+  .m-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;position:relative}
+  .mtag{font-family:var(--font-mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.04em;padding:3px 7px;border-radius:100px;border:1px solid rgba(255,255,255,.12);color:var(--pulse-ash)}
+
+  .no-results{display:none;text-align:center;padding:40px;color:var(--pulse-ash);font-family:var(--font-mono);font-size:13px}
+  .no-results.show{display:block}
+
+  footer{margin-top:80px;border-top:1px solid rgba(255,255,255,.08);padding-top:18px;color:var(--pulse-ash);font-family:var(--font-mono);font-size:12px;letter-spacing:.04em}
+  @media(max-width:680px){.ladder{grid-template-columns:repeat(6,1fr)} .lk:nth-child(n+7){display:none}}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="eyebrow">The School Lab · Locked Architecture</span>
+  <h1>Grades 4–10, one ladder up to the university engines</h1>
+  <p class="lede">Every school topic from both systems (Jordan national + Cambridge), merged into five domain engines on the lab’s existing shell — each run in phases to a payoff, each method a live instrument with a bespoke visual, each laddering up into a university engine already built. ~76 method-instruments total.</p>
+
+  <div class="statline">
+    <span><b>5</b> school engines</span>
+    <span><b>7</b> university engines (existing)</span>
+    <span><b>~76</b> method-instruments</span>
+    <span><b>2</b> curricula covered</span>
+  </div>
+
+  <!-- ladder -->
+  <div class="ladder" aria-hidden="true">
+    <div class="lk uni" style="--ac:var(--u-numerical)"><span>Numerical</span></div>
+    <div class="lk uni" style="--ac:var(--u-calc)"><span>Calculus</span></div>
+    <div class="lk uni" style="--ac:var(--u-linalg)"><span>Linear Alg</span></div>
+    <div class="lk uni" style="--ac:var(--u-stats)"><span>Statistics</span></div>
+    <div class="lk uni" style="--ac:var(--u-ode)"><span>ODE</span></div>
+    <div class="lk uni" style="--ac:var(--u-nt)"><span>Number Th</span></div>
+    <div class="lk uni" style="--ac:var(--u-complex)"><span>Complex</span></div>
+    <div class="lk" style="--ac:var(--c-number)"><span>Number</span></div>
+    <div class="lk" style="--ac:var(--c-algebra)"><span>Algebra</span></div>
+    <div class="lk" style="--ac:var(--c-geometry)"><span>Geometry</span></div>
+    <div class="lk" style="--ac:var(--c-data)"><span>Data</span></div>
+    <div class="lk" style="--ac:var(--c-func)"><span>Functions</span></div>
+  </div>
+  <div class="ladder-cap"><span>university rungs (faded — already built)</span><span><b>↑ school rungs (this plan)</b></span></div>
+
+  <!-- filters -->
+  <div class="filters" id="filters">
+    <div class="fgrp"><span class="fkey">Strand</span>
+      <div class="seg" id="seg-strand" role="group" aria-label="Strand filter">
+        <button data-strand="all" aria-pressed="true">All</button>
+        <button data-strand="number" aria-pressed="false">Number</button>
+        <button data-strand="algebra" aria-pressed="false">Algebra</button>
+        <button data-strand="geometry" aria-pressed="false">Geometry</button>
+        <button data-strand="data" aria-pressed="false">Data</button>
+        <button data-strand="functions" aria-pressed="false">Functions</button>
+      </div>
+    </div>
+    <div class="fgrp"><span class="fkey">Grade</span>
+      <div class="seg s-grade" id="seg-grade" role="group" aria-label="Grade filter">
+        <button data-grade="all" aria-pressed="true">All</button>
+        <button data-grade="g46" aria-pressed="false">G4–6</button>
+        <button data-grade="g78" aria-pressed="false">G7–8</button>
+        <button data-grade="g910" aria-pressed="false">G9–10</button>
+      </div>
+    </div>
+    <div class="count" id="count"></div>
+  </div>
+
+  <!-- ============ ENGINE 01 NUMBER ============ -->
+  <section class="engine" data-engine="number" style="--ac:var(--c-number)">
+    <div class="eng-head"><span class="eng-num">Engine 01 · G4–9</span><h2 class="eng-name">Number</h2><span class="eng-meta">accent #5c939f</span></div>
+    <p class="eng-payoff"><b>Payoff</b> &nbsp;the real line — one continuous number system, from counting to irrationals.</p>
+    <p class="eng-ladder">Ladders up → <a href="#">Number Theory</a> (exact BigInt integers) &amp; <a href="#">Numerical</a> (approximation &amp; error bounds).</p>
+
+    <div class="phase">
+      <div class="phase-head"><span class="phase-tag">Phase 1</span><h3 class="phase-title">Place value &amp; operations</h3></div>
+      <p class="phase-desc">The basic object: digits that regroup, and the four operations as step-by-step processes you can watch.</p>
+      <div class="mgrid">
+        <div class="method" data-strand="number" data-grade="g46"><div class="m-top"><span class="m-level">L4–5</span></div><h4 class="m-name">Place-Value Dial</h4><p class="m-visual">live base-10 (and base-n) breakdown; drag a digit and watch regrouping cascade.</p><div class="m-tags"><span class="mtag">regroup</span><span class="mtag">base-n</span></div></div>
+        <div class="method" data-strand="number" data-grade="g46"><div class="m-top"><span class="m-level">L4–5</span></div><h4 class="m-name">Long-Operations Stepper</h4><p class="m-visual">+ − × ÷ step-through with the carry/borrow shown as moving chips.</p><div class="m-tags"><span class="mtag">step-through</span><span class="mtag">regroup</span></div></div>
+        <div class="method" data-strand="number" data-grade="g46"><div class="m-top"><span class="m-level">L4–5</span></div><h4 class="m-name">Divisibility &amp; Multiples</h4><p class="m-visual">divisibility tests as live rules; type a number, watch which rules fire.</p><div class="m-tags"><span class="mtag">rules engine</span><span class="mtag">factors</span></div></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><span class="phase-tag">Phase 2</span><h3 class="phase-title">Fractions, decimals, percentages</h3></div>
+      <p class="phase-desc">Three faces of the same numbers, shown as one continuous line you zoom into.</p>
+      <div class="mgrid">
+        <div class="method" data-strand="number" data-grade="g46"><div class="m-top"><span class="m-level">L5–6</span></div><h4 class="m-name">Fraction Bar &amp; Number Line</h4><p class="m-visual">live fraction bar overlaid on the line; equivalence by dragging the slice.</p><div class="m-tags"><span class="mtag">equivalence</span><span class="mtag">number line</span></div></div>
+        <div class="method" data-strand="number" data-grade="g46"><div class="m-top"><span class="m-level">L5–6</span></div><h4 class="m-name">Decimal Zoom</h4><p class="m-visual">zoom between two integers through 10ths → 100ths → 1000ths.</p><div class="m-tags"><span class="mtag">place value</span><span class="mtag">zoom</span></div></div>
+        <div class="method" data-strand="number" data-grade="g78"><div class="m-top"><span class="m-level">L6–7</span></div><h4 class="m-name">Percent Machine</h4><p class="m-visual">“what % of” as a live scaling bar; % increase / decrease sliders.</p><div class="m-tags"><span class="mtag">% change</span><span class="mtag">reverse %</span></div></div>
+        <div class="method" data-strand="number" data-grade="g78"><div class="m-top"><span class="m-level">L6–7</span></div><h4 class="m-name">FDP Converter</h4><p class="m-visual">fractions ↔ decimals ↔ percents, three columns staying in sync live.</p><div class="m-tags"><span class="mtag">equivalence</span></div></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><span class="phase-tag">Phase 3</span><h3 class="phase-title">Ratio &amp; proportion</h3></div>
+      <div class="mgrid">
+        <div class="method" data-strand="number" data-grade="g78"><div class="m-top"><span class="m-level">L6–7</span></div><h4 class="m-name">Ratio Gears</h4><p class="m-visual">two gears turning together; unitary method as you dial one quantity.</p><div class="m-tags"><span class="mtag">unitary</span><span class="mtag">scaling</span></div></div>
+        <div class="method" data-strand="number" data-grade="g78"><div class="m-top"><span class="m-level">L7–8</span></div><h4 class="m-name">Proportion Scaler</h4><p class="m-visual">direct vs inverse proportion on one chart; flip the switch.</p><div class="m-tags"><span class="mtag">direct</span><span class="mtag">inverse</span></div></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><span class="phase-tag">Phase 4</span><h3 class="phase-title">Integers &amp; rationals</h3></div>
+      <div class="mgrid">
+        <div class="method" data-strand="number" data-grade="g78"><div class="m-top"><span class="m-level">L7</span></div><h4 class="m-name">Signed Thermometer</h4><p class="m-visual">integer +/− on a vertical number line; absolute value as distance.</p><div class="m-tags"><span class="mtag">negatives</span><span class="mtag">|x|</span></div></div>
+        <div class="method" data-strand="number" data-grade="g78"><div class="m-top"><span class="m-level">L7–8</span></div><h4 class="m-name">Rational Operations</h4><p class="m-visual">fractions of fractions; rationals as one system with the four ops.</p><div class="m-tags"><span class="mtag">Q</span></div></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><span class="phase-tag">Phase 5</span><h3 class="phase-title">Reals, indices &amp; accuracy</h3></div>
+      <p class="phase-desc">The line completes: irrationals take their place, powers compress scale, and every rounded number hides a bound.</p>
+      <div class="mgrid">
+        <div class="method" data-strand="number" data-grade="g910"><div class="m-top"><span class="m-level">L8</span></div><h4 class="m-name">Real-Line Zoom to Irrationals</h4><p class="m-visual">place √2, π on the line; rational vs irrational, terminating vs recurring.</p><div class="m-tags"><span class="mtag">ℝ</span><span class="mtag">surds</span></div></div>
+        <div class="method" data-strand="number" data-grade="g910"><div class="m-top"><span class="m-level">L8–9</span></div><h4 class="m-name">Index Law Lab</h4><p class="m-visual">powers, roots &amp; index laws; fractional/negative indices as you slide the exponent.</p><div class="m-tags"><span class="mtag">indices</span><span class="mtag">roots</span></div></div>
+        <div class="method" data-strand="number" data-grade="g910"><div class="m-top"><span class="m-level">L9</span></div><h4 class="m-name">Standard Form Scaler</h4><p class="m-visual">10⁻⁹ → 10⁹ slider; scientific notation on a log axis.</p><div class="m-tags"><span class="mtag">std form</span><span class="mtag">log scale</span></div></div>
+        <div class="method" data-strand="number" data-grade="g910"><div class="m-top"><span class="m-level">L9</span><span class="m-sys ca">Cambridge</span></div><h4 class="m-name">Surds Lab</h4><p class="m-visual">simplify &amp; rationalise denominators live; exact vs decimal.</p><div class="m-tags"><span class="mtag">surds</span><span class="mtag">exact</span></div></div>
+        <div class="method" data-strand="number" data-grade="g910"><div class="m-top"><span class="m-level">L9</span></div><h4 class="m-name">Bounds &amp; Accuracy</h4><p class="m-visual">upper/lower bounds of a rounded value; error propagation.</p><div class="m-tags"><span class="mtag">bounds</span><span class="mtag">error</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ENGINE 02 ALGEBRA ============ -->
+  <section class="engine" data-engine="algebra" style="--ac:var(--c-algebra)">
+    <div class="eng-head"><span class="eng-num">Engine 02 · G6–10</span><h2 class="eng-name">Algebra</h2><span class="eng-meta">accent #8570b3</span></div>
+    <p class="eng-payoff"><b>Payoff</b> &nbsp;solving is undoing — and every solution set has a shape you can see.</p>
+    <p class="eng-ladder">Ladders up → <a href="#">Linear Algebra</a> (systems as matrices) &amp; <a href="#">Calculus</a> (functions &amp; limits).</p>
+
+    <div class="phase">
+      <div class="phase-head"><span class="phase-tag">Phase 1</span><h3 class="phase-title">Expressions &amp; the function machine</h3></div>
+      <div class="mgrid">
+        <div class="method" data-strand="algebra" data-grade="g78"><div class="m-top"><span class="m-level">L6–7</span></div><h4 class="m-name">Expression Builder</h4><p class="m-visual">collect like terms, expand &amp; factorise as the tree rewrites itself.</p><div class="m-tags"><span class="mtag">like terms</span><span class="mtag">expand</span><span class="mtag">factorise</span></div></div>
+        <div class="method" data-strand="algebra" data-grade="g78"><div class="m-top"><span class="m-level">L6–7</span></div><h4 class="m-name">Function Machine</h4><p class="m-visual">input → box → output; substitution &amp; inverse as running it backwards.</p><div class="m-tags"><span class="mtag">substitute</span><span class="mtag">inverse</span></div></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><span class="phase-tag">Phase 2</span><h3 class="phase-title">Linear equations</h3></div>
+      <div class="mgrid">
+        <div class="method" data-strand="algebra" data-grade="g78"><div class="m-top"><span class="m-level">L7</span></div><h4 class="m-name">Balance-Scale Solver</h4><p class="m-visual">one- &amp; two-step equations as a kept-in-balance scale; do to both sides.</p><div class="m-tags"><span class="mtag">balance</span><span class="mtag">step</span></div></div>
+        <div class="method" data-strand="algebra" data-grade="g78"><div class="m-top"><span class="m-level">L7</span></div><h4 class="m-name">Linear Equation on the Line</h4><p class="m-visual">solve ax+b=c, solution lands on the number line.</p><div class="m-tags"><span class="mtag">number line</span></div></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><span class="phase-tag">Phase 3</span><h3 class="phase-title">Simultaneous equations</h3></div>
+      <div class="mgrid">
+        <div class="method" data-strand="algebra" data-grade="g78"><div class="m-top"><span class="m-level">L8</span></div><h4 class="m-name">Substitution &amp; Elimination Stepper</h4><p class="m-visual">both methods side by side on the same system; step through.</p><div class="m-tags"><span class="mtag">substitute</span><span class="mtag">eliminate</span></div></div>
+        <div class="method" data-strand="algebra" data-grade="g78"><div class="m-top"><span class="m-level">L8</span></div><h4 class="m-name">Two-Lines Intersection</h4><p class="m-visual">graphical solution; one / none / infinite solutions as the lines move.</p><div class="m-tags"><span class="mtag">graphical</span><span class="mtag">consistency</span></div></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><span class="phase-tag">Phase 4</span><h3 class="phase-title">Quadratics</h3></div>
+      <div class="mgrid">
+        <div class="method" data-strand="algebra" data-grade="g910"><div class="m-top"><span class="m-level">L9</span></div><h4 class="m-name">Factorising Quadratics</h4><p class="m-visual">split-the-middle live; roots appear on the parabola as it factors.</p><div class="m-tags"><span class="mtag">factorise</span><span class="mtag">roots</span></div></div>
+        <div class="method" data-strand="algebra" data-grade="g910"><div class="m-top"><span class="m-level">L9</span></div><h4 class="m-name">Quadratic Formula &amp; Discriminant</h4><p class="m-visual">parabola + discriminant cases (two / one / no real roots).</p><div class="m-tags"><span class="mtag">Δ</span><span class="mtag">roots</span></div></div>
+        <div class="method" data-strand="algebra" data-grade="g910"><div class="m-top"><span class="m-level">L9–10</span><span class="m-sys ca">Cambridge</span></div><h4 class="m-name">Completing the Square</h4><p class="m-visual">geometric square-completion; vertex form from the shape.</p><div class="m-tags"><span class="mtag">vertex form</span></div></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><span class="phase-tag">Phase 5</span><h3 class="phase-title">Inequalities &amp; sequences</h3></div>
+      <div class="mgrid">
+        <div class="method" data-strand="algebra" data-grade="g910"><div class="m-top"><span class="m-level">L9–10</span></div><h4 class="m-name">Inequality Regions</h4><p class="m-visual">1- &amp; 2-variable inequalities; shaded regions on the line &amp; plane.</p><div class="m-tags"><span class="mtag">regions</span><span class="mtag">shade</span></div></div>
+        <div class="method" data-strand="algebra" data-grade="g910"><div class="m-top"><span class="m-level">L9–10</span></div><h4 class="m-name">Sequence → Graph</h4><p class="m-visual">linear (an+b) &amp; quadratic (n²) nth term; term-to-graph live.</p><div class="m-tags"><span class="mtag">nth term</span><span class="mtag">n²</span></div></div>
+        <div class="method" data-strand="algebra" data-grade="g910"><div class="m-top"><span class="m-level">L9–10</span></div><h4 class="m-name">Changing the Subject</h4><p class="m-visual">formula rearrangement as balanced inverse operations.</p><div class="m-tags"><span class="mtag">rearrange</span></div></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><span class="phase-tag">Phase 6</span><h3 class="phase-title">Algebraic fractions &amp; functions</h3></div>
+      <div class="mgrid">
+        <div class="method" data-strand="algebra" data-grade="g910"><div class="m-top"><span class="m-level">L10</span></div><h4 class="m-name">Algebraic Fractions</h4><p class="m-visual">simplify, add, multiply; domain exclusions flagged honestly.</p><div class="m-tags"><span class="mtag">simplify</span><span class="mtag">domain</span></div></div>
+        <div class="method" data-strand="algebra" data-grade="g910"><div class="m-top"><span class="m-level">L10</span><span class="m-sys ca">Cambridge</span></div><h4 class="m-name">Inverse &amp; Composite Functions</h4><p class="m-visual">machine-in-machine; invert by running backwards.</p><div class="m-tags"><span class="mtag">f⁻¹</span><span class="mtag">f∘g</span></div></div>
+        <div class="method" data-strand="algebra" data-grade="g910"><div class="m-top"><span class="m-level">L10</span><span class="m-sys ca">Cambridge</span></div><h4 class="m-name">Differentiation Intro</h4><p class="m-visual">gradient as a limit; stationary points on the curve.</p><div class="m-tags"><span class="mtag">gradient</span><span class="mtag">→ Calculus</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ENGINE 03 GEOMETRY ============ -->
+  <section class="engine" data-engine="geometry" style="--ac:var(--c-geometry)">
+    <div class="eng-head"><span class="eng-num">Engine 03 · G4–10</span><h2 class="eng-name">Geometry</h2><span class="eng-meta">accent #d9a24e</span></div>
+    <p class="eng-payoff"><b>Payoff</b> &nbsp;space becomes algebra (Descartes) — and proof is something you construct, then watch hold.</p>
+    <p class="eng-ladder">Ladders up → <a href="#">Linear Algebra</a> (transforms = matrices) &amp; <a href="#">Complex</a> (conformal maps).</p>
+
+    <div class="phase">
+      <div class="phase-head"><span class="phase-tag">Phase 1</span><h3 class="phase-title">Shapes &amp; angles</h3></div>
+      <div class="mgrid">
+        <div class="method" data-strand="geometry" data-grade="g46"><div class="m-top"><span class="m-level">L4–6</span></div><h4 class="m-name">Polygon Explorer</h4><p class="m-visual">interior angle sum; dial the sides, watch (n−2)·180° fill.</p><div class="m-tags"><span class="mtag">polygons</span><span class="mtag">angles</span></div></div>
+        <div class="method" data-strand="geometry" data-grade="g46"><div class="m-top"><span class="m-level">L5–6</span></div><h4 class="m-name">Angle Chase</h4><p class="m-visual">angles at a point / on a line / in triangles &amp; quadrilaterals, solved live.</p><div class="m-tags"><span class="mtag">angle rules</span></div></div>
+        <div class="method" data-strand="geometry" data-grade="g46"><div class="m-top"><span class="m-level">L4–5</span></div><h4 class="m-name">Triangle Sorter</h4><p class="m-visual">classify by sides &amp; angles; drag vertices, class updates.</p><div class="m-tags"><span class="mtag">classify</span></div></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><span class="phase-tag">Phase 2</span><h3 class="phase-title">Measurement &amp; Pythagoras</h3></div>
+      <div class="mgrid">
+        <div class="method" data-strand="geometry" data-grade="g46"><div class="m-top"><span class="m-level">L5–7</span></div><h4 class="m-name">Area Dissector</h4><p class="m-visual">rectangle→triangle→parallelogram→trapezium→circle area by dissection.</p><div class="m-tags"><span class="mtag">area</span><span class="mtag">dissect</span></div></div>
+        <div class="method" data-strand="geometry" data-grade="g78"><div class="m-top"><span class="m-level">L7–8</span></div><h4 class="m-name">Volume &amp; Surface Studio</h4><p class="m-visual">cuboid/prism/cylinder/cone/sphere; unfold a net to see surface area.</p><div class="m-tags"><span class="mtag">volume</span><span class="mtag">nets</span></div></div>
+        <div class="method" data-strand="geometry" data-grade="g78"><div class="m-top"><span class="m-level">L8</span></div><h4 class="m-name">Pythagoras Proof</h4><p class="m-visual">animated square-dissection; a²+b²=c² rearranges before you.</p><div class="m-tags"><span class="mtag">proof</span><span class="mtag">a²+b²</span></div></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><span class="phase-tag">Phase 3</span><h3 class="phase-title">Congruence &amp; similarity</h3></div>
+      <div class="mgrid">
+        <div class="method" data-strand="geometry" data-grade="g78"><div class="m-top"><span class="m-level">L7–8</span></div><h4 class="m-name">Congruence Checker</h4><p class="m-visual">SSS/SAS/ASA/RHS; the matching condition lights up.</p><div class="m-tags"><span class="mtag">SSS</span><span class="mtag">RHS</span></div></div>
+        <div class="method" data-strand="geometry" data-grade="g910"><div class="m-top"><span class="m-level">L8–9</span></div><h4 class="m-name">Similarity Projector</h4><p class="m-visual">scale factor; area &amp; volume scale factors as it enlarges.</p><div class="m-tags"><span class="mtag">scale</span><span class="mtag">area²/vol³</span></div></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><span class="phase-tag">Phase 4</span><h3 class="phase-title">Transformations &amp; symmetry</h3></div>
+      <div class="mgrid">
+        <div class="method" data-strand="geometry" data-grade="g78"><div class="m-top"><span class="m-level">L8–9</span></div><h4 class="m-name">Transform Studio</h4><p class="m-visual">translate/rotate/reflect/enlarge; peek at the matrix each one writes.</p><div class="m-tags"><span class="mtag">transform</span><span class="mtag">matrix peek</span></div></div>
+        <div class="method" data-strand="geometry" data-grade="g46"><div class="m-top"><span class="m-level">L5–8</span></div><h4 class="m-name">Symmetry Explorer</h4><p class="m-visual">line &amp; rotational symmetry; spin a shape to find its order.</p><div class="m-tags"><span class="mtag">line</span><span class="mtag">rotational</span></div></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><span class="phase-tag">Phase 5</span><h3 class="phase-title">Circle theorems &amp; trig</h3></div>
+      <div class="mgrid">
+        <div class="method" data-strand="geometry" data-grade="g910"><div class="m-top"><span class="m-level">L9–10</span></div><h4 class="m-name">Circle Theorem Explorer</h4><p class="m-visual">eight theorems; drag the point, the angle relationship holds.</p><div class="m-tags"><span class="mtag">8 theorems</span></div></div>
+        <div class="method" data-strand="geometry" data-grade="g910"><div class="m-top"><span class="m-level">L9–10</span></div><h4 class="m-name">Unit-Circle Trig</h4><p class="m-visual">sin/cos/tan as coordinates on the circle; sweep the angle.</p><div class="m-tags"><span class="mtag">unit circle</span></div></div>
+        <div class="method" data-strand="geometry" data-grade="g910"><div class="m-top"><span class="m-level">L10</span><span class="m-sys ca">Cambridge</span></div><h4 class="m-name">Sine &amp; Cosine Rules</h4><p class="m-visual">non-right triangles; ½ab sinC area; 3D trig problems.</p><div class="m-tags"><span class="mtag">sine rule</span><span class="mtag">3D trig</span></div></div>
+        <div class="method" data-strand="geometry" data-grade="g910"><div class="m-top"><span class="m-level">L9–10</span><span class="m-sys ca">Cambridge</span></div><h4 class="m-name">Exact Trig Values</h4><p class="m-visual">30/45/60 from the special triangles, exact &amp; decimal side by side.</p><div class="m-tags"><span class="mtag">30/45/60</span></div></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><span class="phase-tag">Phase 6</span><h3 class="phase-title">3D space &amp; vectors</h3></div>
+      <div class="mgrid">
+        <div class="method" data-strand="geometry" data-grade="g910"><div class="m-top"><span class="m-level">L10</span><span class="m-sys jo">Jordan</span></div><h4 class="m-name">Plane &amp; Projection Studio</h4><p class="m-visual">parallel/perpendicular lines &amp; planes; orthographic projections.</p><div class="m-tags"><span class="mtag">3D space</span><span class="mtag">projections</span></div></div>
+        <div class="method" data-strand="geometry" data-grade="g910"><div class="m-top"><span class="m-level">L10</span><span class="m-sys ca">Cambridge</span></div><h4 class="m-name">Vectors</h4><p class="m-visual">magnitude, position vectors; parallel/collinear proofs on the plane.</p><div class="m-tags"><span class="mtag">vectors</span><span class="mtag">→ Linear Alg</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ENGINE 04 DATA ============ -->
+  <section class="engine" data-engine="data" style="--ac:var(--c-data)">
+    <div class="eng-head"><span class="eng-num">Engine 04 · G6–10</span><h2 class="eng-name">Data &amp; Chance</h2><span class="eng-meta">accent #4f8fc0</span></div>
+    <p class="eng-payoff"><b>Payoff</b> &nbsp;reasoning under uncertainty — certainty is the exception, chance is the rule.</p>
+    <p class="eng-ladder">Ladders up → <a href="#">Statistics</a> (distributions, hypothesis tests, regression).</p>
+
+    <div class="phase">
+      <div class="phase-head"><span class="phase-tag">Phase 1</span><h3 class="phase-title">Data &amp; charts</h3></div>
+      <div class="mgrid">
+        <div class="method" data-strand="data" data-grade="g46"><div class="m-top"><span class="m-level">L6–7</span></div><h4 class="m-name">Chart Builder</h4><p class="m-visual">bar/pie/line/dot-plot from live editable data; misleading-vs-honest toggle.</p><div class="m-tags"><span class="mtag">charts</span><span class="mtag">sampling</span></div></div>
+        <div class="method" data-strand="data" data-grade="g46"><div class="m-top"><span class="m-level">L6–7</span></div><h4 class="m-name">Venn &amp; Carroll Diagrams</h4><p class="m-visual">sort items into sets; union/intersection update live.</p><div class="m-tags"><span class="mtag">sets</span><span class="mtag">sort</span></div></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><span class="phase-tag">Phase 2</span><h3 class="phase-title">Averages &amp; spread</h3></div>
+      <div class="mgrid">
+        <div class="method" data-strand="data" data-grade="g78"><div class="m-top"><span class="m-level">L7–8</span></div><h4 class="m-name">Mean / Median / Mode Tug</h4><p class="m-visual">drag a data point, watch all three averages move differently.</p><div class="m-tags"><span class="mtag">centre</span><span class="mtag">range</span></div></div>
+        <div class="method" data-strand="data" data-grade="g910"><div class="m-top"><span class="m-level">L9–10</span><span class="m-sys ca">Cambridge</span></div><h4 class="m-name">Quartiles &amp; IQR</h4><p class="m-visual">quartiles on the ordered data; box context without the boxplot.</p><div class="m-tags"><span class="mtag">quartiles</span><span class="mtag">IQR</span></div></div>
+        <div class="method" data-strand="data" data-grade="g910"><div class="m-top"><span class="m-level">L9–10</span></div><h4 class="m-name">Grouped-Data Mean</h4><p class="m-visual">estimated mean from frequency tables; midpoints shown.</p><div class="m-tags"><span class="mtag">grouped</span><span class="mtag">estimate</span></div></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><span class="phase-tag">Phase 3</span><h3 class="phase-title">Probability</h3></div>
+      <div class="mgrid">
+        <div class="method" data-strand="data" data-grade="g78"><div class="m-top"><span class="m-level">L7</span></div><h4 class="m-name">Probability Scale &amp; Sample Space</h4><p class="m-visual">0–1 scale; equally-likely outcomes as a grid you fill.</p><div class="m-tags"><span class="mtag">0–1</span><span class="mtag">sample space</span></div></div>
+        <div class="method" data-strand="data" data-grade="g910"><div class="m-top"><span class="m-level">L8–9</span></div><h4 class="m-name">Tree-Diagram Builder</h4><p class="m-visual">combined events; independent vs dependent branches.</p><div class="m-tags"><span class="mtag">tree</span><span class="mtag">combined</span></div></div>
+        <div class="method" data-strand="data" data-grade="g910"><div class="m-top"><span class="m-level">L10</span><span class="m-sys ca">Cambridge</span></div><h4 class="m-name">Conditional Probability</h4><p class="m-visual">with/without replacement; 3-set Venn; P(A|B) live.</p><div class="m-tags"><span class="mtag">P(A|B)</span><span class="mtag">replacement</span></div></div>
+        <div class="method" data-strand="data" data-grade="g78"><div class="m-top"><span class="m-level">L7–9</span></div><h4 class="m-name">Experimental vs Theoretical</h4><p class="m-visual">large-trial sampler; observed frequency converges on theory.</p><div class="m-tags"><span class="mtag">trials</span><span class="mtag">converge</span></div></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><span class="phase-tag">Phase 4</span><h3 class="phase-title">Distributions &amp; inference</h3></div>
+      <div class="mgrid">
+        <div class="method" data-strand="data" data-grade="g910"><div class="m-top"><span class="m-level">L9–10</span></div><h4 class="m-name">Distribution Viewer</h4><p class="m-visual">discrete &amp; continuous distributions; parameters dialled live.</p><div class="m-tags"><span class="mtag">distributions</span></div></div>
+        <div class="method" data-strand="data" data-grade="g910"><div class="m-top"><span class="m-level">L10</span><span class="m-sys ca">Cambridge</span></div><h4 class="m-name">Cumulative Freq &amp; Histograms</h4><p class="m-visual">frequency density; cumulative ogive from the same data.</p><div class="m-tags"><span class="mtag">freq density</span><span class="mtag">ogive</span></div></div>
+        <div class="method" data-strand="data" data-grade="g910"><div class="m-top"><span class="m-level">L10</span><span class="m-sys jo">Jordan</span></div><h4 class="m-name">Dispersion &amp; Std Deviation</h4><p class="m-visual">spread quantified; variance as mean squared deviation.</p><div class="m-tags"><span class="mtag">σ</span><span class="mtag">variance</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ENGINE 05 FUNCTIONS ============ -->
+  <section class="engine" data-engine="functions" style="--ac:var(--c-func)">
+    <div class="eng-head"><span class="eng-num">Engine 05 · G8–10</span><h2 class="eng-name">Functions &amp; Trig</h2><span class="eng-meta">accent #c15a86</span></div>
+    <p class="eng-payoff"><b>Payoff</b> &nbsp;a function is a machine you can graph; trigonometry is geometry happening on a circle.</p>
+    <p class="eng-ladder">Ladders up → <a href="#">Calculus</a>, <a href="#">ODE</a> &amp; <a href="#">Complex</a> (functions of a complex variable).</p>
+
+    <div class="phase">
+      <div class="phase-head"><span class="phase-tag">Phase 1</span><h3 class="phase-title">Coordinate geometry</h3></div>
+      <div class="mgrid">
+        <div class="method" data-strand="functions" data-grade="g78"><div class="m-top"><span class="m-level">L8</span></div><h4 class="m-name">Coordinate Plotter</h4><p class="m-visual">four quadrants; distance &amp; midpoint computed from two dragged points.</p><div class="m-tags"><span class="mtag">4 quadrants</span><span class="mtag">distance</span></div></div>
+        <div class="method" data-strand="functions" data-grade="g78"><div class="m-top"><span class="m-level">L8</span></div><h4 class="m-name">Line Lab</h4><p class="m-visual">gradient, y=mx+c; parallel &amp; perpendicular relationships.</p><div class="m-tags"><span class="mtag">gradient</span><span class="mtag">mx+c</span></div></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><span class="phase-tag">Phase 2</span><h3 class="phase-title">Linear &amp; quadratic functions</h3></div>
+      <div class="mgrid">
+        <div class="method" data-strand="functions" data-grade="g78"><div class="m-top"><span class="m-level">L8–9</span></div><h4 class="m-name">Function Grapher</h4><p class="m-visual">plot linear/quadratic/cubic; slider the coefficients, watch it morph.</p><div class="m-tags"><span class="mtag">sliders</span><span class="mtag">morph</span></div></div>
+        <div class="method" data-strand="functions" data-grade="g910"><div class="m-top"><span class="m-level">L9</span></div><h4 class="m-name">Parabola Studio</h4><p class="m-visual">vertex, roots, axis of symmetry from the equation, live.</p><div class="m-tags"><span class="mtag">vertex</span><span class="mtag">roots</span></div></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><span class="phase-tag">Phase 3</span><h3 class="phase-title">Trig ratios</h3></div>
+      <div class="mgrid">
+        <div class="method" data-strand="functions" data-grade="g910"><div class="m-top"><span class="m-level">L9</span></div><h4 class="m-name">Right-Triangle Trig</h4><p class="m-visual">sin/cos/tan as side ratios; solve any right triangle.</p><div class="m-tags"><span class="mtag">sin/cos/tan</span></div></div>
+        <div class="method" data-strand="functions" data-grade="g910"><div class="m-top"><span class="m-level">L9–10</span><span class="m-sys ca">Cambridge</span></div><h4 class="m-name">Exact Trig Values</h4><p class="m-visual">30/45/60 from the unit circle, exact radicals.</p><div class="m-tags"><span class="mtag">exact</span></div></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><span class="phase-tag">Phase 4</span><h3 class="phase-title">Trig identities &amp; equations</h3></div>
+      <div class="mgrid">
+        <div class="method" data-strand="functions" data-grade="g910"><div class="m-top"><span class="m-level">L10</span><span class="m-sys jo">Jordan</span></div><h4 class="m-name">Trig Identity Lab</h4><p class="m-visual">compound/multiple/half-angle identities; both sides rendered equal.</p><div class="m-tags"><span class="mtag">identities</span></div></div>
+        <div class="method" data-strand="functions" data-grade="g910"><div class="m-top"><span class="m-level">L10</span></div><h4 class="m-name">Trig Equations Solver</h4><p class="m-visual">solve over [0,2π]; all periodic solutions on the circle.</p><div class="m-tags"><span class="mtag">periodic</span></div></div>
+        <div class="method" data-strand="functions" data-grade="g910"><div class="m-top"><span class="m-level">L10</span><span class="m-sys jo">Jordan</span></div><h4 class="m-name">Periodic Functions</h4><p class="m-visual">radians, sine/cosine graphs, arc length on the circle.</p><div class="m-tags"><span class="mtag">radians</span><span class="mtag">arc length</span></div></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><span class="phase-tag">Phase 5</span><h3 class="phase-title">Analytic geometry &amp; polynomials</h3></div>
+      <div class="mgrid">
+        <div class="method" data-strand="functions" data-grade="g910"><div class="m-top"><span class="m-level">L10</span></div><h4 class="m-name">Circle Equation</h4><p class="m-visual">(x−a)²+(y−b)²=r²; drag the centre, watch the graph.</p><div class="m-tags"><span class="mtag">circle eqn</span></div></div>
+        <div class="method" data-strand="functions" data-grade="g910"><div class="m-top"><span class="m-level">L10</span></div><h4 class="m-name">Analytic Transformations</h4><p class="m-visual">line forms; perpendicular distance; transformations as coord ops.</p><div class="m-tags"><span class="mtag">line forms</span></div></div>
+        <div class="method" data-strand="functions" data-grade="g910"><div class="m-top"><span class="m-level">L10</span><span class="m-sys jo">Jordan</span></div><h4 class="m-name">Polynomial Functions</h4><p class="m-visual">division, synthetic division, remainder theorem — step the long division.</p><div class="m-tags"><span class="mtag">synthetic div</span><span class="mtag">remainder</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="no-results" id="noResults">No methods match this filter.</div>
+
+  <footer>The School Lab — locked architecture. 5 engines · ~76 method-instruments · each a live instrument with a bespoke visual · each tagged (strand, grade band, Jordan/Cambridge) · each laddering to a university engine. Same shell, accent-per-engine, client-side. Open via file:// so fonts load from ../math-lab/assets/fonts/.</footer>
+</div>
+
+<script>
+(function(){
+  var strand="all", grade="all";
+  var methods=Array.prototype.slice.call(document.querySelectorAll(".method"));
+  var segStrand=document.getElementById("seg-strand");
+  var segGrade=document.getElementById("seg-grade");
+  var countEl=document.getElementById("count");
+  var noRes=document.getElementById("noResults");
+
+  function press(group,btn){Array.prototype.forEach.call(group.querySelectorAll("button"),function(b){b.setAttribute("aria-pressed",b===btn?"true":"false");});}
+
+  function apply(){
+    var visible=0;
+    methods.forEach(function(m){
+      var s=m.getAttribute("data-strand"), g=m.getAttribute("data-grade");
+      var sok = strand==="all" || s===strand;
+      var gok = grade==="all" || g===grade;
+      var show = sok && gok;
+      m.classList.toggle("dim", !show);
+      if(show) visible++;
+    });
+    // hide whole phase blocks with nothing visible? keep but dim is enough
+    countEl.innerHTML = "<b>"+visible+"</b> / "+methods.length+" methods";
+    noRes.classList.toggle("show", visible===0);
+  }
+
+  segStrand.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;press(segStrand,b);strand=b.getAttribute("data-strand");apply();});
+  segGrade.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;press(segGrade,b);grade=b.getAttribute("data-grade");apply();});
+  apply();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Addition and Subtraction Equations — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:30px 24px 30px; display:flex; flex-direction:column; align-items:center; gap:22px; }
+  .mat{ display:flex; align-items:flex-end; gap:26px; direction:ltr; }
+  .pan{ display:flex; flex-direction:column; align-items:center; gap:8px; min-width:130px; }
+  .pan-plate{ width:130px; min-height:80px; border-radius:10px; background:var(--urban-smoke); border:2px solid rgba(255,255,255,.16); display:flex; flex-wrap:wrap; gap:5px; align-content:flex-start; padding:10px; }
+  .pan-base{ width:6px; height:22px; background:rgba(255,255,255,.2); }
+  .equals-sym{ font-family:var(--mono); font-size:26px; color:var(--neural-fog); padding-bottom:36px; }
+  .x-tile{ width:34px; height:34px; border-radius:7px; background:var(--electric-teal); border:1px solid rgba(92,147,159,.7); display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-weight:700; color:var(--core-black); font-size:13px; }
+  .unit-tile{ width:20px; height:20px; border-radius:5px; background:var(--infrared); border:1px solid rgba(237,109,64,.7); opacity:1; transition:opacity .3s ease, transform .3s ease; }
+  .unit-tile.removed{ opacity:0; transform:scale(.3); }
+
+  .actions{ display:flex; gap:10px; }
+  .type-toggle{ display:flex; gap:6px; }
+  .mode-btn{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--pulse-ash); background:var(--core-black); border:1px solid rgba(255,255,255,.14); border-radius:100px; padding:6px 14px; cursor:pointer; }
+  .mode-btn.active{ color:var(--off-white); border-color:var(--electric-teal); background:rgba(92,147,159,.12); }
+
+  .check-line{ font-family:var(--mono); font-size:13px; color:var(--validation-green); direction:ltr; unicode-bidi:isolate; opacity:0; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 7 · LESSON 2</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Addition and Subtraction Equations</h1>
+    <span class="title-secondary ar-display" id="titleAr">معادلات الجمع والطرح</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I solve one-step addition and subtraction equations by keeping both sides of the equation balanced.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">remove the same amount from both sides</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="type-toggle" id="typeToggle" data-el="typeToggle">
+        <button class="mode-btn active" data-type="add">x + 4 = 9</button>
+        <button class="mode-btn" data-type="sub">x − 3 = 6</button>
+      </div>
+    </div>
+
+    <div class="control-row">
+      <div class="actions">
+        <button class="explain-btn" id="stepBtn" data-role="ui" data-i18n="stepBtn">remove one from both sides</button>
+        <button class="explain-btn" id="resetBtn" data-role="ui" data-i18n="resetBtn">reset</button>
+      </div>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="mat" id="mat" data-el="mat"></div>
+      <div class="check-line" id="checkLine" data-el="checkLine"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">An equation is a balance: whatever you remove (or add) from one side, you must remove (or add) from the other side too, or the balance breaks. Removing the constant from the variable's side isolates x, and substituting the result back in checks the answer.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="7-1-evaluating-algebraic-expression.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">7.1 · Evaluating an Algebraic Expression</b></a>
+    <a class="nav-pill next" href="7-3-multiplication-division-equations.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">7.3 · Multiplication and Division Equations</b></a>
+  </div>
+</div>
+
+<script>
+  const { groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const PROBLEMS = {
+    add: { a: 4, b: 9, op: "+", x: 5 },   // x + 4 = 9
+    sub: { a: 3, b: 6, op: "-", x: 9 }    // x - 3 = 6 (isolating needs ADDING 3 to both sides)
+  };
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 7 · LESSON 2",
+      objectiveLabel: "Objective —",
+      objectiveText: "I solve one-step addition and subtraction equations by keeping both sides of the equation balanced.",
+      eqSub: "remove the same amount from both sides",
+      explainBtn: "Explain this",
+      stepBtn: "remove one from both sides",
+      addBackBtn: "add one to both sides",
+      resetBtn: "reset",
+      checkLine: (x, a, op, b) => `check: ${x} ${op} ${a} = ${b} ✓`,
+      navPrevLabel: "—", navPrevText: "7.1 · Evaluating an Algebraic Expression",
+      navNextLabel: "next", navNext: "7.3 · Multiplication and Division Equations",
+      teachLabel: "What this teaches:",
+      teachBody: "An equation is a balance: whatever you remove (or add) from one side, you must remove (or add) from the other side too, or the balance breaks. Removing the constant from the variable's side isolates x, and substituting the result back in checks the answer.",
+      tour: [
+        { elKey: "mat", label: "A balanced mat", body: "Both sides show the same total value — that's what the equals sign means." },
+        { ids: ["stepBtn"], label: "Change both sides the same way", body: "Each press removes (or adds) exactly one unit from both pans at once — the balance never breaks." },
+        { elKey: "mat", label: "x stands alone", body: "Once the constant is fully cleared from the variable's side, only the x-tile is left — its pan's count is the value of x." },
+        { elKey: "checkLine", label: "Check by substitution", body: "Substituting the found value back into the original equation confirms it balances." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٧ · الدرس ٢",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أحلّ معادلات جمع وطرح من خطوة واحدة بالحفاظ على توازن طرفَي المعادلة.",
+      eqSub: "أزل الكمّية نفسها من الطرفين",
+      explainBtn: "اشرح هذا",
+      stepBtn: "أزل واحدًا من الطرفين",
+      addBackBtn: "أضف واحدًا للطرفين",
+      resetBtn: "إعادة",
+      checkLine: (x, a, op, b) => `تحقّق: ${x} ${op} ${a} = ${b} ✓`,
+      navPrevLabel: "—", navPrevText: "٧.١ · تقييم مقدار جبري",
+      navNextLabel: "التالي", navNext: "٧.٣ · معادلات الضرب والقسمة",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "المعادلة ميزان: كل ما تزيله (أو تضيفه) من طرف، عليك إزالته (أو إضافته) من الطرف الآخر أيضًا، وإلّا اختلّ التوازن. إزالة الثابت من طرف المتغيّر يعزل x، والتعويض بالناتج في المعادلة الأصلية يتحقّق من الإجابة.",
+      tour: [
+        { elKey: "mat", label: "ميزان متوازن", body: "يُظهر الطرفان القيمة الإجمالية نفسها — وهذا ما تعنيه إشارة يساوي." },
+        { ids: ["stepBtn"], label: "غيّر الطرفين بالطريقة نفسها", body: "كل ضغطة تزيل (أو تضيف) وحدة واحدة بالضبط من الكفّتين معًا — لا يختلّ التوازن أبدًا." },
+        { elKey: "mat", label: "x يقف وحده", body: "بمجرّد إزالة الثابت كاملًا من طرف المتغيّر، تبقى قطعة x فقط — عدد كفّتها هو قيمة x." },
+        { elKey: "checkLine", label: "تحقّق بالتعويض", body: "تعويض القيمة الموجودة في المعادلة الأصلية يؤكّد توازنها." }
+      ]
+    }
+  };
+
+  const typeToggle = document.getElementById("typeToggle");
+  const stepBtn = document.getElementById("stepBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  const mat = document.getElementById("mat");
+  const checkLine = document.getElementById("checkLine");
+  const eqLine = document.getElementById("eqLine");
+
+  let type = "add";
+  let removed = 0; // how many units removed from BOTH sides so far
+
+  function render() {
+    const t = T[i18n.lang];
+    const p = PROBLEMS[type];
+    const leftConst = p.a - removed; // remaining constant units on x's side
+    const rightVal = p.b - removed;
+    const isolated = leftConst <= 0;
+
+    mat.innerHTML = "";
+    const leftPan = document.createElement("div");
+    leftPan.className = "pan";
+    const leftPlate = document.createElement("div");
+    leftPlate.className = "pan-plate";
+    const xTile = document.createElement("div");
+    xTile.className = "x-tile";
+    xTile.textContent = "x";
+    leftPlate.appendChild(xTile);
+    if (type === "add") {
+      for (let i = 0; i < Math.max(0, leftConst); i++) {
+        const u = document.createElement("div");
+        u.className = "unit-tile";
+        leftPlate.appendChild(u);
+      }
+    } else {
+      // x - a = b: the constant is being subtracted; represent as x-tile only, with a "debt" removed via addBack — kept simple: show constant units still owed as ghost outline
+      for (let i = 0; i < Math.max(0, leftConst); i++) {
+        const u = document.createElement("div");
+        u.className = "unit-tile";
+        u.style.opacity = ".35";
+        u.style.borderStyle = "dashed";
+        leftPlate.appendChild(u);
+      }
+    }
+    leftPan.appendChild(leftPlate);
+    const leftBase = document.createElement("div");
+    leftBase.className = "pan-base";
+    leftPan.appendChild(leftBase);
+    mat.appendChild(leftPan);
+
+    const eq = document.createElement("div");
+    eq.className = "equals-sym";
+    eq.textContent = "=";
+    mat.appendChild(eq);
+
+    const rightPan = document.createElement("div");
+    rightPan.className = "pan";
+    const rightPlate = document.createElement("div");
+    rightPlate.className = "pan-plate";
+    for (let i = 0; i < Math.max(0, rightVal); i++) {
+      const u = document.createElement("div");
+      u.className = "unit-tile";
+      rightPlate.appendChild(u);
+    }
+    rightPan.appendChild(rightPlate);
+    const rightBase = document.createElement("div");
+    rightBase.className = "pan-base";
+    rightPan.appendChild(rightBase);
+    mat.appendChild(rightPan);
+
+    stepBtn.textContent = type === "add" ? t.stepBtn : (removed < p.a ? t.addBackBtn : t.stepBtn);
+    stepBtn.disabled = removed >= p.a;
+    stepBtn.style.opacity = removed >= p.a ? .4 : 1;
+
+    checkLine.style.opacity = isolated ? 1 : 0;
+    checkLine.textContent = isolated ? t.checkLine(p.x, p.a, p.op, p.b) : "";
+
+    const opSym = p.op;
+    renderEquation(eqLine, `x ${opSym} ${groupInt(p.a, "en")} = ${groupInt(p.b, "en")}${isolated ? ` \\;\\Rightarrow\\; x = \\color{#ed6d40}{${groupInt(p.x, "en")}}` : ""}`);
+  }
+
+  stepBtn.addEventListener("click", () => {
+    const p = PROBLEMS[type];
+    if (removed < p.a) removed++;
+    render();
+  });
+  resetBtn.addEventListener("click", () => { removed = 0; render(); });
+
+  typeToggle.addEventListener("click", (e) => {
+    const btn = e.target.closest(".mode-btn");
+    if (!btn) return;
+    type = btn.dataset.type;
+    removed = 0;
+    typeToggle.querySelectorAll(".mode-btn").forEach(b => b.classList.toggle("active", b === btn));
+    render();
+  });
+
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

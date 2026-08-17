@@ -1,6 +1,6 @@
 // Syntropy Canvas: nodes carry a content-driven minimum size on `customData.syntropyNode`
 // (stamped at creation from nodeGeometry.ts's computeInitialNodeSize — see
-// excalidraw-app/syntropy/createSyntropyNode.ts). The NodeOverlay DOM card's size tracks the
+// syntropy-app/syntropy/createSyntropyNode.ts). The NodeOverlay DOM card's size tracks the
 // element's raw width/height 1:1 (nodeGeometry.ts's computeNodeScreenRect), and its rows/chart
 // have fixed heights that don't reflow — so resizing the underlying element below that minimum
 // clips or visually collapses the card. resizeElements.ts reads this generically (no import of

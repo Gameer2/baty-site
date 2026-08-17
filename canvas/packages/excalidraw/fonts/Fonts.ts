@@ -31,15 +31,21 @@ import type { ValueOf } from "@excalidraw/common/utility-types";
 
 import type { Scene } from "@excalidraw/element";
 
+import { ArchitectsDaughterFontFaces } from "./ArchitectsDaughter";
 import { CascadiaFontFaces } from "./Cascadia";
+import { CaveatFontFaces } from "./Caveat";
 import { ComicShannsFontFaces } from "./ComicShanns";
 import { EmojiFontFaces } from "./Emoji";
-import { ExcalidrawFontFace } from "./ExcalidrawFontFace";
+import { SyntropyFontFace } from "./SyntropyFontFace";
 import { ExcalifontFontFaces } from "./Excalifont";
 import { HelveticaFontFaces } from "./Helvetica";
+import { IndieFlowerFontFaces } from "./IndieFlower";
+import { KalamFontFaces } from "./Kalam";
 import { LiberationFontFaces } from "./Liberation";
 import { LilitaFontFaces } from "./Lilita";
 import { NunitoFontFaces } from "./Nunito";
+import { PatrickHandFontFaces } from "./PatrickHand";
+import { ShadowsIntoLightFontFaces } from "./ShadowsIntoLight";
 import { VirgilFontFaces } from "./Virgil";
 import { XiaolaiFontFaces } from "./Xiaolai";
 
@@ -53,7 +59,7 @@ export class Fonts {
         number,
         {
           metadata: FontMetadata;
-          fontFaces: ExcalidrawFontFace[];
+          fontFaces: SyntropyFontFace[];
         }
       >
     | undefined;
@@ -329,12 +335,12 @@ export class Fonts {
       | {
           registered: Map<
             number,
-            { metadata: FontMetadata; fontFaces: ExcalidrawFontFace[] }
+            { metadata: FontMetadata; fontFaces: SyntropyFontFace[] }
           >;
         },
     family: string,
     metadata: FontMetadata,
-    ...fontFacesDecriptors: ExcalidrawFontFaceDescriptor[]
+    ...fontFacesDecriptors: SyntropyFontFaceDescriptor[]
   ) {
     // TODO: likely we will need to abandon number value in order to support custom fonts
     const fontFamily =
@@ -348,7 +354,7 @@ export class Fonts {
         metadata,
         fontFaces: fontFacesDecriptors.map(
           ({ uri, descriptors }) =>
-            new ExcalidrawFontFace(family, uri, descriptors),
+            new SyntropyFontFace(family, uri, descriptors),
         ),
       });
     }
@@ -363,13 +369,13 @@ export class Fonts {
     const fonts = {
       registered: new Map<
         ValueOf<typeof FONT_FAMILY | typeof FONT_FAMILY_FALLBACKS>,
-        { metadata: FontMetadata; fontFaces: ExcalidrawFontFace[] }
+        { metadata: FontMetadata; fontFaces: SyntropyFontFace[] }
       >(),
     };
 
     const init = (
       family: keyof typeof FONT_FAMILY | keyof typeof FONT_FAMILY_FALLBACKS,
-      ...fontFacesDescriptors: ExcalidrawFontFaceDescriptor[]
+      ...fontFacesDescriptors: SyntropyFontFaceDescriptor[]
     ) => {
       const fontFamily =
         FONT_FAMILY[family as keyof typeof FONT_FAMILY] ??
@@ -392,6 +398,15 @@ export class Fonts {
     init("Lilita One", ...LilitaFontFaces);
     init("Nunito", ...NunitoFontFaces);
     init("Virgil", ...VirgilFontFaces);
+
+    // Syntropy addition: bigger handwriting-style library (see FONT_FAMILY in
+    // packages/common/src/constants.ts for the license note).
+    init("Caveat", ...CaveatFontFaces);
+    init("Kalam", ...KalamFontFaces);
+    init("Shadows Into Light", ...ShadowsIntoLightFontFaces);
+    init("Indie Flower", ...IndieFlowerFontFaces);
+    init("Patrick Hand", ...PatrickHandFontFaces);
+    init("Architects Daughter", ...ArchitectsDaughterFontFaces);
 
     // fallback font faces
     init(CJK_HAND_DRAWN_FALLBACK_FONT, ...XiaolaiFontFaces);
@@ -464,7 +479,7 @@ export class Fonts {
   }
 }
 
-export interface ExcalidrawFontFaceDescriptor {
+export interface SyntropyFontFaceDescriptor {
   uri: string;
   descriptors?: FontFaceDescriptors;
 }

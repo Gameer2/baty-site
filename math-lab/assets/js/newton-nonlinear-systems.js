@@ -32,6 +32,23 @@
 
   const DEFAULT_EQUATIONS = ["x1^2 + x2^2 - 2", "x1 - x2", "x1^2 - x2", "x1 + x2 - x3"];
   const DEFAULT_GUESS = [1.5, 1.5, 1, 1];
+  const STORE_KEY = "engine-lab:numerical-newton-nonlinear-systems";
+
+  function snapshot() {
+    const n = parseInt(nInput.value, 10) || 2;
+    const equations = [];
+    for (let i = 0; i < n; i++) {
+      const el = document.getElementById("eqInput-" + i);
+      equations.push(el ? el.value : "");
+    }
+    return {
+      n,
+      equations: equations.join(";"),
+      x0: readX0(n).join(","),
+      tol: tolInput.value,
+      maxIter: maxIterInput.value,
+    };
+  }
 
   // Compile an n-variable expression (variables x1..xn) into (xVec) -> number.
   // Mirrors Engine.compileFx's validation, generalized to n variables.
@@ -309,8 +326,7 @@
 
   stepSlider.addEventListener("input", (e) => updateStep(Number(e.target.value)));
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+  function runCompute() {
     clearError();
 
     const n = parseInt(nInput.value, 10);
@@ -342,12 +358,43 @@
     if (!iterations.length) return showError("No iterations were produced.");
 
     render(iterations, n);
+    Proto.saveState(STORE_KEY, snapshot());
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    runCompute();
   });
 
   Engine.attachKeypadToggle(keypadToggle, eqKeypad);
 
   // initial build + first preview/validity
   generateInputs(parseInt(nInput.value, 10) || 2, false);
+
+  const saved = Proto.loadState(STORE_KEY);
+  if (saved && saved.equations !== undefined) {
+    const equations = String(saved.equations).split(";");
+    const n = equations.length;
+    if (n >= 2 && n <= 4) {
+      nInput.value = String(n);
+      generateInputs(n, false);
+      equations.forEach((eq, i) => {
+        const el = document.getElementById("eqInput-" + i);
+        if (el) el.value = eq;
+      });
+      if (saved.x0 !== undefined) {
+        const x0 = String(saved.x0).split(",");
+        x0.forEach((v, i) => {
+          const el = document.getElementById("x0Input-" + i);
+          if (el) el.value = v;
+        });
+      }
+      if (saved.tol !== undefined) tolInput.value = saved.tol;
+      if (saved.maxIter !== undefined) maxIterInput.value = saved.maxIter;
+    }
+  }
+
   updatePreviews();
   updateStartCheck();
+  if (saved) runCompute();
 })();

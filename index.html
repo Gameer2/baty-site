@@ -4,6 +4,10 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Mathematics — Four Labs, One Discipline</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico" />
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 <link rel="stylesheet" href="math-lab/assets/css/engine.css" />
 <link rel="stylesheet" href="math-lab/assets/proto/proto.css" />
 <style>
@@ -41,6 +45,7 @@
 <header class="site-header">
   <div class="bar">
     <a href="index.html" class="logo"><span class="dot"></span> Mathematics</a>
+    <a href="canvas/dist/index.html" class="btn btn--ghost btn--sm btn--pill"><span class="btn-text">Open Canvas</span></a>
     <a href="math-lab/index.html" class="btn btn--ghost btn--sm btn--pill"><span class="btn-text">Enter General Lab</span></a>
   </div>
 </header>
@@ -99,16 +104,20 @@
         <span class="proto-badge"><span class="status-dot"></span> Coming Soon</span>
       </div>
 
-      <div class="card engine-card engine-card--soon crosshair-host reveal" style="--electric-teal:#9ec23f; transition-delay:.1s">
+      <a href="schools/index.html" class="card engine-card crosshair-host reveal" style="--electric-teal:#9ec23f; transition-delay:.1s">
         <span class="engine-dot"></span>
         <div class="engine-card-head">
-          <span class="eyebrow">K-12</span>
+          <span class="eyebrow">K-12 · Jordan National Curriculum</span>
           <span class="engine-index">3 / 4</span>
         </div>
         <h3 class="h3">Schools</h3>
         <p>K-12 math, reimagined the same way — visual and interactive first, lecture-style second.</p>
-        <span class="proto-badge"><span class="status-dot"></span> Coming Soon</span>
-      </div>
+        <div class="method-tags" style="margin-top:16px;">
+          <span class="tag">Live</span>
+          <span class="tag">2 Grades</span>
+          <span class="tag">91 Lessons</span>
+        </div>
+      </a>
 
       <div class="card engine-card engine-card--soon crosshair-host reveal" style="--electric-teal:#c15a86; transition-delay:.15s">
         <span class="engine-dot"></span>
@@ -122,6 +131,12 @@
       </div>
 
     </div>
+
+    <p class="p1" style="margin-top:32px;">
+      Sketching a lesson? <a href="canvas/dist/index.html">Syntropy Canvas</a> is an infinite
+      whiteboard wired to General Lab's same live engines — drop in a node, wire it to the next,
+      watch it compute.
+    </p>
   </div>
 </section>
 

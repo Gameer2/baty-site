@@ -1,0 +1,81 @@
+SYNTROPY — ASYNC RUN MODE + SYMBOLIC ARCHETYPE + PER-ENGINE ROLLOUT
+Execute prompts for your agent. One per plan. Copy-paste the block for the plan you want to run.
+
+================================================================
+HARDNESS RANKING (1 = hardest)
+================================================================
+1. Foundation      — async wiring rewrite + CAS worker bridge + 2 new renderers (Symbolic, Field). Linchpin.
+2. Complex         — 10/12 ops surfaced in math-lab + Sympy fallback + domainColor Field render.
+3. ODE             — 7/9 ops surfaced + PDE heatmap/contour fields + 2 archetype flips possible.
+4. Calculus        — 25 methods (most volume) but 0 ops to surface; high effort, low difficulty.
+5. Number-theory   — 3 methods, synchronous, no async, no new ops. Easiest.
+
+================================================================
+EXECUTION ORDER (different from hardness)
+================================================================
+Foundation (at least Tasks 1 + 4)  ->  Number-theory (validates Symbolic fast)
+                                 ->  rest of Foundation
+                                 ->  Calculus (first full async validation; all ops exist)
+                                 ->  Complex
+                                 ->  ODE
+
+================================================================
+GLOBAL LINE — append to any prompt below
+================================================================
+Match existing code style. Run tests with `yarn test:app --run` (never omit --run, or vitest
+hangs in watch mode). Run `yarn test:typecheck`, `yarn fix:code && yarn test:code`. The benign
+"MetaProperty could not be resolved" jsx-ast-utils warning is fine as long as yarn exits 0.
+After cross-cutting changes, run the FULL suite, not just targeted files.
+
+================================================================
+1. NUMBER-THEORY  (redesign-only, ships first)
+================================================================
+Execute docs/superpowers/plans/2026-08-14-syntropy-engine-number-theory.md. Read
+docs/superpowers/specs/2026-08-14-syntropy-async-run-and-symbolic-design.md first
+(section 2 Symbolic, section 5 number-theory). Needs the Symbolic renderer + `expression`
+output kind — if not built yet, do Foundation Tasks 1 and 4 first. No async, no CAS. Before
+surfacing each form, confirm the core returns it: factorizeFull -> factors[],
+continuedFractionSqrt -> period[], solveLinearCongruence -> solutions[]. TDD, commit per task,
+full suite green before finishing.
+
+================================================================
+2. FOUNDATION  (async run mode + Symbolic/Field renderers)
+================================================================
+Execute docs/superpowers/plans/2026-08-14-syntropy-foundation-async-symbolic-field.md. Read
+the spec first (sections 3-4). This is the linchpin — get async wiring + CAS bridge right;
+everything depends on it. Do NOT reimplement the CAS — connect to math-lab's existing
+cas-client.js / cas-worker.js. Run-mode compute calls CAS.<op>; live specs stay unchanged.
+Keep nerdamer/mathjs out of the main bundle (lazy worker, loads on first run-mode node).
+Unit-test with fixtures + a mocked worker, no real nerdamer. Run the FULL suite after every
+cross-cutting task. Typecheck + lint clean.
+
+================================================================
+3. CALCULUS  (25 methods, all CAS ops already exist)
+================================================================
+Execute docs/superpowers/plans/2026-08-14-syntropy-engine-calculus.md. Read the spec first
+(section 5 calculus table). Depends on the Foundation plan being done. All 25 CAS.<op>
+already exist — verify each op's signature + return shape in cas-client.js before writing its
+spec; do NOT reimplement math. Pin each method's first output `kind` to its archetype per the
+classification table. Mock casCall in tests. TDD, commit per method, full suite green before
+finishing.
+
+================================================================
+4. COMPLEX  (12 methods, 10 ops to surface)
+================================================================
+Execute docs/superpowers/plans/2026-08-14-syntropy-engine-complex.md. Read the spec first.
+Depends on Foundation. Two phases: Sub-plan A surfaces 10 existing complex-symbolic.js /
+complex-residues.js cores as CAS.<op> — thin routes only, verify each core signature, do not
+break the existing pages; Sub-plan B writes 12 run-mode specs. Let the existing Sympy fallback
+handle contour/residue ops — don't bypass it. The domainColor Field variant (complex-functions)
+is the hardest render. TDD, commit per op then per spec, full suite green.
+
+================================================================
+5. ODE  (9 methods, 7 ops to surface)
+================================================================
+Execute docs/superpowers/plans/2026-08-14-syntropy-engine-ode.md. Read the spec first. Depends
+on Foundation. Sub-plan A surfaces 7 existing cores as CAS.<op> (ode-symbolic / laplace-engine /
+ode-solver / ode-direction-fields / ode-fourier / ode-poisson / series-solutions — thin routes,
+no new math); Sub-plan B writes 9 run-mode specs. PDE methods (heat/wave/laplace-poisson)
+surface a single time-snapshot field, not the animation. For laplace-transform and
+series-solutions, verify the core's return shape in Step A BEFORE pinning the archetype — they
+may flip to Symbolic if no curve is returned. TDD, commit per op/spec, full suite green.

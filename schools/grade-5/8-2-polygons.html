@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Polygons — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:26px 22px 30px; display:flex; flex-direction:column; align-items:center; gap:22px; }
+  .shape-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; width:100%; max-width:500px; }
+  .shape-card{ display:flex; flex-direction:column; align-items:center; gap:8px; padding:14px 10px; border-radius:12px; background:var(--urban-smoke); border:1px solid rgba(255,255,255,.1); }
+  .shape-card svg{ overflow:visible; }
+  .shape-card path, .shape-card polygon{ fill:rgba(92,147,159,.14); stroke:var(--electric-teal); stroke-width:2; }
+  .shape-card.sorted-correct{ border-color:rgba(107,181,124,.5); background:rgba(107,181,124,.1); }
+  .shape-card.sorted-wrong{ border-color:rgba(237,109,64,.5); background:rgba(237,109,64,.08); }
+  .shape-btns{ display:flex; gap:6px; }
+  .sort-btn{ font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:var(--pulse-ash); background:var(--core-black); border:1px solid rgba(255,255,255,.16); border-radius:100px; padding:5px 9px; cursor:pointer; }
+  .reason-text{ font-family:var(--mono); font-size:10.5px; color:var(--pulse-ash); text-align:center; display:none; }
+  .shape-card.sorted-correct .reason-text, .shape-card.sorted-wrong .reason-text{ display:block; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 8 · LESSON 2</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Polygons</h1>
+    <span class="title-secondary ar-display" id="titleAr">المضلّعات</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I identify a polygon as a closed, straight-sided shape with no crossing sides.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">closed, straight sides, no crossings</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="shape-grid" id="shapeGrid" data-el="shapeGrid"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">A polygon must be closed (no gaps), made only of straight sides (no curves), and have sides that don't cross each other — a shape failing any one of those three tests isn't a polygon.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="8-1-sum-of-angles.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">8.1 · Sum of Angles on a Line and Around a Point</b></a>
+    <a class="nav-pill next" href="8-3-classifying-triangles-side-length.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">8.3 · Classifying Triangles by Side Length</b></a>
+  </div>
+</div>
+
+<script>
+  const { initI18n, renderEquation, buildTour } = LessonShell;
+
+  const SHAPES = [
+    { id: "s1", isPolygon: true, reasonEn: "Closed, straight sides, no crossings — a regular pentagon.", reasonAr: "مغلق، أضلاع مستقيمة، بلا تقاطع — خماسي منتظم.",
+      svg: `<svg width="70" height="70" viewBox="0 0 100 100"><polygon points="50,6 92,38 76,90 24,90 8,38"/></svg>` },
+    { id: "s2", isPolygon: false, reasonEn: "Has a curved side — a circle segment, not straight.", reasonAr: "به ضلع منحنٍ — قوس دائرة، وليس مستقيمًا.",
+      svg: `<svg width="70" height="70" viewBox="0 0 100 100"><path d="M20,80 L20,20 A60,60 0 0 1 80,80 Z"/></svg>` },
+    { id: "s3", isPolygon: false, isOpen: true, reasonEn: "Not closed — there's a gap between the ends.", reasonAr: "غير مغلق — توجد فجوة بين الطرفين.",
+      svg: `<svg width="70" height="70" viewBox="0 0 100 100"><path d="M20,20 L80,20 L80,80 L20,80" fill="none"/></svg>` },
+    { id: "s4", isPolygon: true, reasonEn: "Closed, straight sides, no crossings — a triangle.", reasonAr: "مغلق، أضلاع مستقيمة، بلا تقاطع — مثلث.",
+      svg: `<svg width="70" height="70" viewBox="0 0 100 100"><polygon points="50,10 90,90 10,90"/></svg>` },
+    { id: "s5", isPolygon: false, reasonEn: "Sides cross each other — not a simple polygon.", reasonAr: "تتقاطع الأضلاع فيما بينها — ليس مضلّعًا بسيطًا.",
+      svg: `<svg width="70" height="70" viewBox="0 0 100 100"><polygon points="15,15 85,85 85,15 15,85"/></svg>` },
+    { id: "s6", isPolygon: true, reasonEn: "Closed, straight sides, no crossings — an irregular hexagon.", reasonAr: "مغلق، أضلاع مستقيمة، بلا تقاطع — سداسي غير منتظم.",
+      svg: `<svg width="70" height="70" viewBox="0 0 100 100"><polygon points="30,10 70,10 95,50 70,90 30,90 5,50"/></svg>` }
+  ];
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 8 · LESSON 2",
+      objectiveLabel: "Objective —",
+      objectiveText: "I identify a polygon as a closed, straight-sided shape with no crossing sides.",
+      eqSub: "closed, straight sides, no crossings",
+      explainBtn: "Explain this",
+      polyBtn: "polygon", notBtn: "not a polygon",
+      navPrevLabel: "—", navPrevText: "8.1 · Sum of Angles on a Line and Around a Point",
+      navNextLabel: "next", navNext: "8.3 · Classifying Triangles by Side Length",
+      teachLabel: "What this teaches:",
+      teachBody: "A polygon must be closed (no gaps), made only of straight sides (no curves), and have sides that don't cross each other — a shape failing any one of those three tests isn't a polygon.",
+      tour: [
+        { elKey: "shapeGrid", label: "Three tests", body: "A shape must pass all three: fully closed, only straight sides, and no sides crossing each other." },
+        { elKey: "shapeGrid", label: "Sort them", body: "Tap each shape's buttons to sort it — a wrong guess still shows the reasoning, so you learn from the miss." },
+        { elKey: "shapeGrid", label: "Regular vs. irregular", body: "Among the true polygons, some have all equal sides and angles (regular) and some don't (irregular) — both still count as polygons." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٨ · الدرس ٢",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أُميّز المضلّع بأنّه شكل مغلق ذو أضلاع مستقيمة لا تتقاطع.",
+      eqSub: "مغلق، أضلاع مستقيمة، بلا تقاطع",
+      explainBtn: "اشرح هذا",
+      polyBtn: "مضلّع", notBtn: "ليس مضلّعًا",
+      navPrevLabel: "—", navPrevText: "٨.١ · مجموع الزوايا على خط وحول نقطة",
+      navNextLabel: "التالي", navNext: "٨.٣ · تصنيف المثلثات حسب أطوال الأضلاع",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "يجب أن يكون المضلّع مغلقًا (بلا فجوات)، ومكوَّنًا من أضلاع مستقيمة فقط (بلا انحناءات)، وألّا تتقاطع أضلاعه فيما بينها — أي شكل يفشل في أحد هذه الاختبارات الثلاثة ليس مضلّعًا.",
+      tour: [
+        { elKey: "shapeGrid", label: "ثلاثة اختبارات", body: "يجب أن يجتاز الشكل الاختبارات الثلاثة: مغلق تمامًا، أضلاع مستقيمة فقط، وبلا تقاطع بين الأضلاع." },
+        { elKey: "shapeGrid", label: "افرزها", body: "انقر أزرار كل شكل لفرزه — حتى التخمين الخاطئ يُظهر السبب، لتتعلّم من الخطأ." },
+        { elKey: "shapeGrid", label: "منتظم مقابل غير منتظم", body: "من بين المضلّعات الحقيقية، بعضها متساوي الأضلاع والزوايا (منتظم) وبعضها ليس كذلك (غير منتظم) — وكلاهما يُعدّ مضلّعًا." }
+      ]
+    }
+  };
+
+  const shapeGrid = document.getElementById("shapeGrid");
+  const eqLine = document.getElementById("eqLine");
+
+  function buildShapes() {
+    const t = T[i18n.lang];
+    shapeGrid.innerHTML = "";
+    SHAPES.forEach(s => {
+      const card = document.createElement("div");
+      card.className = "shape-card";
+      card.innerHTML = s.svg;
+
+      const reason = document.createElement("div");
+      reason.className = "reason-text";
+      reason.textContent = i18n.lang === "ar" ? s.reasonAr : s.reasonEn;
+
+      const btns = document.createElement("div");
+      btns.className = "shape-btns";
+      const polyBtn = document.createElement("button");
+      polyBtn.className = "sort-btn";
+      polyBtn.textContent = t.polyBtn;
+      const notBtn = document.createElement("button");
+      notBtn.className = "sort-btn";
+      notBtn.textContent = t.notBtn;
+
+      function choose(guess) {
+        const correct = guess === s.isPolygon;
+        card.classList.remove("sorted-correct", "sorted-wrong");
+        card.classList.add(correct ? "sorted-correct" : "sorted-wrong");
+      }
+      polyBtn.addEventListener("click", () => choose(true));
+      notBtn.addEventListener("click", () => choose(false));
+
+      btns.appendChild(polyBtn); btns.appendChild(notBtn);
+      card.appendChild(btns);
+      card.appendChild(reason);
+      shapeGrid.appendChild(card);
+    });
+  }
+
+  const i18n = initI18n(T, { onLangChange: () => { buildShapes(); } });
+  buildShapes();
+  renderEquation(eqLine, `\\text{polygon} = \\text{closed} \\,\\cap\\, \\text{straight} \\,\\cap\\, \\text{no crossings}`);
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

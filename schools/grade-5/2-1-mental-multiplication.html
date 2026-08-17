@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mental Multiplication — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:40px 24px 30px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:26px; }
+  .area-wrap{ position:relative; width:100%; height:220px; display:flex; align-items:center; justify-content:center; }
+  .area-rect{ position:relative; background:linear-gradient(135deg, rgba(92,147,159,.28), rgba(92,147,159,.1)); border:2px solid var(--electric-teal); border-radius:6px; }
+  .area-label{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-family:var(--mono); font-size:15px; font-weight:700; color:var(--electric-teal); white-space:nowrap; direction:ltr; }
+  .side-label{ position:absolute; font-family:var(--mono); font-size:13px; color:var(--off-white); font-weight:700; direction:ltr; }
+  .side-label.width{ bottom:-24px; left:50%; transform:translateX(-50%); }
+  .side-label.height{ left:-14px; top:50%; transform:translate(-100%,-50%) rotate(0deg); }
+
+  .steps-row{ display:flex; gap:8px; }
+  .step-dot{ width:9px; height:9px; border-radius:50%; background:rgba(255,255,255,.18); }
+  .step-dot.done{ background:var(--electric-teal); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 2 · LESSON 1</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Mental Multiplication</h1>
+    <span class="title-secondary ar-display" id="titleAr">الضرب الذهني</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I find the product of whole numbers mentally using doubling and halving.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">the area never changes — only the shape does</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabel">halve / double</label>
+      <input type="range" id="stepSlider" min="0" max="4" step="1" value="0" />
+      <span class="control-val" id="stepReadout">step 0</span>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="area-wrap" id="areaArea">
+        <div class="area-rect" id="areaRect">
+          <div class="area-label" id="areaLabel">560</div>
+          <div class="side-label width" id="widthLabel">35</div>
+          <div class="side-label height" id="heightLabel">16</div>
+        </div>
+      </div>
+      <div class="steps-row" id="stepsRow"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Doubling and halving are introduced as inverse operations that can simplify a multiplication: if one factor is even, halve it and double the other factor repeatedly until the product becomes an easy "basic fact" (e.g. 35×16 → 70×8 → 560).</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="../grade-5/1-5-make-a-table.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">1.5 · Make a Table</b></a>
+    <a class="nav-pill next" href="2-2-estimating-products.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">2.2 · Estimating Products</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 2 · LESSON 1",
+      objectiveLabel: "Objective —",
+      objectiveText: "I find the product of whole numbers mentally using doubling and halving.",
+      eqSub: "the area never changes — only the shape does",
+      explainBtn: "Explain this",
+      controlLabel: "halve / double",
+      navPrevLabel: "—", navPrevText: "1.5 · Make a Table",
+      navNextLabel: "next", navNext: "2.2 · Estimating Products",
+      teachLabel: "What this teaches:",
+      teachBody: "Doubling and halving are introduced as inverse operations that can simplify a multiplication: if one factor is even, halve it and double the other factor repeatedly until the product becomes an easy “basic fact” (e.g. 35×16 → 70×8 → 560).",
+      tour: [
+        { ids: ["areaRect"], label: "Same area, every step", body: "This rectangle's area is the product, 35 × 16 = 560. As long as the area stays the same, the product hasn't changed." },
+        { elKey: "stepArea", label: "Halve one side, double the other", body: "Drag the slider — one factor is cut in half while the other doubles. The rectangle gets a different shape, but never a different area." },
+        { ids: ["eqLine"], label: "Land on an easy fact", body: "Keep going until you reach numbers easy to multiply in your head — here, 560 × 1 is instant." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٢ · الدرس ١",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أجد ناتج ضرب أعداد كلّية ذهنيًا باستخدام المضاعفة والتنصيف.",
+      eqSub: "المساحة لا تتغيّر أبدًا — الشكل فقط يتغيّر",
+      explainBtn: "اشرح هذا",
+      controlLabel: "نصِّف / ضاعِف",
+      navPrevLabel: "—", navPrevText: "١.٥ · أنشئ جدولاً",
+      navNextLabel: "التالي", navNext: "٢.٢ · تقدير نواتج الضرب",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "تُقدَّم المضاعفة والتنصيف كعمليتين متعاكستين يمكن أن تُبسِّطا عملية ضرب: إذا كان أحد العاملين زوجيًا، نُنصِّفه ونُضاعِف العامل الآخر بشكل متكرّر حتى يصبح الناتج «حقيقة أساسية» سهلة (مثل ٣٥×١٦ ← ٧٠×٨ ← ٥٦٠).",
+      tour: [
+        { ids: ["areaRect"], label: "المساحة نفسها في كل خطوة", body: "مساحة هذا المستطيل هي الناتج، ٣٥ × ١٦ = ٥٦٠. طالما بقيت المساحة نفسها، فإنّ الناتج لم يتغيّر." },
+        { elKey: "stepArea", label: "نصِّف ضلعًا وضاعِف الآخر", body: "اسحب شريط التمرير — يُقسَم أحد العاملين على نصفه بينما يتضاعف الآخر. يتغيّر شكل المستطيل، لكن مساحته لا تتغيّر أبدًا." },
+        { ids: ["eqLine"], label: "صِل إلى حقيقة سهلة", body: "استمرّ حتى تصل إلى عددين يسهل ضربهما ذهنيًا — هنا، ٥٦٠ × ١ فوري." }
+      ]
+    }
+  };
+
+  const A0 = 35, B0 = 16, PRODUCT = A0 * B0; // 560 — the textbook's own worked example
+  const G = Math.sqrt(PRODUCT);
+  const BASE = 78; // px, tuned so the rectangle stays within the scene at every step
+
+  const areaRect = document.getElementById("areaRect");
+  const areaLabel = document.getElementById("areaLabel");
+  const widthLabel = document.getElementById("widthLabel");
+  const heightLabel = document.getElementById("heightLabel");
+  const stepsRow = document.getElementById("stepsRow");
+  const stepSlider = document.getElementById("stepSlider");
+  const stepReadout = document.getElementById("stepReadout");
+  const eqLine = document.getElementById("eqLine");
+  areaRect.dataset.el = "stepArea";
+
+  const MAXSTEP = 4;
+  for (let i = 0; i <= MAXSTEP; i++) {
+    const dot = document.createElement("div");
+    dot.className = "step-dot";
+    stepsRow.appendChild(dot);
+  }
+
+  function valuesAtStep(step) {
+    return { A: A0 * Math.pow(2, step), B: B0 / Math.pow(2, step) };
+  }
+
+  function render(animate) {
+    const step = parseInt(stepSlider.value, 10);
+    const { A, B } = valuesAtStep(step);
+    const w = BASE * Math.sqrt(A / G);
+    const h = BASE * Math.sqrt(B / G);
+
+    const targets = animate ? { duration: .5, ease: "power2.inOut" } : { duration: 0 };
+    gsap.to(areaRect, { width: w, height: h, ...targets });
+    widthLabel.textContent = groupInt(A, "en");
+    heightLabel.textContent = groupInt(B, "en");
+
+    stepReadout.textContent = (i18n.lang === "ar" ? "الخطوة " : "step ") + digits(step, i18n.lang);
+    stepsRow.querySelectorAll(".step-dot").forEach((d, i) => d.classList.toggle("done", i <= step));
+
+    const eqSource = `\\color{#5c939f}{${groupInt(A, "en")}} \\times \\color{#5c939f}{${groupInt(B, "en")}} = \\color{#ed6d40}{${groupInt(PRODUCT, "en")}}`;
+    renderEquation(eqLine, eqSource);
+  }
+
+  stepSlider.addEventListener("input", () => render(true));
+  const i18n = initI18n(T, { onLangChange: () => render(false) });
+  render(false);
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

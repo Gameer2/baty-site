@@ -16,6 +16,7 @@
     return (terms.join(" ") || "0") + " = 0";
   }
   LinAlgPage.init({
+    storeKey: "engine-lab:linear-algebra-eigenvalues",
     square: true,
     example: { A: [[4, -2, 1], [-2, 4, -2], [1, -2, 4]] },
     compute: (A) => {

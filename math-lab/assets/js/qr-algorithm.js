@@ -27,6 +27,15 @@
   const TRACE = { current: 1 };
 
   const DEFAULT_MATRIX = [[2, 1], [1, 2]];
+  const STORE_KEY = "engine-lab:numerical-qr-algorithm";
+
+  function snapshot() {
+    return {
+      matrix: getMatrix().map((row) => row.join(",")).join(";"),
+      tol: tolInput.value,
+      maxIter: maxIterInput.value,
+    };
+  }
 
   function buildMatrixGrid(n, values) {
     matrixBody.innerHTML = "";
@@ -194,8 +203,7 @@
 
   stepSlider.addEventListener("input", (e) => updateStep(Number(e.target.value)));
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+  function runCompute() {
     clearError();
 
     const checked = updateStartCheck();
@@ -212,9 +220,29 @@
     if (!iterations.length) return showError("No iterations produced — check inputs.");
 
     render(iterations);
+    Proto.saveState(STORE_KEY, snapshot());
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    runCompute();
   });
 
   // initial state
   buildMatrixGrid(2, DEFAULT_MATRIX);
+
+  const saved = Proto.loadState(STORE_KEY);
+  if (saved && saved.matrix !== undefined) {
+    const rows = String(saved.matrix).split(";").map((r) => r.split(",").map(Number));
+    const n = rows.length;
+    if (n >= 2 && n <= 6 && rows.every((row) => row.length === n)) {
+      sizeInput.value = String(n);
+      buildMatrixGrid(n, rows);
+      if (saved.tol !== undefined) tolInput.value = saved.tol;
+      if (saved.maxIter !== undefined) maxIterInput.value = saved.maxIter;
+      runCompute();
+    }
+  }
+
   updateStartCheck();
 })();

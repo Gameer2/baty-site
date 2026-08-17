@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Comparing and Ordering Numbers — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:34px 24px 26px; display:flex; flex-direction:column; align-items:center; gap:14px; }
+  .num-row{ display:flex; align-items:center; gap:14px; }
+  .num-row-label{ width:20px; font-family:var(--mono); font-size:14px; font-weight:700; color:var(--pulse-ash); }
+  .num-row.rowA .num-row-label{ color:var(--electric-teal); }
+  .num-row.rowB .num-row-label{ color:var(--infrared); }
+  .cells{ display:flex; gap:5px; }
+  .cell{ width:44px; height:52px; border-radius:8px; background:var(--core-black); border:1px solid rgba(255,255,255,.1); display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:21px; font-weight:700; color:var(--off-white); transition:opacity .3s ease, border-color .3s ease, background .3s ease; direction:ltr; }
+  .cell.tie{ opacity:.28; }
+  .cell.decider{ border-color:var(--infrared); background:rgba(237,109,64,.16); }
+  .sep{ width:10px; }
+
+  .inputs{ display:flex; gap:24px; flex-wrap:wrap; justify-content:center; }
+  .input-group{ display:flex; align-items:center; gap:10px; }
+  .input-group label{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash); }
+  .input-group input{ font-family:var(--mono); font-size:15px; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.16); border-radius:8px; padding:7px 10px; width:130px; direction:ltr; }
+  .presets{ display:flex; gap:8px; }
+  .preset-btn{ font-family:var(--mono); font-size:11px; letter-spacing:.04em; text-transform:uppercase; color:var(--electric-teal); background:none; border:1px solid rgba(92,147,159,.4); border-radius:100px; padding:6px 14px; cursor:pointer; }
+  .preset-btn:hover{ background:rgba(92,147,159,.12); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 1 · LESSON 2</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Comparing and Ordering Numbers</h1>
+    <span class="title-secondary ar-display" id="titleAr">مقارنة الأعداد وترتيبها</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I compare numbers within the millions, and order them.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">scan from the left until the digits disagree</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="inputs">
+        <div class="input-group"><label data-role="ui" data-i18n="labelA">number A</label><input type="number" id="inputA" value="3847562" /></div>
+        <div class="input-group"><label data-role="ui" data-i18n="labelB">number B</label><input type="number" id="inputB" value="3851204" /></div>
+      </div>
+      <div class="presets">
+        <button class="preset-btn" id="presetClose" data-role="ui" data-i18n="presetClose">close numbers</button>
+        <button class="preset-btn" id="presetFar" data-role="ui" data-i18n="presetFar">far apart</button>
+      </div>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="num-row rowA">
+        <span class="num-row-label">A</span>
+        <div class="cells" id="cellsA"></div>
+      </div>
+      <div class="num-row rowB">
+        <span class="num-row-label">B</span>
+        <div class="cells" id="cellsB"></div>
+      </div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Students compare multi-digit numbers by stacking them vertically, aligning place values, and scanning digit-by-digit from the left until a difference is found (using &gt;, &lt;, =), then extend this to sorting three or more numbers ascending or descending.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="1-1-place-value-millions.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">1.1 · Place Value Within Millions</b></a>
+    <a class="nav-pill next" href="1-3-adding-subtracting-whole-numbers.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">1.3 · Adding &amp; Subtracting Whole Numbers</b></a>
+  </div>
+</div>
+
+<script>
+  const { groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 1 · LESSON 2",
+      objectiveLabel: "Objective —",
+      objectiveText: "I compare numbers within the millions, and order them.",
+      eqSub: "scan from the left until the digits disagree",
+      explainBtn: "Explain this",
+      labelA: "number A", labelB: "number B",
+      presetClose: "close numbers", presetFar: "far apart",
+      navPrevLabel: "—", navPrevText: "1.1 · Place Value Within Millions",
+      navNextLabel: "next", navNext: "1.3 · Adding & Subtracting Whole Numbers",
+      teachLabel: "What this teaches:",
+      teachBody: "Students compare multi-digit numbers by stacking them vertically, aligning place values, and scanning digit-by-digit from the left until a difference is found (using >, <, =), then extend this to sorting three or more numbers ascending or descending.",
+      tour: [
+        { ids: ["cellsA", "cellsB"], label: "Stack and align", body: "Write both numbers with matching place values lined up in columns, like this chart does automatically." },
+        { elKey: "scanArea", label: "Scan from the left", body: "Compare column by column, starting at the leftmost (largest) place. Matching digits dim — they're a tie so far." },
+        { elKey: "decider", label: "The decisive column", body: "The first column where the digits differ decides the whole comparison — everything after it doesn't matter." },
+        { ids: ["eqLine"], label: "The result", body: "Whichever number has the bigger digit in that column is the bigger number overall." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ١ · الدرس ٢",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أُقارن الأعداد ضمن الملايين، وأرتّبها.",
+      eqSub: "امسح من اليسار حتى تختلف الأرقام",
+      explainBtn: "اشرح هذا",
+      labelA: "العدد A", labelB: "العدد B",
+      presetClose: "أعداد متقاربة", presetFar: "أعداد متباعدة",
+      navPrevLabel: "—", navPrevText: "١.١ · القيمة المنزلية ضمن الملايين",
+      navNextLabel: "التالي", navNext: "١.٣ · جمع الأعداد الكلّية وطرحها",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "يقارن الطلبة الأعداد المتعدّدة الأرقام بترتيبها عموديًا، ومحاذاة القيم المنزلية، ثمّ المسح رقمًا رقمًا من اليسار حتى يظهر اختلاف (باستخدام >، <، =)، ثم يوسّعون ذلك لترتيب ثلاثة أعداد أو أكثر تصاعديًا أو تنازليًا.",
+      tour: [
+        { ids: ["cellsA", "cellsB"], label: "الترتيب والمحاذاة", body: "اكتب العددين بحيث تتحاذى المنازل المتماثلة في أعمدة، كما يفعل هذا الجدول تلقائيًا." },
+        { elKey: "scanArea", label: "امسح من اليسار", body: "قارن عمودًا عمودًا، ابتداءً من أقصى اليسار (أكبر منزلة). الأرقام المتطابقة تُعتِم — فهي تعادل حتى الآن." },
+        { elKey: "decider", label: "العمود الحاسم", body: "أوّل عمود يختلف فيه الرقمان يحسم المقارنة كاملة — وما بعده لا يهم." },
+        { ids: ["eqLine"], label: "النتيجة", body: "العدد الذي يملك الرقم الأكبر في ذلك العمود هو العدد الأكبر إجمالًا." }
+      ]
+    }
+  };
+
+  const PLACES = [6, 5, 4, 3, 2, 1, 0]; // millions..ones, left to right
+  function digitAt(n, pos) { return Math.floor(Math.abs(n) / Math.pow(10, pos)) % 10; }
+
+  const cellsAEl = document.getElementById("cellsA");
+  const cellsBEl = document.getElementById("cellsB");
+  const inputA = document.getElementById("inputA");
+  const inputB = document.getElementById("inputB");
+  const eqLine = document.getElementById("eqLine");
+  const scene = document.getElementById("scene");
+  scene.dataset.el = "scanArea";
+
+  function buildCells(container, rowId) {
+    container.innerHTML = "";
+    const cells = [];
+    PLACES.forEach((pos, idx) => {
+      if (idx === 1 || idx === 4) {
+        const sep = document.createElement("div");
+        sep.className = "sep";
+        container.appendChild(sep);
+      }
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      cell.id = rowId + "_" + pos;
+      container.appendChild(cell);
+      cells.push({ pos, el: cell });
+    });
+    return cells;
+  }
+
+  const cellsA = buildCells(cellsAEl, "a");
+  const cellsB = buildCells(cellsBEl, "b");
+
+  function compareAndRender() {
+    const A = parseInt(inputA.value, 10) || 0;
+    const B = parseInt(inputB.value, 10) || 0;
+
+    let deciderPos = null;
+    for (const pos of PLACES) {
+      if (digitAt(A, pos) !== digitAt(B, pos)) { deciderPos = pos; break; }
+    }
+
+    cellsA.forEach(({ pos, el }) => {
+      el.textContent = digitAt(A, pos);
+      el.classList.remove("tie", "decider");
+      el.id = "a_" + pos;
+      el.removeAttribute("data-el");
+    });
+    cellsB.forEach(({ pos, el }) => {
+      el.textContent = digitAt(B, pos);
+      el.classList.remove("tie", "decider");
+      el.removeAttribute("data-el");
+    });
+
+    PLACES.forEach(pos => {
+      const aCell = cellsA.find(c => c.pos === pos).el;
+      const bCell = cellsB.find(c => c.pos === pos).el;
+      if (deciderPos !== null && pos > deciderPos) return; // before the decider: leave normal until animated
+      if (deciderPos !== null && pos === deciderPos) {
+        aCell.classList.add("decider"); bCell.classList.add("decider");
+        aCell.dataset.el = "decider"; bCell.dataset.el = "decider";
+      } else if (deciderPos !== null && pos < deciderPos) {
+        // irrelevant columns, dim immediately
+        aCell.classList.add("tie"); bCell.classList.add("tie");
+      }
+    });
+
+    // animate the scan: dim ties left-to-right, stop and hold at the decider
+    let delay = 0;
+    PLACES.forEach(pos => {
+      const aCell = cellsA.find(c => c.pos === pos).el;
+      const bCell = cellsB.find(c => c.pos === pos).el;
+      if (deciderPos !== null && pos > deciderPos) {
+        gsap.fromTo([aCell, bCell], { opacity: 1 }, { opacity: .28, duration: .25, delay });
+        delay += 0.12;
+      } else if (pos === deciderPos) {
+        gsap.fromTo([aCell, bCell], { scale: 1.15 }, { scale: 1, duration: .3, delay, ease: "back.out(2)" });
+      }
+    });
+
+    const symbol = A > B ? ">" : A < B ? "<" : "=";
+    const eqSource = `\\color{#5c939f}{${groupInt(A, "en")}} \\; ${symbol === ">" ? ">" : symbol === "<" ? "<" : "="} \\; \\color{#ed6d40}{${groupInt(B, "en")}}`;
+    renderEquation(eqLine, eqSource);
+  }
+
+  inputA.addEventListener("input", compareAndRender);
+  inputB.addEventListener("input", compareAndRender);
+  document.getElementById("presetClose").addEventListener("click", () => {
+    inputA.value = 3847562; inputB.value = 3851204; compareAndRender();
+  });
+  document.getElementById("presetFar").addEventListener("click", () => {
+    inputA.value = 2184930; inputB.value = 6572810; compareAndRender();
+  });
+
+  const i18n = initI18n(T, { onLangChange: () => compareAndRender() });
+  compareAndRender();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

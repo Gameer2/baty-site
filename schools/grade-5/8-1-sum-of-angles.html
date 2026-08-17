@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sum of Angles on a Line and Around a Point — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:20px 20px 30px; display:flex; flex-direction:column; align-items:center; gap:16px; }
+  svg#angleSvg{ direction:ltr; touch-action:none; }
+  .baseline{ stroke:rgba(255,255,255,.3); stroke-width:2; }
+  .wedge{ opacity:.55; }
+  .wedge.a{ fill:var(--electric-teal); }
+  .wedge.b{ fill:var(--infrared); }
+  .wedge.c{ fill:var(--validation-green); }
+  .ray{ stroke:rgba(255,255,255,.5); stroke-width:2; }
+  .handle{ fill:var(--off-white); stroke:rgba(0,0,0,.3); stroke-width:1; cursor:grab; }
+  .angle-label{ font-family:var(--mono); font-size:13px; font-weight:700; }
+
+  .mode-toggle{ display:flex; gap:6px; }
+  .mode-btn{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--pulse-ash); background:var(--core-black); border:1px solid rgba(255,255,255,.14); border-radius:100px; padding:6px 14px; cursor:pointer; }
+  .mode-btn.active{ color:var(--off-white); border-color:var(--electric-teal); background:rgba(92,147,159,.12); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 8 · LESSON 1</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Sum of Angles on a Line and Around a Point</h1>
+    <span class="title-secondary ar-display" id="titleAr">مجموع الزوايا على خط وحول نقطة</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I use the fact that angles on a line sum to 180° and angles around a point sum to 360° to find an unknown angle.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">drag a ray, watch the rest compensate</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="mode-toggle" id="modeToggle" data-el="modeToggle">
+        <button class="mode-btn active" data-mode="line" data-i18n="modeLine">on a line (180°)</button>
+        <button class="mode-btn" data-mode="point" data-i18n="modePoint">around a point (360°)</button>
+      </div>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <svg id="angleSvg" width="360" height="220" viewBox="0 0 360 220" data-el="angleSvg"></svg>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Angles that sit along a straight line always total 180°, and angles that surround a single point always total 360° — dragging one angle bigger always shrinks the others by exactly the same amount, keeping the fixed sum.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="../grade-5/7-4-draw-a-model.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">7.4 · Problem-Solving Strategy: Draw a Model</b></a>
+    <a class="nav-pill next" href="8-2-polygons.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">8.2 · Polygons</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, initI18n, renderEquation, buildTour } = LessonShell;
+  const CX = 180, CY = 150, R = 90;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 8 · LESSON 1",
+      objectiveLabel: "Objective —",
+      objectiveText: "I use the fact that angles on a line sum to 180° and angles around a point sum to 360° to find an unknown angle.",
+      eqSub: "drag a ray, watch the rest compensate",
+      explainBtn: "Explain this",
+      modeLine: "on a line (180°)", modePoint: "around a point (360°)",
+      navPrevLabel: "—", navPrevText: "7.4 · Problem-Solving Strategy: Draw a Model",
+      navNextLabel: "next", navNext: "8.2 · Polygons",
+      teachLabel: "What this teaches:",
+      teachBody: "Angles that sit along a straight line always total 180°, and angles that surround a single point always total 360° — dragging one angle bigger always shrinks the others by exactly the same amount, keeping the fixed sum.",
+      tour: [
+        { ids: ["angleSvg"], label: "A fixed total", body: "On a line the two angles always add to 180°; around a point, all the angles always add to 360°." },
+        { ids: ["angleSvg"], label: "Drag a ray", body: "Drag any handle — the angle it controls changes, and the remaining angle instantly adjusts to keep the total fixed." },
+        { ids: ["modeToggle"], label: "Compare both cases", body: "Switch between the line and the point — same idea, different fixed total." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٨ · الدرس ١",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أستخدم أنّ مجموع الزوايا على خط مستقيم ١٨٠° ومجموع الزوايا حول نقطة ٣٦٠° لإيجاد زاوية مجهولة.",
+      eqSub: "اسحب شعاعًا، وراقب الباقي يعوّض",
+      explainBtn: "اشرح هذا",
+      modeLine: "على خط (١٨٠°)", modePoint: "حول نقطة (٣٦٠°)",
+      navPrevLabel: "—", navPrevText: "٧.٤ · استراتيجية حل المسألة: ارسم نموذجًا",
+      navNextLabel: "التالي", navNext: "٨.٢ · المضلّعات",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "الزوايا الواقعة على خط مستقيم يكون مجموعها دائمًا ١٨٠°، والزوايا المحيطة بنقطة واحدة يكون مجموعها دائمًا ٣٦٠° — سحب زاوية لتكبيرها يُصغّر الزوايا الأخرى بالمقدار نفسه بالضبط، حفاظًا على المجموع الثابت.",
+      tour: [
+        { ids: ["angleSvg"], label: "مجموع ثابت", body: "على الخط، تجمع الزاويتان دائمًا إلى ١٨٠°؛ وحول نقطة، تجمع كل الزوايا دائمًا إلى ٣٦٠°." },
+        { ids: ["angleSvg"], label: "اسحب شعاعًا", body: "اسحب أي مقبض — تتغيّر الزاوية التي يتحكّم بها، وتتعدّل الزاوية المتبقّية فورًا لتحافظ على المجموع الثابت." },
+        { ids: ["modeToggle"], label: "قارن بين الحالتين", body: "بدّل بين الخط والنقطة — الفكرة نفسها، لكن بمجموع ثابت مختلف." }
+      ]
+    }
+  };
+
+  const angleSvg = document.getElementById("angleSvg");
+  const modeToggle = document.getElementById("modeToggle");
+  const eqLine = document.getElementById("eqLine");
+
+  let mode = "line";
+  let angleA = 60; // line mode: degrees from left baseline (0-180)
+  let rayA = 100, rayB = 220; // point mode: two ray angles in degrees (0-360), measured from positive x-axis, clockwise-friendly in screen space
+
+  function polar(cx, cy, r, deg) {
+    const rad = (deg * Math.PI) / 180;
+    return { x: cx + r * Math.cos(rad), y: cy - r * Math.sin(rad) };
+  }
+
+  function wedgePath(cx, cy, r, startDeg, endDeg) {
+    const p0 = polar(cx, cy, r, startDeg);
+    const p1 = polar(cx, cy, r, endDeg);
+    const large = (endDeg - startDeg) > 180 ? 1 : 0;
+    return `M${cx},${cy} L${p0.x},${p0.y} A${r},${r} 0 ${large} 0 ${p1.x},${p1.y} Z`;
+  }
+
+  function addHandle(deg, r, onDrag) {
+    const p = polar(CX, CY, r, deg);
+    const handle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    handle.setAttribute("cx", p.x); handle.setAttribute("cy", p.y);
+    handle.setAttribute("r", 8);
+    handle.setAttribute("class", "handle");
+    let dragging = false;
+    handle.addEventListener("pointerdown", (e) => { dragging = true; handle.setPointerCapture(e.pointerId); });
+    handle.addEventListener("pointermove", (e) => {
+      if (!dragging) return;
+      const rect = angleSvg.getBoundingClientRect();
+      const scaleX = 360 / rect.width, scaleY = 220 / rect.height;
+      const x = (e.clientX - rect.left) * scaleX, y = (e.clientY - rect.top) * scaleY;
+      const rawDeg = (Math.atan2(-(y - CY), x - CX) * 180) / Math.PI;
+      onDrag(((rawDeg % 360) + 360) % 360);
+    });
+    handle.addEventListener("pointerup", () => { dragging = false; });
+    angleSvg.appendChild(handle);
+  }
+
+  function addLabel(deg, r, text, cls) {
+    const p = polar(CX, CY, r, deg);
+    const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    label.setAttribute("x", p.x); label.setAttribute("y", p.y);
+    label.setAttribute("text-anchor", "middle");
+    label.setAttribute("class", "angle-label " + cls);
+    label.setAttribute("fill", cls === "a" ? "#5c939f" : cls === "b" ? "#ed6d40" : "#6bb57c");
+    label.textContent = text;
+    angleSvg.appendChild(label);
+  }
+
+  function renderLine() {
+    angleSvg.innerHTML = "";
+    const left = polar(CX, CY, R + 20, 180), right = polar(CX, CY, R + 20, 0);
+    const baseline = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    baseline.setAttribute("x1", left.x); baseline.setAttribute("y1", left.y);
+    baseline.setAttribute("x2", right.x); baseline.setAttribute("y2", right.y);
+    baseline.setAttribute("class", "baseline");
+    angleSvg.appendChild(baseline);
+
+    const wedgeA = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    wedgeA.setAttribute("d", wedgePath(CX, CY, R, angleA, 180));
+    wedgeA.setAttribute("class", "wedge a");
+    angleSvg.appendChild(wedgeA);
+
+    const wedgeB = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    wedgeB.setAttribute("d", wedgePath(CX, CY, R, 0, angleA));
+    wedgeB.setAttribute("class", "wedge b");
+    angleSvg.appendChild(wedgeB);
+
+    const midA = angleA + (180 - angleA) / 2;
+    const midB = angleA / 2;
+    addLabel(midA, R * .6, digits(180 - angleA, i18n.lang) + "°", "a");
+    addLabel(midB, R * .6, digits(angleA, i18n.lang) + "°", "b");
+
+    addHandle(angleA, R, (deg) => {
+      angleA = Math.max(2, Math.min(178, deg));
+      renderLine();
+      updateEq();
+    });
+
+    updateEq();
+  }
+
+  function renderPoint() {
+    angleSvg.innerHTML = "";
+    if (rayB < rayA) rayB += 360;
+    const a2 = ((rayA % 360) + 360) % 360, b2 = ((rayB % 360) + 360) % 360;
+    const segs = [
+      { start: 0, end: rayA, cls: "a" },
+      { start: rayA, end: rayB, cls: "b" },
+      { start: rayB, end: 360, cls: "c" }
+    ];
+    segs.forEach(seg => {
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", wedgePath(CX, CY, R, seg.start, seg.end));
+      path.setAttribute("class", "wedge " + seg.cls);
+      angleSvg.appendChild(path);
+      const mid = seg.start + (seg.end - seg.start) / 2;
+      addLabel(mid, R * .6, digits(Math.round(seg.end - seg.start), i18n.lang) + "°", seg.cls);
+    });
+
+    addHandle(rayA, R, (deg) => {
+      let d = deg;
+      if (d > rayB - 5 && d < rayB) d = rayB - 5;
+      rayA = d;
+      renderPoint();
+      updateEq();
+    });
+    addHandle(rayB % 360, R, (deg) => {
+      let d = deg;
+      if (d < rayA + 5 && d > rayA - 355) d = rayA + 5;
+      rayB = d < rayA ? d + 360 : d;
+      renderPoint();
+      updateEq();
+    });
+
+    updateEq();
+  }
+
+  function updateEq() {
+    if (mode === "line") {
+      renderEquation(eqLine, `${Math.round(angleA)}° + ${Math.round(180 - angleA)}° = \\color{#ed6d40}{180°}`);
+    } else {
+      const segA = Math.round(rayA), segB = Math.round(rayB - rayA), segC = Math.round(360 - rayB);
+      renderEquation(eqLine, `${segA}° + ${segB}° + ${segC}° = \\color{#ed6d40}{360°}`);
+    }
+  }
+
+  function render() {
+    if (mode === "line") renderLine(); else renderPoint();
+  }
+
+  modeToggle.addEventListener("click", (e) => {
+    const btn = e.target.closest(".mode-btn");
+    if (!btn) return;
+    mode = btn.dataset.mode;
+    modeToggle.querySelectorAll(".mode-btn").forEach(b => b.classList.toggle("active", b === btn));
+    render();
+  });
+
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

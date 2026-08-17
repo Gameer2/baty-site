@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Order of Operations — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: step through the expression, one priority level at a time. ---- */
+  .chart{ padding:34px 24px 30px; display:flex; flex-direction:column; align-items:center; gap:18px; }
+  .steps-col{ display:flex; flex-direction:column; gap:8px; width:100%; max-width:420px; }
+  .step-card{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 16px; border-radius:10px; background:var(--core-black); border:1px solid rgba(255,255,255,.08); opacity:.25; transition:opacity .3s ease; direction:ltr; }
+  .step-card.active{ opacity:1; border-color:rgba(92,147,159,.4); background:rgba(92,147,159,.08); }
+  .step-card .rule{ font-family:var(--mono); font-size:12.5px; color:var(--neural-fog); }
+  .step-card .badge{ font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--electric-teal); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 5 · LESSON 3</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Order of Operations</h1>
+    <span class="title-secondary ar-display" id="titleAr">أولويات العمليات الحسابية</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I use order of operations to evaluate numerical expressions.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">resolve one priority level at a time</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabel">step</label>
+      <input type="range" id="stepSlider" min="0" max="4" step="1" value="0" />
+      <span class="control-val" id="stepReadout">1 / 5</span>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="steps-col" id="stepsCol" data-el="stepsCol"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">A strict priority order — parentheses first, then all exponents and roots, then multiplication/division left-to-right, then addition/subtraction left-to-right — applied to expressions mixing all of these, including expressions representing shaded-region areas written with exponents.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="5-2-square-root-cube-root.html">— <b data-role="body" id="navPrevText">5.2 · Square Root &amp; Cube Root</b></a>
+    <a class="nav-pill next" href="5-4-algebraic-properties.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">5.4 · Algebraic Properties</b></a>
+  </div>
+</div>
+
+<script>
+  const { initI18n, renderEquation, buildTour } = LessonShell;
+
+  const STEPS = [
+    { tex: "3 + 2^2 \\times (5-1)" },
+    { tex: "3 + 2^2 \\times \\color{#ed6d40}{4}" },
+    { tex: "3 + \\color{#ed6d40}{4} \\times 4" },
+    { tex: "3 + \\color{#ed6d40}{16}" },
+    { tex: "\\color{#ed6d40}{19}" }
+  ];
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 5 · LESSON 3",
+      objectiveLabel: "Objective —",
+      objectiveText: "I use order of operations to evaluate numerical expressions.",
+      eqSub: "resolve one priority level at a time",
+      explainBtn: "Explain this",
+      controlLabel: "step",
+      rules: ["start: parentheses, exponents, then × ÷, then + −", "parentheses: (5 − 1) = 4", "exponents: 2² = 4", "multiply: 4 × 4 = 16", "add: 3 + 16 = 19"],
+      teachLabel: "What this teaches:",
+      teachBody: "A strict priority order — parentheses first, then all exponents and roots, then multiplication/division left-to-right, then addition/subtraction left-to-right — applied to expressions mixing all of these, including expressions representing shaded-region areas written with exponents.",
+      navPrev: "5.2 · Square Root & Cube Root",
+      navNext: "5.4 · Algebraic Properties",
+      navNextLabel: "next",
+      tour: [
+        { elKey: "stepsCol", label: "One level at a time", body: "Drag the step slider — each step resolves the single highest-priority piece left in the expression." },
+        { ids: ["eqLine"], label: "What's highlighted next", body: "The orange part is what just got resolved — everything else stays exactly as written until its turn comes." },
+        { ids: ["stepsCol"], label: "Predict before you drag", body: "Before moving the slider, try to say out loud what resolves next — parentheses, then exponents, then × ÷, then + −." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ٥ · الدرس ٣",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أستخدم أولويات العمليات الحسابية لإيجاد قيمة مقادير عددية.",
+      eqSub: "حُلّ مستوى أولوية واحدًا في كل مرّة",
+      explainBtn: "اشرح هذا",
+      controlLabel: "الخطوة",
+      rules: ["البداية: الأقواس، ثم الأسس، ثم × ÷، ثم + −", "الأقواس: (٥ − ١) = ٤", "الأسس: ٢² = ٤", "الضرب: ٤ × ٤ = ١٦", "الجمع: ٣ + ١٦ = ١٩"],
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "ترتيب أولوية صارم — الأقواس أولًا، ثم جميع الأسس والجذور، ثم الضرب/القسمة من اليسار إلى اليمين، ثم الجمع/الطرح من اليسار إلى اليمين — يُطبَّق على مقادير تمزج كل ذلك، بما فيها مقادير تمثّل مساحات مناطق مظلّلة مكتوبة بالأسس.",
+      navPrev: "٥.٢ · الجذر التربيعي والجذر التكعيبي",
+      navNext: "٥.٤ · الخصائص الجبرية",
+      navNextLabel: "التالي",
+      tour: [
+        { elKey: "stepsCol", label: "مستوى واحد في كل مرّة", body: "اسحب شريط الخطوات — تحلّ كل خطوة الجزء الأعلى أولوية المتبقّي في المقدار." },
+        { ids: ["eqLine"], label: "ما الذي تمّ تظليله", body: "الجزء البرتقالي هو ما حُلّ للتوّ — يبقى كل شيء آخر كما كُتب تمامًا حتى يحين دوره." },
+        { ids: ["stepsCol"], label: "توقّع قبل أن تسحب", body: "قبل تحريك الشريط، حاول أن تقول بصوت مسموع ما يُحلّ تاليًا — الأقواس، ثم الأسس، ثم × ÷، ثم + −." }
+      ]
+    }
+  };
+
+  const stepSlider = document.getElementById("stepSlider");
+  const stepReadout = document.getElementById("stepReadout");
+  const stepsCol = document.getElementById("stepsCol");
+  const eqLine = document.getElementById("eqLine");
+
+  function buildSteps() {
+    const t = T[i18n.lang];
+    stepsCol.innerHTML = "";
+    t.rules.forEach((rule, idx) => {
+      const card = document.createElement("div");
+      card.className = "step-card";
+      card.id = "step_" + idx;
+      const badge = document.createElement("span");
+      badge.className = "badge";
+      badge.textContent = String(idx + 1);
+      const desc = document.createElement("span");
+      desc.className = "rule";
+      desc.textContent = rule;
+      card.appendChild(desc);
+      card.appendChild(badge);
+      stepsCol.appendChild(card);
+    });
+  }
+
+  function render() {
+    const cur = parseInt(stepSlider.value, 10);
+    stepReadout.textContent = (cur + 1) + " / " + STEPS.length;
+    document.querySelectorAll(".step-card").forEach((c, idx) => c.classList.toggle("active", idx === cur));
+    renderEquation(eqLine, STEPS[cur].tex);
+  }
+
+  stepSlider.addEventListener("input", render);
+  const i18n = initI18n(T, { onLangChange: () => { buildSteps(); render(); } });
+  buildSteps();
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

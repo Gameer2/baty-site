@@ -28,6 +28,11 @@
 
   let mode = "auto"; // "auto" | "13" | "38"
   let state = null; // { panels, bounds, traceMap }
+  const STORE_KEY = "engine-lab:numerical-simpsons-rule";
+
+  function snapshot() {
+    return { fx: fxInput.value, a: aInput.value, b: bInput.value, n: nInput.value };
+  }
 
   function setMode(next) {
     mode = next;
@@ -283,8 +288,7 @@
 
   stepSlider.addEventListener("input", (e) => updateStep(Number(e.target.value)));
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+  function runCompute() {
     clearError();
 
     const compiled = Engine.compileFx(fxInput.value);
@@ -308,12 +312,28 @@
     }
 
     render(result, compiled, a, b, n);
+    Proto.saveState(STORE_KEY, snapshot());
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    runCompute();
   });
 
   Engine.attachMathKeypad(fxInput, document.getElementById("fxKeypad"));
   Engine.attachKeypadToggle(document.getElementById("keypadToggle"), document.getElementById("fxKeypad"));
 
   setMode("auto");
+
+  const saved = Proto.loadState(STORE_KEY);
+  if (saved) {
+    if (saved.fx !== undefined) fxInput.value = saved.fx;
+    if (saved.a !== undefined) aInput.value = saved.a;
+    if (saved.b !== undefined) bInput.value = saved.b;
+    if (saved.n !== undefined) nInput.value = saved.n;
+  }
+
   updatePreview();
   updateStartCheck();
+  if (saved) runCompute();
 })();

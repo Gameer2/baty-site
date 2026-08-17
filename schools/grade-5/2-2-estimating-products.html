@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Estimating Products — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:36px 24px 30px; display:flex; flex-direction:column; align-items:center; gap:24px; }
+  .rline-wrap{ width:100%; max-width:560px; position:relative; height:70px; }
+  .rline{ position:absolute; top:34px; left:0; right:0; height:1px; background:rgba(255,255,255,.14); }
+  .rline .tick{ position:absolute; top:-5px; width:1px; height:11px; background:rgba(255,255,255,.2); transform:translateX(-50%); }
+  .rline .tick-label{ position:absolute; top:12px; transform:translateX(-50%); font-family:var(--mono); font-size:11px; color:var(--pulse-ash); direction:ltr; }
+  .rline .marker{ position:absolute; top:-13px; width:26px; height:26px; margin-left:-13px; border-radius:50%; background:var(--infrared); box-shadow:0 4px 12px rgba(237,109,64,.4); transform:translateX(-50%); }
+  .rline .snap-label{ position:absolute; top:-42px; transform:translateX(-50%); font-family:var(--mono); font-size:12px; font-weight:700; color:var(--infrared); direction:ltr; white-space:nowrap; }
+
+  .compare-row{ display:flex; gap:28px; flex-wrap:wrap; justify-content:center; }
+  .compare-card{ background:var(--urban-smoke); border:1px solid rgba(255,255,255,.1); border-radius:14px; padding:16px 22px; text-align:center; min-width:190px; }
+  .compare-card .label{ font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash); margin-bottom:8px; }
+  .compare-card .val{ font-family:var(--mono); font-size:22px; font-weight:700; color:var(--off-white); direction:ltr; unicode-bidi:isolate; }
+  .compare-card.estimate .val{ color:var(--infrared); }
+  .compare-card.exact .val{ color:var(--electric-teal); }
+  .verdict{ font-family:var(--mono); font-size:13px; color:var(--validation-green); direction:ltr; unicode-bidi:isolate; }
+
+  .precision-row{ display:flex; gap:8px; }
+  .precision-btn{ font-family:var(--mono); font-size:11px; letter-spacing:.04em; text-transform:uppercase; color:var(--electric-teal); background:none; border:1px solid rgba(92,147,159,.4); border-radius:100px; padding:6px 14px; cursor:pointer; }
+  .precision-btn.active{ background:var(--electric-teal); color:var(--core-black); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 2 · LESSON 2</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Estimating Products</h1>
+    <span class="title-secondary ar-display" id="titleAr">تقدير نواتج الضرب</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I estimate multiplication products using rounding.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">round first, then multiply the easy way</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabel">number A</label>
+      <input type="range" id="aSlider" min="1000" max="9000" step="1" value="2491" />
+      <span class="control-val" id="aReadout">2,491</span>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="precision-row" id="precisionRow">
+        <button class="precision-btn active" data-round="100" data-role="ui" data-i18n="roundHundred">nearest 100</button>
+        <button class="precision-btn" data-round="1000" data-role="ui" data-i18n="roundThousand">nearest 1000</button>
+      </div>
+      <div class="rline-wrap" id="rlineArea">
+        <div class="rline" id="rline"></div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-card estimate">
+          <div class="label" data-role="ui" data-i18n="estimateLabel">estimate</div>
+          <div class="val" id="estimateVal"></div>
+        </div>
+        <div class="compare-card exact">
+          <div class="label" data-role="ui" data-i18n="exactLabel">exact</div>
+          <div class="val" id="exactVal"></div>
+        </div>
+      </div>
+      <div class="verdict" id="verdict"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Two estimation strategies: rounding one or both factors to a leading place value before multiplying with basic facts, and choosing "compatible numbers" that are easy to multiply mentally. Students also reason about whether an estimate is an over- or under-estimate based on rounding direction.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="2-1-mental-multiplication.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">2.1 · Mental Multiplication</b></a>
+    <a class="nav-pill next" href="2-3-multiplying-whole-numbers.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">2.3 · Multiplying Whole Numbers</b></a>
+  </div>
+</div>
+
+<script>
+  const { groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+  const FACTOR_B = 4;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 2 · LESSON 2",
+      objectiveLabel: "Objective —",
+      objectiveText: "I estimate multiplication products using rounding.",
+      eqSub: "round first, then multiply the easy way",
+      explainBtn: "Explain this",
+      controlLabel: "number A",
+      roundHundred: "nearest 100", roundThousand: "nearest 1000",
+      estimateLabel: "estimate", exactLabel: "exact",
+      over: "over-estimate by", under: "under-estimate by", exactMatch: "estimate matches exactly",
+      navPrevLabel: "—", navPrevText: "2.1 · Mental Multiplication",
+      navNextLabel: "next", navNext: "2.3 · Multiplying Whole Numbers",
+      teachLabel: "What this teaches:",
+      teachBody: "Two estimation strategies: rounding one or both factors to a leading place value before multiplying with basic facts, and choosing “compatible numbers” that are easy to multiply mentally. Students also reason about whether an estimate is an over- or under-estimate based on rounding direction.",
+      tour: [
+        { ids: ["rline"], label: "Round to a nearby easy number", body: "Slide A along the line — the marker snaps to the nearest round number at your chosen precision." },
+        { ids: ["estimateVal", "exactVal"], label: "Estimate vs. exact", body: "Multiplying the rounded number is fast mental math. Compare it to the real product to see how close it lands." },
+        { ids: ["verdict"], label: "Over or under?", body: "Rounding up makes the estimate bigger than the real answer; rounding down makes it smaller — the verdict tells you which." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٢ · الدرس ٢",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أُقدِّر نواتج الضرب باستخدام التقريب.",
+      eqSub: "قرِّب أوّلًا، ثم اضرب بالطريقة السهلة",
+      explainBtn: "اشرح هذا",
+      controlLabel: "العدد A",
+      roundHundred: "أقرب مئة", roundThousand: "أقرب ألف",
+      estimateLabel: "التقدير", exactLabel: "الناتج الدقيق",
+      over: "تقدير زائد بمقدار", under: "تقدير ناقص بمقدار", exactMatch: "التقدير مطابق تمامًا",
+      navPrevLabel: "—", navPrevText: "٢.١ · الضرب الذهني",
+      navNextLabel: "التالي", navNext: "٢.٣ · ضرب الأعداد",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "استراتيجيتان للتقدير: تقريب أحد العاملين أو كليهما إلى منزلة قائدة قبل الضرب بحقائق أساسية، واختيار «أعداد متناغمة» يسهل ضربها ذهنيًا. يستنتج الطلبة أيضًا ما إذا كان التقدير زائدًا أم ناقصًا بحسب جهة التقريب.",
+      tour: [
+        { ids: ["rline"], label: "قرِّب إلى عدد قريب سهل", body: "حرِّك A على الخط — تنجذب العلامة إلى أقرب عدد مقرَّب حسب الدقّة التي اخترتها." },
+        { ids: ["estimateVal", "exactVal"], label: "التقدير مقابل الناتج الدقيق", body: "ضرب العدد المقرَّب حساب ذهني سريع. قارنه بالناتج الحقيقي لترى مدى قربه." },
+        { ids: ["verdict"], label: "زائد أم ناقص؟", body: "التقريب لأعلى يجعل التقدير أكبر من الإجابة الحقيقية؛ والتقريب لأسفل يجعله أصغر — والحكم يوضّح أيّهما." }
+      ]
+    }
+  };
+
+  let roundTo = 100;
+  const aSlider = document.getElementById("aSlider");
+  const aReadout = document.getElementById("aReadout");
+  const rline = document.getElementById("rline");
+  const eqLine = document.getElementById("eqLine");
+  const estimateVal = document.getElementById("estimateVal");
+  const exactVal = document.getElementById("exactVal");
+  const verdict = document.getElementById("verdict");
+
+  function render(animate) {
+    const t = T[i18n.lang];
+    const A = parseInt(aSlider.value, 10);
+    aReadout.textContent = groupInt(A, "en");
+    const rounded = Math.round(A / roundTo) * roundTo;
+
+    // rebuild the rounding line around the current value
+    rline.innerHTML = "";
+    const lo = Math.floor(A / roundTo) * roundTo - roundTo;
+    for (let v = lo, i = 0; i <= 4; v += roundTo, i++) {
+      const x = (i / 4) * 100;
+      const tick = document.createElement("div");
+      tick.className = "tick";
+      tick.style.left = x + "%";
+      rline.appendChild(tick);
+      const lbl = document.createElement("div");
+      lbl.className = "tick-label";
+      lbl.style.left = x + "%";
+      lbl.textContent = groupInt(v, "en");
+      rline.appendChild(lbl);
+    }
+    const markerX = ((A - lo) / (4 * roundTo)) * 100;
+    const marker = document.createElement("div");
+    marker.className = "marker";
+    marker.style.left = markerX + "%";
+    rline.appendChild(marker);
+    const snapX = ((rounded - lo) / (4 * roundTo)) * 100;
+    const snapLbl = document.createElement("div");
+    snapLbl.className = "snap-label";
+    snapLbl.style.left = snapX + "%";
+    snapLbl.textContent = "≈ " + groupInt(rounded, "en");
+    rline.appendChild(snapLbl);
+
+    const exact = A * FACTOR_B;
+    const estimate = rounded * FACTOR_B;
+    estimateVal.textContent = groupInt(estimate, "en") + " ";
+    estimateVal.dir = "ltr";
+    exactVal.textContent = groupInt(exact, "en");
+    exactVal.dir = "ltr";
+
+    const diff = estimate - exact;
+    verdict.textContent = diff === 0 ? t.exactMatch : diff > 0 ? `${t.over} ${groupInt(diff, "en")}` : `${t.under} ${groupInt(-diff, "en")}`;
+
+    const eqSource = `\\color{#ed6d40}{${groupInt(rounded, "en")}} \\times ${FACTOR_B} \\approx \\color{#ed6d40}{${groupInt(estimate, "en")}} \\quad\\quad \\color{#5c939f}{${groupInt(A, "en")}} \\times ${FACTOR_B} = \\color{#5c939f}{${groupInt(exact, "en")}}`;
+    renderEquation(eqLine, eqSource);
+  }
+
+  aSlider.addEventListener("input", () => render(true));
+  document.getElementById("precisionRow").addEventListener("click", e => {
+    const btn = e.target.closest(".precision-btn");
+    if (!btn) return;
+    roundTo = parseInt(btn.dataset.round, 10);
+    document.querySelectorAll(".precision-btn").forEach(b => b.classList.toggle("active", b === btn));
+    render(true);
+  });
+
+  const i18n = initI18n(T, { onLangChange: () => render(false) });
+  render(false);
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

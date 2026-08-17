@@ -126,6 +126,20 @@
     }
   }
 
+  const STORE_KEY = "engine-lab:numerical-broydens-method";
+
+  function snapshot() {
+    const n = currentN();
+    const equations = [];
+    for (let i = 0; i < n; i++) equations.push(document.getElementById("eqn" + i).value);
+    return {
+      equations: equations.join(";"),
+      x0: getx0(n).join(","),
+      tol: tolInput.value,
+      maxIter: maxIterInput.value,
+    };
+  }
+
   function getx0(n) {
     const v = [];
     for (let i = 0; i < n; i++) {
@@ -297,8 +311,7 @@
 
   stepSlider.addEventListener("input", (e) => updateStep(Number(e.target.value)));
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+  function runCompute() {
     clearError();
 
     const n = currentN();
@@ -326,10 +339,41 @@
     if (!iterations.length) return showError("No iterations were produced.");
 
     render(iterations, n);
+    Proto.saveState(STORE_KEY, snapshot());
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    runCompute();
   });
 
   // initial build + preview
   buildInputs(currentN());
+
+  const saved = Proto.loadState(STORE_KEY);
+  if (saved && saved.equations !== undefined) {
+    const equations = String(saved.equations).split(";");
+    const n = equations.length;
+    if (n >= 2 && n <= 4) {
+      nInput.value = String(n);
+      buildInputs(n);
+      equations.forEach((eq, i) => {
+        const el = document.getElementById("eqn" + i);
+        if (el) el.value = eq;
+      });
+      if (saved.x0 !== undefined) {
+        const x0 = String(saved.x0).split(",");
+        x0.forEach((v, i) => {
+          const el = document.getElementById("x0" + i);
+          if (el) el.value = v;
+        });
+      }
+      if (saved.tol !== undefined) tolInput.value = saved.tol;
+      if (saved.maxIter !== undefined) maxIterInput.value = saved.maxIter;
+    }
+  }
+
   updatePreviews();
   updateStartCheck();
+  if (saved) runCompute();
 })();

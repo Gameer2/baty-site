@@ -3,6 +3,7 @@
   "use strict";
   function columnsOf(A) { return A[0].map((_, j) => A.map((r) => r[j])); }
   LinAlgPage.init({
+    storeKey: "engine-lab:linear-algebra-independence-basis",
     square: false,
     example: { A: [[1, 2, 0], [0, 0, 1], [0, 0, 0]] },
     compute: (A) => {

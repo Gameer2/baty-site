@@ -68,5 +68,12 @@
     try { D = parseInput(dInput.value, "D"); } catch (err) { return showError(err.message); }
     if (D < 2n) return showError("D must be at least 2.");
     render(D);
+    Proto.saveState("engine-lab:number-theory-pells-equation", { D: dInput.value });
   });
+
+  const saved = Proto.loadState("engine-lab:number-theory-pells-equation");
+  if (saved) {
+    if (saved.D !== undefined) dInput.value = saved.D;
+    form.requestSubmit();
+  }
 })();

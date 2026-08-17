@@ -43,6 +43,14 @@
 
   let mode = "lagrange"; // "lagrange" | "spline"
   let rungeActive = false;
+  const STORE_KEY = "engine-lab:numerical-lagrange-interpolation";
+
+  function snapshot() {
+    return {
+      points: getPoints().map((p) => `${p.x},${p.y}`).join(";"),
+      x0: queryInput.value,
+    };
+  }
 
   function updateRemoveButtonsState() {
     const rows = tbody.querySelectorAll("tr");
@@ -131,38 +139,6 @@
     formError.style.display = "none";
   }
 
-  function multiplyPoly(a, b) {
-    const out = new Array(a.length + b.length - 1).fill(0);
-    for (let i = 0; i < a.length; i++)
-      for (let j = 0; j < b.length; j++) out[i + j] += a[i] * b[j];
-    return out;
-  }
-
-  // ascending-power coefficients of the interpolating polynomial
-  function lagrangeCoeffs(points) {
-    const n = points.length;
-    const total = new Array(n).fill(0);
-    for (let i = 0; i < n; i++) {
-      let poly = [1];
-      let denom = 1;
-      for (let j = 0; j < n; j++) {
-        if (j === i) continue;
-        poly = multiplyPoly(poly, [-points[j].x, 1]);
-        denom *= points[i].x - points[j].x;
-      }
-      const scale = points[i].y / denom;
-      for (let k = 0; k < poly.length; k++) total[k] += poly[k] * scale;
-    }
-    const maxAbs = Math.max(...total.map(Math.abs), 1);
-    return total.map((c) => (Math.abs(c) < maxAbs * 1e-10 ? 0 : c));
-  }
-
-  function evalPoly(coeffsAsc, x) {
-    let result = 0;
-    for (let k = coeffsAsc.length - 1; k >= 0; k--) result = result * x + coeffsAsc[k];
-    return result;
-  }
-
   function formatCoef(c) {
     const r = Number(c.toPrecision(5));
     return Engine.formatNum(r, 5);
@@ -219,11 +195,11 @@
     resultsArea.style.display = "block";
 
     const n = points.length;
-    const coeffs = lagrangeCoeffs(points);
+    const coeffs = Algorithms.runLagrangeInterpolation(points);
     const segments = Algorithms.runCubicSpline(points);
     const compare = compareToggle.checked;
 
-    const lagrangeAt = (x) => evalPoly(coeffs, x);
+    const lagrangeAt = (x) => Algorithms.evalPolyAscending(coeffs, x);
     const splineAt = (x) => Algorithms.evalCubicSpline(segments, x);
     const primaryAt = mode === "lagrange" ? lagrangeAt : splineAt;
     const Px0 = primaryAt(x0);
@@ -400,8 +376,7 @@
     );
   }
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+  function runCompute() {
     clearError();
 
     const points = getPoints();
@@ -416,5 +391,25 @@
     if (Number.isNaN(x0)) return showError("Enter a numeric value to evaluate at.");
 
     render(points, x0);
+    Proto.saveState(STORE_KEY, snapshot());
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    runCompute();
   });
+
+  const saved = Proto.loadState(STORE_KEY);
+  if (saved) {
+    if (saved.points !== undefined) {
+      const pairs = String(saved.points)
+        .split(";")
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .map((pair) => pair.split(",").map((v) => Number(v.trim())));
+      if (pairs.length >= 2) resetPoints(pairs);
+    }
+    if (saved.x0 !== undefined) queryInput.value = saved.x0;
+    runCompute();
+  }
 })();

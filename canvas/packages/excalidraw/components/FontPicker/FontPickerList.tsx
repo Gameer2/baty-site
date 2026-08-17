@@ -46,7 +46,7 @@ import {
 import { fontPickerKeyHandler } from "./keyboardNavHandlers";
 
 import type { JSX } from "react";
-import type { ExcalidrawFontFace } from "../../fonts/ExcalidrawFontFace";
+import type { SyntropyFontFace } from "../../fonts/SyntropyFontFace";
 
 export interface FontDescriptor {
   value: number;
@@ -73,6 +73,12 @@ const getFontFamilyIcon = (fontFamily: FontFamilyValues): JSX.Element => {
   switch (fontFamily) {
     case FONT_FAMILY.Excalifont:
     case FONT_FAMILY.Virgil:
+    case FONT_FAMILY.Caveat:
+    case FONT_FAMILY.Kalam:
+    case FONT_FAMILY["Shadows Into Light"]:
+    case FONT_FAMILY["Indie Flower"]:
+    case FONT_FAMILY["Patrick Hand"]:
+    case FONT_FAMILY["Architects Daughter"]:
       return FreedrawIcon;
     case FONT_FAMILY.Nunito:
     case FONT_FAMILY.Helvetica:
@@ -89,7 +95,7 @@ const getFontFamilyIcon = (fontFamily: FontFamilyValues): JSX.Element => {
 
 const getFontFamilyLabel = (
   fontFamily: FontFamilyValues,
-  fontFaces: ExcalidrawFontFace[],
+  fontFaces: SyntropyFontFace[],
 ) =>
   // prefer our config as the browser resolved names may be wrapped in quotes and such
   Object.entries(FONT_FAMILY).find(([, id]) => id === fontFamily)?.[0] ??

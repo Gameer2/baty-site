@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Powers &amp; Exponents — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: stacking identical factor tiles builds the exponential notation
+     and its expanded value live. ---- */
+  .chart{ padding:30px 24px 30px; display:flex; flex-direction:column; align-items:center; gap:18px; }
+  .stack{ display:flex; flex-direction:column-reverse; gap:6px; align-items:center; min-height:220px; justify-content:flex-end; }
+  .factor-tile{ width:64px; height:38px; border-radius:8px; background:rgba(92,147,159,.22); border:1px solid rgba(92,147,159,.55); display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:17px; font-weight:700; color:var(--off-white); }
+  .expand-line{ font-family:var(--mono); font-size:15px; color:var(--neural-fog); direction:ltr; }
+  .expand-line b{ color:var(--infrared); }
+  .read-line{ font-family:var(--mono); font-size:12.5px; color:var(--pulse-ash); direction:ltr; }
+
+  .inputs{ display:flex; align-items:center; gap:10px; }
+  .num-input{ font-family:var(--mono); font-size:15px; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.16); border-radius:8px; padding:7px 10px; width:60px; text-align:center; direction:ltr; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 5 · LESSON 1</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Powers &amp; Exponents</h1>
+    <span class="title-secondary ar-display" id="titleAr">القوى والأسس</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I use powers and exponents to write multiplication expressions.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">stack copies of the base, one per exponent</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="baseLabel">base</label>
+      <input type="number" class="num-input" id="baseInput" value="3" min="2" max="9" />
+      <label data-role="ui" data-i18n="expLabel" style="margin-inline-start:14px;">exponent</label>
+      <input type="range" id="expSlider" min="1" max="5" step="1" value="4" />
+      <span class="control-val" id="expReadout">4</span>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="stack dimmable" data-el="stack" id="stack"></div>
+      <div class="expand-line dimmable" data-el="expand" id="expandLine"></div>
+      <div class="read-line dimmable" data-el="read" id="readLine"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Repeated multiplication of a number by itself is written compactly with an exponent (base^exponent = "power"); students convert between exponential form and standard (expanded product) form, read powers aloud ("seven squared," "seven cubed"), and note that a number with no visible exponent is implicitly to the power 1. Applies to variables too (j×j×j×j = j⁴).</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="4-5-geometric-constructions.html">— <b data-role="body" id="navPrevText">4.5 · Geometric Constructions</b></a>
+    <a class="nav-pill next" href="5-2-square-root-cube-root.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">5.2 · Square Root &amp; Cube Root</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 5 · LESSON 1",
+      objectiveLabel: "Objective —",
+      objectiveText: "I use powers and exponents to write multiplication expressions.",
+      eqSub: "stack copies of the base, one per exponent",
+      explainBtn: "Explain this",
+      baseLabel: "base", expLabel: "exponent",
+      readWord: (n) => n === 2 ? "read as: squared" : n === 3 ? "read as: cubed" : `read as: to the ${n}th power`,
+      teachLabel: "What this teaches:",
+      teachBody: "Repeated multiplication of a number by itself is written compactly with an exponent (base^exponent = “power”); students convert between exponential form and standard (expanded product) form, read powers aloud (“seven squared,” “seven cubed”), and note that a number with no visible exponent is implicitly to the power 1. Applies to variables too (j×j×j×j = j⁴).",
+      navPrev: "4.5 · Geometric Constructions",
+      navNext: "5.2 · Square Root & Cube Root",
+      navNextLabel: "next",
+      tour: [
+        { elKey: "stack", label: "One tile per exponent", body: "Each tile is one copy of the base — stacking n of them is what \"to the nth power\" literally means." },
+        { elKey: "expand", label: "The expanded product", body: "Written out, it's just the base multiplied by itself, that many times." },
+        { ids: ["eqLine"], label: "Compact notation", body: "The exponent is shorthand for that whole repeated product — much faster to write, same value." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ٥ · الدرس ١",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أستخدم القوى والأسس لكتابة مقادير الضرب.",
+      eqSub: "كدّس نسخًا من الأساس، واحدة لكل درجة من الأس",
+      explainBtn: "اشرح هذا",
+      baseLabel: "الأساس", expLabel: "الأس",
+      readWord: (n) => n === 2 ? "تُقرأ: تربيع" : n === 3 ? "تُقرأ: تكعيب" : `تُقرأ: أُس ${n}`,
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "ضرب عدد في نفسه بشكل متكرّر يُكتب بإيجاز باستخدام الأس (الأساس^الأس = «القوة»)؛ يحوّل الطلبة بين الصيغة الأسية والصيغة القياسية (الناتج الموسَّع)، ويقرأون القوى («سبعة تربيع»، «سبعة تكعيب»)، ويلاحظون أن العدد دون أس ظاهر أسّه ضمنيًا ١. ينطبق ذلك على المتغيّرات أيضًا (j×j×j×j = j⁴).",
+      navPrev: "٤.٥ · الإنشاءات الهندسية",
+      navNext: "٥.٢ · الجذر التربيعي والجذر التكعيبي",
+      navNextLabel: "التالي",
+      tour: [
+        { elKey: "stack", label: "بلاطة واحدة لكل درجة أس", body: "كل بلاطة هي نسخة واحدة من الأساس — تكديس n منها هو بالضبط معنى «أُس n»." },
+        { elKey: "expand", label: "الناتج الموسَّع", body: "عند كتابته موسَّعًا، هو ببساطة الأساس مضروبًا في نفسه، بذلك العدد من المرّات." },
+        { ids: ["eqLine"], label: "ترميز مختصر", body: "الأس اختصار لكل ذلك الناتج المتكرّر — أسرع بكثير في الكتابة، والقيمة نفسها." }
+      ]
+    }
+  };
+
+  const baseInput = document.getElementById("baseInput");
+  const expSlider = document.getElementById("expSlider");
+  const expReadout = document.getElementById("expReadout");
+  const stack = document.getElementById("stack");
+  const expandLine = document.getElementById("expandLine");
+  const readLine = document.getElementById("readLine");
+  const eqLine = document.getElementById("eqLine");
+
+  function render() {
+    const t = T[i18n.lang];
+    const base = Math.max(2, Math.min(9, parseInt(baseInput.value, 10) || 2));
+    const exp = parseInt(expSlider.value, 10);
+    expReadout.textContent = exp;
+
+    stack.innerHTML = "";
+    for (let i = 0; i < exp; i++) {
+      const tile = document.createElement("div");
+      tile.className = "factor-tile";
+      tile.textContent = base;
+      stack.appendChild(tile);
+      gsap.fromTo(tile, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: .3, delay: i * .08, ease: "back.out(1.7)" });
+    }
+
+    const value = Math.pow(base, exp);
+    expandLine.innerHTML = Array(exp).fill(base).join(" × ") + " = <b>" + value + "</b>";
+    readLine.textContent = t.readWord(exp);
+
+    const eqSource = `${base}^{${exp}} = ${Array(exp).fill(base).join(" \\times ")} = \\color{#ed6d40}{${value}}`;
+    renderEquation(eqLine, eqSource);
+  }
+
+  baseInput.addEventListener("input", render);
+  expSlider.addEventListener("input", render);
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

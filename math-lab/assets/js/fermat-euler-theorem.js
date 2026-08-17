@@ -68,5 +68,13 @@
     try { a = parseInput(aInput.value, "a"); n = parseInput(nInput.value, "n"); } catch (err) { return showError(err.message); }
     if (n < 1n) return showError("n must be at least 1.");
     render(a, n);
+    Proto.saveState("engine-lab:number-theory-fermat-euler-theorem", { a: aInput.value, n: nInput.value });
   });
+
+  const saved = Proto.loadState("engine-lab:number-theory-fermat-euler-theorem");
+  if (saved) {
+    if (saved.a !== undefined) aInput.value = saved.a;
+    if (saved.n !== undefined) nInput.value = saved.n;
+    form.requestSubmit();
+  }
 })();

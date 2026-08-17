@@ -2,6 +2,7 @@
 (function () {
   "use strict";
   LinAlgPage.init({
+    storeKey: "engine-lab:linear-algebra-row-reduction",
     square: false,
     example: { A: [[1, 2, -1, 3], [2, 4, -2, 6], [3, 6, -3, 9]] },
     compute: (A) => LinAlg.rref(A),

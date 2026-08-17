@@ -90,5 +90,12 @@
     if (D < 2n) return showError("D must be at least 2.");
     if (count < 1 || count > 60) return showError("Show between 1 and 60 convergents.");
     render(D, count);
+    Proto.saveState("engine-lab:number-theory-continued-fractions", { D: dInput.value });
   });
+
+  const saved = Proto.loadState("engine-lab:number-theory-continued-fractions");
+  if (saved) {
+    if (saved.D !== undefined) dInput.value = saved.D;
+    form.requestSubmit();
+  }
 })();

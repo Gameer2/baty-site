@@ -67,5 +67,14 @@
     if (mod <= 0n) return showError("Modulus must be a positive integer.");
     if (exp < 0n) return showError("Exponent must be non-negative for this trace (negative exponents need a modular inverse).");
     render(base, exp, mod);
+    Proto.saveState("engine-lab:number-theory-modular-exponentiation", { base: baseInput.value, exp: expInput.value, mod: modInput.value });
   });
+
+  const saved = Proto.loadState("engine-lab:number-theory-modular-exponentiation");
+  if (saved) {
+    if (saved.base !== undefined) baseInput.value = saved.base;
+    if (saved.exp !== undefined) expInput.value = saved.exp;
+    if (saved.mod !== undefined) modInput.value = saved.mod;
+    form.requestSubmit();
+  }
 })();

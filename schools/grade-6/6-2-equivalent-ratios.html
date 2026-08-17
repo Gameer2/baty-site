@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Equivalent Ratios — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: two paint-mixing recipes rendered as actual mixed colors —
+     matching colors mean equivalent ratios. Forks 6.1's jar-mixing idea. ---- */
+  .chart{ padding:28px 24px 30px; display:flex; flex-direction:column; align-items:center; gap:20px; }
+  .pair-row{ display:flex; gap:26px; flex-wrap:wrap; justify-content:center; }
+  .recipe-card{ display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .swatch{ width:96px; height:96px; border-radius:14px; border:1px solid rgba(255,255,255,.18); }
+  .recipe-cap{ font-family:var(--mono); font-size:11px; color:var(--pulse-ash); direction:ltr; }
+  .recipe-ratio{ font-family:var(--mono); font-size:13px; font-weight:700; color:var(--off-white); direction:ltr; }
+
+  .verdict{ font-family:var(--mono); font-size:14px; text-align:center; padding:8px 18px; border-radius:100px; border:1px solid rgba(255,255,255,.14); }
+  .verdict.match{ color:var(--validation-green); border-color:rgba(107,181,124,.5); background:rgba(107,181,124,.08); }
+  .verdict.no-match{ color:var(--infrared); border-color:rgba(237,109,64,.5); background:rgba(237,109,64,.08); }
+
+  .inputs-col{ display:flex; flex-direction:column; gap:6px; }
+  .inputs-col label{ font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--pulse-ash); }
+  .slider-row{ display:flex; align-items:center; gap:8px; }
+  .slider-row input[type="range"]{ width:110px; }
+  .slider-row span{ font-family:var(--mono); font-size:12px; color:var(--off-white); width:20px; text-align:center; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 6 · LESSON 2</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Equivalent Ratios</h1>
+    <span class="title-secondary ar-display" id="titleAr">النسب المتكافئة</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I find ratios equivalent to a given ratio.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">same color means the same ratio</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="inputs-col">
+        <label data-role="ui" data-i18n="labelRecipeA">recipe A</label>
+        <div class="slider-row"><span id="aOrangeVal">1</span><input type="range" id="aOrange" min="1" max="8" value="1" /></div>
+        <div class="slider-row"><span id="aBlueVal">2</span><input type="range" id="aBlue" min="1" max="8" value="2" /></div>
+      </div>
+      <div class="inputs-col">
+        <label data-role="ui" data-i18n="labelRecipeB">recipe B</label>
+        <div class="slider-row"><span id="bOrangeVal">2</span><input type="range" id="bOrange" min="1" max="8" value="2" /></div>
+        <div class="slider-row"><span id="bBlueVal">4</span><input type="range" id="bBlue" min="1" max="8" value="4" /></div>
+      </div>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="pair-row dimmable" data-el="swatches">
+        <div class="recipe-card"><span class="recipe-cap" id="capA"></span><div class="swatch" id="swatchA"></div><span class="recipe-ratio" id="ratioA"></span></div>
+        <div class="recipe-card"><span class="recipe-cap" id="capB"></span><div class="swatch" id="swatchB"></div><span class="recipe-ratio" id="ratioB"></span></div>
+      </div>
+      <div class="verdict dimmable" data-el="verdict" id="verdict"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Equivalent ratios describe the same relationship between two quantities and can be written as equivalent fractions (scaling both terms by the same factor). Applied to comparing two paint-mixing recipes to determine if they produce the same color.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="6-1-ratio.html">— <b data-role="body" id="navPrevText">6.1 · Ratio</b></a>
+    <a class="nav-pill next" href="6-3-percentage-common-fractions.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">6.3 · Percentage &amp; Common Fractions</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 6 · LESSON 2",
+      objectiveLabel: "Objective —",
+      objectiveText: "I find ratios equivalent to a given ratio.",
+      eqSub: "same color means the same ratio",
+      explainBtn: "Explain this",
+      labelRecipeA: "recipe A", labelRecipeB: "recipe B",
+      capA: "A", capB: "B",
+      match: "same color — equivalent ratios", noMatch: "different color — not equivalent",
+      teachLabel: "What this teaches:",
+      teachBody: "Equivalent ratios describe the same relationship between two quantities and can be written as equivalent fractions (scaling both terms by the same factor). Applied to comparing two paint-mixing recipes to determine if they produce the same color.",
+      navPrev: "6.1 · Ratio",
+      navNext: "6.3 · Percentage & Common Fractions",
+      navNextLabel: "next",
+      tour: [
+        { elKey: "swatches", label: "Two mixed colors", body: "Each swatch is what its recipe actually mixes to — orange parts to blue parts." },
+        { elKey: "verdict", label: "Compare the colors", body: "If the colors match exactly, the two ratios describe the same mixture, just scaled." },
+        { ids: ["eqLine"], label: "Scale by the same factor", body: "Multiplying both terms of a ratio by the same number always gives an equivalent ratio — same color, different amounts." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ٦ · الدرس ٢",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أجد نسبًا متكافئة مع نسبة معطاة.",
+      eqSub: "اللون نفسه يعني النسبة نفسها",
+      explainBtn: "اشرح هذا",
+      labelRecipeA: "الوصفة A", labelRecipeB: "الوصفة B",
+      capA: "A", capB: "B",
+      match: "اللون نفسه — نسبتان متكافئتان", noMatch: "لون مختلف — غير متكافئتين",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "النسب المتكافئة تصف العلاقة نفسها بين كمّيتين ويمكن كتابتها كسورًا متكافئة (بضرب الحدّين في العامل نفسه). تُطبَّق على مقارنة وصفتَي مزج دهان لتحديد ما إذا كانتا تنتجان اللون نفسه.",
+      navPrev: "٦.١ · النسبة",
+      navNext: "٦.٣ · النسبة المئوية والكسور العادية",
+      navNextLabel: "التالي",
+      tour: [
+        { elKey: "swatches", label: "لونان ممزوجان", body: "كل عيّنة هي ما تمزجه وصفتها فعليًا — أجزاء برتقالية إلى أجزاء زرقاء." },
+        { elKey: "verdict", label: "قارن اللونين", body: "إذا تطابق اللونان تمامًا، فالنسبتان تصفان المزيج نفسه، بمقياس مختلف فقط." },
+        { ids: ["eqLine"], label: "قِس بالعامل نفسه", body: "ضرب حدّي النسبة في العدد نفسه يعطي دائمًا نسبة متكافئة — اللون نفسه، بكمّيات مختلفة." }
+      ]
+    }
+  };
+
+  function gcdOf(a, b) { return b === 0 ? a : gcdOf(b, a % b); }
+  function mixColor(orange, blue) {
+    const total = orange + blue;
+    const t = orange / total;
+    const o = [237, 109, 64], b = [92, 147, 159];
+    const r = Math.round(o[0] * t + b[0] * (1 - t));
+    const g = Math.round(o[1] * t + b[1] * (1 - t));
+    const bl = Math.round(o[2] * t + b[2] * (1 - t));
+    return `rgb(${r},${g},${bl})`;
+  }
+
+  const aOrange = document.getElementById("aOrange"), aBlue = document.getElementById("aBlue");
+  const bOrange = document.getElementById("bOrange"), bBlue = document.getElementById("bBlue");
+  const aOrangeVal = document.getElementById("aOrangeVal"), aBlueVal = document.getElementById("aBlueVal");
+  const bOrangeVal = document.getElementById("bOrangeVal"), bBlueVal = document.getElementById("bBlueVal");
+  const swatchA = document.getElementById("swatchA"), swatchB = document.getElementById("swatchB");
+  const ratioA = document.getElementById("ratioA"), ratioB = document.getElementById("ratioB");
+  const capA = document.getElementById("capA"), capB = document.getElementById("capB");
+  const verdict = document.getElementById("verdict");
+  const eqLine = document.getElementById("eqLine");
+
+  function render() {
+    const t = T[i18n.lang];
+    const a1 = parseInt(aOrange.value, 10), a2 = parseInt(aBlue.value, 10);
+    const b1 = parseInt(bOrange.value, 10), b2 = parseInt(bBlue.value, 10);
+    aOrangeVal.textContent = a1; aBlueVal.textContent = a2;
+    bOrangeVal.textContent = b1; bBlueVal.textContent = b2;
+
+    swatchA.style.background = mixColor(a1, a2);
+    swatchB.style.background = mixColor(b1, b2);
+    capA.textContent = t.capA; capB.textContent = t.capB;
+    ratioA.textContent = digits(a1, i18n.lang) + " : " + digits(a2, i18n.lang);
+    ratioB.textContent = digits(b1, i18n.lang) + " : " + digits(b2, i18n.lang);
+
+    const ga = gcdOf(a1, a2), gb = gcdOf(b1, b2);
+    const equivalent = (a1 / ga === b1 / gb) && (a2 / ga === b2 / gb);
+    verdict.textContent = equivalent ? t.match : t.noMatch;
+    verdict.classList.toggle("match", equivalent);
+    verdict.classList.toggle("no-match", !equivalent);
+
+    const eqSource = equivalent
+      ? `${a1}:${a2} = \\color{#ed6d40}{${b1}:${b2}}`
+      : `${a1}:${a2} \\ne \\color{#ed6d40}{${b1}:${b2}}`;
+    renderEquation(eqLine, eqSource);
+  }
+
+  [aOrange, aBlue, bOrange, bBlue].forEach(el => el.addEventListener("input", render));
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

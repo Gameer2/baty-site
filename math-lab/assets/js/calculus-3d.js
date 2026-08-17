@@ -122,15 +122,40 @@
   Scene3D.prototype._bindPointer = function () {
     const el = this.renderer.domElement;
     let dragging = false;
+    let pinching = false;
     let lastX = 0, lastY = 0;
+    let lastPinch = 0;
+
+    const touchDist = (t) =>
+      Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
 
     const onDown = (e) => {
+      if (e.touches && e.touches.length >= 2) {
+        // Two fingers down → pinch to dolly, not rotate.
+        pinching = true;
+        dragging = false;
+        lastPinch = touchDist(e.touches);
+        return;
+      }
+      pinching = false;
       dragging = true;
       const p = e.touches ? e.touches[0] : e;
       lastX = p.clientX; lastY = p.clientY;
       el.style.cursor = "grabbing";
     };
     const onMove = (e) => {
+      if (pinching && e.touches && e.touches.length >= 2) {
+        const d = touchDist(e.touches);
+        // Spread → camera closer (radius down); pinch → farther. Scaled to the
+        // same ~0.001/px feel as the wheel dolly above. Clamped to [2, 120].
+        this.orbit.radius = Math.max(
+          2,
+          Math.min(120, this.orbit.radius * (1 - (d - lastPinch) * 0.01)),
+        );
+        lastPinch = d;
+        this._updateCamera();
+        return;
+      }
       if (!dragging) return;
       const p = e.touches ? e.touches[0] : e;
       const dx = p.clientX - lastX;
@@ -140,9 +165,26 @@
       this.orbit.phi = Math.max(0.05, Math.min(Math.PI - 0.05, this.orbit.phi - dy * 0.01));
       this._updateCamera();
     };
-    const onUp = () => { dragging = false; el.style.cursor = "grab"; };
+    const onUp = (e) => {
+      if (e && e.touches && e.touches.length === 1) {
+        // Dropped from two fingers to one — resume rotating with the survivor.
+        pinching = false;
+        dragging = true;
+        lastX = e.touches[0].clientX;
+        lastY = e.touches[0].clientY;
+        return;
+      }
+      dragging = false;
+      pinching = false;
+      lastPinch = 0;
+      el.style.cursor = "grab";
+    };
 
     el.style.cursor = "grab";
+    // Claim the touch gestures for the 3D canvas so the browser doesn't scroll
+    // or page-pinch-zoom while the user rotates / pinches the plot. Touch-only;
+    // no effect on mouse/wheel. Paired with the passive listeners below.
+    el.style.touchAction = "none";
     el.addEventListener("mousedown", onDown);
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);

@@ -79,9 +79,15 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     const saved = Proto.loadState(STORE_KEY);
-    if (saved && Array.isArray(saved.m)) {
-      inputs[0].value = saved.m[0][0]; inputs[1].value = saved.m[0][1];
-      inputs[2].value = saved.m[1][0]; inputs[3].value = saved.m[1][1];
+    // The page's own edits save a real array; the canvas node's portal (portalPrefill.ts)
+    // writes the same "1,2;3,4" delimited string every other port spec's matrix/vector input
+    // uses (see linalg-page.js's parseMatrixString for the shared convention) — accept either.
+    const m = saved && typeof saved.m === "string"
+      ? saved.m.split(";").map((r) => r.split(",").map(Number))
+      : saved && Array.isArray(saved.m) ? saved.m : null;
+    if (m && m.length === 2 && m[0].length === 2 && m[1].length === 2 && m.flat().every(Number.isFinite)) {
+      inputs[0].value = m[0][0]; inputs[1].value = m[0][1];
+      inputs[2].value = m[1][0]; inputs[3].value = m[1][1];
     }
     recompute(); // builds the scene itself
   });

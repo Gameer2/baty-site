@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sequences — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: a growing dot pattern, synced term by term with a number list. ---- */
+  .chart{ padding:28px 24px 30px; display:flex; flex-direction:column; align-items:center; gap:20px; }
+  .terms-row{ display:flex; gap:16px; flex-wrap:wrap; justify-content:center; }
+  .term-block{ display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .term-cap{ font-family:var(--mono); font-size:10.5px; color:var(--pulse-ash); direction:ltr; }
+  .dot-grid{ display:flex; flex-wrap:wrap; gap:4px; width:74px; align-content:flex-start; }
+  .dot{ width:10px; height:10px; border-radius:50%; background:rgba(92,147,159,.35); }
+  .dot.new{ background:var(--infrared); }
+  .term-val{ font-family:var(--mono); font-size:13px; font-weight:700; color:var(--off-white); direction:ltr; }
+
+  .rule-line{ font-family:var(--mono); font-size:13px; color:var(--neural-fog); direction:ltr; }
+  .rule-line b{ color:var(--infrared); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 5 · LESSON 6</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Sequences</h1>
+    <span class="title-secondary ar-display" id="titleAr">المتتاليات</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I extend a sequence's terms following its rule.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">each term adds the same fixed amount</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabel">terms shown</label>
+      <input type="range" id="termSlider" min="1" max="6" step="1" value="3" />
+      <span class="control-val" id="termReadout">3</span>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="terms-row dimmable" data-el="terms" id="termsRow"></div>
+      <div class="rule-line dimmable" data-el="rule" id="ruleLine"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">A sequence is an ordered list of numbers following a rule linking consecutive terms; students find that rule (constant addition/subtraction, shown via a growing geometric dot/shape pattern) and extend the sequence to find further terms — without yet deriving a general algebraic nth-term formula (that comes in grade 7).</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="5-5-equations.html">— <b data-role="body" id="navPrevText">5.5 · Equations</b></a>
+    <a class="nav-pill next" href="6-1-ratio.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">6.1 · Ratio</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const FIRST_TERM = 2, DIFF = 3;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 5 · LESSON 6",
+      objectiveLabel: "Objective —",
+      objectiveText: "I extend a sequence's terms following its rule.",
+      eqSub: "each term adds the same fixed amount",
+      explainBtn: "Explain this",
+      controlLabel: "terms shown",
+      termWord: (i) => "term " + i,
+      ruleLine: (d) => `rule: each term = previous term + ${d}`,
+      teachLabel: "What this teaches:",
+      teachBody: "A sequence is an ordered list of numbers following a rule linking consecutive terms; students find that rule (constant addition/subtraction, shown via a growing geometric dot/shape pattern) and extend the sequence to find further terms — without yet deriving a general algebraic nth-term formula (that comes in grade 7).",
+      navPrev: "5.5 · Equations",
+      navNext: "6.1 · Ratio",
+      navNextLabel: "next",
+      tour: [
+        { elKey: "terms", label: "One cluster per term", body: "Each cluster's dot count is that term's value — the highlighted dots are what got added since the last term." },
+        { elKey: "rule", label: "Find the rule", body: "The same number of dots gets added every time — that constant difference is the sequence's rule." },
+        { ids: ["controlLabel"], label: "Extend it", body: "Slide to reveal more terms — the pattern (and the rule) keeps applying exactly the same way." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ٥ · الدرس ٦",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أُكمل حدود متتالية وفق قاعدتها.",
+      eqSub: "كل حدّ يضيف المقدار الثابت نفسه",
+      explainBtn: "اشرح هذا",
+      controlLabel: "الحدود المعروضة",
+      termWord: (i) => "الحدّ " + i,
+      ruleLine: (d) => `القاعدة: كل حدّ = الحدّ السابق + ${d}`,
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "المتتالية قائمة مرتّبة من الأعداد تتبع قاعدة تربط الحدود المتتالية؛ يجد الطلبة تلك القاعدة (جمع أو طرح ثابت، معروضة عبر نمط نقاط هندسي متنامٍ) ويُكملون المتتالية لإيجاد حدود إضافية — دون اشتقاق صيغة جبرية عامة للحدّ النوني بعد (تأتي في الصف السابع).",
+      navPrev: "٥.٥ · المعادلات",
+      navNext: "٦.١ · النسبة",
+      navNextLabel: "التالي",
+      tour: [
+        { elKey: "terms", label: "مجموعة واحدة لكل حدّ", body: "عدد النقاط في كل مجموعة هو قيمة ذلك الحدّ — والنقاط المُميَّزة هي ما أُضيف منذ الحدّ السابق." },
+        { elKey: "rule", label: "أوجد القاعدة", body: "يُضاف العدد نفسه من النقاط في كل مرّة — ذلك الفرق الثابت هو قاعدة المتتالية." },
+        { ids: ["controlLabel"], label: "أكملها", body: "حرّك الشريط لكشف حدود إضافية — يستمرّ تطبيق النمط (والقاعدة) بالطريقة نفسها تمامًا." }
+      ]
+    }
+  };
+
+  const termSlider = document.getElementById("termSlider");
+  const termReadout = document.getElementById("termReadout");
+  const termsRow = document.getElementById("termsRow");
+  const ruleLine = document.getElementById("ruleLine");
+  const eqLine = document.getElementById("eqLine");
+
+  function termValue(n) { return FIRST_TERM + (n - 1) * DIFF; }
+
+  function render() {
+    const t = T[i18n.lang];
+    const count = parseInt(termSlider.value, 10);
+    termReadout.textContent = digits(count, i18n.lang);
+    termsRow.innerHTML = "";
+
+    for (let n = 1; n <= count; n++) {
+      const val = termValue(n);
+      const prevVal = n === 1 ? 0 : termValue(n - 1);
+      const block = document.createElement("div");
+      block.className = "term-block";
+      const cap = document.createElement("span");
+      cap.className = "term-cap";
+      cap.textContent = t.termWord(digits(n, i18n.lang));
+      const grid = document.createElement("div");
+      grid.className = "dot-grid";
+      for (let i = 0; i < val; i++) {
+        const dot = document.createElement("div");
+        dot.className = "dot" + (i >= prevVal ? " new" : "");
+        grid.appendChild(dot);
+      }
+      const valLabel = document.createElement("span");
+      valLabel.className = "term-val";
+      valLabel.textContent = digits(val, i18n.lang);
+      block.appendChild(cap);
+      block.appendChild(grid);
+      block.appendChild(valLabel);
+      termsRow.appendChild(block);
+      gsap.fromTo(block, { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: .3, delay: (n - 1) * .06, ease: "back.out(1.7)" });
+    }
+
+    ruleLine.textContent = t.ruleLine(DIFF);
+
+    const seq = Array.from({ length: count }, (_, i) => termValue(i + 1)).join(", ");
+    const eqSource = `${seq}, \\ldots \\quad a_n = a_{n-1} + \\color{#ed6d40}{${DIFF}}`;
+    renderEquation(eqLine, eqSource);
+  }
+
+  termSlider.addEventListener("input", render);
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

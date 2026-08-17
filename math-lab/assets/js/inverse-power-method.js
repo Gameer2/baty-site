@@ -29,6 +29,16 @@
   // Default example: n=2, A=[[3.5,1.5],[1.5,3.5]], x0=[1,0]
   const DEFAULT_MATRIX = [[3.5, 1.5], [1.5, 3.5]];
   const DEFAULT_X0 = [1, 0];
+  const STORE_KEY = "engine-lab:numerical-inverse-power-method";
+
+  function snapshot() {
+    return {
+      matrix: getMatrix().map((row) => row.join(",")).join(";"),
+      x0: getX0().join(","),
+      tol: tolInput.value,
+      maxIter: maxIterInput.value,
+    };
+  }
 
   function buildMatrixGrid(n, fill) {
     matrixTableBody.innerHTML = "";
@@ -232,8 +242,7 @@
 
   stepSlider.addEventListener("input", (e) => updateStep(Number(e.target.value)));
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+  function runCompute() {
     clearError();
 
     const checked = updateStartCheck();
@@ -257,10 +266,32 @@
     if (!iterations.length) return showError("No iterations produced — increase max iterations.");
 
     render(iterations);
+    Proto.saveState(STORE_KEY, snapshot());
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    runCompute();
   });
 
   // Initial build so the page isn't blank on load.
   buildMatrixGrid(2, DEFAULT_MATRIX);
   buildX0Row(2, DEFAULT_X0);
+
+  const saved = Proto.loadState(STORE_KEY);
+  if (saved && saved.matrix !== undefined) {
+    const rows = String(saved.matrix).split(";").map((r) => r.split(",").map(Number));
+    const n = rows.length;
+    if (n >= 2 && n <= 6 && rows.every((row) => row.length === n)) {
+      sizeInput.value = String(n);
+      buildMatrixGrid(n, rows);
+      const x0 = saved.x0 !== undefined ? String(saved.x0).split(",").map(Number) : null;
+      buildX0Row(n, x0);
+      if (saved.tol !== undefined) tolInput.value = saved.tol;
+      if (saved.maxIter !== undefined) maxIterInput.value = saved.maxIter;
+      runCompute();
+    }
+  }
+
   updateStartCheck();
 })();

@@ -37,6 +37,17 @@
 
   let state = null; // { iterations, range0 }
   const CURRENT_TRACE = 3;
+  const STORE_KEY = "engine-lab:numerical-false-position";
+
+  function snapshot() {
+    return {
+      fx: fxInput.value,
+      a: aInput.value,
+      b: bInput.value,
+      tol: tolInput.value,
+      maxIter: maxIterInput.value,
+    };
+  }
 
   function updatePreview() {
     Engine.renderKatex(fxPreview, `f(x) = ${Engine.toLatex(fxInput.value)}`, false);
@@ -213,8 +224,7 @@
 
   stepSlider.addEventListener("input", (e) => updateStep(Number(e.target.value)));
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+  function runCompute() {
     clearError();
 
     const compiled = Engine.compileFx(fxInput.value);
@@ -236,11 +246,27 @@
 
     const iterations = Algorithms.runFalsePosition(compiled.fn, a, b, tol, maxIter);
     render(iterations, compiled, { a, b });
+    Proto.saveState(STORE_KEY, snapshot());
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    runCompute();
   });
 
   Engine.attachMathKeypad(fxInput, document.getElementById("fxKeypad"));
   Engine.attachKeypadToggle(document.getElementById("keypadToggle"), document.getElementById("fxKeypad"));
 
+  const saved = Proto.loadState(STORE_KEY);
+  if (saved) {
+    if (saved.fx !== undefined) fxInput.value = saved.fx;
+    if (saved.a !== undefined) aInput.value = saved.a;
+    if (saved.b !== undefined) bInput.value = saved.b;
+    if (saved.tol !== undefined) tolInput.value = saved.tol;
+    if (saved.maxIter !== undefined) maxIterInput.value = saved.maxIter;
+  }
+
   updatePreview();
   updateSignCheck();
+  if (saved) runCompute();
 })();

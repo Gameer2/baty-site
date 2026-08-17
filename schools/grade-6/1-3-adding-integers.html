@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Adding Integers — Grade 6</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- bespoke scene: two hop-arrows chaining tip-to-tail. Forks 1.1/1.2's ruler. ---- */
+  .scene{ height:470px; background:linear-gradient(to bottom, #0c0e10, var(--rich-carbon)); }
+
+  .ruler{ position:absolute; left:64px; top:30px; bottom:30px; width:1px; background:rgba(255,255,255,.06); }
+  .ruler .rung{ position:absolute; left:-5px; width:11px; height:1px; background:rgba(255,255,255,.16); }
+  .ruler .rung.zero{ display:none; }
+  .ruler .rung-label{ position:absolute; left:-40px; transform:translateY(-50%); font-family:var(--mono); font-size:10.5px; color:var(--pulse-ash); width:26px; text-align:right; direction:ltr; }
+  .ruler .rung-label.neg{ color:#7fa8b0; }
+  .ruler .rung-label.pos{ color:#b98a72; }
+
+  .zero-mark{ position:absolute; left:64px; width:14px; height:14px; margin-left:-7px; margin-top:-7px; border-radius:50%; border:2px solid var(--pulse-ash); background:var(--core-black); z-index:5; }
+  .zero-tag{ position:absolute; left:88px; top:50%; transform:translateY(-50%); font-family:var(--mono); font-size:11px; color:var(--pulse-ash); white-space:nowrap; z-index:5; direction:ltr; }
+
+  .hop-line{ position:absolute; width:4px; margin-left:-2px; border-radius:2px; z-index:3; }
+  .hop-line.hopA{ left:64px; background:var(--electric-teal); }
+  .hop-line.hopB{ left:140px; background:#b98a72; }
+  .hop-head{ position:absolute; width:0; height:0; margin-left:-7px; z-index:3; }
+  .hop-head.hopA{ left:64px; }
+  .hop-head.hopB{ left:140px; }
+  .hop-head.up{ border-left:7px solid transparent; border-right:7px solid transparent; }
+  .hop-head.down{ border-left:7px solid transparent; border-right:7px solid transparent; }
+  .hop-head.hopA.up{ border-bottom:11px solid var(--electric-teal); }
+  .hop-head.hopA.down{ border-top:11px solid var(--electric-teal); }
+  .hop-head.hopB.up{ border-bottom:11px solid #b98a72; }
+  .hop-head.hopB.down{ border-top:11px solid #b98a72; }
+
+  .hop-tag{ position:absolute; top:50%; transform:translateY(-50%); font-family:var(--mono); font-size:12px; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.12); border-radius:6px; padding:3px 8px; white-space:nowrap; z-index:6; direction:ltr; }
+  .hop-tag.hopA{ left:20px; text-align:right; }
+  .hop-tag.hopB{ left:164px; }
+
+  .connector{ position:absolute; height:1px; border-top:1px dashed rgba(255,255,255,.18); z-index:2; }
+
+  .landing{ position:absolute; left:140px; width:24px; height:24px; margin-left:-12px; margin-top:-12px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #f5a687, var(--infrared) 70%); box-shadow:0 6px 16px rgba(237,109,64,.4); z-index:6; }
+  .landing-tag{ position:absolute; left:164px; top:50%; transform:translateY(-50%); font-family:var(--mono); font-size:12.5px; font-weight:700; color:var(--infrared); white-space:nowrap; z-index:6; direction:ltr; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 1 · LESSON 3</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Adding Integers</h1>
+    <span class="title-secondary ar-display" id="titleAr">جمع الأعداد الصحيحة</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I add two integers; I solve real-life addition problems.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">two hops, tip to tail, landing on the sum</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabelA">first addend</label>
+      <input type="range" id="sliderA" min="-8" max="8" step="1" value="5" />
+      <span class="control-val" id="readoutA">+5</span>
+    </div>
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabelB">second addend</label>
+      <input type="range" id="sliderB" min="-8" max="8" step="1" value="-8" />
+      <span class="control-val" id="readoutB">−8</span>
+    </div>
+
+    <div class="scene" id="scene">
+      <div class="ruler" id="ruler"></div>
+
+      <div class="zero-mark dimmable" data-el="zero" id="zeroMark"></div>
+      <div class="zero-tag dimmable" data-role="ui" data-el="zero" id="zeroTag">start: 0</div>
+
+      <div class="hop-line hopA dimmable" data-el="hopA" id="hopLineA"></div>
+      <div class="hop-head hopA dimmable" data-el="hopA" id="hopHeadA"></div>
+      <div class="hop-tag hopA" data-role="ui" id="hopTagA">+5</div>
+
+      <div class="connector dimmable" data-el="connector" id="connector"></div>
+
+      <div class="hop-line hopB dimmable" data-el="hopB" id="hopLineB"></div>
+      <div class="hop-head hopB dimmable" data-el="hopB" id="hopHeadB"></div>
+      <div class="hop-tag hopB" data-role="ui" id="hopTagB">−8</div>
+
+      <div class="landing dimmable" data-el="landing" id="landing"></div>
+      <div class="landing-tag" data-role="ui" id="landingTag">sum = −3</div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Same-sign addition sums the absolute values and keeps the shared sign; different-sign addition subtracts the smaller absolute value from the larger and takes the sign of the larger-magnitude number. A number plus its additive inverse (opposite) equals zero. Every result is verified by tracing hops on a number line. Real contexts: net position after running forward/backward, diving then ascending toward the surface.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="1-2-comparing-ordering-integers.html">— <b data-role="body" id="navPrevText">1.2 · Comparing &amp; Ordering Integers</b></a>
+    <a class="nav-pill next" href="1-4-subtracting-integers.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">1.4 · Subtracting Integers</b></a>
+  </div>
+</div>
+
+<script>
+  const { digits, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 1 · LESSON 3",
+      objectiveLabel: "Objective —",
+      objectiveText: "I add two integers; I solve real-life addition problems.",
+      eqSub: "two hops, tip to tail, landing on the sum",
+      explainBtn: "Explain this",
+      controlLabelA: "first addend", controlLabelB: "second addend",
+      startWord: "start: ",
+      sumWord: "sum = ",
+      teachLabel: "What this teaches:",
+      teachBody: "Same-sign addition sums the absolute values and keeps the shared sign; different-sign addition subtracts the smaller absolute value from the larger and takes the sign of the larger-magnitude number. A number plus its additive inverse (opposite) equals zero. Every result is verified by tracing hops on a number line. Real contexts: net position after running forward/backward, diving then ascending toward the surface.",
+      navPrev: "1.2 · Comparing & Ordering Integers",
+      navNext: "1.4 · Subtracting Integers",
+      navNextLabel: "next",
+      tour: [
+        { elKey: "zero", label: "Start at zero", body: "Every addition starts from zero on the number line." },
+        { elKey: "hopA", label: "First hop", body: "The teal arrow is the first addend — it hops from 0 to its value, up if positive, down if negative." },
+        { elKey: "hopB", label: "Second hop, tip to tail", body: "The tan arrow starts exactly where the first one landed — that's what 'tip to tail' means. Same direction reinforces; opposite direction partly cancels." },
+        { elKey: "landing", label: "The landing point", body: "Wherever the second hop ends is the sum — read it straight off the ruler." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف السادس · الوحدة ١ · الدرس ٣",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أجمع عددين صحيحين؛ وأحلّ مسائل جمع من واقع الحياة.",
+      eqSub: "قفزتان، رأسًا لذيل، تهبطان على الناتج",
+      explainBtn: "اشرح هذا",
+      controlLabelA: "المُجمَع الأول", controlLabelB: "المُجمَع الثاني",
+      startWord: "البداية: ",
+      sumWord: "الناتج = ",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "جمع عددين بالإشارة نفسها يجمع قيمتيهما المطلقتين ويحتفظ بالإشارة المشتركة؛ وجمع عددين مختلفي الإشارة يطرح القيمة المطلقة الأصغر من الأكبر ويأخذ إشارة العدد الأكبر في القيمة المطلقة. ناتج جمع عدد مع نظيره الجمعي يساوي صفرًا. يُتحقَّق من كل ناتج بتتبّع القفزات على خط الأعداد. من السياقات الواقعية: الموضع الصافي بعد الجري للأمام والخلف، أو الغوص ثم الصعود نحو السطح.",
+      navPrev: "١.٢ · مقارنة الأعداد الصحيحة وترتيبها",
+      navNext: "١.٤ · طرح الأعداد الصحيحة",
+      navNextLabel: "التالي",
+      tour: [
+        { elKey: "zero", label: "البداية من الصفر", body: "تبدأ كل عملية جمع من الصفر على خط الأعداد." },
+        { elKey: "hopA", label: "القفزة الأولى", body: "السهم الفيروزي هو المُجمَع الأول — يقفز من ٠ إلى قيمته، صعودًا إن كان موجبًا، وهبوطًا إن كان سالبًا." },
+        { elKey: "hopB", label: "القفزة الثانية، رأسًا لذيل", body: "يبدأ السهم البُنّي تمامًا من حيث انتهى الأول — وهذا معنى «رأسًا لذيل». الاتجاه نفسه يعزّز القفزة، والاتجاه المعاكس يُلغي جزءًا منها." },
+        { elKey: "landing", label: "نقطة الهبوط", body: "أينما تنتهي القفزة الثانية هو الناتج — اقرأه مباشرة من المسطرة." }
+      ]
+    }
+  };
+
+  const MIN = -16, MAX = 16;
+  const scene = document.getElementById("scene");
+  function bounds() {
+    const r = scene.getBoundingClientRect();
+    return { top: 30, bottom: r.height - 30, height: r.height };
+  }
+  function yFor(v) {
+    const b = bounds();
+    return b.top + (MAX - v) / (MAX - MIN) * (b.bottom - b.top);
+  }
+
+  const ruler = document.getElementById("ruler");
+  function buildRuler() {
+    ruler.innerHTML = "";
+    for (let v = MIN; v <= MAX; v++) {
+      const rung = document.createElement("div");
+      rung.className = "rung" + (v === 0 ? " zero" : "");
+      rung.style.top = (yFor(v) - 30) + "px";
+      ruler.appendChild(rung);
+      if (v % 4 === 0 && v !== 0) {
+        const label = document.createElement("div");
+        label.className = "rung-label " + (v < 0 ? "neg" : "pos");
+        label.style.top = (yFor(v) - 30) + "px";
+        label.textContent = digits(v, i18n.lang);
+        ruler.appendChild(label);
+      }
+    }
+  }
+
+  let a = 5, b = -8;
+  const zeroMark = document.getElementById("zeroMark");
+  const zeroTag = document.getElementById("zeroTag");
+  const hopLineA = document.getElementById("hopLineA");
+  const hopHeadA = document.getElementById("hopHeadA");
+  const hopTagA = document.getElementById("hopTagA");
+  const connector = document.getElementById("connector");
+  const hopLineB = document.getElementById("hopLineB");
+  const hopHeadB = document.getElementById("hopHeadB");
+  const hopTagB = document.getElementById("hopTagB");
+  const landing = document.getElementById("landing");
+  const landingTag = document.getElementById("landingTag");
+  const sliderA = document.getElementById("sliderA");
+  const sliderB = document.getElementById("sliderB");
+  const readoutA = document.getElementById("readoutA");
+  const readoutB = document.getElementById("readoutB");
+  const eqLine = document.getElementById("eqLine");
+
+  // lays out one hop from value v1 to v2 on a vertical arrow, arrowhead at the tip (v2)
+  function layoutHop(v1, v2) {
+    const y1 = yFor(v1), y2 = yFor(v2);
+    if (y2 < y1) { // moving up (v2 > v1)
+      return { lineTop: y2 + 11, lineHeight: Math.max(y1 - (y2 + 11), 0), headTop: y2, dir: "up", flat: false };
+    } else if (y2 > y1) { // moving down
+      return { lineTop: y1, lineHeight: Math.max((y2 - 11) - y1, 0), headTop: y2 - 11, dir: "down", flat: false };
+    }
+    return { lineTop: y1, lineHeight: 0, headTop: y1, dir: "up", flat: true };
+  }
+
+  function render(animate) {
+    const t = T[i18n.lang];
+    const sum = a + b;
+    const targets = animate ? { duration: .45, ease: "back.out(1.7)" } : { duration: 0 };
+
+    zeroMark.style.top = yFor(0) + "px";
+    zeroTag.style.top = yFor(0) + "px";
+    zeroTag.textContent = t.startWord + digits(0, i18n.lang);
+
+    const hopA = layoutHop(0, a);
+    gsap.to(hopLineA, { top: hopA.lineTop, height: hopA.lineHeight, opacity: hopA.flat ? 0 : 1, ...targets });
+    gsap.to(hopHeadA, { top: hopA.headTop, ...targets });
+    hopHeadA.classList.toggle("up", hopA.dir === "up");
+    hopHeadA.classList.toggle("down", hopA.dir === "down");
+    hopHeadA.style.opacity = hopA.flat ? 0 : 1;
+    gsap.to(hopTagA, { top: yFor(a / 2), ...targets });
+    hopTagA.textContent = (a > 0 ? "+" : "") + digits(a, i18n.lang);
+
+    const hopB = layoutHop(a, sum);
+    gsap.to(hopLineB, { top: hopB.lineTop, height: hopB.lineHeight, opacity: hopB.flat ? 0 : 1, ...targets });
+    gsap.to(hopHeadB, { top: hopB.headTop, ...targets });
+    hopHeadB.classList.toggle("up", hopB.dir === "up");
+    hopHeadB.classList.toggle("down", hopB.dir === "down");
+    hopHeadB.style.opacity = hopB.flat ? 0 : 1;
+    gsap.to(hopTagB, { top: yFor(a + b / 2), ...targets });
+    hopTagB.textContent = (b > 0 ? "+" : "") + digits(b, i18n.lang);
+
+    const connY = yFor(a);
+    connector.style.top = connY + "px";
+    connector.style.left = "70px";
+    connector.style.width = "70px";
+
+    gsap.to(landing, { top: yFor(sum), ...targets });
+    landingTag.style.top = yFor(sum) + "px";
+    landingTag.textContent = t.sumWord + digits(sum, i18n.lang);
+
+    const eqSource = `\\color{#5c939f}{${a}} + \\color{#b98a72}{${b}} = \\color{#ed6d40}{${sum}}`;
+    renderEquation(eqLine, eqSource);
+
+    sliderA.value = a; sliderB.value = b;
+    readoutA.textContent = (a > 0 ? "+" : "") + a;
+    readoutB.textContent = (b > 0 ? "+" : "") + b;
+  }
+
+  sliderA.addEventListener("input", () => { const v = parseInt(sliderA.value, 10); if (v !== a) { a = v; render(true); } });
+  sliderB.addEventListener("input", () => { const v = parseInt(sliderB.value, 10); if (v !== b) { b = v; render(true); } });
+
+  window.addEventListener("resize", () => { buildRuler(); render(false); });
+
+  const i18n = initI18n(T, {
+    onLangChange: () => { buildRuler(); render(false); }
+  });
+
+  buildRuler();
+  render(false);
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

@@ -65,5 +65,13 @@
 
     const { q, r } = NumberTheory.divide(a, b);
     render(a, b, q, r);
+    Proto.saveState("engine-lab:number-theory-divisibility", { a: aInput.value, b: bInput.value });
   });
+
+  const saved = Proto.loadState("engine-lab:number-theory-divisibility");
+  if (saved) {
+    if (saved.a !== undefined) aInput.value = saved.a;
+    if (saved.b !== undefined) bInput.value = saved.b;
+    form.requestSubmit();
+  }
 })();

@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Units of Capacity and Length — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:26px 24px 30px; display:flex; flex-direction:column; align-items:center; gap:22px; }
+  .ladder{ display:flex; flex-direction:column; gap:6px; width:100%; max-width:260px; direction:ltr; }
+  .rung{ display:flex; align-items:center; justify-content:space-between; padding:8px 14px; border-radius:8px; background:var(--core-black); border:1px solid rgba(255,255,255,.1); cursor:pointer; font-family:var(--mono); font-size:12.5px; color:var(--pulse-ash); }
+  .rung.active{ color:var(--core-black); background:var(--electric-teal); border-color:var(--electric-teal); font-weight:700; }
+  .rung .value{ direction:ltr; }
+
+  .type-toggle{ display:flex; gap:6px; }
+  .mode-btn{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--pulse-ash); background:var(--core-black); border:1px solid rgba(255,255,255,.14); border-radius:100px; padding:6px 14px; cursor:pointer; }
+  .mode-btn.active{ color:var(--off-white); border-color:var(--electric-teal); background:rgba(92,147,159,.12); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 9 · LESSON 2</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Units of Capacity and Length</h1>
+    <span class="title-secondary ar-display" id="titleAr">وحدات السعة والطول</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I convert between metric units of length or capacity by climbing a unit ladder.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">each rung shifts the decimal point</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="type-toggle" id="typeToggle" data-el="typeToggle">
+        <button class="mode-btn active" data-type="length" data-i18n="typeLength">length</button>
+        <button class="mode-btn" data-type="capacity" data-i18n="typeCapacity">capacity</button>
+      </div>
+    </div>
+
+    <div class="control-row">
+      <label data-role="ui" data-i18n="controlLabel">value</label>
+      <input type="range" id="valSlider" min="1" max="9999" step="1" value="4500" />
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="ladder" id="ladder" data-el="ladder"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Metric units form a ladder, each rung a power of ten apart — climbing up (bigger unit) or down (smaller unit) shifts the decimal point by exactly that many places, the same rule from multiplying and dividing decimals by powers of ten.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="9-1-units-of-mass.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">9.1 · Units of Mass</b></a>
+    <a class="nav-pill next" href="9-3-time.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">9.3 · Time</b></a>
+  </div>
+</div>
+
+<script>
+  const { initI18n, renderEquation, buildTour } = LessonShell;
+
+  const LADDERS = {
+    length: [
+      { unit: "km", factor: 1000000 },
+      { unit: "m", factor: 1000 },
+      { unit: "cm", factor: 10 },
+      { unit: "mm", factor: 1 }
+    ],
+    capacity: [
+      { unit: "L", factor: 1000 },
+      { unit: "mL", factor: 1 }
+    ]
+  };
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 9 · LESSON 2",
+      objectiveLabel: "Objective —",
+      objectiveText: "I convert between metric units of length or capacity by climbing a unit ladder.",
+      eqSub: "each rung shifts the decimal point",
+      explainBtn: "Explain this",
+      typeLength: "length", typeCapacity: "capacity",
+      controlLabel: "value",
+      navPrevLabel: "—", navPrevText: "9.1 · Units of Mass",
+      navNextLabel: "next", navNext: "9.3 · Time",
+      teachLabel: "What this teaches:",
+      teachBody: "Metric units form a ladder, each rung a power of ten apart — climbing up (bigger unit) or down (smaller unit) shifts the decimal point by exactly that many places, the same rule from multiplying and dividing decimals by powers of ten.",
+      tour: [
+        { elKey: "ladder", label: "Pick a value in one unit", body: "The slider sets a value in millimeters (or milliliters) — the smallest rung." },
+        { elKey: "ladder", label: "Climb the ladder", body: "Tap a higher rung — the same physical amount, rewritten in a bigger unit." },
+        { ids: ["eqLine"], label: "Watch the point shift", body: "Each rung climbed shifts the decimal point left by exactly the rung's power of ten." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٩ · الدرس ٢",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أُحوّل بين الوحدات المترية للطول أو السعة بتسلّق سلّم الوحدات.",
+      eqSub: "كل درجة تُزيح الفاصلة العشرية",
+      explainBtn: "اشرح هذا",
+      typeLength: "الطول", typeCapacity: "السعة",
+      controlLabel: "القيمة",
+      navPrevLabel: "—", navPrevText: "٩.١ · وحدات الكتلة",
+      navNextLabel: "التالي", navNext: "٩.٣ · الزمن",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "تُشكّل الوحدات المترية سلّمًا، كل درجة فيه تفصلها قوّة من قوى العشرة — الصعود (وحدة أكبر) أو النزول (وحدة أصغر) يُزيح الفاصلة العشرية بذلك العدد من المنازل بالضبط، القاعدة نفسها من ضرب وقسمة الكسور العشرية على قوى العشرة.",
+      tour: [
+        { elKey: "ladder", label: "اختر قيمة بوحدة واحدة", body: "يحدّد شريط التمرير قيمة بالمليمتر (أو المليلتر) — أصغر درجة." },
+        { elKey: "ladder", label: "تسلّق السلّم", body: "انقر درجة أعلى — الكمّية الفيزيائية نفسها، مُعاد كتابتها بوحدة أكبر." },
+        { ids: ["eqLine"], label: "راقب إزاحة الفاصلة", body: "كل درجة تُتسلَّق تُزيح الفاصلة العشرية يسارًا بمقدار قوّة العشرة الخاصّة بتلك الدرجة بالضبط." }
+      ]
+    }
+  };
+
+  const typeToggle = document.getElementById("typeToggle");
+  const valSlider = document.getElementById("valSlider");
+  const ladder = document.getElementById("ladder");
+  const eqLine = document.getElementById("eqLine");
+
+  let type = "length";
+  let activeRung = 0; // index into LADDERS[type], 0 = smallest unit slider maps to
+
+  function render() {
+    const rungs = LADDERS[type];
+    const baseVal = parseInt(valSlider.value, 10); // in smallest unit
+    ladder.innerHTML = "";
+    rungs.forEach((rung, idx) => {
+      const row = document.createElement("div");
+      row.className = "rung" + (idx === activeRung ? " active" : "");
+      const label = document.createElement("span");
+      label.textContent = rung.unit;
+      const val = document.createElement("span");
+      val.className = "value";
+      const converted = baseVal / rung.factor;
+      val.textContent = Number.isInteger(converted) ? converted : converted.toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
+      row.appendChild(label); row.appendChild(val);
+      row.addEventListener("click", () => { activeRung = idx; render(); });
+      ladder.appendChild(row);
+    });
+
+    const activeUnit = rungs[activeRung];
+    const activeVal = baseVal / activeUnit.factor;
+    const smallestUnit = rungs[rungs.length - 1];
+    renderEquation(eqLine, `${activeVal}\\text{ ${activeUnit.unit}} = \\color{#ed6d40}{${baseVal}\\text{ ${smallestUnit.unit}}}`);
+  }
+
+  valSlider.addEventListener("input", render);
+  typeToggle.addEventListener("click", (e) => {
+    const btn = e.target.closest(".mode-btn");
+    if (!btn) return;
+    type = btn.dataset.type;
+    activeRung = 0;
+    valSlider.max = type === "length" ? 9999 : 5000;
+    typeToggle.querySelectorAll(".mode-btn").forEach(b => b.classList.toggle("active", b === btn));
+    render();
+  });
+
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

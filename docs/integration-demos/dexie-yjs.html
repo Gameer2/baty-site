@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dexie + Yjs — integration demo</title>
+<style>
+@font-face{font-family:'Roc Grotesk';src:url('../../math-lab/assets/fonts/roc-grotesk-regular.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'Roc Grotesk';src:url('../../math-lab/assets/fonts/roc-grotesk-medium.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:'Azeret Mono';src:url('../../math-lab/assets/fonts/azeret-mono-regular.otf') format('opentype');font-weight:400;font-display:swap}
+@font-face{font-family:'Fraunces';src:url('../../math-lab/assets/fonts/fraunces-variable.woff2') format('woff2');font-weight:300 600;font-display:swap}
+</style>
+<script src="vendor/dexie.min.js"></script>
+<style>
+:root{--core-black:#090909;--rich-carbon:#111;--urban-smoke:#1b1b1b;--pulse-ash:#7d858c;--off-white:#e7e7e7;--neural-fog:#dadada;--electric-teal:#5c939f;--infrared:#ed6d40;--validation-green:#59a993;--validation-red:#cb3500;--font-display:"Roc Grotesk","Helvetica Neue",Arial,sans-serif;--font-mono:"Azeret Mono",ui-monospace,monospace;--font-serif:"Fraunces",Georgia,serif;--radius-sm:4px;--radius-md:8px;--radius-lg:20px;--container-w:1280px}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{background:var(--core-black);color:var(--off-white);font-family:var(--font-display);line-height:1.55}
+.container{max-width:var(--container-w);margin:0 auto;padding:0 24px}
+header.top{position:fixed;top:20px;left:0;right:0;z-index:50}
+.top-inner{max-width:var(--container-w);margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:12px;font-family:var(--font-mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase}
+.brand{display:inline-flex;align-items:center;gap:8px;color:var(--off-white);text-decoration:none}.brand .dot{width:8px;height:8px;border-radius:50%;background:var(--infrared)}
+.top-inner a.lk{color:var(--pulse-ash);text-decoration:none;margin-left:auto}.top-inner a.lk:hover{color:var(--electric-teal)}
+.hero{padding:120px 0 20px}
+.eyebrow{font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--electric-teal);display:inline-flex;align-items:center;gap:8px;margin-bottom:16px}
+.eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.h1{font-family:var(--font-serif);font-weight:350;font-size:clamp(38px,5.6vw,72px);line-height:.98;letter-spacing:-.02em;margin:0 0 14px}
+.p1{font-size:17px;color:var(--neural-fog);max-width:640px;margin:0}
+.section{padding:24px 0 80px}
+.card{background:var(--rich-carbon);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-lg);padding:24px}
+.panes{display:grid;gap:22px;grid-template-columns:1fr 1fr}
+@media(max-width:900px){.panes{grid-template-columns:1fr}}
+label{font-family:var(--font-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--pulse-ash);display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.pane-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.pane-head .who{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--pulse-ash)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.live{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-mono);font-size:11px;color:var(--validation-green)}
+.live .dot{background:var(--validation-green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+textarea{width:100%;height:260px;background:var(--core-black);border:1px solid rgba(255,255,255,.16);border-radius:var(--radius-md);color:var(--off-white);font-family:var(--font-mono);font-size:14px;line-height:1.6;padding:14px;resize:vertical}
+textarea:focus{outline:none;border-color:var(--electric-teal)}
+.bar{display:flex;align-items:center;gap:12px;margin:20px 0;flex-wrap:wrap}
+.btn{font-family:var(--font-mono);text-transform:uppercase;font-size:11px;letter-spacing:.1em;padding:9px 16px;border-radius:var(--radius-sm);border:1px solid var(--pulse-ash);color:var(--neural-fog);background:transparent;cursor:pointer;transition:.3s}
+.btn:hover{color:var(--core-black);border-color:var(--electric-teal);background:var(--electric-teal)}
+.btn--primary{border-color:var(--infrared);color:var(--core-black);background:var(--infrared)}
+.btn--primary:hover{background:#ff8a5c;border-color:#ff8a5c}
+.save-stat{font-family:var(--font-mono);font-size:12px;color:var(--pulse-ash)}
+.save-stat b{color:var(--validation-green)}
+.grid2{display:grid;gap:22px;grid-template-columns:1.4fr .8fr;margin-top:22px}
+@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+.snapshots{background:var(--urban-smoke);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-md);padding:18px;max-height:240px;overflow:auto}
+.snapshots .t{font-family:var(--font-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--pulse-ash);margin-bottom:12px}
+.row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.07);font-family:var(--font-mono);font-size:12px}
+.row .time{color:var(--electric-teal);width:120px;flex:none}
+.row .prev{color:var(--neural-fog);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .del{color:var(--validation-red);cursor:pointer;opacity:.6}
+.row .del:hover{opacity:1}
+.empty{color:var(--pulse-ash);font-family:var(--font-mono);font-size:12px}
+.callout{margin-top:24px;font-size:14px;color:var(--neural-fog);line-height:1.6}.callout b{color:var(--off-white)}
+code{font-family:var(--font-mono);font-size:12px;color:var(--electric-teal)}
+.err{color:var(--validation-red);font-family:var(--font-mono);font-size:12px}
+footer{padding:30px 0 60px;color:var(--pulse-ash);font-size:13px;font-family:var(--font-mono)}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-inner"><a class="brand" href="./index.html"><span class="dot"></span>BACK · DEMOS</a><a class="lk" href="./dexie-yjs.html">dexie + yjs</a></div></header>
+
+<section class="hero">
+  <div class="container">
+    <span class="eyebrow">Persist · Collab</span>
+    <h1 class="h1">Two panes, one truth.</h1>
+    <p class="p1">Type in the left pane — the right pane updates live through a shared Yjs document. Hit "Save snapshot" and it's written to IndexedDB via Dexie, surviving a full refresh. This is the persistence + collaboration foundation the Scene Builder spec assumes: edits sync without conflicts, data survives reloads, no server round-trip required.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="card">
+      <div class="panes">
+        <div>
+          <div class="pane-head"><label><span class="dot" style="background:var(--electric-teal)"></span>Your pane</label><span class="who">editor A</span></div>
+          <textarea id="taA" spellcheck="false">The derivative of x^2 is 2x.
+Try typing here — the right pane mirrors it.</textarea>
+        </div>
+        <div>
+          <div class="pane-head"><label><span class="dot" style="background:var(--infrared)"></span>Collaborator pane</label><span class="who">editor B · live</span></div>
+          <textarea id="taB" spellcheck="false"></textarea>
+        </div>
+      </div>
+      <div class="bar">
+        <button class="btn btn--primary" id="saveBtn">Save snapshot</button>
+        <button class="btn" id="restoreBtn">Restore latest</button>
+        <button class="btn" id="clearBtn">Clear saved</button>
+        <span class="save-stat" id="saveStat">no snapshots yet</span>
+        <span class="live" style="margin-left:auto"><span class="dot"></span>Yjs sync active</span>
+      </div>
+      <div class="err" id="err"></div>
+
+      <div class="grid2">
+        <div>
+          <div class="callout">
+            <b>What this shows.</b> Left = "you", right = "a collaborator" (same browser, one shared <code>Y.Doc</code>). Yjs is a CRDT, so two people editing at once merge without conflicts — that's the part that matters for a real Scene Builder where two students or a student + teacher edit the same scene. Dexie is the IndexedDB wrapper that persists snapshots offline; it scales to thousands of saved scenes where <code>localStorage</code> caps out at ~5 MB. Together they replace the hand-rolled <code>serve.py</code> note-save endpoint with something that works offline and for multiple users.
+          </div>
+        </div>
+        <div>
+          <div class="snapshots">
+            <div class="t">Saved snapshots · IndexedDB</div>
+            <div id="snapList"><div class="empty">— none yet —</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer><div class="container">Dexie (IndexedDB) + Yjs (CRDT) — offline-first persistence & collaboration</div></footer>
+
+<script type="module">
+import * as Y from './vendor/yjs.mjs';
+
+const errEl=document.getElementById('err');
+function err(msg){ errEl.textContent=msg; setTimeout(()=>errEl.textContent='',4000); }
+
+// --- Yjs shared document ---
+const doc=new Y.Doc();
+const ytext=doc.getText('notes');
+
+const taA=document.getElementById('taA');
+const taB=document.getElementById('taB');
+
+// push textarea -> ytext (replace content; fine for single-doc demo)
+function pushY(textarea){
+  const cur=ytext.toString();
+  if(cur!==textarea.value){
+    ytext.delete(0,cur.length);
+    if(textarea.value) ytext.insert(0,textarea.value);
+  }
+}
+// ytext -> whichever textarea is NOT focused (so the typed pane keeps its cursor)
+function pullY(){
+  const val=ytext.toString();
+  if(document.activeElement!==taA && taA.value!==val) taA.value=val;
+  if(document.activeElement!==taB && taB.value!==val) taB.value=val;
+}
+taA.addEventListener('input',()=>pushY(taA));
+taB.addEventListener('input',()=>pushY(taB));
+ytext.observe(pullY);
+
+// initial sync
+taB.value=taA.value;
+pushY(taA);
+
+// --- Dexie persistence ---
+const db=new Dexie('mathlabSceneBuilder');
+db.version(1).stores({ snapshots:'++id,time,text' });
+
+async function refreshList(){
+  const all=await db.snapshots.orderBy('time').reverse().toArray();
+  const el=document.getElementById('snapList');
+  document.getElementById('saveStat').innerHTML=`<b>${all.length}</b> snapshot${all.length===1?'':'s'} saved`;
+  if(!all.length){ el.innerHTML='<div class="empty">— none yet —</div>'; return; }
+  el.innerHTML=all.map(s=>`<div class="row"><span class="time">${new Date(s.time).toLocaleTimeString()}</span><span class="prev">${escapeHtml((s.text||'').slice(0,60))||'(empty)'}</span><span class="del" data-id="${s.id}">✕</span></div>`).join('');
+  el.querySelectorAll('.del').forEach(d=>d.onclick=async()=>{ await db.snapshots.delete(parseInt(d.dataset.id)); refreshList(); });
+}
+function escapeHtml(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+document.getElementById('saveBtn').onclick=async()=>{
+  try{ await db.snapshots.add({time:Date.now(),text:ytext.toString()}); await refreshList(); }
+  catch(e){ err('save failed: '+e.message); }
+};
+document.getElementById('restoreBtn').onclick=async()=>{
+  const latest=await db.snapshots.orderBy('time').reverse().first();
+  if(!latest){ err('nothing saved yet'); return; }
+  syncGuard=true; ytext.delete(0,ytext.length); if(latest.text) ytext.insert(0,latest.text); syncGuard=false;
+  taA.value=latest.text; taB.value=latest.text;
+};
+document.getElementById('clearBtn').onclick=async()=>{ await db.snapshots.clear(); refreshList(); };
+
+refreshList();
+</script>
+</body>
+</html>

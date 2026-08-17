@@ -139,6 +139,14 @@ export const FONT_FAMILY = {
   "Comic Shanns": 8,
   "Liberation Sans": 9,
   Assistant: 10,
+  // Syntropy addition: a bigger handwriting-style library for the text tool, beyond the single
+  // Excalifont/Virgil hand-drawn option — all open-license (SIL OFL) Google Fonts.
+  Caveat: 11,
+  Kalam: 12,
+  "Shadows Into Light": 13,
+  "Indie Flower": 14,
+  "Patrick Hand": 15,
+  "Architects Daughter": 16,
 };
 
 // Segoe UI Emoji fails to properly fallback for some glyphs: ∞, ∫, ≠
@@ -298,6 +306,7 @@ export const EXPORT_IMAGE_TYPES = {
   png: "png",
   svg: "svg",
   clipboard: "clipboard",
+  pdf: "pdf",
 } as const;
 
 export const EXPORT_DATA_TYPES = {
@@ -600,8 +609,6 @@ export const TOOL_TYPE = {
 
 export const EDITOR_LS_KEYS = {
   OAI_API_KEY: "excalidraw-oai-api-key",
-  // legacy naming (non)scheme
-  MERMAID_TO_EXCALIDRAW: "mermaid-to-excalidraw",
   PUBLISH_LIBRARY: "publish-library-data",
 } as const;
 

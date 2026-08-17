@@ -138,5 +138,14 @@
     const result = NumberTheory.solveLinearDiophantine(a, b, c);
     if (!result.solvable) return renderUnsolvable(result);
     render(a, b, c, result);
+    Proto.saveState("engine-lab:number-theory-linear-diophantine", { a: aInput.value, b: bInput.value, c: cInput.value });
   });
+
+  const saved = Proto.loadState("engine-lab:number-theory-linear-diophantine");
+  if (saved) {
+    if (saved.a !== undefined) aInput.value = saved.a;
+    if (saved.b !== undefined) bInput.value = saved.b;
+    if (saved.c !== undefined) cInput.value = saved.c;
+    form.requestSubmit();
+  }
 })();

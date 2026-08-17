@@ -32,6 +32,20 @@
 
   let state = null; // { path, a, alpha, b, beta }
   const TRACE = { y1: 0, y2: 1, combined: 2, markers: 3, current: 4 };
+  const STORE_KEY = "engine-lab:numerical-shooting-method";
+
+  function snapshot() {
+    return {
+      px: pxInput.value,
+      qx: qxInput.value,
+      rx: rxInput.value,
+      a: aInput.value,
+      b: bInput.value,
+      alpha: alphaInput.value,
+      beta: betaInput.value,
+      n: nInput.value,
+    };
+  }
 
   function updatePreview() {
     Engine.renderKatex(pxPreview, `p(x) = ${Engine.toLatex(pxInput.value)}`, false);
@@ -194,8 +208,7 @@
 
   stepSlider.addEventListener("input", (e) => updateStep(Number(e.target.value)));
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+  function runCompute() {
     clearError();
 
     const cp = Engine.compileFx(pxInput.value);
@@ -223,6 +236,12 @@
     }
 
     render(result, a, alpha, b, beta);
+    Proto.saveState(STORE_KEY, snapshot());
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    runCompute();
   });
 
   Engine.attachMathKeypad(pxInput, document.getElementById("pxKeypad"));
@@ -232,6 +251,19 @@
   Engine.attachMathKeypad(rxInput, document.getElementById("rxKeypad"));
   Engine.attachKeypadToggle(document.getElementById("rxKeypadToggle"), document.getElementById("rxKeypad"));
 
+  const saved = Proto.loadState(STORE_KEY);
+  if (saved) {
+    if (saved.px !== undefined) pxInput.value = saved.px;
+    if (saved.qx !== undefined) qxInput.value = saved.qx;
+    if (saved.rx !== undefined) rxInput.value = saved.rx;
+    if (saved.a !== undefined) aInput.value = saved.a;
+    if (saved.b !== undefined) bInput.value = saved.b;
+    if (saved.alpha !== undefined) alphaInput.value = saved.alpha;
+    if (saved.beta !== undefined) betaInput.value = saved.beta;
+    if (saved.n !== undefined) nInput.value = saved.n;
+  }
+
   updatePreview();
   updateStartCheck();
+  if (saved) runCompute();
 })();

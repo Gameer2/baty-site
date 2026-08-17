@@ -66,5 +66,13 @@
     if (p <= 2n) return showError("p must be an odd prime greater than 2.");
     if (!NumberTheory.millerRabin(p).prime) return showError(`${p} is not prime — the Legendre symbol is defined for an odd prime p.`);
     render(p, a);
+    Proto.saveState("engine-lab:number-theory-quadratic-residues", { p: pInput.value, a: aInput.value });
   });
+
+  const saved = Proto.loadState("engine-lab:number-theory-quadratic-residues");
+  if (saved) {
+    if (saved.p !== undefined) pInput.value = saved.p;
+    if (saved.a !== undefined) aInput.value = saved.a;
+    form.requestSubmit();
+  }
 })();

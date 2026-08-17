@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Adding and Subtracting Whole Numbers — Grade 5</title>
+<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
+<script src="../../math-lab/assets/vendor/katex.min.js"></script>
+<link rel="stylesheet" href="../assets/css/lesson-shell.css" />
+<script src="../assets/js/lesson-shell.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  .chart{ padding:40px 24px 26px; display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .col-set{ display:flex; flex-direction:column; align-items:center; }
+  .carry-row, .num-row, .result-row{ display:flex; gap:5px; }
+  .carry-row{ height:22px; margin-bottom:2px; }
+  .carry{ width:44px; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:12px; font-weight:700; color:var(--infrared); opacity:0; direction:ltr; }
+  .num-row{ margin-bottom:6px; }
+  .op-cell{ width:44px; height:52px; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:22px; color:var(--pulse-ash); }
+  .cell{ width:44px; height:52px; border-radius:8px; background:var(--core-black); border:1px solid rgba(255,255,255,.1); display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:21px; font-weight:700; color:var(--off-white); direction:ltr; }
+  .result-row{ border-top:2px solid rgba(255,255,255,.25); padding-top:8px; margin-top:4px; }
+  .result-row .cell{ background:rgba(92,147,159,.14); border-color:rgba(92,147,159,.4); color:var(--electric-teal); }
+
+  .inputs{ display:flex; gap:20px; flex-wrap:wrap; justify-content:center; align-items:center; }
+  .input-group{ display:flex; align-items:center; gap:10px; }
+  .input-group label{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash); }
+  .input-group input{ font-family:var(--mono); font-size:15px; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.16); border-radius:8px; padding:7px 10px; width:120px; direction:ltr; }
+  .op-toggle{ display:flex; border:1px solid rgba(255,255,255,.16); border-radius:100px; overflow:hidden; }
+  .op-toggle button{ font-family:var(--mono); font-size:16px; color:var(--pulse-ash); background:none; border:none; padding:8px 16px; cursor:pointer; }
+  .op-toggle button.active{ background:var(--electric-teal); color:var(--core-black); }
+
+  .estimate-line{ font-family:var(--mono); font-size:13px; color:var(--pulse-ash); text-align:center; margin-top:16px; direction:ltr; unicode-bidi:isolate; }
+  .estimate-line b{ color:var(--validation-green); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="page-head">
+    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 1 · LESSON 3</div>
+    <div class="lang-pill">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="ar">AR</button>
+    </div>
+  </div>
+  <div class="titles">
+    <h1 class="title-primary" id="titleEn">Adding and Subtracting Whole Numbers</h1>
+    <span class="title-secondary ar-display" id="titleAr">جمع الأعداد الكلّية وطرحها</span>
+  </div>
+  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I add or subtract numbers within 7 digits.</span></p>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div>
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">watch the carry move from one column to the next</div>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+
+    <div class="control-row">
+      <div class="inputs">
+        <div class="input-group"><label data-role="ui" data-i18n="labelA">A</label><input type="number" id="inputA" value="2846195" /></div>
+        <div class="op-toggle" id="opToggle">
+          <button data-op="add" class="active">+</button>
+          <button data-op="sub">−</button>
+        </div>
+        <div class="input-group"><label data-role="ui" data-i18n="labelB">B</label><input type="number" id="inputB" value="1758342" /></div>
+      </div>
+    </div>
+
+    <div class="scene chart" id="scene">
+      <div class="col-set">
+        <div class="carry-row" id="carryRow"></div>
+        <div class="num-row" id="rowA"></div>
+        <div class="num-row" id="rowB"></div>
+        <div class="result-row" id="rowResult"></div>
+      </div>
+      <div class="estimate-line" id="estimateLine"></div>
+    </div>
+
+    <div class="teach">
+      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Vertical addition/subtraction of large numbers using the place-value chart, with explicit regrouping (carrying/borrowing) steps shown per column, plus front-end estimation (rounding each number to its leading digit) used both to sanity-check the exact answer and as a real skill in its own right.</span></p>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-pill prev" href="1-2-comparing-ordering-numbers.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">1.2 · Comparing &amp; Ordering Numbers</b></a>
+    <a class="nav-pill next" href="1-4-negative-numbers.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">1.4 · Negative Numbers</b></a>
+  </div>
+</div>
+
+<script>
+  const { groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+
+  const T = {
+    en: {
+      crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 1 · LESSON 3",
+      objectiveLabel: "Objective —",
+      objectiveText: "I add or subtract numbers within 7 digits.",
+      eqSub: "watch the carry move from one column to the next",
+      explainBtn: "Explain this",
+      labelA: "A", labelB: "B",
+      navPrevLabel: "—", navPrevText: "1.2 · Comparing & Ordering Numbers",
+      navNextLabel: "next", navNext: "1.4 · Negative Numbers",
+      teachLabel: "What this teaches:",
+      teachBody: "Vertical addition/subtraction of large numbers using the place-value chart, with explicit regrouping (carrying/borrowing) steps shown per column, plus front-end estimation (rounding each number to its leading digit) used both to sanity-check the exact answer and as a real skill in its own right.",
+      estimate: "estimate", exact: "exact", match: "estimate confirms the exact answer is plausible",
+      tour: [
+        { ids: ["rowA", "rowB"], label: "Line up the columns", body: "Stack the numbers so matching place values sit in the same column, just like the place-value chart." },
+        { elKey: "carryTok", label: "Carrying / borrowing", body: "When a column's sum passes 9 (or a subtraction needs more than what's there), a 1 moves into the next column — that's the little marker above the columns." },
+        { ids: ["rowResult"], label: "The exact answer", body: "Working column by column, right to left, gives the exact total." },
+        { elKey: "estimateLine", label: "Check with an estimate", body: "Round each number to its leading digit first — a much simpler sum that should land close to the exact answer, catching big mistakes." }
+      ]
+    },
+    ar: {
+      crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ١ · الدرس ٣",
+      objectiveLabel: "فكرة الدرس —",
+      objectiveText: "أجمع أو أطرح أعدادًا ضمن ٧ أرقام.",
+      eqSub: "راقب انتقال الحمل من عمود إلى الذي يليه",
+      explainBtn: "اشرح هذا",
+      labelA: "A", labelB: "B",
+      navPrevLabel: "—", navPrevText: "١.٢ · مقارنة الأعداد وترتيبها",
+      navNextLabel: "التالي", navNext: "١.٤ · الأعداد السالبة",
+      teachLabel: "ماذا يعلّمنا هذا الدرس:",
+      teachBody: "جمع وطرح الأعداد الكبيرة عموديًا باستخدام جدول القيمة المنزلية، مع إظهار خطوات إعادة التجميع (الحمل والاستلاف) في كل عمود، إضافةً إلى التقدير الأوّلي (بتقريب كل عدد إلى منزلته القائدة) للتحقّق من معقولية الناتج الدقيق ولاكتساب هذه المهارة بحدّ ذاتها.",
+      estimate: "التقدير", exact: "الناتج الدقيق", match: "التقدير يؤكّد معقولية الناتج الدقيق",
+      tour: [
+        { ids: ["rowA", "rowB"], label: "محاذاة الأعمدة", body: "رتّب العددين بحيث تتحاذى المنازل المتماثلة في العمود نفسه، تمامًا كجدول القيمة المنزلية." },
+        { elKey: "carryTok", label: "الحمل والاستلاف", body: "عندما يتجاوز مجموع عمود ٩ (أو يحتاج الطرح إلى أكثر ممّا يوجد)، ينتقل ١ إلى العمود التالي — وهذا ما تُظهره العلامة الصغيرة أعلى الأعمدة." },
+        { ids: ["rowResult"], label: "الناتج الدقيق", body: "العمل عمودًا بعد عمود، من اليمين إلى اليسار، يعطي المجموع الدقيق." },
+        { elKey: "estimateLine", label: "تحقّق بالتقدير", body: "قرّب كل عدد إلى منزلته القائدة أوّلًا — مجموع أبسط بكثير يجب أن يقترب من الناتج الدقيق، ويكشف الأخطاء الكبيرة." }
+      ]
+    }
+  };
+
+  const PLACES = [6, 5, 4, 3, 2, 1, 0]; // millions..ones, left to right
+  function digitAt(n, pos) { return Math.floor(Math.abs(n) / Math.pow(10, pos)) % 10; }
+  function leadingRound(n) {
+    const s = String(Math.abs(n));
+    const mag = Math.pow(10, s.length - 1);
+    return Math.round(n / mag) * mag;
+  }
+
+  const rowA = document.getElementById("rowA");
+  const rowB = document.getElementById("rowB");
+  const rowResult = document.getElementById("rowResult");
+  const carryRow = document.getElementById("carryRow");
+  const inputA = document.getElementById("inputA");
+  const inputB = document.getElementById("inputB");
+  const eqLine = document.getElementById("eqLine");
+  const estimateLine = document.getElementById("estimateLine");
+  let op = "add";
+
+  function buildRow(container, withOp) {
+    container.innerHTML = "";
+    if (withOp) {
+      const opCell = document.createElement("div");
+      opCell.className = "op-cell";
+      container.appendChild(opCell);
+    }
+    const cells = {};
+    PLACES.forEach(pos => {
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      cell.id = container.id + "_" + pos;
+      container.appendChild(cell);
+      cells[pos] = cell;
+    });
+    return cells;
+  }
+  function buildCarryRow() {
+    carryRow.innerHTML = "";
+    const spacer = document.createElement("div");
+    spacer.className = "op-cell";
+    carryRow.appendChild(spacer);
+    const toks = {};
+    PLACES.forEach(pos => {
+      const tok = document.createElement("div");
+      tok.className = "carry";
+      carryRow.appendChild(tok);
+      toks[pos] = tok;
+    });
+    return toks;
+  }
+
+  const cellsA = buildRow(rowA, true);
+  const cellsB = buildRow(rowB, true);
+  const cellsResult = buildRow(rowResult, true);
+  const carryToks = buildCarryRow();
+
+  function render() {
+    const t = T[i18n.lang];
+    let A = parseInt(inputA.value, 10) || 0;
+    let B = parseInt(inputB.value, 10) || 0;
+    if (op === "sub" && B > A) { [A, B] = [B, A]; inputA.value = A; inputB.value = B; }
+
+    let result = op === "add" ? A + B : A - B;
+    const carry = {}; // carry INTO this position (from the position below)
+    let c = 0;
+    PLACES.slice().reverse().forEach(pos => {
+      const da = digitAt(A, pos), db = digitAt(B, pos);
+      if (op === "add") {
+        const sum = da + db + c;
+        carry[pos + 1] = sum >= 10 ? 1 : 0;
+        c = sum >= 10 ? 1 : 0;
+      } else {
+        let diff = da - db - c;
+        if (diff < 0) { diff += 10; carry[pos + 1] = 1; c = 1; } else { carry[pos + 1] = 0; c = 0; }
+      }
+    });
+
+    PLACES.forEach(pos => {
+      cellsA[pos].textContent = digitAt(A, pos);
+      cellsB[pos].textContent = digitAt(B, pos);
+      cellsResult[pos].textContent = digitAt(result, pos);
+      const tok = carryToks[pos];
+      const show = !!carry[pos];
+      tok.textContent = show ? (op === "add" ? "1" : "1") : "";
+      tok.dataset.el = show ? "carryTok" : "";
+      if (show) gsap.fromTo(tok, { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: .35 });
+      else gsap.set(tok, { opacity: 0 });
+    });
+
+    document.getElementById("rowA").querySelector(".op-cell").textContent = "";
+    document.getElementById("rowB").querySelector(".op-cell").textContent = op === "add" ? "+" : "−";
+    document.getElementById("rowResult").querySelector(".op-cell").textContent = "";
+
+    const eqSource = `\\color{#5c939f}{${groupInt(A, "en")}} ${op === "add" ? "+" : "-"} \\color{#5c939f}{${groupInt(B, "en")}} = \\color{#ed6d40}{${groupInt(result, "en")}}`;
+    renderEquation(eqLine, eqSource);
+
+    const roundA = leadingRound(A), roundB = leadingRound(B);
+    const roughEstimate = op === "add" ? roundA + roundB : roundA - roundB;
+    estimateLine.dir = "ltr";
+    estimateLine.innerHTML = `${t.estimate}: ${groupInt(roundA, "en")} ${op === "add" ? "+" : "-"} ${groupInt(roundB, "en")} ≈ <b>${groupInt(roughEstimate, "en")}</b> &nbsp;·&nbsp; ${t.exact}: <b>${groupInt(result, "en")}</b>`;
+  }
+
+  inputA.addEventListener("input", render);
+  inputB.addEventListener("input", render);
+  document.getElementById("opToggle").addEventListener("click", e => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+    op = btn.dataset.op;
+    document.querySelectorAll("#opToggle button").forEach(b => b.classList.toggle("active", b === btn));
+    render();
+  });
+
+  const i18n = initI18n(T, { onLangChange: render });
+  render();
+
+  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
+  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+</script>
+</body>
+</html>

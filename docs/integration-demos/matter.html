@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Matter.js — integration demo</title>
+<style>
+@font-face{font-family:'Roc Grotesk';src:url('../../math-lab/assets/fonts/roc-grotesk-regular.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'Roc Grotesk';src:url('../../math-lab/assets/fonts/roc-grotesk-medium.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:'Azeret Mono';src:url('../../math-lab/assets/fonts/azeret-mono-regular.otf') format('opentype');font-weight:400;font-display:swap}
+@font-face{font-family:'Fraunces';src:url('../../math-lab/assets/fonts/fraunces-variable.woff2') format('woff2');font-weight:300 600;font-display:swap}
+</style>
+<script src="vendor/matter.min.js"></script>
+<style>
+:root{--core-black:#090909;--rich-carbon:#111;--urban-smoke:#1b1b1b;--pulse-ash:#7d858c;--off-white:#e7e7e7;--neural-fog:#dadada;--electric-teal:#5c939f;--infrared:#ed6d40;--validation-green:#59a993;--validation-red:#cb3500;--font-display:"Roc Grotesk","Helvetica Neue",Arial,sans-serif;--font-mono:"Azeret Mono",ui-monospace,monospace;--font-serif:"Fraunces",Georgia,serif;--radius-sm:4px;--radius-md:8px;--radius-lg:20px;--container-w:1280px}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{background:var(--core-black);color:var(--off-white);font-family:var(--font-display);line-height:1.55}
+.container{max-width:var(--container-w);margin:0 auto;padding:0 24px}
+header.top{position:fixed;top:20px;left:0;right:0;z-index:50}
+.top-inner{max-width:var(--container-w);margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:12px;font-family:var(--font-mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase}
+.brand{display:inline-flex;align-items:center;gap:8px;color:var(--off-white);text-decoration:none}.brand .dot{width:8px;height:8px;border-radius:50%;background:var(--infrared)}
+.top-inner a.lk{color:var(--pulse-ash);text-decoration:none;margin-left:auto}.top-inner a.lk:hover{color:var(--electric-teal)}
+.hero{padding:120px 0 20px}
+.eyebrow{font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--electric-teal);display:inline-flex;align-items:center;gap:8px;margin-bottom:16px}
+.eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.h1{font-family:var(--font-serif);font-weight:350;font-size:clamp(38px,5.6vw,72px);line-height:.98;letter-spacing:-.02em;margin:0 0 14px}
+.p1{font-size:17px;color:var(--neural-fog);max-width:640px;margin:0}
+.section{padding:24px 0 80px}
+.card{background:var(--rich-carbon);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-lg);padding:24px}
+.grid{display:grid;gap:22px;grid-template-columns:1.5fr .8fr}
+@media(max-width:980px){.grid{grid-template-columns:1fr}}
+#stage{width:100%;height:460px;background:var(--core-black);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius-md);overflow:hidden}
+#stage canvas{display:block}
+label{font-family:var(--font-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--pulse-ash);display:block;margin-bottom:10px}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.btn{font-family:var(--font-mono);text-transform:uppercase;font-size:11px;letter-spacing:.08em;padding:12px 10px;border-radius:var(--radius-sm);border:1px solid rgba(255,255,255,.18);background:var(--urban-smoke);color:var(--off-white);cursor:pointer;transition:.25s;text-align:center}
+.btn:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.35)}
+.btn--primary{border-color:var(--infrared);background:var(--infrared);color:var(--core-black)}
+.btn--primary:hover{background:#ff8a5c;border-color:#ff8a5c}
+.btn--full{grid-column:1/-1}
+.slider{margin:14px 0}
+.slider .lab{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--pulse-ash);display:flex;justify-content:space-between;margin-bottom:8px}
+.slider .lab .v{color:var(--infrared)}
+input[type=range]{-webkit-appearance:none;width:100%;height:3px;background:rgba(255,255,255,.15);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--infrared);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--infrared);cursor:pointer;border:none}
+.hint{font-family:var(--font-mono);font-size:12px;color:var(--pulse-ash);margin-top:14px;line-height:1.6}
+.callout{margin-top:24px;font-size:14px;color:var(--neural-fog);line-height:1.6}.callout b{color:var(--off-white)}
+code{font-family:var(--font-mono);font-size:12px;color:var(--electric-teal)}
+footer{padding:30px 0 60px;color:var(--pulse-ash);font-size:13px;font-family:var(--font-mono)}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-inner"><a class="brand" href="./index.html"><span class="dot"></span>BACK · DEMOS</a><a class="lk" href="./matter.html">matter.js</a></div></header>
+
+<section class="hero">
+  <div class="container">
+    <span class="eyebrow">Physics</span>
+    <h1 class="h1">Drop things.<br>Watch them fall.</h1>
+    <p class="p1">A 2D physics playground on Matter.js. Drop circles, boxes, and polygons — they collide, stack, and topple. Grab any body and drag it. This is the physics layer for math games where you need real collision and stacking rather than a hand-rolled parabola.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="card">
+      <div class="grid">
+        <div>
+          <label>Simulation · drag any body</label>
+          <div id="stage"></div>
+        </div>
+        <div>
+          <label>Add bodies</label>
+          <div class="tools">
+            <button class="btn" data-add="circle">+ Circle</button>
+            <button class="btn" data-add="box">+ Box</button>
+            <button class="btn" data-add="tri">+ Triangle</button>
+            <button class="btn btn--primary" data-add="rain">Rain (10)</button>
+            <button class="btn" id="shake">Shake</button>
+            <button class="btn" id="clear">Clear</button>
+          </div>
+          <div class="slider">
+            <div class="lab"><span>Gravity</span><span class="v" id="gV">1.0</span></div>
+            <input type="range" id="gravity" min="-1" max="2.5" step="0.1" value="1">
+          </div>
+          <div class="hint">Drag bodies around with the mouse. Flip gravity to negative to watch everything float up. The "Shake" button applies random impulses — a quick way to break a stack.</div>
+        </div>
+      </div>
+      <div class="callout">
+        <b>What this shows.</b> Real rigid-body physics — collision, friction, restitution, stacking — for free, in a ~90 KB lib. Use it in the Games lab whenever an activity needs objects that bump into each other (a balance-scale puzzle, a "how many balls fill the container" estimation game, a collision-energy demo). Pair with Phaser when you also need a game framework/scene graph; Matter is the physics alone and drops into any canvas.
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer><div class="container">Matter.js · 2D rigid-body physics</div></footer>
+
+<script>
+const {Engine,Render,Runner,World,Bodies,Body,Composite,Mouse,MouseConstraint,Events}=Matter;
+const stage=document.getElementById('stage');
+const W=stage.clientWidth, H=460;
+const engine=Engine.create();
+const world=engine.world;
+
+const render=Render.create({element:stage,engine:engine,options:{width:W,height:H,background:'#090909',wireframes:false,showSleeping:false}});
+Render.run(render);
+const runner=Runner.create(); Runner.run(runner,engine);
+
+// walls + ground
+const wallOpts={isStatic:true,render:{fillStyle:'#1b1b1b'}};
+const ground=Bodies.rectangle(W/2,H-20,W,40,wallOpts);
+const lw=Bodies.rectangle(10,H/2,20,H,wallOpts);
+const rw=Bodies.rectangle(W-10,H/2,20,H,wallOpts);
+Composite.add(world,[ground,lw,rw]);
+
+// mouse drag
+const mouse=Mouse.create(render.canvas);
+const mc=MouseConstraint.create(engine,{mouse:mouse,constraint:{stiffness:0.2,render:{visible:false}}});
+Composite.add(world,mc);
+render.mouse=mouse;
+
+const palette=['#5c939f','#ed6d40','#59a993','#d9a24e','#9b8bd9'];
+let ci=0;
+function addBody(type,x,y){
+  const fill=palette[ci++%palette.length];
+  const opts={restitution:0.4,friction:0.1,render:{fillStyle:fill,strokeStyle:'rgba(255,255,255,.15)',lineWidth:1}};
+  let b;
+  if(type==='circle') b=Bodies.circle(x,y,18,opts);
+  else if(type==='box') b=Bodies.rectangle(x,y,38,38,opts);
+  else if(type==='tri') b=Bodies.polygon(x,y,3,26,opts);
+  else b=Bodies.circle(x,y,18,opts);
+  Body.setAngularVelocity(b,(Math.random()-0.5)*0.2);
+  Composite.add(world,b);
+  return b;
+}
+function dropAt(type,x){ addBody(type, x, 30); }
+
+document.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click',()=>{
+  const t=b.dataset.add;
+  if(t==='rain'){ for(let i=0;i<10;i++){ const pick=['circle','box','tri'][i%3]; dropAt(pick, Phaser_like_rand()*W*0.8+W*0.1);} }
+  else dropAt(t, W*0.4 + (Math.random()-0.5)*200);
+}));
+function Phaser_like_rand(){return Math.random();}
+
+document.getElementById('clear').onclick=()=>{
+  Composite.allBodies(world).filter(b=>!b.isStatic).forEach(b=>Composite.remove(world,b));
+};
+document.getElementById('shake').onclick=()=>{
+  Composite.allBodies(world).filter(b=>!b.isStatic).forEach(b=>{
+    Body.applyForce(b,b.position,{x:(Math.random()-0.5)*0.08,y:(Math.random()-0.6)*0.08});
+  });
+};
+document.getElementById('gravity').addEventListener('input',e=>{
+  const g=parseFloat(e.target.value);
+  engine.world.gravity.y=g;
+  document.getElementById('gV').textContent=g.toFixed(1);
+});
+
+// seed a few
+for(let i=0;i<6;i++) dropAt(['circle','box','tri'][i%3], W*0.2+i*W*0.1);
+</script>
+</body>
+</html>

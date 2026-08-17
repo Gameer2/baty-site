@@ -112,5 +112,12 @@
     try { n = parseIntInput(nInput.value, "n", 400n); } catch (err) { return showError(err.message); }
     const result = NumberTheory.primesUpTo(n, { trace: true });
     render(n, result);
+    Proto.saveState("engine-lab:number-theory-sieve-of-eratosthenes", { n: nInput.value });
   });
+
+  const saved = Proto.loadState("engine-lab:number-theory-sieve-of-eratosthenes");
+  if (saved) {
+    if (saved.n !== undefined) nInput.value = saved.n;
+    form.requestSubmit();
+  }
 })();

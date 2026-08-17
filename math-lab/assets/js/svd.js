@@ -2,6 +2,7 @@
 (function () {
   "use strict";
   LinAlgPage.init({
+    storeKey: "engine-lab:linear-algebra-svd",
     square: false,
     example: { A: [[3, 1, 1], [-1, 3, 1]] },
     compute: (A) => {

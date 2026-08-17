@@ -1,5 +1,10 @@
 # Calculus Engine — Build Plan
 
+> **See also:** [`phase-1-plan/CALCULUS_ENGINE.md`](phase-1-plan/CALCULUS_ENGINE.md) for a
+> shorter, more recently verified "what's actually shipped" summary (all 18 syllabus
+> topics). This file is kept for the architecture/build-order detail below, not because its
+> own status claims are more current.
+
 Everything needed to pick this engine up cold and keep building it.
 
 **Scope of this file:** the Calculus Engine only. The cross-engine feature backlog lives in
