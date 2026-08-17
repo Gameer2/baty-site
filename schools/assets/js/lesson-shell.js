@@ -387,6 +387,29 @@
     return sign + withCommas.replace(/,/g, "٬").replace(/[0-9]/g, d => EASTERN_DIGITS[+d]);
   }
 
+  /* Sitewide favicon injection — no schools lesson page sets its own <link rel="icon">, so
+     this is the only thing that puts the logo in the browser tab across all 93 lessons.
+     Resolved against THIS script's own URL (assets/js/ -> ../../../ -> repo root), mirroring
+     engine-core.js, so one relative path works at every page depth over http and file://. */
+  (function () {
+    var selfSrc = document.currentScript && document.currentScript.src;
+    var root = selfSrc ? new URL("../../../", selfSrc).href : "/";
+    var icons = [
+      ["icon", "image/x-icon", null, "favicon.ico"],
+      ["icon", "image/png", "32x32", "favicon-32x32.png"],
+      ["icon", "image/png", "16x16", "favicon-16x16.png"],
+      ["apple-touch-icon", null, "180x180", "apple-touch-icon.png"],
+    ];
+    icons.forEach(function (icon) {
+      var link = document.createElement("link");
+      link.rel = icon[0];
+      if (icon[1]) link.type = icon[1];
+      if (icon[2]) link.sizes = icon[2];
+      link.href = root + icon[3];
+      document.head.appendChild(link);
+    });
+  })();
+
   /* Dev-only page-notes widget (math-lab/note-taker/notes-widget.js) — auto-loads on
      localhost/127.0.0.1 or file://, mirroring engine-core.js, so it never appears for a
      real visitor. Personal review tool: click any element to pin a design note to it.

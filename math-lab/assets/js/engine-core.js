@@ -348,6 +348,30 @@
 
   global.Engine = Engine;
 
+  /* Sitewide favicon injection — no math-lab page sets its own <link rel="icon">, so this
+     is the only thing that puts the logo in the browser tab across all ~160 pages. Resolved
+     against THIS script's own URL (assets/js/ -> ../../../ -> repo root), the same technique
+     as the notes widget below, so one relative path works at every page depth over http and
+     file:// alike. */
+  (function () {
+    const selfSrc = document.currentScript && document.currentScript.src;
+    const root = selfSrc ? new URL("../../../", selfSrc).href : "/";
+    const icons = [
+      ["icon", "image/x-icon", null, "favicon.ico"],
+      ["icon", "image/png", "32x32", "favicon-32x32.png"],
+      ["icon", "image/png", "16x16", "favicon-16x16.png"],
+      ["apple-touch-icon", null, "180x180", "apple-touch-icon.png"],
+    ];
+    icons.forEach(([rel, type, sizes, file]) => {
+      const link = document.createElement("link");
+      link.rel = rel;
+      if (type) link.type = type;
+      if (sizes) link.sizes = sizes;
+      link.href = root + file;
+      document.head.appendChild(link);
+    });
+  })();
+
   /* Dev-only page-notes widget (math-lab/note-taker/notes-widget.js) — auto-loads on
      localhost/127.0.0.1 or a file:// path, so it never appears for a real visitor. Personal
      review tool, not part of the product.
