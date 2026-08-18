@@ -190,6 +190,10 @@ export const SelectedShapeActions = ({
 
       {predicates.freedrawMode && renderAction("changeFreedrawMode")}
 
+      {predicates.freedrawMode && renderAction("changePenStyle")}
+
+      {predicates.freedrawMode && renderAction("changeStrokeSmoothing")}
+
       {predicates.sloppiness && <>{renderAction("changeSloppiness")}</>}
 
       {predicates.roundness && <>{renderAction("changeRoundness")}</>}
@@ -329,6 +333,11 @@ const CombinedShapeProperties = ({
                 */
                 predicates.freedrawMode && renderAction("changeFreedrawMode")
               }
+              {
+                /* pen style + stabilization, mirrored from the full panel */
+                predicates.freedrawMode && renderAction("changePenStyle")
+              }
+              {predicates.freedrawMode && renderAction("changeStrokeSmoothing")}
               {predicates.strokeStyle && (
                 <>{renderAction("changeStrokeStyle")}</>
               )}
@@ -695,6 +704,13 @@ export const CompactShapeActions = ({
       {predicates.freedrawMode && (
         <div className="compact-action-item">
           {renderAction("changeFreedrawMode", { cycle: true })}
+        </div>
+      )}
+
+      {/* Freedraw pen style: cycle button (pen → marker → pencil → highlighter) */}
+      {predicates.freedrawMode && (
+        <div className="compact-action-item">
+          {renderAction("changePenStyle", { cycle: true })}
         </div>
       )}
 

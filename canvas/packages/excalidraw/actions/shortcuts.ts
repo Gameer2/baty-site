@@ -48,6 +48,8 @@ export type ShortcutName =
       | "saveToActiveFile"
       | "toggleShortcuts"
       | "wrapSelectionInFrame"
+      | "changePenStyle"
+      | "changeEraserMode"
     >
   | "saveScene"
   | "imageExport"
@@ -113,6 +115,8 @@ const shortcutMap: Record<ShortcutName, string[]> = {
   searchMenu: [getShortcutKey("CtrlOrCmd+F")],
   wrapSelectionInFrame: [],
   toolLock: [getShortcutKey("Q")],
+  changePenStyle: [getShortcutKey("Shift+P")],
+  changeEraserMode: [getShortcutKey("Shift+E")],
 };
 
 export const getShortcutFromShortcutName = (name: ShortcutName, idx = 0) => {

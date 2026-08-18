@@ -141,3 +141,27 @@ A large amount of already-built project content had simply never been committed 
 ## Production build
 
 `canvas/dist/` (intentionally committed for deployment — see `canvas/.gitignore`'s `!/dist/` override) rebuilt to match all of the above: new hashed asset bundles, updated `index.html` and manifest (now under the `syntropy-app` naming and the new logo), and a regenerated service worker (`sw.js`) precache manifest.
+
+## Pen system upgrade — four distinct pens
+
+The Draw tool now has four visually distinct pen styles — Pen, Marker, Pencil, Highlighter — instead of one generic freedraw stroke. Each has its own width and opacity, chosen in the styles panel's Pen control (`actionChangePenStyle` in `actionProperties.tsx`) and applied in the freedraw outline generator (`packages/element/src/shape.ts`):
+- **Per-pen width multipliers** (`sizeMul` on `VariablePenProfile`, `HIGHLIGHTER_SIZE_MUL` in shape.ts): pen 1.7, marker 2.8, pencil 1.5, highlighter 9 — so the four read as genuinely different strokes, not the same line in different colors.
+- **Per-pen default opacity** (`PEN_DEFAULT_OPACITY` in actionProperties.tsx): pen 100, marker 92, pencil 85, highlighter 38 — the highlighter is a translucent wash, not solid ink.
+- **Highlighter color default**: with the default dark ink (#1e1e1e) the highlighter rendered as an ugly flat-gray band on white paper (0.38·dark + 0.62·white ≈ gray), so it now defaults to bright yellow (#ffe066) when the user is on the default ink, and swaps back to dark ink when leaving that yellow. Custom colors the user picked are left untouched.
+- **Highlighter blend is theme-aware** (`packages/element/src/renderElement.ts`): multiply on light paper (darkens — the natural highlighter look), screen on dark paper (lightens, so it shows up on dark backgrounds instead of vanishing). The highlighter also skips the dark-mode color invert that other ink gets, and gets a 2.2× opacity lift in dark mode so the wash stays saturated.
+- **Variable vs constant width profiles**: pen/marker/pencil use perfect-freehand variable-width strokes (each with its own thinning/taper); the highlighter uses a constant-width profile (a wide, even band) via `getConstantWidthFreedrawOutline`.
+- The old `PenPresets` favorites bar (`syntropy-app/syntropy/PenPresets.tsx` + `.scss`) — a top-right six-swatch preset bar — was removed; the four-style control in the styles panel replaces it.
+
+## Keyboard shortcuts + help documentation overhaul
+
+- **Shift+P** cycles the four pen styles (pen → marker → pencil → highlighter); **Shift+E** cycles the three eraser modes (precision → stroke → clear). Both actions (`actionChangePenStyle`, `actionChangeEraserMode`) were extended to cycle through their order when triggered from the keyboard (the panel still picks a specific value directly), and given `keyTest`s. Added `CODES.P` / `CODES.E` to `packages/common/src/keys.ts`.
+- **Help dialog**: the "Pens" documentation topic described a pen-favorites bar that no longer exists — rewritten to describe the real four-pen system (styles, opacity, highlighter blend, Stabilization slider). The shortcuts island gained rows for **autoshape** (Shift+X), **pen-style cycle** (Shift+P), **eraser-mode cycle** (Shift+E), and the **X** alias for the Draw tool (which already accepted P/X/7 but only advertised P/7).
+
+## Removed Excalidraw leftovers and dev tooling
+
+Several pieces that belong to upstream Excalidraw but not to this project were taken out of the UI:
+- **AI generate tools** (MagicFrame / wireframe-to-code): the "Generate" section and MagicIcon in `Toolbar.tsx`, the `AIComponents` mount + import in `syntropy-app/App.tsx`, and `syntropy-app/components/AI.tsx` deleted.
+- **Canvas background** option removed from the 3-lines main menu (`AppMainMenu.tsx`); the action definition in `DefaultItems.tsx` is left intact, just unmounted.
+- **End-to-end-encryption shield** that linked to `plus.excalidraw.com` removed from the footer (`AppFooter.tsx` rewritten); `EncryptedIcon.tsx` deleted.
+- **Visual Debug** removed from the dev menu (`AppMainMenu.tsx`) — a dev-only Excalidraw engine inspector (arrow bindings + geometry frames) with no use for the project; it only appeared in dev builds anyway.
+- **Stats panel** (Alt+/) removed: the key binding (`keyTest` in `actionToggleStats.tsx`), both canvas context-menu entries, the command-palette entry, and the Help-dialog row. `stats.open` defaults to false and now has no trigger, so the panel can no longer be opened. The underlying `Stats` component and `appState.stats` field are left in place as dead code — removing the AppState field is riskier than it's worth for no visible gain.

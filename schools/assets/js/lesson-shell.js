@@ -122,6 +122,10 @@
     tip.innerHTML =
       '<div class="tour-tip-label"></div>' +
       '<div class="tour-tip-body"></div>' +
+      '<div class="tour-tip-why">' +
+        '<span class="tour-tip-why-mark"></span>' +
+        '<span class="tour-tip-why-body"></span>' +
+      '</div>' +
       '<div class="tour-tip-foot">' +
       '<div class="tour-dots"></div>' +
       '<div class="tour-nav"><button class="tSkip"></button><button class="tNext primary"></button></div>' +
@@ -181,6 +185,19 @@
       const body = tip.querySelector(".tour-tip-body");
       body.textContent = step.body;
       body.classList.toggle("ar-body", lang === "ar");
+      // optional "why" beat — the reasoning behind the step, not another description of
+      // what's on screen. Absent on steps that don't have a real invariant to state.
+      const whyWrap = tip.querySelector(".tour-tip-why");
+      if (step.why) {
+        tip.querySelector(".tour-tip-why-mark").textContent = lang === "ar" ? "السبب" : "Why";
+        tip.querySelector(".tour-tip-why-mark").classList.toggle("ar-ui", lang === "ar");
+        const whyBody = tip.querySelector(".tour-tip-why-body");
+        whyBody.textContent = step.why;
+        whyBody.classList.toggle("ar-body", lang === "ar");
+        whyWrap.classList.add("is-visible");
+      } else {
+        whyWrap.classList.remove("is-visible");
+      }
       dotsWrap.querySelectorAll("span").forEach((d, di) => d.classList.toggle("is-active", di === idx));
       tip.querySelector(".tSkip").textContent = lang === "ar" ? "تخطّ" : "Skip";
       tip.querySelector(".tNext").textContent =
@@ -250,9 +267,12 @@
     cursor.className = "nb-cursor";
     cursor.innerHTML =
       '<div class="nb-cursor-ripple"></div>' +
-      '<svg viewBox="0 0 12 19" xmlns="http://www.w3.org/2000/svg">' +
-        '<path d="M0,0 L0,14 L3.8,10.5 L6.2,17.5 L8.4,16.7 L6,9.8 L10.8,9.8 Z" ' +
-        'fill="#ffffff" stroke="#090909" stroke-width="1.1" stroke-linejoin="round"/></svg>' +
+      /* path is Lucide's "mouse-pointer-2" glyph (ISC license) — a real, rounded-corner
+         dart-with-flag silhouette instead of a hand-tweaked polygon. viewBox is offset
+         so the glyph's own tip lands at local (0,0), matching the "tip sits at the
+         cursor box's (0,0)" contract the positioning code below relies on. */
+      '<svg viewBox="4.037 4.037 17 17" xmlns="http://www.w3.org/2000/svg">' +
+        '<path class="nb-cursor-glyph" d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>' +
       '<div class="nb-cursor-label"></div>';
     stageEl.appendChild(cursor);
     const cursorLabel = cursor.querySelector(".nb-cursor-label");
@@ -265,6 +285,7 @@
     let shown = false;
     let lastSig = "";
     let typeToken = 0;
+    let lastIds = []; // the currently-explained ids, cached so reposition() can re-measure without a full render()
 
     function unionRect(els) {
       const rects = els.map(function (e) { return e.getBoundingClientRect(); });
@@ -340,7 +361,23 @@
       cursorLabel.textContent = short;
       cursorLabel.classList.toggle("ar-ui", lang === "ar");
 
-      const els = (entry.ids || []).map(function (id) { return document.getElementById(id); }).filter(Boolean);
+      // ring/cursor accent tracks what's actually drawn on the board: an entry can name
+      // its own role color (currently only "result" -> --validation-green) so the glow
+      // matches the line it's pointing at instead of always being the default teal.
+      if (entry.accent === "result") {
+        ring.style.setProperty("--explain-accent", "var(--validation-green)");
+        ring.style.setProperty("--explain-accent-rgb", "var(--validation-green-rgb)");
+        cursor.style.setProperty("--explain-accent", "var(--validation-green)");
+        cursor.style.setProperty("--explain-accent-rgb", "var(--validation-green-rgb)");
+      } else {
+        ring.style.removeProperty("--explain-accent");
+        ring.style.removeProperty("--explain-accent-rgb");
+        cursor.style.removeProperty("--explain-accent");
+        cursor.style.removeProperty("--explain-accent-rgb");
+      }
+
+      lastIds = entry.ids || [];
+      const els = lastIds.map(function (id) { return document.getElementById(id); }).filter(Boolean);
       if (els.length) { ring.classList.add("is-visible"); cursor.classList.add("is-visible"); positionRing(unionRect(els)); }
       else { ring.classList.remove("is-visible"); cursor.classList.remove("is-visible"); }
 
@@ -361,6 +398,27 @@
     function closeN() { shown = false; notebook.classList.remove("is-visible"); ring.classList.remove("is-visible"); cursor.classList.remove("is-visible"); typeToken++; if (opts.onClose) opts.onClose(); }
     function update() { if (shown) render(); }
 
+    // Cheap re-measure of the CURRENT target's rect — no kicker/typing work, just
+    // moves the ring + cursor. For a lesson that animates the explained element itself
+    // (e.g. a value tween), call this every animation frame with instant=true so the
+    // ring/cursor track it 1:1 instead of chasing it through their own CSS transition
+    // on top of the element's own easing — two independent eases compounding is what
+    // reads as "explain mode isn't synced with the board."
+    function reposition(instant) {
+      if (!shown || !lastIds.length) return;
+      const els = lastIds.map(function (id) { return document.getElementById(id); }).filter(Boolean);
+      if (!els.length) return;
+      if (instant) {
+        const prevRingT = ring.style.transition, prevCursorT = cursor.style.transition;
+        ring.style.transition = "none"; cursor.style.transition = "none";
+        positionRing(unionRect(els));
+        void ring.offsetWidth; // flush so "none" actually applies before restoring
+        ring.style.transition = prevRingT; cursor.style.transition = prevCursorT;
+      } else {
+        positionRing(unionRect(els));
+      }
+    }
+
     notebook.querySelector(".notebook-close").addEventListener("click", closeN);
     // click the notebook to skip the typewriter and reveal the full note instantly
     notebook.addEventListener("click", function (e) {
@@ -373,7 +431,7 @@
 
     return {
       open: openN, close: closeN, update: update, isOpen: function () { return shown; },
-      toggle: function () { shown ? closeN() : openN(); }
+      toggle: function () { shown ? closeN() : openN(); }, reposition: reposition
     };
   }
 

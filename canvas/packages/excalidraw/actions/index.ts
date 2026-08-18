@@ -24,6 +24,8 @@ export {
   actionChangeFillStyle,
   actionChangeSloppiness,
   actionChangeFreedrawMode,
+  actionChangePenStyle,
+  actionChangeStrokeSmoothing,
   actionChangeOpacity,
   actionChangeFontSize,
   actionChangeFontFamily,

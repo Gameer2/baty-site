@@ -17,11 +17,11 @@ export default defineConfig(({ mode }) => {
       port: Number(envVars.VITE_APP_PORT || 3000),
       // open the browser
       open: true,
-      // The dev-only note-taker widget (loaded in index.html) lives in math-lab/, outside this
-      // app's root. serve.py serves the whole repo from its root, so forwarding /math-lab to it
-      // makes both the widget script and its save POST work in dev exactly as they do on the
-      // built dist. If serve.py isn't running, these requests just fail and the widget is
-      // absent — dev is otherwise unaffected.
+      // The Syntropy portal links and the CAS worker point at /math-lab/... paths that live in
+      // the sibling math-lab/ directory, outside this app's root. serve.py serves the whole repo
+      // from its root, so forwarding /math-lab to it makes those lab pages and worker scripts load
+      // in the Vite dev server exactly as they do on the built dist. If serve.py isn't running,
+      // these requests just fail and the portal/CAS are absent — dev is otherwise unaffected.
       proxy: {
         "/math-lab": {
           target: "http://localhost:8000",

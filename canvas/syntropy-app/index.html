@@ -179,34 +179,6 @@
     </header>
     <div id="root"></div>
     <script type="module" src="index.tsx"></script>
-    <!--
-      Dev-only page-notes widget, the same one math-lab/assets/js/engine-core.js injects into
-      every lab page — same guard, same file, no fork. Canvas is a Vite app and never loads
-      engine-core.js, so it needs its own loader.
-
-      Path differs by protocol on purpose. Over http the absolute /math-lab/... path resolves
-      both from the built dist under serve.py (repo root) and from the Vite dev server, which
-      proxies /math-lab to serve.py (see vite.config.mts) so the widget AND its save POST both
-      work while developing. Over file:// there is no origin to be absolute against, so it
-      resolves relative to canvas/dist/index.html instead.
-    -->
-    <script>
-      (function () {
-        var isFile = location.protocol === "file:";
-        if (
-          !isFile &&
-          location.hostname !== "localhost" &&
-          location.hostname !== "127.0.0.1"
-        ) {
-          return;
-        }
-        var s = document.createElement("script");
-        s.src = isFile
-          ? "../../math-lab/note-taker/notes-widget.js"
-          : "/math-lab/note-taker/notes-widget.js";
-        document.body.appendChild(s);
-      })();
-    </script>
     <% if (typeof PROD != 'undefined' && PROD == true) { %>
     <!-- 100% privacy friendly analytics -->
     <script>

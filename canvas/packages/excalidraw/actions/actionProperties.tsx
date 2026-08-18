@@ -17,6 +17,7 @@ import {
   ROUNDNESS,
   STROKE_WIDTH_KEYS,
   VERTICAL_ALIGN,
+  CODES,
   KEYS,
   randomInteger,
   arrayToMap,
@@ -83,6 +84,7 @@ import type {
   ExcalidrawLinearElement,
   ExcalidrawTextElement,
   FontFamilyValues,
+  PenStyle,
   StrokeVariability,
   NonDeleted,
   NonDeletedExcalidrawElement,
@@ -147,6 +149,8 @@ import {
   ArrowheadCardinalityZeroOrOneIcon,
   strokeVariabilityConstantIcon,
   strokeVariabilityVariableIcon,
+  FreedrawIcon,
+  pencilIcon,
 } from "../components/icons";
 
 import { Fonts } from "../fonts";
@@ -166,6 +170,8 @@ import {
 import { getShortcutKey } from "../shortcut";
 
 import { register } from "./register";
+
+import type { JSX } from "react";
 
 import type { AppClassProperties, AppState, Primitive } from "../types";
 
@@ -828,6 +834,182 @@ export const actionChangeFreedrawMode = register<StrokeVariability>({
       </fieldset>
     );
   },
+});
+
+// Freedraw pen-style variants (pen / marker / pencil / highlighter). Each maps to a
+// rendering profile in packages/element/src/shape.ts (thinning, taper, and — for the
+// highlighter — constant width + multiply blending applied in renderElement.ts).
+// Mirrors actionChangeFreedrawMode: mutates strokeOptions on selected freedraw
+// elements and mirrors the choice into appState for the next stroke.
+const PEN_STYLE_ORDER: PenStyle[] = ["pen", "marker", "pencil", "highlighter"];
+
+const PEN_STYLE_ICONS: Record<PenStyle, JSX.Element> = {
+  pen: FreedrawIcon,
+  marker: StrokeWidthBoldIcon,
+  pencil: pencilIcon,
+  highlighter: StrokeWidthExtraBoldIcon,
+};
+
+export const actionChangePenStyle = register<PenStyle>({
+  name: "changePenStyle",
+  label: "labels.penStyle",
+  trackEvent: false,
+  perform: (elements, appState, value) => {
+    // From the panel `value` is the chosen PenStyle; from the keyboard
+    // (Shift+P) `value` is null, so cycle to the next style in order.
+    const current = value ?? appState.currentItemPenStyle ?? "pen";
+    const penStyle: PenStyle = value
+      ? value
+      : PEN_STYLE_ORDER[
+          (Math.max(0, PEN_STYLE_ORDER.indexOf(current)) + 1) %
+            PEN_STYLE_ORDER.length
+        ];
+    // Each pen has a characteristic opacity (ported from the signed-off
+    // prototype): pen fully opaque, marker slightly soft, pencil lighter,
+    // highlighter translucent so its multiply blend reads as a highlight,
+    // not solid ink. Applied to the next stroke's default; the existing
+    // Opacity control still lets the user fine-tune.
+    const PEN_DEFAULT_OPACITY: Record<PenStyle, number> = {
+      pen: 100,
+      marker: 92,
+      pencil: 85,
+      highlighter: 38,
+    };
+
+    // A highlighter is a translucent WASH of a bright color — with the default
+    // dark ink (#1e1e1e) it renders as an ugly flat-gray band on white paper
+    // (0.38 * dark + 0.62 * white ≈ gray). So default the highlighter to a
+    // bright yellow when the user is on the default ink, and switch back to
+    // dark ink when leaving the highlighter's default yellow. Only the two
+    // known defaults are swapped, so any custom color the user picked is left
+    // untouched.
+    const HIGHLIGHTER_DEFAULT_COLOR = "#ffe066";
+    let nextStrokeColor: string | undefined;
+    if (
+      penStyle === "highlighter" &&
+      appState.currentItemStrokeColor === COLOR_PALETTE.black
+    ) {
+      nextStrokeColor = HIGHLIGHTER_DEFAULT_COLOR;
+    } else if (
+      penStyle !== "highlighter" &&
+      appState.currentItemStrokeColor === HIGHLIGHTER_DEFAULT_COLOR
+    ) {
+      nextStrokeColor = COLOR_PALETTE.black;
+    }
+
+    return {
+      elements: changeProperty(elements, appState, (el) => {
+        if (el.type !== "freedraw") {
+          return el;
+        }
+        return newElementWith(el, {
+          strokeOptions: {
+            ...el.strokeOptions,
+            penStyle,
+          },
+        }) as ExcalidrawElement;
+      }),
+      appState: {
+        ...appState,
+        currentItemOpacity: PEN_DEFAULT_OPACITY[penStyle],
+        ...(nextStrokeColor ? { currentItemStrokeColor: nextStrokeColor } : {}),
+        currentItemPenStyle: penStyle,
+      },
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    };
+  },
+  PanelComponent: ({ elements, appState, updateData, app, data }) => {
+    const penStyle =
+      getFormValue(
+        elements,
+        app,
+        (element) =>
+          (element as ExcalidrawFreeDrawElement).strokeOptions?.penStyle,
+        (element) => element.type === "freedraw",
+        (hasSelection) => (hasSelection ? null : appState.currentItemPenStyle),
+      ) ?? appState.currentItemPenStyle;
+
+    // Compact UI: a single button cycling through the four pen styles.
+    if (data?.cycle) {
+      const idx = Math.max(0, PEN_STYLE_ORDER.indexOf(penStyle));
+      const next = PEN_STYLE_ORDER[(idx + 1) % PEN_STYLE_ORDER.length];
+      return (
+        <IconButton
+          type="button"
+          icon={PEN_STYLE_ICONS[penStyle] ?? FreedrawIcon}
+          title={t("labels.penStyle")}
+          aria-label={t("labels.penStyle")}
+          onClick={() => updateData(next)}
+        />
+      );
+    }
+
+    return (
+      <fieldset>
+        <legend>{t("labels.penStyle")}</legend>
+        <div className="buttonList">
+          <RadioSelection<PenStyle>
+            group="strokeOptions.penStyle"
+            options={PEN_STYLE_ORDER.map((value) => ({
+              value,
+              text: t(`labels.penStyle_${value}`),
+              icon: PEN_STYLE_ICONS[value],
+            }))}
+            value={penStyle}
+            onChange={(value) => updateData(value)}
+          />
+        </div>
+      </fieldset>
+    );
+  },
+  keyTest: (event) =>
+    event.shiftKey &&
+    event.code === CODES.P &&
+    !event[KEYS.CTRL_OR_CMD] &&
+    !event.altKey,
+});
+
+// Stroke stabilization slider. The data-side plumbing already exists
+// (appState.currentItemStrokeSmoothing → App.tsx maps it onto perfect-freehand's
+// `streamline` at element creation); this action only adds the UI control. Modeled
+// on actionChangeEraserSize (no per-element selection to act on).
+export const actionChangeStrokeSmoothing = register<number>({
+  name: "changeStrokeSmoothing",
+  label: "labels.strokeSmoothing",
+  trackEvent: false,
+  perform: (elements, appState, value) => {
+    return {
+      elements,
+      appState: { ...appState, currentItemStrokeSmoothing: value },
+      captureUpdate: CaptureUpdateAction.EVENTUALLY,
+    };
+  },
+  PanelComponent: ({ appState, updateData }) => (
+    <fieldset>
+      <legend>{t("labels.strokeSmoothing")}</legend>
+      <div className="EraserSizeControl">
+        <span
+          className="EraserSizeControl__dot EraserSizeControl__dot--min"
+          aria-hidden="true"
+        />
+        <div className="EraserSizeControl__slider">
+          <Range
+            label={null}
+            value={appState.currentItemStrokeSmoothing}
+            onChange={updateData}
+            min={0}
+            max={1}
+            step={0.05}
+            testId="strokeSmoothing"
+          />
+        </div>
+        <span
+          className="EraserSizeControl__dot EraserSizeControl__dot--max"
+          aria-hidden="true"
+        />
+      </div>
+    </fieldset>
+  ),
 });
 
 export const actionChangeStrokeStyle = register<

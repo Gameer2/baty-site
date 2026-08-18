@@ -37,6 +37,7 @@ import type {
   ExcalidrawNonSelectionElement,
   BindMode,
   ExcalidrawTextElement,
+  PenStyle,
   StrokeVariability,
   Shape3DType,
 } from "@excalidraw/element/types";
@@ -455,6 +456,8 @@ export interface AppState {
   currentItemStrokeStyle: ExcalidrawElement["strokeStyle"];
   currentItemRoughness: number;
   currentItemStrokeVariability: StrokeVariability;
+  /** Freedraw pen-style variant — drives the rendering profile in shape.ts. */
+  currentItemPenStyle: PenStyle;
   /** 0-1, additive on top of the pointer-type streamline baseline — see
    *  handleFreeDrawElementOnPointerDown in App.tsx. 0 = baseline/untouched. */
   currentItemStrokeSmoothing: number;

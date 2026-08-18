@@ -4,58 +4,293 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Multiplying and Dividing Decimals by Powers of Ten — Grade 5</title>
+
 <script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<script src="../assets/vendor/motion.min.js"></script>
+
 <link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
 <script src="../../math-lab/assets/vendor/katex.min.js"></script>
 <link rel="stylesheet" href="../assets/css/lesson-shell.css" />
 <script src="../assets/js/lesson-shell.js"></script>
+<script src="../assets/js/lesson-motion.js"></script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
 <style>
-  .chart{ padding:40px 24px 34px; display:flex; flex-direction:column; align-items:center; gap:26px; }
+  /* ---- bespoke workspace: digit strip + decimal-point marker + book-procedure panel,
+     rebuilt to the app-shell archetype (SCHOOLS_FINGERPRINT.md §10.5). The marker's
+     motion is a fixed cell-width × index calculation (gsap-tweened), not a reverse
+     pixel→value mapping for a drag — there is no drag here at all, only a text input
+     and toggle buttons — so no JSXGraph port is warranted (§10.6). Only one role
+     (the moving point) needs the accent; no dual-color exception needed here. ---- */
+  .stage{ background:var(--core-black); border:1px solid rgba(255,255,255,.045); border-radius:22px; }
+  .workspace{ display:flex; gap:0; }
+  .board-wrap{ flex:1 1 64%; min-width:0; position:relative; padding:6px 0 6px 6px; }
+  .board-wrap .chart{ position:absolute; inset:0; padding:40px 24px 34px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:26px; overflow-y:auto; border-radius:18px; }
+
   .digit-strip{ position:relative; display:flex; direction:ltr; }
   .digit-cell{ width:38px; height:52px; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:24px; font-weight:700; color:var(--off-white); border-bottom:1px solid rgba(255,255,255,.1); }
   .digit-cell.pad{ color:var(--pulse-ash); }
-  .point-marker{ position:absolute; top:-14px; width:4px; height:80px; background:var(--infrared); border-radius:2px; transition:left .6s cubic-bezier(.4,0,.2,1); }
-  .point-marker::after{ content:"."; position:absolute; bottom:-6px; left:50%; transform:translateX(-50%); font-family:var(--mono); font-size:26px; font-weight:900; color:var(--infrared); }
+  .point-marker{ position:absolute; top:-14px; width:4px; height:80px; background:#5c939f; border-radius:2px; transition:left .6s cubic-bezier(.4,0,.2,1); }
+  .point-marker::after{ content:"."; position:absolute; bottom:-6px; left:50%; transform:translateX(-50%); font-family:var(--mono); font-size:26px; font-weight:900; color:#5c939f; }
 
   .op-toggle{ display:flex; gap:6px; flex-wrap:wrap; justify-content:center; }
   .mode-btn{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--pulse-ash); background:var(--core-black); border:1px solid rgba(255,255,255,.14); border-radius:100px; padding:6px 14px; cursor:pointer; }
-  .mode-btn.active{ color:var(--off-white); border-color:var(--electric-teal); background:rgba(92,147,159,.12); }
+  .mode-btn.active{ color:var(--off-white); border-color:#5c939f; background:rgba(92,147,159,.12); }
 
   .input-group{ display:flex; align-items:center; gap:10px; }
   .input-group label{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash); }
   .input-group input{ font-family:var(--mono); font-size:15px; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.16); border-radius:8px; padding:7px 10px; width:110px; direction:ltr; }
+
+  .procedure{
+    position:relative;
+    flex:0 0 36%; max-width:380px; padding:var(--sp-5) var(--sp-6) var(--sp-5);
+    border-left:1px solid rgba(255,255,255,.06);
+    background:none;
+    display:flex; flex-direction:column; gap:var(--sp-2);
+  }
+  .procedure-head{ font-family:var(--display); font-size:var(--fs-2xs); letter-spacing:var(--tr-label); text-transform:uppercase; color:var(--electric-teal); margin-bottom:var(--sp-1); font-weight:600; }
+  .procedure-head.ar-ui{ letter-spacing:0; text-transform:none; font-size:var(--fs-sm); }
+  .proc-step{ display:flex; gap:var(--sp-3); padding:var(--sp-3); border-radius:var(--sp-3); border:1px solid transparent; transition:background .25s cubic-bezier(.16,1,.3,1), border-color .25s ease, box-shadow .25s ease; cursor:pointer; }
+  .proc-step:hover{ background:rgba(255,255,255,.03); }
+  .proc-step.is-active{ background:linear-gradient(90deg, rgba(var(--electric-teal-rgb),.16), rgba(var(--electric-teal-rgb),.02)); border-color:rgba(var(--electric-teal-rgb),.30); box-shadow: inset 3px 0 0 var(--electric-teal); }
+  .proc-num{ flex:0 0 22px; height:22px; border-radius:50%; border:1px solid rgba(255,255,255,.18); font-family:var(--mono); font-size:var(--fs-2xs); display:flex; align-items:center; justify-content:center; color:var(--pulse-ash); box-shadow: inset 0 1px 1px rgba(255,255,255,.06), 0 2px 4px rgba(0,0,0,.4); transition:all .25s cubic-bezier(.16,1,.3,1); margin-top:1px; }
+  .proc-step.is-active .proc-num{ background:var(--electric-teal); border-color:var(--electric-teal); color:var(--core-black); font-weight:700; }
+  .proc-body{ font-size:var(--fs-sm); color:var(--neural-fog); line-height:var(--lh-snug); }
+  .proc-body.ar-body{ font-size:var(--fs-sm); line-height:var(--lh-relaxed); }
+  .proc-why{ margin-top:var(--sp-2); padding:var(--sp-3) var(--sp-4); border-radius:var(--sp-3); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.08); font-size:var(--fs-xs); color:var(--neural-fog); line-height:var(--lh-snug); }
+  .proc-why b{ color:var(--electric-teal); font-weight:500; }
+  .proc-why.ar-body{ font-size:var(--fs-xs); line-height:var(--lh-relaxed); }
+  .procedure .teach{ padding:var(--sp-4) 0 0; border-top:1px solid rgba(255,255,255,.06); background:none; }
+  .procedure .teach p{ font-size:var(--fs-xs); line-height:var(--lh-snug); }
+  .procedure .teach p.ar-body{ line-height:var(--lh-relaxed); }
+  .procedure{ scrollbar-width: thin; scrollbar-color: rgba(var(--electric-teal-rgb),.45) transparent; scrollbar-gutter: stable; }
+  .procedure::-webkit-scrollbar{ width:9px; }
+  .procedure::-webkit-scrollbar-track{ background:transparent; margin:var(--sp-3) 0; }
+  .procedure::-webkit-scrollbar-thumb{ background:linear-gradient(180deg, rgba(var(--electric-teal-rgb),.55), rgba(var(--electric-teal-rgb),.28)); border-radius:100px; border:2px solid transparent; background-clip:padding-box; transition:background .2s ease; }
+  .procedure::-webkit-scrollbar-thumb:hover{ background:linear-gradient(180deg, rgba(var(--electric-teal-rgb),.85), rgba(var(--electric-teal-rgb),.5)); background-clip:padding-box; }
+  .procedure::-webkit-scrollbar-corner{ background:transparent; }
+
+  .control-row input[type="range"]{
+    --fill:0%;
+    background:linear-gradient(90deg, var(--electric-teal) 0%, var(--electric-teal) var(--fill), rgba(255,255,255,.10) var(--fill), rgba(255,255,255,.10) 100%);
+    height:6px;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.5);
+  }
+  .control-row input[type="range"]::-moz-range-progress{ background:transparent; }
+
+  .eq-bar{ background:none; -webkit-backdrop-filter:none; backdrop-filter:none; }
+
+  .explain-btn{ transition:background .2s cubic-bezier(.16,1,.3,1), box-shadow .25s ease, transform .25s cubic-bezier(.16,1,.3,1), border-color .2s ease; will-change:transform; }
+  .explain-btn:hover{ background:rgba(var(--electric-teal-rgb),.10); box-shadow:0 2px 0 rgba(0,0,0,.35), 0 0 10px rgba(var(--electric-teal-rgb),.12); }
+
+  .explain-pop{ position:absolute; z-index:30; top:calc(100% + 8px); right:0; width:300px;
+    padding:var(--sp-4); border-radius:16px; background:rgba(16,17,20,.96);
+    -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+    border:1px solid rgba(var(--electric-teal-rgb),.28);
+    box-shadow:0 12px 32px rgba(0,0,0,.5), inset 0 1px 0 rgba(var(--electric-teal-rgb),.18);
+    display:none; flex-direction:column; gap:var(--sp-2); }
+  .explain-pop.is-open{ display:flex; animation:nbIn .32s cubic-bezier(.16,1,.3,1); }
+  .explain-pop-close{ position:absolute; top:10px; right:12px; width:24px; height:24px; border-radius:50%;
+    border:1px solid rgba(255,255,255,.16); background:none; color:var(--pulse-ash); font-size:17px; line-height:1;
+    cursor:pointer; transition:color .2s ease, border-color .2s ease; }
+  .explain-pop-close:hover{ color:var(--electric-teal); border-color:rgba(var(--electric-teal-rgb),.5); }
+  .explain-pop-title{ font-family:var(--display); font-size:var(--fs-2xs); letter-spacing:var(--tr-label);
+    text-transform:uppercase; color:var(--electric-teal); font-weight:600; }
+  .explain-pop-title.ar-ui{ letter-spacing:0; text-transform:none; font-size:var(--fs-xs); }
+  .explain-opt--whole{ font-family:var(--display); font-size:var(--fs-sm); color:var(--core-black); font-weight:600;
+    background:linear-gradient(180deg, #6fa9b4, var(--electric-teal)); border:none; border-radius:100px;
+    padding:var(--sp-3) var(--sp-4); cursor:pointer; text-align:start;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 4px 14px rgba(var(--electric-teal-rgb),.35);
+    transition:filter .2s ease, transform .15s cubic-bezier(.16,1,.3,1); }
+  .explain-opt--whole:hover{ filter:brightness(1.06); }
+  .explain-opt--whole:active{ transform:translateY(1px); }
+  .explain-opt--whole.ar-ui{ font-family:"Vazirmatn", sans-serif; }
+  .explain-pop-divider{ font-family:var(--display); font-size:var(--fs-2xs); color:var(--pulse-ash); text-align:center; }
+  .explain-pop-divider.ar-ui{ font-family:"Vazirmatn", sans-serif; }
+  .explain-steps{ display:flex; flex-direction:column; gap:var(--sp-1); }
+  .explain-step{ display:flex; align-items:center; gap:var(--sp-2); font-family:var(--display); font-size:var(--fs-xs);
+    color:var(--neural-fog); background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08);
+    border-radius:10px; padding:var(--sp-2) var(--sp-3); cursor:pointer; text-align:start;
+    transition:background .2s ease, border-color .2s ease, transform .15s cubic-bezier(.16,1,.3,1); }
+  .explain-step:hover{ background:rgba(var(--electric-teal-rgb),.10); border-color:rgba(var(--electric-teal-rgb),.4); transform:translateX(2px); }
+  .explain-step.ar-ui{ font-family:"Vazirmatn", sans-serif; }
+  .explain-step-n{ flex:0 0 20px; height:20px; border-radius:50%; background:rgba(var(--electric-teal-rgb),.18);
+    color:var(--electric-teal); font-family:var(--mono); font-size:var(--fs-2xs);
+    display:flex; align-items:center; justify-content:center; }
+
+  .nb-cursor{ position:absolute; z-index:5; width:20px; height:20px; pointer-events:none; opacity:0;
+    transition:opacity .3s ease, left .55s cubic-bezier(.16,1,.3,1), top .55s cubic-bezier(.16,1,.3,1);
+    filter:none; }
+  .nb-cursor.is-visible{ opacity:1; }
+  .nb-cursor svg{ display:block; width:20px; height:20px; }
+  .nb-cursor-glyph{ fill:var(--explain-accent, var(--electric-teal)); stroke:rgba(0,0,0,.18); stroke-width:.4; }
+  .nb-cursor-ripple{ position:absolute; left:0; top:0; width:34px; height:34px; margin:-17px 0 0 -17px;
+    border-radius:50%; border:2px solid rgba(var(--explain-accent-rgb, var(--electric-teal-rgb)),.8); opacity:0; pointer-events:none; }
+  .nb-cursor-label{ position:absolute; left:26px; top:13px; white-space:nowrap; font-family:var(--mono);
+    font-size:var(--fs-2xs); letter-spacing:var(--tr-label); text-transform:uppercase; color:var(--explain-accent, var(--electric-teal));
+    background:rgba(9,9,9,.85); border:1px solid rgba(var(--explain-accent-rgb, var(--electric-teal-rgb)),.35); border-radius:100px; padding:var(--sp-1) var(--sp-3); }
+  .nb-cursor-label.ar-ui{ text-transform:none; letter-spacing:0; font-size:var(--fs-xs); }
+
+  html,body{ height:100%; }
+  .app{ max-width:none; height:100dvh; margin:0; padding:var(--sp-2) var(--sp-6); display:flex; flex-direction:column; gap:var(--sp-2); overflow:hidden; }
+  .app-bar{ display:flex; justify-content:space-between; align-items:center; gap:var(--sp-4); flex:0 0 auto; padding-bottom:var(--sp-2); border-bottom:1px solid rgba(255,255,255,.06); }
+  .app-bar-left{ display:flex; flex-direction:column; gap:var(--sp-1); min-width:0; }
+  .app-bar-left .crumb{ font-size:var(--fs-2xs); }
+  .app-bar-left .title-primary{ font-size:clamp(20px, 2.4vw, 28px); line-height:var(--lh-tight); letter-spacing:var(--tr-tight); }
+  .app-bar-right{ display:flex; align-items:center; gap:var(--sp-3); flex-wrap:wrap; }
+  .bar-sep{ width:1px; align-self:stretch; background:rgba(255,255,255,.10); margin:0 var(--sp-1); }
+
+  .stage{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
+  .eq-bar{ flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; gap:var(--sp-5); padding:var(--sp-3) var(--sp-6) var(--sp-2); flex-wrap:wrap; }
+  .eq-left{ display:flex; flex-direction:column; gap:var(--sp-1); min-width:0; }
+  .control-row{ flex:0 0 auto; padding:var(--sp-2) var(--sp-6) var(--sp-3); }
+  .control-sep{ width:1px; align-self:stretch; background:rgba(255,255,255,.08); margin:0 var(--sp-2); }
+  .workspace{ flex:1 1 auto; min-height:0; }
+  .board-wrap{ flex:1 1 64%; min-width:0; position:relative; padding:0; }
+  .procedure{ flex:0 0 36%; max-width:380px; min-height:0; overflow-y:auto; }
+  .app-bar .nav-pill{ flex:0 0 auto; width:fit-content; max-width:30ch; display:inline-flex; align-items:center; gap:var(--sp-2); font-family:var(--display); font-size:var(--fs-xs); color:var(--pulse-ash); border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.02); border-radius:100px; padding:var(--sp-2) var(--sp-4); text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,.30); transition:border-color .2s ease, background .25s cubic-bezier(.16,1,.3,1), color .2s ease, transform .2s cubic-bezier(.16,1,.3,1), box-shadow .25s ease; }
+  .app-bar .nav-pill:hover{ border-color:rgba(var(--electric-teal-rgb),.5); background:linear-gradient(180deg, rgba(var(--electric-teal-rgb),.16), rgba(var(--electric-teal-rgb),.04)); color:var(--off-white); transform:translateY(-1px); box-shadow:0 6px 16px rgba(0,0,0,.34), 0 0 0 1px rgba(var(--electric-teal-rgb),.18); }
+  .app-bar .nav-pill:active{ transform:scale(.97); }
+  .app-bar .nav-pill svg{ width:14px; height:14px; fill:none; stroke:var(--electric-teal); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:0 0 auto; }
+  html[dir="rtl"] .app-bar .nav-pill svg{ transform:scaleX(-1); }
+  .app-bar .nav-pill b{ color:var(--neural-fog); font-family:var(--display); font-size:var(--fs-xs); font-weight:500; line-height:var(--lh-tight); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:26ch; }
+  .app-bar .nav-pill b.ar-body{ font-weight:600; }
+
+  @media (prefers-reduced-motion: reduce){ .nb-cursor{ transition:opacity .3s ease; } }
+
+  html[lang="en"] #titleAr { display:none; }
+  html[lang="ar"] #titleEn { display:none; }
+
+  @media (max-width:760px){
+    .app{ height:auto; min-height:100dvh; overflow:auto; }
+    .app-bar{ align-items:flex-start; }
+    .workspace{ flex-direction:column; }
+    .procedure{ flex:none; max-width:none; min-height:0; overflow-y:visible; border-left:none; border-top:1px solid rgba(255,255,255,.06); }
+    .board-wrap{ position:relative; padding:6px; min-height:420px; }
+    .board-wrap .chart{ position:relative; inset:auto; }
+  }
+
+  /* ======================================================================
+     APPLE PASS — INTEGRATED variant, identical to the other rebuilt lessons
+     (SCHOOLS_FINGERPRINT.md §10.3/§10.5): flat, quiet, one-accent-by-weight, no font
+     swap, single accent = the lab's own teal. Only one role here (the moving point),
+     so no dual-color exception is needed on this lesson.
+     ====================================================================== */
+  :root{
+    --core-black:#000000;
+    --rich-carbon:#1c1c1e;
+    --urban-smoke:#2c2c2e;
+    --pulse-ash:#98989d;
+    --off-white:#f5f5f7;
+    --neural-fog:#ebebf5;
+    --electric-teal:#5c939f;
+    --electric-teal-rgb:92,147,159;
+    --infrared:#5c939f;
+    --infrared-rgb:92,147,159;
+    --validation-green:#5c939f;
+  }
+  html,body{ background:#000; color:#f5f5f7; -webkit-font-smoothing:antialiased; }
+
+  .app{ padding:22px 32px; gap:16px; }
+  .app-bar{ border-bottom:1px solid #38383a; padding-bottom:14px; }
+  .app-bar-left .title-primary{ font-family:var(--display); font-weight:600; letter-spacing:-0.022em; }
+  .app-bar-left .crumb{ color:#5c939f; }
+  .bar-sep{ background:#38383a; }
+
+  .lang-pill{ background:#1c1c1e; border:1px solid #38383a; box-shadow:none; }
+  .lang-pill button{ color:#98989d; }
+  .lang-pill button.active{ background:#5c939f; color:#fff; box-shadow:none; }
+  .explain-btn{ background:#1c1c1e; border:1px solid #38383a; color:#5c939f; box-shadow:none; }
+  .explain-btn:hover{ background:#2c2c2e; box-shadow:none; }
+  .explain-btn::before{ border-color:#5c939f; }
+
+  .app-bar .nav-pill{ background:#1c1c1e; border:1px solid #38383a; color:#f5f5f7; box-shadow:none; }
+  .app-bar .nav-pill:hover{ border-color:#5c939f; background:#2c2c2e; box-shadow:none; transform:none; }
+  .app-bar .nav-pill:active{ transform:scale(.98); }
+  .app-bar .nav-pill svg{ stroke:#5c939f; }
+  .app-bar .nav-pill b{ color:#f5f5f7; }
+
+  .stage{ background:#1c1c1e; border:1px solid #38383a; border-radius:18px; box-shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 30px rgba(0,0,0,.45); }
+  .board-wrap .chart{ background:#000; }
+
+  .eq-bar{ border-bottom:1px solid #2c2c2e; }
+  .eq-line .katex{ color:#f5f5f7; }
+  .eq-sub{ color:#98989d; }
+
+  .control-row{ border-bottom:1px solid #2c2c2e; }
+  .control-row label{ color:#98989d; }
+  .procedure{ border-left:1px solid #2c2c2e; scrollbar-color:#48484a transparent; }
+  .procedure-head{ color:#5c939f; }
+  .proc-step{ border-radius:12px; }
+  .proc-step:hover{ background:#2c2c2e; }
+  .proc-step.is-active{ background:#2c2c2e; border-color:transparent; box-shadow: inset 3px 0 0 #5c939f; }
+  .proc-num{ border:1px solid #38383a; color:#98989d; box-shadow:none; }
+  .proc-step.is-active .proc-num{ background:#5c939f; border-color:#5c939f; color:#fff; }
+  .proc-body{ color:#f5f5f7; }
+  .proc-why{ background:#2c2c2e; border:1px solid #38383a; color:#ebebf5; }
+  .proc-why b{ color:#5c939f; }
+  .procedure .teach{ border-top:1px solid #2c2c2e; }
+  .procedure .teach p{ color:#98989d; }
+  .procedure .teach b{ color:#f5f5f7; }
+  .procedure::-webkit-scrollbar-thumb{ background:#48484a; }
+  .procedure::-webkit-scrollbar-thumb:hover{ background:#5c939f; }
+
+  .notebook{ background:#1c1c1e; backdrop-filter:none; -webkit-backdrop-filter:none; box-shadow:-1px 0 0 #2c2c2e; }
+  .notebook-close{ border:1px solid #38383a; color:#98989d; background:#1c1c1e; }
+  .notebook-kicker{ color:#5c939f; }
+  .nb-sec h4.nb-h{ color:#f5f5f7; }
+  .nb-sec p.nb-p{ color:#ebebf5; }
+  .notebook-ring{ border-color:rgba(92,147,159,.55); box-shadow:0 0 0 3px rgba(92,147,159,.18); animation:none; }
+  .nb-cursor-ripple{ border-color:rgba(92,147,159,.8); }
+  .nb-cursor-label{ color:#fff; background:#5c939f; border:1px solid #5c939f; }
+
+  .explain-pop{ background:#1c1c1e; backdrop-filter:none; -webkit-backdrop-filter:none; border:1px solid #38383a; box-shadow:0 8px 28px rgba(0,0,0,.6); }
 </style>
 </head>
 <body>
 
-<div class="shell">
-  <div class="page-head">
-    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 6 · LESSON 7</div>
-    <div class="lang-pill">
-      <button data-lang="en" class="active">EN</button>
-      <button data-lang="ar">AR</button>
+<div class="app">
+  <header class="app-bar">
+    <div class="app-bar-left">
+      <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 6 · LESSON 7</div>
+      <h1 class="title-primary" id="titleEn">Multiplying and Dividing Decimals by 10, 100, 1000</h1>
+      <h1 class="title-primary ar-display" id="titleAr">الضرب والقسمة على ١٠، ١٠٠، ١٠٠٠</h1>
     </div>
-  </div>
-  <div class="titles">
-    <h1 class="title-primary" id="titleEn">Multiplying and Dividing Decimals by 10, 100, 1000</h1>
-    <span class="title-secondary ar-display" id="titleAr">الضرب والقسمة على ١٠، ١٠٠، ١٠٠٠</span>
-  </div>
-  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I multiply or divide a decimal by 10, 100, or 1000 by moving its decimal point.</span></p>
+    <div class="app-bar-right">
+      <a class="nav-pill prev" href="6-6-adding-subtracting-decimals.html" title="6.6 · Adding and Subtracting Decimals">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+        <b data-role="body" id="navPrevText">6.6 · Adding and Subtracting Decimals</b>
+      </a>
+      <a class="nav-pill next" href="6-8-percentage.html" title="6.8 · Percentage">
+        <b data-role="body" id="navNextText">6.8 · Percentage</b>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+      </a>
+      <span class="bar-sep" aria-hidden="true"></span>
+      <div class="lang-pill">
+        <button data-lang="en" class="active">EN</button>
+        <button data-lang="ar">AR</button>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+  </header>
 
   <div class="stage" id="stage">
     <div class="eq-bar">
-      <div>
+      <div class="eq-left">
         <div class="eq-line" id="eqLine"></div>
         <div class="eq-sub" data-role="ui" data-i18n="eqSub">the point jumps, the digits don't move</div>
       </div>
-      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
     </div>
 
     <div class="control-row">
       <div class="input-group"><label data-role="ui" data-i18n="labelVal">value</label><input type="text" id="valInput" value="3.4" /></div>
+      <span class="control-sep" aria-hidden="true"></span>
+      <label data-role="ui" data-i18n="stepLabel">step</label>
+      <input type="range" id="stepSlider" min="0" max="2" step="1" value="0" />
+      <span class="control-val" id="stepReadout">1 / 3</span>
     </div>
 
     <div class="control-row">
@@ -69,68 +304,139 @@
       </div>
     </div>
 
-    <div class="scene chart" id="scene">
-      <div class="digit-strip" id="digitStrip" data-el="digitStrip"></div>
+    <div class="workspace">
+      <div class="board-wrap">
+        <div class="chart" id="scene">
+          <div class="digit-strip" id="digitStrip" data-el="digitStrip"></div>
+        </div>
+      </div>
+      <div class="procedure" id="procedure">
+        <div class="procedure-head" data-role="ui" data-i18n="procHead">Moving the decimal point</div>
+        <div id="procList"></div>
+        <div class="proc-why" id="procWhy" data-role="body"></div>
+        <div class="teach">
+          <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Multiplying or dividing a decimal by a power of ten never changes its digits — only the decimal point's position, which jumps right for multiplication and left for division, one place per zero in the power of ten.</span></p>
+        </div>
+      </div>
     </div>
-
-    <div class="teach">
-      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Multiplying or dividing a decimal by a power of ten never changes its digits — only the decimal point's position, which jumps right for multiplication and left for division, one place per zero in the power of ten.</span></p>
-    </div>
-  </div>
-
-  <div class="nav-row">
-    <a class="nav-pill prev" href="6-6-adding-subtracting-decimals.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">6.6 · Adding and Subtracting Decimals</b></a>
-    <a class="nav-pill next" href="6-8-percentage.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">6.8 · Percentage</b></a>
   </div>
 </div>
 
 <script>
-  const { initI18n, renderEquation, buildTour } = LessonShell;
+  const { initI18n, renderEquation, buildNotebook } = LessonShell;
+  const { reveal } = LessonMotion;
 
   const T = {
     en: {
       crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 6 · LESSON 7",
       objectiveLabel: "Objective —",
       objectiveText: "I multiply or divide a decimal by 10, 100, or 1000 by moving its decimal point.",
-      eqSub: "the point jumps, the digits don't move",
       explainBtn: "Explain this",
-      labelVal: "value",
-      navPrevLabel: "—", navPrevText: "6.6 · Adding and Subtracting Decimals",
-      navNextLabel: "next", navNext: "6.8 · Percentage",
+      explainTitle: "Explain", explainWhole: "Whole walkthrough", explainSingle: "or a single step",
+      eqSub: "the point jumps, the digits don't move",
+      labelVal: "value", stepLabel: "step",
+      procHead: "Moving the decimal point",
+      navPrev: "6.6 · Adding and Subtracting Decimals",
+      navNext: "6.8 · Percentage",
       teachLabel: "What this teaches:",
       teachBody: "Multiplying or dividing a decimal by a power of ten never changes its digits — only the decimal point's position, which jumps right for multiplication and left for division, one place per zero in the power of ten.",
+      proc: [
+        "The digits never move — only what they mean changes.",
+        "Pick ×10, ÷100, or any power of ten.",
+        "Read the answer straight off the point's new position."
+      ],
+      why: "<b>Why it works:</b> Each zero in the power of ten shifts the decimal point exactly one place — right for multiplication, left for division — because that's precisely how place value scales by ten.",
       tour: [
-        { elKey: "digitStrip", label: "The digits stay put", body: "Watch closely — the digits themselves never move or change." },
-        { ids: ["opToggle"], label: "Pick a power of ten", body: "Choose ×10, ÷100, or any other power of ten — the point jumps that many places." },
-        { elKey: "digitStrip", label: "Watch the point jump", body: "Multiplying moves the point right; dividing moves it left — one place for every zero." }
+        { label: "The digits stay put" },
+        { label: "Pick a power of ten" },
+        { label: "Watch the point jump" }
       ]
     },
     ar: {
       crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٦ · الدرس ٧",
       objectiveLabel: "فكرة الدرس —",
       objectiveText: "أضرب أو أقسم كسرًا عشريًا على ١٠ أو ١٠٠ أو ١٠٠٠ بتحريك فاصلته العشرية.",
-      eqSub: "الفاصلة تقفز، والأرقام لا تتحرّك",
       explainBtn: "اشرح هذا",
-      labelVal: "القيمة",
-      navPrevLabel: "—", navPrevText: "٦.٦ · جمع وطرح الكسور العشرية",
-      navNextLabel: "التالي", navNext: "٦.٨ · النسبة المئوية",
+      explainTitle: "اشرح", explainWhole: "الشرح كاملًا", explainSingle: "أو خطوة واحدة",
+      eqSub: "الفاصلة تقفز، والأرقام لا تتحرّك",
+      labelVal: "القيمة", stepLabel: "الخطوة",
+      procHead: "تحريك الفاصلة العشرية",
+      navPrev: "٦.٦ · جمع وطرح الكسور العشرية",
+      navNext: "٦.٨ · النسبة المئوية",
       teachLabel: "ماذا يعلّمنا هذا الدرس:",
       teachBody: "ضرب أو قسمة كسر عشري على قوة من قوى العشرة لا يغيّر أرقامه أبدًا — بل يغيّر فقط موضع فاصلته العشرية، التي تقفز يمينًا للضرب ويسارًا للقسمة، بمقدار منزلة واحدة لكل صفر في قوة العشرة.",
+      proc: [
+        "الأرقام لا تتحرّك أبدًا — يتغيّر فقط ما تعنيه.",
+        "اختر ×١٠، أو ÷١٠٠، أو أي قوّة من قوى العشرة.",
+        "اقرأ الإجابة مباشرة من موضع الفاصلة الجديد."
+      ],
+      why: "<b>لماذا يعمل:</b> كل صفر في قوة العشرة يُزحزح الفاصلة العشرية منزلة واحدة بالضبط — يمينًا للضرب، ويسارًا للقسمة — لأن هذا بالضبط كيف تتغيّر القيمة المكانية بمقدار عشرة.",
       tour: [
-        { elKey: "digitStrip", label: "الأرقام تبقى في مكانها", body: "راقب جيّدًا — الأرقام نفسها لا تتحرّك ولا تتغيّر أبدًا." },
-        { ids: ["opToggle"], label: "اختر قوّة من قوى العشرة", body: "اختر ×١٠، أو ÷١٠٠، أو أي قوّة أخرى — تقفز الفاصلة بذلك العدد من المنازل." },
-        { elKey: "digitStrip", label: "راقب قفزة الفاصلة", body: "الضرب يحرّك الفاصلة يمينًا؛ والقسمة تحرّكها يسارًا — منزلة واحدة لكل صفر." }
+        { label: "الأرقام تبقى في مكانها" },
+        { label: "اختر قوّة من قوى العشرة" },
+        { label: "راقب قفزة الفاصلة" }
       ]
     }
+  };
+
+  // ---- professor's notebook content (state-aware) ------------------------------
+  const EXPLAIN = {
+    en: [
+      () => ({ ids: ["digitStrip"], kicker: "Step 1 of 3 · Moving the decimal point", sections: [
+        { h: "On the board now", p: "Every digit of {value} sits fixed in its own cell — {op} hasn't moved a single one yet." },
+        { h: "The move", p: "Step 1 — look at the digits themselves. Watch closely: they never move or change." },
+        { h: "Why it holds", p: "Multiplying or dividing by a power of ten never touches the digits — it only changes what each digit's position means, which is exactly what moving the decimal point does." },
+        { h: "Next", p: "Next, pick a power of ten to see exactly how far the point jumps." }
+      ]}),
+      () => ({ ids: ["opToggle"], kicker: "Step 2 of 3 · Moving the decimal point", sections: [
+        { h: "On the board now", p: "×10, ÷100, or any other power of ten — each one jumps the point a different number of places." },
+        { h: "The move", p: "Step 2 — choose an operation. Multiplying jumps the point right; dividing jumps it left." },
+        { h: "Why it holds", p: "Each zero in the power of ten is one place-value jump — ×100 has two zeros, so the point jumps exactly two places, no more, no less." },
+        { h: "Next", p: "Next, watch the point actually make that jump." }
+      ]}),
+      () => ({ ids: ["pointMarker"], kicker: "Step 3 of 3 · Moving the decimal point", sections: [
+        { h: "On the board now", p: "The point lands {shift} place(s) from where it started — the digits around it never moved." },
+        { h: "The move", p: "Step 3 — read the result straight off the shifted point. No recalculating each digit, just relocate the point." },
+        { h: "Why it holds", p: "Because only the point moved, the new number is guaranteed correct without redoing the multiplication or division digit by digit — that's the whole shortcut." },
+        { h: "Result", p: "That's the whole idea: powers of ten never touch digits, only where the point sits among them." }
+      ]})
+    ],
+    ar: [
+      () => ({ ids: ["digitStrip"], kicker: "الخطوة ١ من ٣ · تحريك الفاصلة العشرية", sections: [
+        { h: "على اللوح الآن", p: "يبقى كل رقم من أرقام {value} ثابتًا في خليته — لم يحرّك {op} رقمًا واحدًا بعد." },
+        { h: "الخطوة", p: "الخطوة ١ — انظر إلى الأرقام نفسها. راقب جيّدًا: لا تتحرّك ولا تتغيّر أبدًا." },
+        { h: "لماذا يصح", p: "الضرب أو القسمة على قوة من قوى العشرة لا يمسّ الأرقام أبدًا — بل يغيّر فقط ما تعنيه منزلة كل رقم، وهذا بالضبط ما يفعله تحريك الفاصلة العشرية." },
+        { h: "التالي", p: "التالي: اختر قوّة من قوى العشرة لترى بالضبط كم منزلة تقفز الفاصلة." }
+      ]}),
+      () => ({ ids: ["opToggle"], kicker: "الخطوة ٢ من ٣ · تحريك الفاصلة العشرية", sections: [
+        { h: "على اللوح الآن", p: "×١٠، أو ÷١٠٠، أو أي قوّة أخرى من قوى العشرة — كل واحدة تُقفز الفاصلة عددًا مختلفًا من المنازل." },
+        { h: "الخطوة", p: "الخطوة ٢ — اختر عملية. الضرب يُقفز الفاصلة يمينًا؛ والقسمة تُقفزها يسارًا." },
+        { h: "لماذا يصح", p: "كل صفر في قوة العشرة يمثّل قفزة منزلة واحدة — فـ ×١٠٠ فيه صفران، فتقفز الفاصلة منزلتين بالضبط، لا أكثر ولا أقل." },
+        { h: "التالي", p: "التالي: راقب الفاصلة وهي تقفز فعليًا." }
+      ]}),
+      () => ({ ids: ["pointMarker"], kicker: "الخطوة ٣ من ٣ · تحريك الفاصلة العشرية", sections: [
+        { h: "على اللوح الآن", p: "تحطّ الفاصلة بعد {shift} منزلة من موضعها الأصلي — الأرقام حولها لم تتحرّك أبدًا." },
+        { h: "الخطوة", p: "الخطوة ٣ — اقرأ الناتج مباشرة من موضع الفاصلة الجديد. لا حاجة لإعادة الحساب رقمًا رقمًا — فقط انقل الفاصلة." },
+        { h: "لماذا يصح", p: "لأن الفاصلة وحدها تحرّكت، فالعدد الجديد صحيح مضمونًا دون إعادة الضرب أو القسمة رقمًا رقمًا — هذه هي الحيلة كاملة." },
+        { h: "النتيجة", p: "هذه هي الفكرة كاملة: قوى العشرة لا تمسّ الأرقام أبدًا، بل فقط موضع الفاصلة بينها." }
+      ]})
+    ]
   };
 
   const valInput = document.getElementById("valInput");
   const opToggle = document.getElementById("opToggle");
   const digitStrip = document.getElementById("digitStrip");
   const eqLine = document.getElementById("eqLine");
+  const stepSlider = document.getElementById("stepSlider");
+  const stepReadout = document.getElementById("stepReadout");
+  const procList = document.getElementById("procList");
+  const procWhy = document.getElementById("procWhy");
 
   let op = "mul10";
+  let step = 0;
+  let notebook = null;
   const OP_SHIFT = { mul10: 1, mul100: 2, mul1000: 3, div10: -1, div100: -2, div1000: -3 };
+  const OP_LABEL = { mul10: "×10", mul100: "×100", mul1000: "×1000", div10: "÷10", div100: "÷100", div1000: "÷1000" };
 
   function buildStrip() {
     const rawStr = valInput.value.trim() || "0";
@@ -175,7 +481,7 @@
     const shift = OP_SHIFT[op];
     const { wholeLen, padLeft } = buildStrip();
 
-    const startIndex = padLeft + wholeLen; // position right after whole-part digits, pre-shift
+    const startIndex = padLeft + wholeLen;
     const endIndex = startIndex + shift;
     const cellW = 38;
 
@@ -187,23 +493,160 @@
 
     const result = shift > 0 ? value * Math.pow(10, shift) : value / Math.pow(10, -shift);
     const opLabel = shift > 0 ? `\\times ${Math.pow(10, shift)}` : `\\div ${Math.pow(10, -shift)}`;
-    renderEquation(eqLine, `${value} ${opLabel} = \\color{#ed6d40}{${parseFloat(result.toFixed(6))}}`);
+    renderEquation(eqLine, `${value} ${opLabel} = \\color{#5c939f}{${parseFloat(result.toFixed(6))}}`);
   }
 
-  valInput.addEventListener("input", render);
+  function applyStep(s) {
+    step = s;
+    stepReadout.textContent = (s + 1) + " / 3";
+    highlightProcedure(s);
+    nbUpdate();
+  }
+
+  function renderProcedure() {
+    const t = T[i18n.lang];
+    procList.innerHTML = "";
+    t.proc.forEach((body, i) => {
+      const row = document.createElement("div");
+      row.className = "proc-step" + (i === step ? " is-active" : "");
+      row.dataset.idx = i;
+      const num = document.createElement("div");
+      num.className = "proc-num" + (i18n.lang === "ar" ? " ar-ui" : "");
+      num.textContent = i + 1;
+      const txt = document.createElement("div");
+      txt.className = "proc-body" + (i18n.lang === "ar" ? " ar-body" : "");
+      txt.textContent = body;
+      row.appendChild(num); row.appendChild(txt);
+      row.addEventListener("click", () => { stepSlider.value = i; applyStep(i); setSliderFill(stepSlider); });
+      procList.appendChild(row);
+    });
+    procWhy.innerHTML = t.why;
+    procWhy.className = "proc-why" + (i18n.lang === "ar" ? " ar-body" : "");
+    procWhy.setAttribute("dir", i18n.lang === "ar" ? "rtl" : "ltr");
+  }
+  function highlightProcedure(s) {
+    Array.from(procList.children).forEach((row, i) => row.classList.toggle("is-active", i === s));
+  }
+
+  function setSliderFill(slider) {
+    const min = parseFloat(slider.min) || 0, max = parseFloat(slider.max) || 1;
+    slider.style.setProperty("--fill", ((parseFloat(slider.value) - min) / (max - min) * 100) + "%");
+  }
+  stepSlider.addEventListener("input", () => { applyStep(parseInt(stepSlider.value, 10)); setSliderFill(stepSlider); });
+
+  valInput.addEventListener("input", () => { render(); nbUpdate(); });
   opToggle.addEventListener("click", (e) => {
     const btn = e.target.closest(".mode-btn");
     if (!btn) return;
     op = btn.dataset.op;
     opToggle.querySelectorAll(".mode-btn").forEach(b => b.classList.toggle("active", b === btn));
     render();
+    nbUpdate();
   });
 
-  const i18n = initI18n(T, { onLangChange: render });
-  render();
+  // ---- professor's notebook (state-aware "Explain this") ------------------------
+  function getEntry() {
+    const lang = i18n.lang;
+    const entry = EXPLAIN[lang][step]();
+    const shift = Math.abs(OP_SHIFT[op]);
+    const vals = { value: valInput.value.trim() || "0", op: OP_LABEL[op], shift: String(shift) };
+    entry.sections.forEach(function (s) {
+      Object.keys(vals).forEach(function (k) {
+        s.h = s.h.split("{" + k + "}").join(vals[k]);
+        s.p = s.p.split("{" + k + "}").join(vals[k]);
+      });
+    });
+    return entry;
+  }
+  notebook = buildNotebook(
+    document.getElementById("procedure"),
+    document.getElementById("stage"),
+    getEntry, () => i18n.lang,
+    {});
+  function nbUpdate() { if (notebook && notebook.isOpen()) notebook.update(); }
 
-  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
-  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+  function openExplain(auto, atStep) {
+    const s = (atStep === undefined) ? 0 : atStep;
+    stepSlider.value = s; setSliderFill(stepSlider);
+    if (!notebook.isOpen()) notebook.open();
+    applyStep(s);
+    if (auto) startAuto();
+  }
+
+  let autoTimer = null;
+  function stopAuto() { if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; } }
+  function startAuto() {
+    stopAuto();
+    const tick = () => {
+      if (step >= 2) { stopAuto(); return; }
+      const next = step + 1;
+      stepSlider.value = next; applyStep(next); setSliderFill(stepSlider);
+      autoTimer = setTimeout(tick, 3000);
+    };
+    autoTimer = setTimeout(tick, 3000);
+  }
+
+  const explainBtn = document.getElementById("explainBtn");
+  const barRight = explainBtn.parentElement;
+  const pop = document.createElement("div");
+  pop.className = "explain-pop";
+  pop.setAttribute("id", "explainPop");
+  barRight.appendChild(pop);
+  if (getComputedStyle(barRight).position === "static") barRight.style.position = "relative";
+  pop.innerHTML =
+    '<button class="explain-pop-close" type="button" aria-label="close">&times;</button>' +
+    '<div class="explain-pop-title" data-i18n="explainTitle">Explain</div>' +
+    '<button class="explain-opt explain-opt--whole" type="button" data-i18n="explainWhole">Whole walkthrough</button>' +
+    '<div class="explain-pop-divider" data-i18n="explainSingle">or a single step</div>' +
+    '<div class="explain-steps"></div>';
+  const stepsWrap = pop.querySelector(".explain-steps");
+  function buildStepChoices() {
+    const lang = i18n.lang;
+    const labels = T[lang].tour;
+    stepsWrap.innerHTML = "";
+    labels.forEach((entry, i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "explain-step";
+      b.dataset.step = i;
+      const n = i + 1;
+      b.innerHTML = '<span class="explain-step-n">' + n + '</span><span class="explain-step-l">' + entry.label + '</span>';
+      b.addEventListener("click", () => { closePop(); openExplain(false, i); });
+      stepsWrap.appendChild(b);
+    });
+  }
+  function openPop() { buildStepChoices(); pop.classList.add("is-open"); }
+  function closePop() { pop.classList.remove("is-open"); }
+  function togglePop() { pop.classList.contains("is-open") ? closePop() : openPop(); }
+  pop.querySelector(".explain-pop-close").addEventListener("click", closePop);
+  pop.querySelector(".explain-opt--whole").addEventListener("click", () => { closePop(); openExplain(true, 0); });
+  explainBtn.addEventListener("click", (e) => { e.stopPropagation(); togglePop(); });
+  document.addEventListener("click", (e) => { if (!pop.contains(e.target) && e.target !== explainBtn) closePop(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closePop(); });
+
+  (function () {
+    const btn = document.getElementById("explainBtn");
+    const fine = window.matchMedia("(pointer: fine)").matches;
+    if (!fine) return;
+    let raf = 0, tx = 0, ty = 0;
+    btn.addEventListener("mousemove", (e) => {
+      const r = btn.getBoundingClientRect();
+      tx = (e.clientX - (r.left + r.width / 2)) * 0.3;
+      ty = (e.clientY - (r.top + r.height / 2)) * 0.3;
+      if (!raf) raf = requestAnimationFrame(() => { btn.style.transform = `translate(${tx}px, ${ty}px)`; raf = 0; });
+    });
+    btn.addEventListener("mouseleave", () => { btn.style.transform = ""; });
+  })();
+
+  const i18n = initI18n(T, { onLangChange: () => { render(); renderProcedure(); nbUpdate(); if (pop && pop.classList.contains("is-open")) buildStepChoices(); } });
+
+  // ---- mount ------------------------------------------------------------------
+  render();
+  renderProcedure();
+  setSliderFill(stepSlider);
+  reveal(document.querySelector(".stage"));
+  reveal(document.querySelector(".app-bar-right"));
+  setTimeout(startAuto, 900);
 </script>
 </body>
 </html>

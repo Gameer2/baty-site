@@ -4,82 +4,286 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Probabilities — Grade 6</title>
-<script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+
+<!-- vendored open-source engines (see DESIGN_SYSTEM.md §14):
+     Motion — animation system (replaces per-element gsap.fromTo). The apple pass
+     uses the lab's expo curve for transitions and the state spring for value changes,
+     per SCHOOLS_FINGERPRINT.md §10 / §5. -->
+<script src="../assets/vendor/motion.min.js"></script>
+
 <link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
 <script src="../../math-lab/assets/vendor/katex.min.js"></script>
 <link rel="stylesheet" href="../assets/css/lesson-shell.css" />
 <script src="../assets/js/lesson-shell.js"></script>
+<script src="../assets/js/lesson-motion.js"></script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
-<style>
-  /* ---- bespoke scene: a 0-1 probability scale with labeled zones — pick an event and
-     the marker lands, with the reasoning shown. Extends Grade 5's 10.4 probability
-     groundwork into a quantified 0-1 scale. ---- */
-  .chart{ padding:30px 22px 34px; display:flex; flex-direction:column; align-items:center; gap:22px; }
-  .scale-wrap{ position:relative; width:100%; max-width:460px; padding:34px 10px 44px; direction:ltr; }
-  .scale-track{ position:relative; height:6px; border-radius:3px; background:linear-gradient(to right, #7fa8b0, rgba(255,255,255,.08) 50%, #b98a72); }
-  .zone-tick{ position:absolute; top:-8px; width:1px; height:22px; background:rgba(255,255,255,.2); }
-  .zone-label{ position:absolute; top:16px; font-family:var(--mono); font-size:9.5px; color:var(--pulse-ash); transform:translateX(-50%); text-align:center; width:70px; }
-  .marker{ position:absolute; top:-11px; width:24px; height:24px; margin-left:-12px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #f5a687, var(--infrared) 70%); box-shadow:0 4px 12px rgba(237,109,64,.4); cursor:grab; }
-  .marker-val{ position:absolute; top:-40px; transform:translateX(-50%); font-family:var(--mono); font-size:12px; font-weight:700; color:var(--infrared); white-space:nowrap; direction:ltr; }
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-  .event-list{ display:flex; flex-direction:column; gap:6px; width:100%; max-width:460px; }
-  .event-btn{ font-family:var(--display); font-size:13px; text-align:start; color:var(--neural-fog); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.1); border-radius:10px; padding:10px 14px; cursor:pointer; }
-  .event-btn:hover{ border-color:rgba(92,147,159,.4); }
-  .event-btn.active{ border-color:var(--infrared); background:rgba(237,109,64,.08); }
-  .reason-line{ font-family:var(--mono); font-size:12px; color:var(--pulse-ash); text-align:center; max-width:440px; min-height:1.4em; }
+<style>
+  /* ---- bespoke workspace: a probability LAB (left) + an event rail (right) side by
+     side. The lab is the lesson's real interactive scene — a hero 0-1 scale with a big
+     count-up readout, a draggable "your guess" ring, and an "answer" dot that springs to
+     the chosen event's probability; the rail holds the textbook's events as premium
+     cards with typed reasoning. This is the 8.5-only layout; nothing here is shared. ---- */
+  .workspace{ display:flex; gap:0; flex:1 1 auto; min-height:0; }
+  .lab{
+    flex:1 1 60%; min-width:0; position:relative; padding:var(--sp-6) var(--sp-8) var(--sp-6);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:var(--sp-6);
+  }
+  /* the hero probability readout — a big tabular number that counts up to the answer */
+  .p-readout{
+    font-family:var(--display); font-weight:600; font-size:clamp(56px, 9vw, 104px); line-height:1;
+    letter-spacing:-0.03em; color:var(--electric-teal); font-variant-numeric:tabular-nums;
+    text-align:center; min-height:1em; direction:ltr;
+    text-shadow:0 1px 0 rgba(255,255,255,.04);
+  }
+  .p-readout.is-dim{ color:var(--pulse-ash); font-size:clamp(20px,3vw,30px); font-weight:500; letter-spacing:0; }
+
+  /* the scale itself — a thick premium track with a 0→1 gradient in the single accent */
+  .scale-hero{ width:100%; max-width:560px; display:flex; flex-direction:column; gap:var(--sp-5); }
+  .scale-wrap{ position:relative; width:100%; padding:34px 6px 30px; direction:ltr; }
+  .scale-track{
+    position:relative; height:10px; border-radius:6px;
+    background:linear-gradient(to right, var(--rich-carbon), var(--urban-smoke) 50%, rgba(10,132,255,.28));
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.55);
+  }
+  .zone-tick{ position:absolute; top:-9px; width:1px; height:28px; background:rgba(255,255,255,.16); }
+  .zone-label{ position:absolute; top:24px; font-family:var(--mono); font-size:9.5px; color:var(--pulse-ash); transform:translateX(-50%); text-align:center; width:72px; letter-spacing:0; }
+
+  /* the answer dot — a solid accent dot that springs to the event's probability */
+  .answer-dot{
+    position:absolute; top:50%; width:18px; height:18px; margin-left:-9px; margin-top:0;
+    border-radius:50%; transform:translateY(-50%);
+    background:radial-gradient(circle at 35% 30%, #4d9fff, var(--electric-teal) 70%);
+    box-shadow:0 2px 8px rgba(0,0,0,.5), 0 0 0 5px rgba(10,132,255,.12);
+    opacity:0; transition:opacity .3s ease; pointer-events:none; will-change:left;
+  }
+  .answer-dot.is-visible{ opacity:1; }
+  /* the guess ring — a hollow accent ring the student drags along the track */
+  .guess-handle{
+    position:absolute; top:50%; width:26px; height:26px; margin-left:-13px;
+    border-radius:50%; transform:translateY(-50%);
+    border:2px solid var(--electric-teal); background:rgba(10,132,255,.06);
+    cursor:grab; z-index:2; touch-action:none;
+    box-shadow:0 2px 6px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.10);
+    transition:box-shadow .2s ease, background .2s ease;
+  }
+  .guess-handle:hover{ background:rgba(10,132,255,.14); }
+  .guess-handle:active{ cursor:grabbing; box-shadow:0 2px 6px rgba(0,0,0,.45), 0 0 0 6px rgba(10,132,255,.14); }
+  .guess-val{
+    position:absolute; top:-30px; left:50%; transform:translateX(-50%);
+    font-family:var(--mono); font-size:12px; font-weight:700; color:var(--off-white);
+    background:var(--rich-carbon); border:1px solid var(--urban-smoke); border-radius:100px;
+    padding:2px 8px; white-space:nowrap; direction:ltr;
+  }
+
+  /* the five zone chips — highlight the zone the answer falls in */
+  .zone-chips{ display:flex; gap:6px; width:100%; }
+  .zone-chip{
+    flex:1; font-family:var(--display); font-size:10px; text-align:center; color:var(--pulse-ash);
+    background:var(--rich-carbon); border:1px solid var(--urban-smoke); border-radius:100px;
+    padding:6px 4px; transition:background .25s cubic-bezier(.16,1,.3,1), color .25s ease, border-color .25s ease, transform .25s cubic-bezier(.16,1,.3,1);
+  }
+  .zone-chip.is-active{ background:var(--electric-teal); color:var(--core-black); border-color:var(--electric-teal); font-weight:600; transform:translateY(-2px); }
+  .zone-chip.ar-ui{ font-family:"Vazirmatn", sans-serif; }
+
+  .compare-line{ font-family:var(--mono); font-size:12px; color:var(--pulse-ash); text-align:center; min-height:1.4em; direction:ltr; }
+  .compare-line b{ color:var(--electric-teal); font-weight:600; }
+
+  /* the rail = bare text + event cards on the same dark canvas. A hairline divider on
+     its inline-start so it never reads as a boxed column inside the card. */
+  .rail{
+    position:relative; flex:0 0 40%; max-width:440px; min-height:0; overflow-y:auto;
+    padding:var(--sp-5) var(--sp-6) var(--sp-4); border-left:1px solid var(--urban-smoke);
+    display:flex; flex-direction:column; gap:var(--sp-3);
+    scrollbar-width: thin; scrollbar-color: rgba(10,132,255,.45) transparent; scrollbar-gutter: stable;
+  }
+  .rail::-webkit-scrollbar{ width:9px; }
+  .rail::-webkit-scrollbar-track{ background:transparent; margin:var(--sp-3) 0; }
+  .rail::-webkit-scrollbar-thumb{ background:linear-gradient(180deg, rgba(10,132,255,.55), rgba(10,132,255,.28)); border-radius:100px; border:2px solid transparent; background-clip:padding-box; }
+  .rail::-webkit-scrollbar-thumb:hover{ background:linear-gradient(180deg, rgba(10,132,255,.85), rgba(10,132,255,.5)); background-clip:padding-box; }
+  .rail-head{ font-family:var(--display); font-size:var(--fs-2xs); letter-spacing:var(--tr-label); text-transform:uppercase; color:var(--electric-teal); font-weight:600; }
+  .rail-head.ar-ui{ letter-spacing:0; text-transform:none; font-size:var(--fs-sm); }
+  .event-list{ display:flex; flex-direction:column; gap:6px; }
+  .event-btn{
+    font-family:var(--display); font-size:13px; text-align:start; color:var(--neural-fog);
+    background:var(--rich-carbon); border:1px solid var(--urban-smoke); border-radius:12px;
+    padding:11px 14px; cursor:pointer;
+    transition:background .2s ease, border-color .2s ease, box-shadow .25s ease, color .2s ease, transform .2s cubic-bezier(.16,1,.3,1);
+  }
+  .event-btn:hover{ background:var(--urban-smoke); transform:translateX(2px); }
+  .event-btn.active{ border-color:transparent; background:var(--urban-smoke); color:var(--off-white); box-shadow: inset 3px 0 0 var(--electric-teal); transform:translateX(0); }
+  .reason-line{ font-family:var(--mono); font-size:12px; color:var(--pulse-ash); line-height:var(--lh-snug); min-height:2.8em; }
+  .reason-line.ar-body{ font-family:"Vazirmatn", sans-serif; line-height:var(--lh-relaxed); }
+  /* teach lives at the bottom of the scrolling rail — a closing note on the same canvas */
+  .rail .teach{ padding:var(--sp-4) 0 0; border-top:1px solid var(--urban-smoke); background:none; }
+  .rail .teach p{ font-size:var(--fs-xs); line-height:var(--lh-snug); }
+  .rail .teach p.ar-body{ line-height:var(--lh-relaxed); }
+
+  /* ---- full-screen app shell: lab + rail fill the viewport, no page scroll. ---- */
+  html,body{ height:100%; }
+  .app{ max-width:none; height:100dvh; margin:0; padding:var(--sp-2) var(--sp-6); display:flex; flex-direction:column; gap:var(--sp-2); overflow:hidden; }
+  .app-bar{ display:flex; justify-content:space-between; align-items:center; gap:var(--sp-4); flex:0 0 auto; padding-bottom:var(--sp-2); border-bottom:1px solid rgba(255,255,255,.06); }
+  .app-bar-left{ display:flex; flex-direction:column; gap:var(--sp-1); min-width:0; }
+  .app-bar-left .crumb{ font-size:var(--fs-2xs); }
+  .app-bar-left .title-primary{ font-size:clamp(22px, 2.6vw, 30px); line-height:var(--lh-tight); letter-spacing:var(--tr-tight); }
+  .app-bar-right{ display:flex; align-items:center; gap:var(--sp-3); flex-wrap:wrap; }
+  .bar-sep{ width:1px; align-self:stretch; background:rgba(255,255,255,.10); margin:0 var(--sp-1); }
+
+  .stage{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
+  .eq-bar{ flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; gap:var(--sp-5); padding:var(--sp-4) var(--sp-6); flex-wrap:wrap; position:relative; z-index:3; }
+  .eq-left{ display:flex; flex-direction:column; gap:var(--sp-1); min-width:0; }
+
+  /* compact lesson nav in the header */
+  .app-bar .nav-pill{ flex:0 0 auto; width:fit-content; max-width:30ch; display:inline-flex; align-items:center; gap:var(--sp-2); font-family:var(--display); font-size:var(--fs-xs); color:var(--pulse-ash); border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.02); border-radius:100px; padding:var(--sp-2) var(--sp-4); text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,.30); transition:border-color .2s ease, background .25s cubic-bezier(.16,1,.3,1), color .2s ease, transform .2s cubic-bezier(.16,1,.3,1), box-shadow .25s ease; }
+  .app-bar .nav-pill:hover{ border-color:rgba(92,147,159,.5); background:linear-gradient(180deg, rgba(92,147,159,.16), rgba(92,147,159,.04)); color:var(--off-white); transform:translateY(-1px); box-shadow:0 6px 16px rgba(0,0,0,.34), 0 0 0 1px rgba(92,147,159,.18); }
+  .app-bar .nav-pill:active{ transform:scale(.97); }
+  .app-bar .nav-pill svg{ width:14px; height:14px; fill:none; stroke:var(--electric-teal); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:0 0 auto; }
+  html[dir="rtl"] .app-bar .nav-pill svg{ transform:scaleX(-1); }
+  .app-bar .nav-pill b{ color:var(--neural-fog); font-family:var(--display); font-size:var(--fs-xs); font-weight:500; line-height:var(--lh-tight); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:26ch; }
+  .app-bar .nav-pill b.ar-body{ font-weight:600; }
+
+  @media (prefers-reduced-motion: reduce){
+    .zone-chip, .event-btn, .guess-handle{ transition:none; }
+  }
+
+  html[lang="en"] #titleAr { display:none; }
+  html[lang="ar"] #titleEn { display:none; }
+
+  @media (max-width:820px){
+    .app{ height:auto; min-height:100dvh; overflow:auto; }
+    .app-bar{ align-items:flex-start; }
+    .stage{ overflow:visible; }
+    .workspace{ flex-direction:column; }
+    .lab{ padding:var(--sp-5) var(--sp-4); }
+    .rail{ flex:none; max-width:none; min-height:0; overflow:visible; border-left:none; border-top:1px solid var(--urban-smoke); }
+  }
+  /* ======================================================================
+     APPLE PASS (DARK) — the SCHOOLS_FINGERPRINT.md §10 apple-pass variant. Pure-black
+     canvas, #1c1c1e surfaces, light text, one accent (apple dark-mode blue #0A84FF).
+     No glows, opaque panels, one radius scale. The shared shell's tokens are re-pointed
+     here so every var()-based component flips; this block sits LAST so it wins.
+     ====================================================================== */
+  :root{
+    --core-black:#000000;
+    --rich-carbon:#1c1c1e;
+    --urban-smoke:#2c2c2e;
+    --pulse-ash:#98989d;
+    --off-white:#f5f5f7;
+    --neural-fog:#ebebf5;
+    --electric-teal:#0A84FF;
+    --infrared:#0A84FF;
+    --validation-green:#0A84FF;
+    --mono:"SF Mono", ui-monospace, "Azeret Mono", monospace;
+    --serif:-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+    --display:-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+  }
+  html,body{ background:#000; color:#f5f5f7; -webkit-font-smoothing:antialiased; }
+
+  .app{ padding:22px 32px; gap:16px; }
+  .app-bar{ border-bottom:1px solid #38383a; padding-bottom:14px; }
+  .app-bar-left .title-primary{ font-family:var(--display); font-weight:600; letter-spacing:-0.022em; }
+  .app-bar-left .crumb{ color:#0A84FF; }
+  .bar-sep{ background:#38383a; }
+
+  .lang-pill{ background:#1c1c1e; border:1px solid #38383a; box-shadow:none; }
+  .lang-pill button{ color:#98989d; }
+  .lang-pill button.active{ background:#0A84FF; color:#fff; box-shadow:none; }
+  .explain-btn{ background:#1c1c1e; border:1px solid #38383a; color:#0A84FF; box-shadow:none; }
+  .explain-btn:hover{ background:#2c2c2e; box-shadow:none; }
+  .explain-btn::before{ border-color:#0A84FF; }
+
+  .app-bar .nav-pill{ background:#1c1c1e; border:1px solid #38383a; color:#f5f5f7; box-shadow:none; }
+  .app-bar .nav-pill:hover{ border-color:#0A84FF; background:#2c2c2e; box-shadow:none; transform:none; }
+  .app-bar .nav-pill:active{ transform:scale(.98); }
+  .app-bar .nav-pill svg{ stroke:#0A84FF; }
+  .app-bar .nav-pill b{ color:#f5f5f7; }
+
+  .stage{ background:#1c1c1e; border:1px solid #38383a; border-radius:18px; box-shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 30px rgba(0,0,0,.45); }
+  .eq-bar{ border-bottom:1px solid #2c2c2e; }
+  .eq-line .katex{ color:#f5f5f7; }
+  .eq-sub{ color:#98989d; }
+
+  /* tour (explain) — opaque dark sheet, one accent */
+  .tour-scrim{ background:rgba(0,0,0,.55); }
+  .tour-ring{ border-color:#0A84FF; box-shadow:0 0 0 6px rgba(10,132,255,.14); }
+  .tour-tip{ background:#1c1c1e; border:1px solid #38383a; border-radius:14px; box-shadow:0 14px 40px rgba(0,0,0,.6); }
+  .tour-tip-label{ color:#0A84FF; }
+  .tour-tip-body{ color:#ebebf5; }
+  .tour-dots span{ background:rgba(255,255,255,.2); }
+  .tour-dots span.is-active{ background:#0A84FF; }
+  .tour-nav button{ color:#98989d; }
+  .tour-nav button.primary{ color:#f5f5f7; }
+  .tour-nav button.primary:hover{ color:#0A84FF; }
 </style>
 </head>
 <body>
 
-<div class="shell">
-  <div class="page-head">
-    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 8 · LESSON 5</div>
-    <div class="lang-pill">
-      <button data-lang="en" class="active">EN</button>
-      <button data-lang="ar">AR</button>
+<div class="app">
+  <header class="app-bar">
+    <div class="app-bar-left">
+      <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 6 · UNIT 8 · LESSON 5</div>
+      <h1 class="title-primary" id="titleEn">Probabilities</h1>
+      <h1 class="title-primary ar-display" id="titleAr">الاحتمالات</h1>
     </div>
-  </div>
-  <div class="titles">
-    <h1 class="title-primary" id="titleEn">Probabilities</h1>
-    <span class="title-secondary ar-display" id="titleAr">الاحتمالات</span>
-  </div>
-  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I describe the probability of an event using a numerical value on the probability scale.</span></p>
-
-  <div class="stage" id="stage">
-    <div class="eq-bar">
-      <div>
-        <div class="eq-line" id="eqLine"></div>
-        <div class="eq-sub" data-role="ui" data-i18n="eqSub">0 = impossible, 1 = certain</div>
+    <div class="app-bar-right">
+      <a class="nav-pill prev" href="8-4-circle-sectors.html" title="8.4 · Circle Sectors (Pie Charts)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+        <b data-role="body" id="navPrevText">8.4 · Circle Sectors (Pie Charts)</b>
+      </a>
+      <span class="nav-pill next" id="navNext">
+        <b data-role="body" id="navNextText">end of Grade 6</b>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+      </span>
+      <span class="bar-sep" aria-hidden="true"></span>
+      <div class="lang-pill">
+        <button data-lang="en" class="active">EN</button>
+        <button data-lang="ar">AR</button>
       </div>
       <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
     </div>
+  </header>
 
-    <div class="scene chart" id="scene">
-      <div class="scale-wrap dimmable" data-el="scale">
-        <div class="marker-val" id="markerVal">0.5</div>
-        <div class="marker" id="marker"></div>
-        <div class="scale-track" id="scaleTrack"></div>
-        <div id="zoneMarks"></div>
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div class="eq-left">
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub">0 = impossible, 1 = certain</div>
       </div>
-      <div class="event-list dimmable" data-el="events" id="eventList"></div>
-      <div class="reason-line" id="reasonLine"></div>
     </div>
 
-    <div class="teach">
-      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Probability is a number from 0 (impossible) to 1 (certain) placed on a probability scale, with labeled regions (impossible, unlikely, equally likely, likely, certain). Students judge and place events on this qualitative-to-quantitative scale, extending the informal "equal/unequal chance" idea from grade 5 toward numeric probability.</span></p>
-    </div>
-  </div>
+    <div class="workspace">
+      <div class="lab" id="lab">
+        <div class="p-readout is-dim" id="pReadout" data-i18n="pickPrompt">drag the ring to guess, then pick an event</div>
+        <div class="scale-hero">
+          <div class="scale-wrap" id="scaleWrap">
+            <div class="guess-handle" id="guessHandle"><span class="guess-val" id="guessVal">0.5</span></div>
+            <div class="answer-dot" id="answerDot"></div>
+            <div class="scale-track" id="scaleTrack"></div>
+            <div id="zoneMarks"></div>
+          </div>
+          <div class="zone-chips" id="zoneChips"></div>
+          <div class="compare-line" id="compareLine"></div>
+        </div>
+      </div>
 
-  <div class="nav-row">
-    <a class="nav-pill prev" href="8-4-circle-sectors.html">— <b data-role="body" id="navPrevText">8.4 · Circle Sectors (Pie Charts)</b></a>
-    <div class="nav-pill next"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">end of Grade 6</b></div>
+      <div class="rail" id="rail">
+        <div class="rail-head" data-role="ui" data-i18n="railHead">Pick an event</div>
+        <div class="event-list" id="eventList"></div>
+        <div class="reason-line" id="reasonLine"></div>
+        <div class="teach">
+          <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Probability is a number from 0 (impossible) to 1 (certain) placed on a probability scale, with labeled regions (impossible, unlikely, equally likely, likely, certain). Students judge and place events on this qualitative-to-quantitative scale, extending the informal "equal/unequal chance" idea from grade 5 toward numeric probability.</span></p>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
   const { digitsDecimal, initI18n, renderEquation, buildTour } = LessonShell;
+  const { tweenValue, appear, EXPO } = LessonMotion;
 
   const ZONES = [
     { p: 0, en: "impossible", ar: "مستحيل" },
@@ -109,14 +313,16 @@
       objectiveText: "I describe the probability of an event using a numerical value on the probability scale.",
       eqSub: "0 = impossible, 1 = certain",
       explainBtn: "Explain this",
+      railHead: "Pick an event",
+      pickPrompt: "drag the ring to guess, then pick an event",
+      guessLbl: "your guess", answerLbl: "answer", offLbl: "off by",
       teachLabel: "What this teaches:",
       teachBody: "Probability is a number from 0 (impossible) to 1 (certain) placed on a probability scale, with labeled regions (impossible, unlikely, equally likely, likely, certain). Students judge and place events on this qualitative-to-quantitative scale, extending the informal \"equal/unequal chance\" idea from grade 5 toward numeric probability.",
       navPrev: "8.4 · Circle Sectors (Pie Charts)",
       navNext: "end of Grade 6",
-      navNextLabel: "next",
       tour: [
-        { elKey: "scale", label: "Zero to one", body: "Every probability sits somewhere between 0 (impossible) and 1 (certain), with labeled zones along the way." },
-        { elKey: "events", label: "Pick an event", body: "Choose a real event — the marker lands at its actual probability, with the reasoning shown." },
+        { ids: ["scaleWrap"], label: "Zero to one", body: "Every probability sits somewhere between 0 (impossible) and 1 (certain). Drag the ring to place your own guess on the scale." },
+        { ids: ["eventList"], label: "Pick an event", body: "Choose a real event — the solid dot springs to its actual probability, and the reasoning is typed out beside it." },
         { ids: ["eqLine"], label: "The number itself", body: "The equation bar states the probability as a fraction — count the favorable outcomes over all possible outcomes." }
       ]
     },
@@ -126,31 +332,41 @@
       objectiveText: "أصف احتمال حدث باستخدام قيمة عددية على مقياس الاحتمال.",
       eqSub: "٠ = مستحيل، ١ = مؤكّد",
       explainBtn: "اشرح هذا",
+      railHead: "اختر حدثًا",
+      pickPrompt: "اسحب الحلقة لتخمين، ثم اختر حدثًا",
+      guessLbl: "تخمينك", answerLbl: "الإجابة", offLbl: "الفرق",
       teachLabel: "ماذا يعلّمنا هذا الدرس:",
       teachBody: "الاحتمال عدد من ٠ (مستحيل) إلى ١ (مؤكّد) يوضع على مقياس احتمال، بمناطق موسومة (مستحيل، غير مرجّح، متساوي الاحتمال، مرجّح، مؤكّد). يحكم الطلبة على أحداث ويضعونها على هذا المقياس من النوعي إلى الكمّي، موسّعين فكرة «فرصة متساوية/غير متساوية» غير الرسمية من الصف الخامس نحو احتمال عددي.",
       navPrev: "٨.٤ · القطاعات الدائرية",
       navNext: "نهاية الصف السادس",
-      navNextLabel: "التالي",
       tour: [
-        { elKey: "scale", label: "من صفر إلى واحد", body: "يقع كل احتمال في مكان ما بين ٠ (مستحيل) و١ (مؤكّد)، بمناطق موسومة على الطريق." },
-        { elKey: "events", label: "اختر حدثًا", body: "اختر حدثًا حقيقيًا — يستقرّ المؤشّر عند احتماله الفعلي، مع عرض السبب." },
+        { ids: ["scaleWrap"], label: "من صفر إلى واحد", body: "يقع كل احتمال في مكان ما بين ٠ (مستحيل) و١ (مؤكّد). اسحب الحلقة لتضع تخمينك على المقياس." },
+        { ids: ["eventList"], label: "اختر حدثًا", body: "اختر حدثًا حقيقيًا — يقفز المؤشّر إلى احتماله الفعلي، ويُكتب السبب بجانبه." },
         { ids: ["eqLine"], label: "العدد نفسه", body: "توضّح المعادلة الاحتمال ككسر — عُدّ النواتج المواتية على كل النواتج الممكنة." }
       ]
     }
   };
 
-  const scaleWrap = document.querySelector(".scale-wrap");
+  const scaleWrap = document.getElementById("scaleWrap");
   const scaleTrack = document.getElementById("scaleTrack");
   const zoneMarks = document.getElementById("zoneMarks");
-  const marker = document.getElementById("marker");
-  const markerVal = document.getElementById("markerVal");
+  const zoneChips = document.getElementById("zoneChips");
+  const guessHandle = document.getElementById("guessHandle");
+  const guessVal = document.getElementById("guessVal");
+  const answerDot = document.getElementById("answerDot");
+  const pReadout = document.getElementById("pReadout");
+  const compareLine = document.getElementById("compareLine");
   const eventList = document.getElementById("eventList");
   const reasonLine = document.getElementById("reasonLine");
   const eqLine = document.getElementById("eqLine");
 
-  let prob = 0.5;
+  let guess = 0.5;
   let activeEvent = null;
+  let answerP = null;     // current answer probability (null until an event is picked)
+  let readoutP = 0;       // live value the big readout is showing (for count-up)
+  let typeToken = 0;      // invalidates the typewriter when a new event/lang supersedes it
 
+  // ---- build the static scale furniture: zone ticks + labels, and the zone chips ----
   function buildZones() {
     zoneMarks.innerHTML = "";
     ZONES.forEach(z => {
@@ -164,57 +380,165 @@
       zoneMarks.appendChild(tick);
       zoneMarks.appendChild(label);
     });
+    zoneChips.innerHTML = "";
+    ZONES.forEach(z => {
+      const chip = document.createElement("div");
+      chip.className = "zone-chip" + (i18n.lang === "ar" ? " ar-ui" : "");
+      chip.dataset.p = z.p;
+      chip.textContent = T[i18n.lang][z.en] || z[i18n.lang === "ar" ? "ar" : "en"];
+      zoneChips.appendChild(chip);
+    });
   }
 
-  function positionMarker(animate) {
-    const targets = { left: (prob * 100) + "%" };
-    if (animate) gsap.to(marker, { ...targets, duration: .5, ease: "back.out(1.7)" });
-    else gsap.set(marker, targets);
-    markerVal.style.left = (prob * 100) + "%";
-    markerVal.textContent = digitsDecimal(prob, i18n.lang, 2);
+  // ---- position the guess ring (drag) ----
+  function setGuess(p, animate) {
+    guess = Math.max(0, Math.min(1, p));
+    const pct = guess * 100;
+    if (animate) {
+      const from = parseFloat(guessHandle.style.left) || 50;
+      tweenValue(from, pct, v => { guessHandle.style.left = v + "%"; }, { duration: 0.4, ease: EXPO });
+    } else {
+      guessHandle.style.left = pct + "%";
+    }
+    guessVal.textContent = digitsDecimal(guess, i18n.lang, 2);
+    updateCompare();
   }
 
-  function buildEvents() {
+  // ---- spring the answer dot + count up the big readout to the event's probability ----
+  function setAnswer(p) {
+    answerP = p;
+    answerDot.classList.add("is-visible");
+    const targetPct = p * 100;
+    const fromPct = parseFloat(answerDot.style.left) || targetPct;
+    // glide the dot onto its probability with the lab expo curve (apple pass: quieter motion)
+    tweenValue(fromPct, targetPct, v => { answerDot.style.left = v + "%"; }, { duration: 0.7, ease: EXPO });
+    // count the big readout up to the same number
+    pReadout.classList.remove("is-dim");
+    tweenValue(readoutP, p, v => {
+      pReadout.textContent = digitsDecimal(v, i18n.lang, 2);
+    }, { duration: 0.7, ease: EXPO, onComplete: () => { readoutP = p; } });
+    highlightZone(p);
+    updateCompare();
+  }
+
+  function highlightZone(p) {
+    // a probability belongs to the zone whose center is nearest
+    let nearest = ZONES[0], best = Infinity;
+    ZONES.forEach(z => { const d = Math.abs(z.p - p); if (d < best) { best = d; nearest = z; } });
+    zoneChips.querySelectorAll(".zone-chip").forEach(chip => {
+      chip.classList.toggle("is-active", parseFloat(chip.dataset.p) === nearest.p);
+    });
+  }
+
+  function updateCompare() {
+    const t = T[i18n.lang];
+    if (answerP === null) { compareLine.textContent = ""; return; }
+    const g = digitsDecimal(guess, i18n.lang, 2);
+    const a = digitsDecimal(answerP, i18n.lang, 2);
+    const off = digitsDecimal(Math.abs(guess - answerP), i18n.lang, 2);
+    compareLine.innerHTML = `${t.guessLbl} <b>${g}</b> · ${t.answerLbl} <b>${a}</b> · ${t.offLbl} <b>${off}</b>`;
+  }
+
+  // ---- typed reasoning (typewriter) — the lab's "value just changed, read it" reveal ----
+  function typeReason(text) {
+    const token = ++typeToken;
+    reasonLine.textContent = "";
+    reasonLine.classList.toggle("ar-body", i18n.lang === "ar");
+    let i = 0;
+    (function step() {
+      if (token !== typeToken) return;          // a newer selection/lang superseded this
+      if (i <= text.length) {
+        reasonLine.textContent = text.slice(0, i);
+        i += 1;
+        setTimeout(step, 16);
+      }
+    })();
+  }
+
+  function buildEvents(animate) {
     eventList.innerHTML = "";
     EVENTS.forEach((ev, idx) => {
       const btn = document.createElement("button");
       btn.className = "event-btn" + (activeEvent === idx ? " active" : "");
       btn.textContent = i18n.lang === "ar" ? ev.ar : ev.en;
-      btn.addEventListener("click", () => {
-        activeEvent = idx;
-        prob = ev.p;
-        positionMarker(true);
-        buildEvents();
-        render();
-      });
+      btn.addEventListener("click", () => selectEvent(idx));
       eventList.appendChild(btn);
+      // staggered entrance — each card drops in with the lab expo curve. Only on a fresh
+      // build (first paint / language switch), never on a mere selection (selectEvent just
+      // toggles .active, so picking an event never re-triggers the entrance).
+      if (animate) {
+        btn.style.opacity = "0";
+        setTimeout(() => {
+          appear(btn, { duration: 0.5, ease: EXPO, onComplete: () => { btn.style.opacity = ""; } });
+        }, 120 + idx * 70);
+      }
     });
   }
+  function selectEvent(idx) {
+    activeEvent = idx;
+    eventList.querySelectorAll(".event-btn").forEach((btn, i) => btn.classList.toggle("active", i === idx));
+    const ev = EVENTS[idx];
+    setAnswer(ev.p);
+    typeReason(i18n.lang === "ar" ? ev.reasonAr : ev.reasonEn);
+    renderEq();
+  }
 
-  function render() {
-    const t = T[i18n.lang];
-    document.querySelectorAll(".zone-label").forEach(label => {
-      const z = ZONES.find(z => String(z.p) === label.dataset.p);
-      label.textContent = t[z.en] || z[i18n.lang === "ar" ? "ar" : "en"];
-    });
-
+  function renderEq() {
     let eqSource;
     if (activeEvent !== null) {
-      const ev = EVENTS[activeEvent];
-      reasonLine.textContent = i18n.lang === "ar" ? ev.reasonAr : ev.reasonEn;
-      eqSource = `P = \\color{#ed6d40}{${digitsDecimal(ev.p, "en", 2)}}`;
+      eqSource = `P = \\color{#0A84FF}{${digitsDecimal(EVENTS[activeEvent].p, "en", 2)}}`;
     } else {
-      reasonLine.textContent = "";
       eqSource = `0 \\le P \\le 1`;
     }
     renderEquation(eqLine, eqSource);
   }
 
-  const i18n = initI18n(T, { onLangChange: () => { buildEvents(); positionMarker(false); render(); } });
+  function renderAll() {
+    const t = T[i18n.lang];
+    document.querySelectorAll(".zone-label").forEach(label => {
+      const z = ZONES.find(z => String(z.p) === label.dataset.p);
+      label.textContent = t[z.en] || z[i18n.lang === "ar" ? "ar" : "en"];
+    });
+    zoneChips.querySelectorAll(".zone-chip").forEach(chip => {
+      const z = ZONES.find(z => String(z.p) === chip.dataset.p);
+      chip.textContent = t[z.en] || z[i18n.lang === "ar" ? "ar" : "en"];
+    });
+    if (activeEvent === null) {
+      pReadout.classList.add("is-dim");
+      pReadout.textContent = t.pickPrompt;
+    } else {
+      pReadout.classList.remove("is-dim");
+      pReadout.textContent = digitsDecimal(answerP, i18n.lang, 2);
+    }
+    if (answerP !== null) highlightZone(answerP);
+    buildEvents(false);
+    if (activeEvent !== null) typeReason(i18n.lang === "ar" ? EVENTS[activeEvent].reasonAr : EVENTS[activeEvent].reasonEn);
+    else reasonLine.textContent = "";
+    renderEq();
+    setGuess(guess, false);
+  }
+
+  // ---- the draggable guess ring: pointer-drive it along the track ----
+  function guessFromX(clientX) {
+    const r = scaleTrack.getBoundingClientRect();
+    return Math.max(0, Math.min(1, (clientX - r.left) / r.width));
+  }
+  let dragging = false;
+  function startDrag(e) { dragging = true; try { guessHandle.setPointerCapture(e.pointerId); } catch (_) {} setGuess(guessFromX(e.clientX), false); e.preventDefault(); }
+  function moveDrag(e) { if (!dragging) return; setGuess(guessFromX(e.clientX), false); }
+  function endDrag() { dragging = false; }
+  guessHandle.addEventListener("pointerdown", startDrag);
+  window.addEventListener("pointermove", moveDrag);
+  window.addEventListener("pointerup", endDrag);
+  // clicking anywhere on the track also moves the guess there
+  scaleTrack.addEventListener("pointerdown", e => setGuess(guessFromX(e.clientX), true));
+
+  const i18n = initI18n(T, { onLangChange: () => { buildZones(); renderAll(); } });
   buildZones();
-  positionMarker(false);
-  buildEvents();
-  render();
+  setGuess(0.5, false);
+  answerDot.style.left = "50%";
+  buildEvents(true);
+  renderEq();
 
   const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
   document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());

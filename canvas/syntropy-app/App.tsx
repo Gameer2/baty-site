@@ -113,7 +113,6 @@ import {
 } from "./syntropy/createSyntropyWire";
 import { LibraryPanel } from "./syntropy/LibraryPanel";
 import { ChromeRail } from "./syntropy/ChromeRail";
-import { PenPresets } from "./syntropy/PenPresets";
 import { NodeOverlay } from "./syntropy/NodeOverlay";
 
 import "./syntropy/boardChrome.scss";
@@ -150,7 +149,6 @@ import DebugCanvas, {
   isVisualDebuggerEnabled,
   loadSavedDebugState,
 } from "./components/DebugCanvas";
-import { AIComponents } from "./components/AI";
 import { ExcalidrawPlusIframeExport } from "./ExcalidrawPlusIframeExport";
 
 import "./index.scss";
@@ -215,6 +213,18 @@ if (window.self !== window.top) {
 // before Excalidraw's own getFormFactor so the breakpoint matches the window.
 // Must match .LibraryPanel { width } in LibraryPanel.scss.
 const LIBRARY_PANEL_WIDTH = 300;
+
+// Touch-primary (coarse-pointer) devices — iPads, tablets, phones — have no
+// hover and use a finger/pen as the primary pointer. On these the library is a
+// dismissible overlay drawer (see LibraryPanel.scss `(pointer: coarse)`), not a
+// permanent 300px column, so it never steals canvas width: the panel starts
+// closed (maximize drawing area on open) and, when opened, slides over a
+// full-width canvas with a scrim you tap to dismiss. Must stay in sync with the
+// `(max-width: 900px), (pointer: coarse)` media queries in LibraryPanel.scss.
+const isCoarsePointer =
+  typeof window !== "undefined" &&
+  typeof window.matchMedia === "function" &&
+  window.matchMedia("(pointer: coarse)").matches;
 
 const shareableLinkConfirmDialog = {
   title: t("overwriteConfirm.modal.shareableLink.title"),
@@ -392,7 +402,12 @@ const ExcalidrawWrapper = () => {
 
   const [errorMessage, setErrorMessage] = useState("");
   const [activeEngineId, setActiveEngineId] = useState<EngineId | null>(null);
-  const [isLibraryPanelOpen, setIsLibraryPanelOpen] = useState(true);
+  // On touch devices the library starts closed so the canvas opens at full
+  // width (no left-side dead zone); the user opens it from the rail when wanted.
+  // On hover/desktop it starts open as before (the 300px column).
+  const [isLibraryPanelOpen, setIsLibraryPanelOpen] = useState(
+    !isCoarsePointer,
+  );
   // Lifted out of PaperPicker so ChromeRail can render its trigger segment
   // as part of the merged rail instead of PaperPicker owning its own chip.
   const [isPaperPickerOpen, setIsPaperPickerOpen] = useState(false);
@@ -1090,7 +1105,6 @@ const ExcalidrawWrapper = () => {
         appTheme={appTheme}
         onThemeChange={setAppTheme}
       />
-      <PenPresets excalidrawAPI={excalidrawAPI} />
       {overlayAppState && (
         <NodeOverlay
           elements={overlayElements}
@@ -1183,11 +1197,26 @@ const ExcalidrawWrapper = () => {
             // spans the full window, was inflating editorWidth on every iPad-width screen and
             // permanently locking in the "desktop" form factor — which is what native Excalidraw
             // uses to decide when its own panels reflow to avoid colliding on a small screen.
-            getFormFactor: (editorWidth, editorHeight) =>
-              getFormFactor(
-                editorWidth + (isLibraryPanelOpen ? LIBRARY_PANEL_WIDTH : 0),
+            getFormFactor: (editorWidth, editorHeight) => {
+              // Only the desktop column steals 300px from Excalidraw's
+              // container; the touch overlay drawer (coarse pointer) sits on
+              // top of a full-width canvas, so it must not be added back here
+              // — doing so would inflate editorWidth and mis-classify iPads.
+              const ff = getFormFactor(
+                editorWidth +
+                  (isLibraryPanelOpen && !isCoarsePointer
+                    ? LIBRARY_PANEL_WIDTH
+                    : 0),
                 editorHeight,
-              ),
+              );
+              // A touch-primary device (iPad/tablet) is never a mouse
+              // desktop, no matter how wide its screen is. Clamp to "tablet"
+              // so Excalidraw's `!== "desktop"` touch branches apply:
+              // immediate select-on-touch (App.tsx:8820), lasso drag behaviour
+              // (8815), zoom anchoring (4704), mobile/touch menus, etc. Phones
+              // already resolve to "phone" and are untouched by this clamp.
+              return isCoarsePointer && ff === "desktop" ? "tablet" : ff;
+            },
           }}
           langCode={langCode}
           renderCustomStats={renderCustomStats}
@@ -1296,7 +1325,6 @@ const ExcalidrawWrapper = () => {
             )}
           </OverwriteConfirmDialog>
           <AppFooter onChange={() => excalidrawAPI?.refresh()} />
-          {excalidrawAPI && <AIComponents excalidrawAPI={excalidrawAPI} />}
 
           {isCollaborating && isOffline && (
             <div className="alertalert--warning">

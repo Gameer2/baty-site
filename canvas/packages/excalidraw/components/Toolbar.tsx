@@ -19,7 +19,6 @@ import {
   LassoIcon,
   laserPointerToolIcon,
   bucketFillIcon,
-  MagicIcon,
   DotsIcon,
 } from "./icons";
 import {
@@ -170,20 +169,6 @@ const ExtraToolsDropdown = ({
             disabled={isToolButtonDisabled(app, "lasso")}
           >
             {t("toolBar.lasso")}
-          </DropdownMenu.Item>
-        )}
-        <div style={{ margin: "6px 0", fontSize: 14, fontWeight: 600 }}>
-          Generate
-        </div>
-        {app.props.aiEnabled !== false && app.plugins.diagramToCode && (
-          <DropdownMenu.Item
-            onSelect={() => app.onMagicframeToolSelect()}
-            icon={MagicIcon}
-            data-testid="toolbar-magicframe"
-            badge={<DropdownMenu.Item.Badge>AI</DropdownMenu.Item.Badge>}
-            disabled={isToolButtonDisabled(app, "magicframe")}
-          >
-            {t("toolBar.magicframe")}
           </DropdownMenu.Item>
         )}
       </DropdownMenu.Content>

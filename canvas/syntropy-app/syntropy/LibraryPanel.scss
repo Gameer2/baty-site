@@ -270,9 +270,13 @@
 // with <Excalidraw> in App.tsx, so no React/prop changes are needed to free
 // the canvas. A scrim (rendered in App.tsx, where the open/close state lives)
 // sits behind the drawer so a tap on the exposed canvas closes the library.
+// The query matches on narrow viewports OR on touch-primary (coarse-pointer)
+// devices regardless of width — a large iPad in landscape (~1194-1366px) is a
+// touch tablet, not a mouse desktop, so it must get the drawer too; otherwise
+// the 300px column eats the left of the canvas as a permanent dead zone.
 // 900px covers real iPad portrait widths (744-834px CSS px); 768px did not.
 // ---------------------------------------------------------------------------
-@media (max-width: 900px) {
+@media (max-width: 900px), (pointer: coarse) {
   .LibraryPanel {
     position: fixed;
     left: 0;
@@ -299,13 +303,13 @@
 
 // Mobile-only scrim behind the drawer. Rendered as a real <button> in App.tsx
 // (where isLibraryPanelOpen lives) so it has a genuine click target to close —
-// a ::after pseudo-element can't carry an onClick. `display:none` on desktop
-// means zero impact above 900px.
+// a ::after pseudo-element can't carry an onClick. `display:none` on
+// hover-primary (fine-pointer) desktops means zero impact there above 900px.
 .LibraryPanel__scrim {
   display: none;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 900px), (pointer: coarse) {
   .LibraryPanel__scrim {
     display: block;
     position: fixed;

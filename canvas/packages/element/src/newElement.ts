@@ -520,6 +520,7 @@ export const newFreeDrawElement = (
     strokeOptions: opts.strokeOptions ?? {
       variability: "variable",
       streamline: DEFAULT_STROKE_STREAMLINE,
+      penStyle: "pen",
     },
   };
 };

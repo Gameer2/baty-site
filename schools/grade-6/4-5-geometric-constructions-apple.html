@@ -170,16 +170,20 @@
      to the element the notebook is explaining and "clicks" it (a ripple at the tip). It
      is the thing that moves to explain. Appended to the stage by buildNotebook. The
      arrow tip sits at the cursor box's (0,0), so left/top = the target point. */
-  .nb-cursor{ position:absolute; z-index:5; width:18px; height:26px; pointer-events:none; opacity:0;
+  .nb-cursor{ position:absolute; z-index:5; width:20px; height:20px; pointer-events:none; opacity:0;
     transition:opacity .3s ease, left .55s cubic-bezier(.16,1,.3,1), top .55s cubic-bezier(.16,1,.3,1);
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,.55)) drop-shadow(0 0 3px rgba(92,147,159,.28)); }
+    filter: drop-shadow(0 3px 8px rgba(0,0,0,.45)); }
   .nb-cursor.is-visible{ opacity:1; }
-  .nb-cursor svg{ display:block; width:18px; height:26px; }
+  .nb-cursor svg{ display:block; width:20px; height:20px; }
+  /* solid colored dart + soft shadow, like a collaborator's live cursor — not a
+     flat white/black-outline clip-art pointer. Ties the cursor to the page's own
+     accent instead of a hardcoded fixed color. */
+  .nb-cursor-glyph{ fill:var(--explain-accent, var(--electric-teal)); stroke:rgba(0,0,0,.18); stroke-width:.4; }
   .nb-cursor-ripple{ position:absolute; left:0; top:0; width:34px; height:34px; margin:-17px 0 0 -17px;
-    border-radius:50%; border:2px solid rgba(92,147,159,.8); opacity:0; pointer-events:none; }
-  .nb-cursor-label{ position:absolute; left:24px; top:18px; white-space:nowrap; font-family:var(--mono);
-    font-size:var(--fs-2xs); letter-spacing:var(--tr-label); text-transform:uppercase; color:var(--electric-teal);
-    background:rgba(9,9,9,.85); border:1px solid rgba(92,147,159,.35); border-radius:100px; padding:var(--sp-1) var(--sp-3); }
+    border-radius:50%; border:2px solid rgba(var(--explain-accent-rgb, var(--electric-teal-rgb)),.8); opacity:0; pointer-events:none; }
+  .nb-cursor-label{ position:absolute; left:26px; top:13px; white-space:nowrap; font-family:var(--mono);
+    font-size:var(--fs-2xs); letter-spacing:var(--tr-label); text-transform:uppercase; color:var(--explain-accent, var(--electric-teal));
+    background:rgba(9,9,9,.85); border:1px solid rgba(var(--explain-accent-rgb, var(--electric-teal-rgb)),.35); border-radius:100px; padding:var(--sp-1) var(--sp-3); }
   .nb-cursor-label.ar-ui{ text-transform:none; letter-spacing:0; font-size:var(--fs-xs); }
 
   /* ---- full-screen app shell: board + explanation fill the viewport, no page scroll.

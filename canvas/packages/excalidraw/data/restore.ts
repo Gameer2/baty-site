@@ -76,6 +76,7 @@ import type {
   NonDeleted,
   NonDeletedSceneElementsMap,
   OrderedExcalidrawElement,
+  PenStyle,
   StrokeVariability,
   StrokeRoundness,
 } from "@excalidraw/element/types";
@@ -253,6 +254,23 @@ const restoreStrokeVariability = (
     : defaultValue;
 };
 
+const ALLOWED_PEN_STYLES = new Set<PenStyle>([
+  "pen",
+  "marker",
+  "pencil",
+  "highlighter",
+]);
+
+const restorePenStyle = (
+  penStyle: unknown,
+  defaultValue: PenStyle,
+): PenStyle => {
+  return typeof penStyle === "string" &&
+    ALLOWED_PEN_STYLES.has(penStyle as PenStyle)
+    ? (penStyle as PenStyle)
+    : defaultValue;
+};
+
 const getStrokeWidthKey = (strokeWidth: unknown): StrokeWidthKey | null => {
   return isFiniteNumber(strokeWidth)
     ? STROKE_WIDTH_KEYS.find((key) => STROKE_WIDTH[key] === strokeWidth) ?? null
@@ -261,10 +279,18 @@ const getStrokeWidthKey = (strokeWidth: unknown): StrokeWidthKey | null => {
 
 const restoreFreedrawStrokeOptions = (
   strokeOptions: unknown,
-): { variability: StrokeVariability; streamline: number } => {
+): {
+  variability: StrokeVariability;
+  streamline: number;
+  penStyle: PenStyle;
+} => {
   const options =
     strokeOptions && typeof strokeOptions === "object"
-      ? (strokeOptions as { variability?: unknown; streamline?: unknown })
+      ? (strokeOptions as {
+          variability?: unknown;
+          streamline?: unknown;
+          penStyle?: unknown;
+        })
       : null;
 
   return {
@@ -272,6 +298,7 @@ const restoreFreedrawStrokeOptions = (
     streamline: isFiniteNumber(options?.streamline)
       ? options?.streamline
       : DEFAULT_STROKE_STREAMLINE,
+    penStyle: restorePenStyle(options?.penStyle, "pen"),
   };
 };
 

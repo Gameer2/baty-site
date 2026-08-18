@@ -70,7 +70,7 @@ import {
 import { getContainingFrame } from "./frame";
 import { getCornerRadius } from "./utils";
 
-import { ShapeCache } from "./shape";
+import { ShapeCache, isHighlighterFreedraw } from "./shape";
 
 import type {
   ExcalidrawElement,
@@ -373,10 +373,18 @@ const drawElementOnCanvas = (
 
       for (const shape of shapes) {
         if (typeof shape === "string") {
-          context.fillStyle = applyDarkModeFilter(
-            element.strokeColor,
-            renderConfig.theme === THEME.DARK,
-          );
+          // The highlighter is a bright translucent band, not ink — its color
+          // is chosen bright and must NOT be inverted by the dark-mode filter
+          // (inverting yellow → dark blue would make the highlighter vanish on
+          // dark paper). The lightening blend for dark paper is applied at blit.
+          context.fillStyle = isHighlighterFreedraw(
+            element as ExcalidrawFreeDrawElement,
+          )
+            ? element.strokeColor
+            : applyDarkModeFilter(
+                element.strokeColor,
+                renderConfig.theme === THEME.DARK,
+              );
           context.fill(new Path2D(shape));
         } else {
           rc.draw(shape);
@@ -848,18 +856,34 @@ export const renderElement = (
       break;
     }
     case "freedraw": {
+      // Highlighter pens blend with the canvas beneath (marker-over-paper feel)
+      // rather than painting opaquely. The blend must be set on this main
+      // context — not the offscreen cache — because it only does something at
+      // blit time against the destination, and restored before any other
+      // element draws. On light paper "multiply" tints the paper; on dark paper
+      // multiply would black out the band, so we use its inverse "screen" to
+      // lighten the paper instead, and lift the render opacity so the
+      // translucent wash stays visible against the dark ground (the same 38%
+      // that reads well on white is too dim on dark).
+      const isHighlighter = element.strokeOptions?.penStyle === "highlighter";
+      const isDark = appState.theme === THEME.DARK;
+      context.save();
+      if (isHighlighter) {
+        context.globalCompositeOperation = isDark ? "screen" : "multiply";
+        if (isDark) {
+          context.globalAlpha = Math.min(1, context.globalAlpha * 2.2);
+        }
+      }
       if (renderConfig.isExporting) {
         const [x1, y1, x2, y2] = getElementAbsoluteCoords(element, elementsMap);
         const cx = (x1 + x2) / 2 + appState.scrollX;
         const cy = (y1 + y2) / 2 + appState.scrollY;
         const shiftX = (x2 - x1) / 2 - (element.x - x1);
         const shiftY = (y2 - y1) / 2 - (element.y - y1);
-        context.save();
         context.translate(cx, cy);
         context.rotate(element.angle);
         context.translate(-shiftX, -shiftY);
         drawElementOnCanvas(element, rc, context, renderConfig);
-        context.restore();
       } else {
         const elementWithCanvas = generateElementWithCanvas(
           element,
@@ -868,6 +892,7 @@ export const renderElement = (
           appState,
         );
         if (!elementWithCanvas) {
+          context.restore();
           return;
         }
 
@@ -879,6 +904,7 @@ export const renderElement = (
           allElementsMap,
         );
       }
+      context.restore();
 
       break;
     }

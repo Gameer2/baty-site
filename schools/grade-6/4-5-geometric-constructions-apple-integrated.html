@@ -172,8 +172,7 @@
      arrow tip sits at the cursor box's (0,0), so left/top = the target point. */
   .nb-cursor{ position:absolute; z-index:5; width:20px; height:20px; pointer-events:none; opacity:0;
     transition:opacity .3s ease, left .55s cubic-bezier(.16,1,.3,1), top .55s cubic-bezier(.16,1,.3,1);
-    filter: drop-shadow(0 3px 8px rgba(0,0,0,.45))
-            drop-shadow(0 0 7px rgba(var(--explain-accent-rgb, var(--electric-teal-rgb)),.55)); }
+    filter: drop-shadow(0 3px 8px rgba(0,0,0,.45)); }
   .nb-cursor.is-visible{ opacity:1; }
   .nb-cursor svg{ display:block; width:20px; height:20px; }
   /* solid colored dart + soft shadow, like a collaborator's live cursor — not a
@@ -243,6 +242,126 @@
     .board-wrap{ position:relative; padding:6px; }
     .board-wrap .jxgbox{ position:relative; inset:auto; width:100%; height:440px; }
   }
+  /* ======================================================================
+     APPLE PASS — INTEGRATED variant. Same flat, quiet, one-accent-by-weight
+     discipline as the original dark demo (no glow, opaque panels, one
+     18px/pill radius scale, calmer motion) — two things are deliberately
+     different from that original so this lesson reads as part of the lab,
+     not a different product wearing its layout:
+       1. No font swap. The original repointed --mono/--serif/--display to
+          SF Mono/SF Pro; that's removed here, so this file now inherits the
+          lab's own Azeret Mono / Bricolage Grotesque / Roc Grotesk from the
+          shared shell (lesson-shell.css) — the biggest single reason the
+          two designs looked unrelated.
+       2. No Apple blue. The single accent is the lab's actual flagship teal
+          (#5c939f, the same hex used as --electric-teal's default in
+          tokens.css) instead of Apple's #0A84FF — same "one quiet accent,
+          state read by weight not hue" rule, just tied to this site's own
+          color identity rather than a foreign one.
+     Everything else below is unchanged from the original dark pass.
+     ====================================================================== */
+  :root{
+    --core-black:#000000;        /* page background (pure black, OLED-friendly) */
+    --rich-carbon:#1c1c1e;       /* board / panel surface */
+    --urban-smoke:#2c2c2e;
+    --pulse-ash:#98989d;         /* secondary text */
+    --off-white:#f5f5f7;         /* primary text */
+    --neural-fog:#ebebf5;        /* body text */
+    --electric-teal:#5c939f;     /* the single accent — the lab's own teal, not Apple's blue */
+    --electric-teal-rgb:92,147,159;
+    --infrared:#5c939f;
+    --infrared-rgb:92,147,159;
+    --validation-green:#5c939f;
+  }
+  html,body{ background:#000; color:#f5f5f7; -webkit-font-smoothing:antialiased; }
+
+  /* app shell — more air, dark hairlines, one radius (18px cards / 100px pills) */
+  .app{ padding:22px 32px; gap:16px; }
+  .app-bar{ border-bottom:1px solid #38383a; padding-bottom:14px; }
+  .app-bar-left .title-primary{ font-family:var(--display); font-weight:600; letter-spacing:-0.022em; }
+  .app-bar-left .crumb{ color:#5c939f; }
+  .bar-sep{ background:#38383a; }
+
+  /* lang pill + explain — flat dark hairline, no glow, no 3D press */
+  .lang-pill{ background:#1c1c1e; border:1px solid #38383a; box-shadow:none; }
+  .lang-pill button{ color:#98989d; }
+  .lang-pill button.active{ background:#5c939f; color:#fff; box-shadow:none; }
+  .explain-btn{ background:#1c1c1e; border:1px solid #38383a; color:#5c939f; box-shadow:none; }
+  .explain-btn:hover{ background:#2c2c2e; box-shadow:none; }
+  .explain-btn::before{ border-color:#5c939f; }
+
+  /* nav pills — flat dark hairline, no glow, no lift */
+  .app-bar .nav-pill{ background:#1c1c1e; border:1px solid #38383a; color:#f5f5f7; box-shadow:none; }
+  .app-bar .nav-pill:hover{ border-color:#5c939f; background:#2c2c2e; box-shadow:none; transform:none; }
+  .app-bar .nav-pill:active{ transform:scale(.98); }
+  .app-bar .nav-pill svg{ stroke:#5c939f; }
+  .app-bar .nav-pill b{ color:#f5f5f7; }
+
+  /* stage = a dark card with a soft Apple shadow */
+  .stage{ background:#1c1c1e; border:1px solid #38383a; border-radius:18px; box-shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 30px rgba(0,0,0,.45); }
+
+  /* board = dark paper. faint dot grid only, no drifting aurora */
+  .board-wrap{ padding:0; }
+  .board-wrap .jxgbox{ background:radial-gradient(#2c2c2e 1px, transparent 1.3px); background-size:24px 24px; background-color:#000; border-radius:18px; }
+  .board-wrap .jxgbox::before{ display:none; }
+
+  /* equation bar — quiet light text, no flash emphasis */
+  .eq-bar{ border-bottom:1px solid #2c2c2e; }
+  .eq-line .katex{ color:#f5f5f7; }
+  .eq-sub{ color:#98989d; }
+
+  /* mode toggle — apple segmented control (dark): recessed track, raised segment */
+  .mode-toggle{ background:#2c2c2e; border:1px solid #38383a; box-shadow:none; }
+  .mode-btn{ color:#98989d; }
+  .mode-btn.active{ background:#1c1c1e; color:#f5f5f7; font-weight:600; box-shadow:none; border:1px solid #38383a; }
+
+  /* sliders — thin dark track, light thumb, no glow */
+  .control-row{ border-bottom:1px solid #2c2c2e; }
+  .control-row label{ color:#98989d; }
+  .control-row input[type="range"]{ background:#3a3a3c; box-shadow:none; }
+  .control-row input[type="range"]::-webkit-slider-thumb{ background:#f5f5f7; border:1px solid #5c939f; box-shadow:0 1px 3px rgba(0,0,0,.5); }
+  .control-row input[type="range"]::-webkit-slider-thumb:hover{ box-shadow:0 1px 5px rgba(0,0,0,.6); transform:none; }
+  .control-row input[type="range"]::-moz-range-thumb{ background:#f5f5f7; border:1px solid #5c939f; box-shadow:0 1px 3px rgba(0,0,0,.5); }
+  .control-val{ background:#2c2c2e; border:1px solid #38383a; color:#f5f5f7; box-shadow:none; }
+  .control-sep{ background:#3a3a3c; }
+
+  /* procedure rail — calm, more air, no pulsing badge */
+  .procedure{ border-left:1px solid #2c2c2e; scrollbar-color:#48484a transparent; }
+  .procedure-head{ color:#5c939f; }
+  .proc-step{ border-radius:12px; }
+  .proc-step:hover{ background:#2c2c2e; }
+  .proc-step.is-active{ background:#2c2c2e; border-color:transparent; box-shadow: inset 3px 0 0 #5c939f; }
+  .proc-num{ border:1px solid #38383a; color:#98989d; box-shadow:none; }
+  .proc-step.is-active .proc-num{ background:#5c939f; border-color:#5c939f; color:#fff; animation:none; }
+  .proc-body{ color:#f5f5f7; }
+  .proc-why{ background:#2c2c2e; border:1px solid #38383a; color:#ebebf5; }
+  .proc-why b{ color:#5c939f; }
+  .procedure .teach{ border-top:1px solid #2c2c2e; }
+  .procedure .teach p{ color:#98989d; }
+  .procedure .teach b{ color:#f5f5f7; }
+  .procedure::-webkit-scrollbar-thumb{ background:#48484a; }
+  .procedure::-webkit-scrollbar-thumb:hover{ background:#5c939f; }
+
+  /* notebook (explain) — opaque dark panel, no glass blur, no breathing ring */
+  .notebook{ background:#1c1c1e; backdrop-filter:none; -webkit-backdrop-filter:none; box-shadow:-1px 0 0 #2c2c2e; }
+  .notebook-close{ border:1px solid #38383a; color:#98989d; background:#1c1c1e; }
+  .notebook-kicker{ color:#5c939f; }
+  .nb-sec h4.nb-h{ color:#f5f5f7; }
+  .nb-sec p.nb-p{ color:#ebebf5; }
+  .notebook-ring{ border-color:rgba(92,147,159,.55); box-shadow:0 0 0 3px rgba(92,147,159,.18); animation:none; }
+  .nb-cursor{ filter:none; }
+  .nb-cursor-ripple{ border-color:rgba(92,147,159,.8); }
+  .nb-cursor-label{ color:#fff; background:#5c939f; border:1px solid #5c939f; }
+
+  /* explain popover — opaque dark sheet */
+  .explain-pop{ background:#1c1c1e; backdrop-filter:none; -webkit-backdrop-filter:none; border:1px solid #38383a; box-shadow:0 8px 28px rgba(0,0,0,.6); }
+
+  /* JSXGraph skin → dark: muted light labels, dark infobox */
+  .jxgbox{ color:#98989d; }
+  .jxgbox tspan, .JXGtext{ fill:#98989d !important; }
+  .JXG_infobox{ background:#2c2c2e !important; color:#f5f5f7 !important; border:1px solid #38383a !important; box-shadow:0 4px 14px rgba(0,0,0,.6) !important; }
+  .JXG_navigation_button{ color:#98989d !important; border:1px solid #2c2c2e !important; }
+  .JXG_navigation_button:hover{ color:#5c939f !important; border-color:#5c939f !important; }
 </style>
 </head>
 <body>
@@ -317,9 +436,12 @@
   // compass work + active/selected state, green = the provably-correct result. infrared
   // is the lab's CTA-only accent and is NOT used on the board — no orange reaches the
   // construction, so it reads as the lab, not a generic geometry widget.
+  // APPLE PASS (DARK) — one accent only. Light neutrals on black; the single apple
+  // dark-mode blue does double duty as both the compass work AND the result. The result
+  // line distinguishes itself from the dashed arcs by being solid + thicker, not by hue.
   const C = {
-    fog: "#dadada", ash: "#7d858c", white: "#e7e7e7",
-    teal: "#5c939f", infrared: "#ed6d40", green: "#59a993"
+    fog: "#ebebf5", ash: "#98989d", white: "#f5f5f7",
+    teal: "#5c939f", infrared: "#5c939f", green: "#5c939f"
   };
 
   // ---- i18n strings ----------------------------------------------------------
@@ -457,7 +579,7 @@
           { h: "Why it holds", p: "Because the opening never changed, P and Q each lie on both circles: AP = BP and AQ = BQ. Each crossing is equidistant from A and from B — by construction, not by measuring." },
           { h: "Next", p: "Next, one straight line through P and Q. Since both crossings are equidistant from A and B, that line is forced to be the perpendicular bisector." }
         ]}),
-        () => ({ ids: ["bi-line"], accent: "result", kicker: "Step 4 of 4 · Perpendicular bisector", sections: [
+        () => ({ ids: ["bi-line"], kicker: "Step 4 of 4 · Perpendicular bisector", sections: [
           { h: "On the board now", p: "The green line through P and Q — the perpendicular bisector of AB. It meets AB at its midpoint and at a right angle." },
           { h: "The move", p: "Step 4 — draw the straight line through the two crossings. This is the constructed result." },
           { h: "Why it holds", p: "P and Q are both equidistant from A and B, so the line PQ is the locus of all points equidistant from A and B — exactly the perpendicular bisector. It passes through the midpoint (equal distances ⇒ halfway) and is perpendicular (the locus is the mirror line of the segment). No ruler, no protractor — yet provably exact." },
@@ -483,7 +605,7 @@
           { h: "Why it holds", p: "VP = VQ from step 2, and PR = QR because the two new arcs are equal. So R is equidistant from both sides — exactly the property that defines the angle bisector." },
           { h: "Next", p: "Next, the ray from V through R. Since R is equidistant from both sides, that ray splits the angle into two congruent angles." }
         ]}),
-        () => ({ ids: ["an-ray"], accent: "result", kicker: "Step 4 of 4 · Angle bisector", sections: [
+        () => ({ ids: ["an-ray"], kicker: "Step 4 of 4 · Angle bisector", sections: [
           { h: "On the board now", p: "The green ray from V through R — the angle bisector. It divides the angle into two congruent (equal) angles." },
           { h: "The move", p: "Step 4 — draw the ray VR. This is the constructed bisector." },
           { h: "Why it holds", p: "R is equidistant from both sides (VP = VQ and PR = QR), and every point equidistant from the two sides of an angle lies on its bisector. So VR splits the angle exactly in half — by construction, no protractor." },
@@ -511,7 +633,7 @@
           { h: "لماذا يصح", p: "لأن الفتحة لم تتغيّر، تقع P و Q على الدائرتين معًا: AP = BP و AQ = BQ. كل نقطة تقاطع تبعد المسافة نفسها عن A وعن B — بالإنشاء لا بالقياس." },
           { h: "التالي", p: "التالي: خطٌّ مستقيم واحد عبر P و Q. وبما أن نقطتي التقاطع تبعدان المسافة نفسها عن A و B، فذلك الخطُّ حتمًا هو المنصف العمودي." }
         ]}),
-        () => ({ ids: ["bi-line"], accent: "result", kicker: "الخطوة ٤ من ٤ · المنصف العمودي", sections: [
+        () => ({ ids: ["bi-line"], kicker: "الخطوة ٤ من ٤ · المنصف العمودي", sections: [
           { h: "على اللوح الآن", p: "الخط الأخضر عبر P و Q — المنصف العمودي لـ AB. يلتقي AB عند منتصفه وعلى زاوية قائمة." },
           { h: "الخطوة", p: "الخطوة ٤ — أرسم الخط المستقيم عبر نقطتي التقاطع. هذا هو الناتج المنشأ." },
           { h: "لماذا يصح", p: "P و Q تبعدان المسافة نفسها عن A و B، فخطُّ PQ هو مجموع النقاط التي تبعد المسافة نفسها عن A و B — وهو بالضبط المنصف العمودي. يمرّ بالمنتصف (مسافات متساوية ⇒ المنتصف) ويكون عموديًا (المجموع هو خطّ تماثل القطعة). بلا مسطرة مدرَّجة ولا منقلة — ومع ذلك فهو دقيق برهانيًا." },
@@ -537,7 +659,7 @@
           { h: "لماذا يصح", p: "VP = VQ من الخطوة ٢، و PR = QR لأن القوسين الجديدين متساويان. فتقع R على البعد نفسه من الضلعين — وهذا بالضبط ما يُعرّف منصف الزاوية." },
           { h: "التالي", p: "التالي: الشعاع من V عبر R. وبما أن R تبعد المسافة نفسها عن الضلعين، فإن ذلك الشعاعَ يقسم الزاوية إلى زاويتين متطابقتين." }
         ]}),
-        () => ({ ids: ["an-ray"], accent: "result", kicker: "الخطوة ٤ من ٤ · منصف الزاوية", sections: [
+        () => ({ ids: ["an-ray"], kicker: "الخطوة ٤ من ٤ · منصف الزاوية", sections: [
           { h: "على اللوح الآن", p: "الشعاع الأخضر من V عبر R — منصف الزاوية. يقسم الزاوية إلى زاويتين متطابقتين (متساويتين)." },
           { h: "الخطوة", p: "الخطوة ٤ — أرسم الشعاع VR. هذا هو المنصف المنشأ." },
           { h: "لماذا يصح", p: "R تبعد المسافة نفسها عن الضلعين (VP = VQ و PR = QR)، وكل نقطة تبعد المسافة نفسها عن ضلعَي زاوية تقع على منصفها. فالشعاع VR يقسم الزاوية إلى نصفين تمامًا — بالإنشاء، دون منقلة." },
@@ -611,6 +733,10 @@
       pan: { enabled: false }, zoom: { enabled: false },
       grid: false
     });
+    // kill the hover/click highlight on points (flash to accent + grow). Dragging still
+    // works; this only removes the visual "lights up when I touch it" feedback, which
+    // reads as an unwanted animation when a student clicks an object in the canvas.
+    board.options.point.highlight = false;
   }
 
   // tag a JSXGraph element's SVG node for the tour + dim scheme, give it a stable id
@@ -659,7 +785,7 @@
     const Q = board.create("intersection", [cA, cB, 1], { name: "Q", size: 4, fillColor: C.white, strokeColor: C.teal, fixed: true, showInfobox: false, label: { offset: [8, -16], fontSize: 16, color: C.fog } });
     tag(P, "bi-P", "marks"); tag(Q, "bi-Q", "marks");
 
-    const line = board.create("line", [P, Q], { strokeColor: C.green, strokeWidth: 3, strokeOpacity: 0.95, highlight: false, straightFirst: true, straightLast: true });
+    const line = board.create("line", [P, Q], { strokeColor: C.green, strokeWidth: 4, strokeOpacity: 0.95, highlight: false, straightFirst: true, straightLast: true });
     tag(line, "bi-line", "result");
 
     // arcA = the arc from A (خطوة ٢); arcB = the arc from B + the two crossings (خطوة ٣).
@@ -684,12 +810,14 @@
     const W = handle([6.5, 4], "an-W2");
     // JSXGraph has no "ray" type — a ray is a line with straightFirst:false,
     // straightLast:true + lastArrow. These are the visible sides of the angle.
-    const r1 = board.create("line", [V, U], { strokeColor: C.fog, strokeWidth: 2.5, strokeOpacity: 0.95, highlight: false, straightFirst: false, straightLast: true, lastArrow: { type: 1, size: 6 } });
-    const r2 = board.create("line", [V, W], { strokeColor: C.fog, strokeWidth: 2.5, strokeOpacity: 0.95, highlight: false, straightFirst: false, straightLast: true, lastArrow: { type: 1, size: 6 } });
+    const r1 = board.create("line", [V, U], { strokeColor: C.fog, strokeWidth: 2.5, strokeOpacity: 0.95, highlight: false, straightFirst: false, straightLast: false, lastArrow: { type: 1, size: 4 } });
+    const r2 = board.create("line", [V, W], { strokeColor: C.fog, strokeWidth: 2.5, strokeOpacity: 0.95, highlight: false, straightFirst: false, straightLast: false, lastArrow: { type: 1, size: 4 } });
     tag(r1, "an-r1", "given"); tag(r2, "an-r2", "given");
 
-    // first arc from the vertex — radius driven by the spring
-    const r1Fn = () => 1.4 + 0.16 * widthSpring.get();
+    // first arc from the vertex — radius scales with the shorter side so the arc
+    // reads as a real compass opening against the rays (a fixed 1.4 left it tiny next
+    // to the board-edge rays). Capped at ~65% of the shorter side so P,Q stay on the rays.
+    const r1Fn = () => Math.min(V.Dist(U), V.Dist(W)) * (0.45 + 0.02 * widthSpring.get());
     const cV = board.create("circle", [V, r1Fn], { strokeColor: C.teal, strokeWidth: 2.25, strokeOpacity: 0.95, dash: 2, fillOpacity: 0, highlight: false });
     tag(cV, "an-cv", "arcs");
 
@@ -704,8 +832,10 @@
     const Q = board.create("point", along(V, W), { name: "Q", size: 4, fillColor: C.white, strokeColor: C.teal, fixed: true, showInfobox: false, label: { offset: [8, 12], fontSize: 16, color: C.fog } });
     tag(P, "an-P", "arcs"); tag(Q, "an-Q", "arcs");
 
-    // equal arcs from P and Q — radius = 0.8 × PQ (function so it tracks drag)
-    const r2Fn = () => P.Dist(Q) * 0.8;
+    // equal arcs from P and Q — radius = 1.1 × PQ (function so it tracks drag). 0.8
+    // left the equal arcs almost invisible on a narrow angle; 1.1 keeps them large
+    // enough to read while still intersecting cleanly (1.1·PQ > 0.5·PQ).
+    const r2Fn = () => P.Dist(Q) * 1.1;
     const cP = board.create("circle", [P, r2Fn], { strokeColor: C.teal, strokeWidth: 2.25, strokeOpacity: 0.95, dash: 2, fillOpacity: 0, highlight: false });
     const cQ = board.create("circle", [Q, r2Fn], { strokeColor: C.teal, strokeWidth: 2.25, strokeOpacity: 0.95, dash: 2, fillOpacity: 0, highlight: false });
     tag(cP, "an-cp", "marks"); tag(cQ, "an-cq", "marks");
@@ -719,7 +849,10 @@
     ], { name: "R", size: 4, fillColor: C.white, strokeColor: C.teal, fixed: true, showInfobox: false, label: { offset: [8, 12], fontSize: 16, color: C.fog } });
     tag(R, "an-R", "marks");
 
-    const ray = board.create("line", [V, R], { strokeColor: C.green, strokeWidth: 3, strokeOpacity: 0.95, highlight: false, straightFirst: false, straightLast: true, lastArrow: { type: 1, size: 6 } });
+    // result ends at R (the bisector mark) — a finite segment, not a board-edge ray,
+    // so it stays short and the R marker reads as the terminator. No arrowhead: the
+    // bisector-mode result is a plain line too, so the two modes match.
+    const ray = board.create("line", [V, R], { strokeColor: C.green, strokeWidth: 3, strokeOpacity: 0.95, highlight: false, straightFirst: false, straightLast: false });
     tag(ray, "an-ray", "result");
 
     return { given: [r1, r2, V], arcs: [cV, P, Q], marks: [cP, cQ, R], result: [ray] };
@@ -735,6 +868,10 @@
     // start fully unrevealed, then applyStep animates the given group in
     Object.keys(groups).forEach(k => groups[k].forEach(el => { el.rendNode.style.opacity = "0"; }));
     applyStep(step, true);
+    // re-size the fresh board to its wrap on the next frame. syncBoardSize only runs
+    // on mount + window resize otherwise, so without this a mode switch (which calls
+    // buildScene) leaves the new board at 0 height — the canvas collapses.
+    requestAnimationFrame(syncBoardSize);
   }
 
   // ---- step reveal: show groups up to `step`, hide the rest -------------------
@@ -785,27 +922,21 @@
     }
   }
 
-  // dashed arc: opacity 0→1, scale 0.97→1, blur 6px→0 — a soft "swing into place"
+  // APPLE PASS — arcs: a plain fade, no blur, no scale-up. Quieter, uniform motion.
   function appearLayered(node, delay) {
-    node.style.transformBox = "fill-box";
-    node.style.transformOrigin = "center";
     node.style.opacity = "0";
-    node.style.filter = "blur(6px)";
-    node.style.transform = "scale(0.97)";
-    animate(node,
-      { opacity: [0, 1], filter: ["blur(6px)", "blur(0px)"], transform: ["scale(0.97)", "scale(1)"] },
-      { ease: EXPO, duration: 0.6, delay: delay || 0 });
+    animate(node, { opacity: [0, 1] }, { ease: EXPO, duration: 0.5, delay: delay || 0 });
   }
 
-  // point: scale 0→1.12→1 overshoot spring + opacity — the needle landing with a tick
+  // APPLE PASS — point: a gentle settle, no overshoot spring. Just ease into place.
   function popPoint(node, delay) {
     node.style.transformBox = "fill-box";
     node.style.transformOrigin = "center";
     node.style.opacity = "0";
-    node.style.transform = "scale(0)";
+    node.style.transform = "scale(0.6)";
     animate(node,
-      { opacity: [0, 1], transform: ["scale(0)", "scale(1.12)", "scale(1)"] },
-      { ...STATE_SPRING, delay: delay || 0 });
+      { opacity: [0, 1], transform: ["scale(0.6)", "scale(1)"] },
+      { ease: EXPO, duration: 0.5, delay: delay || 0 });
   }
 
   function renderEquationBar() {
@@ -880,6 +1011,10 @@
       step = 0; stepSlider.value = 0;
       setSliderFill(stepSlider);
       buildScene(); renderProcedure();
+      // auto-play the newly chosen construction too (not just the initial bisector on
+      // load), so switching to "angle bisector" animates it through instead of sitting
+      // static at step 0. Any manual control cancels it.
+      setTimeout(startAuto, 900);
     });
   });
   // drive the slider's teal progress fill (a --fill var the CSS gradient reads)

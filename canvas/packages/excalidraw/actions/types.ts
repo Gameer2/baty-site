@@ -77,6 +77,8 @@ export type ActionName =
   | "toggleShape3DWireframe"
   | "changeSloppiness"
   | "changeFreedrawMode"
+  | "changePenStyle"
+  | "changeStrokeSmoothing"
   | "changeStrokeStyle"
   | "changeArrowhead"
   | "changeArrowType"

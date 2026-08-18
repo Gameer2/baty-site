@@ -50,6 +50,10 @@ export const getDefaultAppState = (): Omit<
     // check in App.tsx) to flip it over — devices/browsers that never report pointerType "pen"
     // for a real stylus would otherwise get stuck on the flat, uniform-width "laser" look forever.
     currentItemStrokeVariability: "variable",
+    // Freedraw pen-style variant (pen / marker / pencil / highlighter). Drives the
+    // rendering profile in packages/element/src/shape.ts. Default "pen" preserves
+    // the original freedraw look for existing drawings.
+    currentItemPenStyle: "pen",
     // 0 = untouched (exact current per-pointer-type streamline baseline — see
     // handleFreeDrawElementOnPointerDown in App.tsx). Additive on top of that baseline rather than
     // replacing it, so leaving this at its default changes nothing about existing drawing feel.
@@ -215,6 +219,11 @@ const APP_STATE_STORAGE_CONF = (<
   currentItemOpacity: { browser: true, export: false, server: false },
   currentItemRoughness: { browser: true, export: false, server: false },
   currentItemStrokeVariability: {
+    browser: true,
+    export: false,
+    server: false,
+  },
+  currentItemPenStyle: {
     browser: true,
     export: false,
     server: false,

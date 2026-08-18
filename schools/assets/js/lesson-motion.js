@@ -29,6 +29,14 @@
   // ambient spring — softer, no overshoot, for loops / breathing motion that must never
   // compete with state-driven animation (§14.3's "ambient loops independently" rule).
   const AMBIENT_SPRING = { type: spring, stiffness: 60, damping: 20, mass: 1 };
+  // quiet spring — the Apple-pass state-change spring (SCHOOLS_FINGERPRINT.md §10.3):
+  // damping raised relative to stiffness so it settles with NO overshoot, just a gentle
+  // ease into place. This is now the vertical's default (see springValue below) — every
+  // lesson that hasn't hand-picked STATE_SPRING gets the quieter settle automatically,
+  // instead of each lesson hand-flattening its own points/arcs to remove the bounce.
+  // STATE_SPRING (the elastic ~back.out(1.7) pop) is still exported for a lesson that
+  // explicitly wants the livelier feel at one specific moment.
+  const QUIET_SPRING = { type: spring, stiffness: 210, damping: 26, mass: 1, restSpeed: 0.01 };
 
   // ---- tween a raw number with the lab curve -----------------------------------
   // onUpdate fires every frame with the interpolated value — bind it to your render
@@ -57,7 +65,9 @@
     mv.on("change", v => { current = v; });
     return {
       set: function (target) {
-        animate(mv, target, opts.spring || STATE_SPRING);
+        // default flipped to QUIET_SPRING (Apple-pass, no overshoot) — pass
+        // { spring: LessonMotion.STATE_SPRING } explicitly for the elastic feel.
+        animate(mv, target, opts.spring || QUIET_SPRING);
       },
       get: function () { return current; },
       stop: function () { if (mv.stop) mv.stop(); }
@@ -100,12 +110,27 @@
   function appear(node, opts) {
     opts = opts || {};
     node.style.opacity = "0";
-    // a spring is a transition *type*, not an easing — so spring reveals spread the
-    // STATE_SPRING config as the transition, non-spring uses the expo curve + duration.
+    // a spring is a transition *type*, not an easing — so spring reveals spread a
+    // spring config as the transition, non-spring uses the expo curve + duration.
+    // `opts.spring: true` now gets QUIET_SPRING (no-overshoot default); pass the actual
+    // STATE_SPRING object explicitly for the elastic pop at a moment that wants it.
     const transition = opts.spring
-      ? STATE_SPRING
+      ? (opts.spring === true ? QUIET_SPRING : opts.spring)
       : { ease: EXPO, duration: opts.duration != null ? opts.duration : 0.5 };
     return animate(node, { opacity: [0, 1] }, { ...transition, onComplete: opts.onComplete });
+  }
+  // ---- "a point lands" — the shared quiet-settle primitive -----------------------
+  // Supersedes the hand-rolled per-lesson `popPoint` functions (each geometry lesson
+  // used to write its own opacity+scale tween for intersection/marked points). Gentle
+  // scale-in, no overshoot, no blur — the Apple-pass point treatment
+  // (SCHOOLS_FINGERPRINT.md §10.3), now the shared default rather than a per-lesson
+  // hand-flatten. Pass { spring: STATE_SPRING } to opt into the older elastic pop.
+  function settle(node, opts) {
+    opts = opts || {};
+    node.style.opacity = "0";
+    node.style.transform = "scale(0.6)";
+    return animate(node, { opacity: [0, 1], scale: [0.6, 1] },
+      { ...(opts.spring || QUIET_SPRING), onComplete: opts.onComplete });
   }
   // SVG line/path "draws itself" by animating stroke-dashoffset. Pass the SVG path/line.
   // NOTE: Motion's `animate` does not actually progress strokeDashoffset on SVG nodes
@@ -142,10 +167,10 @@
   }
 
   global.LessonMotion = {
-    EXPO: EXPO, STATE_SPRING: STATE_SPRING, AMBIENT_SPRING: AMBIENT_SPRING,
+    EXPO: EXPO, STATE_SPRING: STATE_SPRING, AMBIENT_SPRING: AMBIENT_SPRING, QUIET_SPRING: QUIET_SPRING,
     tweenValue: tweenValue, springValue: springValue,
     reveal: reveal, revealStagger: revealStagger, sequence: sequence,
-    appear: appear, draw: draw,
+    appear: appear, draw: draw, settle: settle,
     // pass-through for lessons that need the raw primitives
     animate: animate, spring: spring, inView: inView, stagger: stagger, motionValue: motionValue
   };

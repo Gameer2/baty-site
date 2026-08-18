@@ -4,244 +4,854 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Negative Numbers — Grade 5</title>
+
 <script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<script src="../assets/vendor/motion.min.js"></script>
+
+<!-- the diver is now a real JSXGraph glider on a vertical axis (drag/coordinate math
+     handled by the library), not a hand-computed pixel position — see the "wait, use
+     geometry tools not hardcoded canvas math" fix in this session's chat. -->
+<link rel="stylesheet" href="../assets/vendor/jsxgraph.css" />
+<script src="../assets/vendor/jsxgraphcore.js"></script>
+<link rel="stylesheet" href="../assets/css/jsxgraph-skin.css" />
+
 <link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
 <script src="../../math-lab/assets/vendor/katex.min.js"></script>
 <link rel="stylesheet" href="../assets/css/lesson-shell.css" />
 <script src="../assets/js/lesson-shell.js"></script>
+<script src="../assets/js/lesson-motion.js"></script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
 <style>
-  /* adapted directly from the Grade 6 "Integers & Absolute Value" scene (prototypes/lesson-g6-1-1...),
-     trimmed to just the diver + signed position — no opposites, no absolute value at this grade. */
-  .zone-sky{ position:absolute; inset:0 0 50% 0; background:linear-gradient(to bottom, #0c0e10, var(--rich-carbon)); }
-  .zone-water{ position:absolute; inset:50% 0 0 0; background:linear-gradient(to bottom, rgba(92,147,159,.18), rgba(92,147,159,.03) 60%, var(--rich-carbon)); }
-  .bubble{ position:absolute; border-radius:50%; background:rgba(92,147,159,.4); }
-  .ruler{ position:absolute; left:64px; top:30px; bottom:30px; width:1px; background:rgba(255,255,255,.06); }
-  .ruler .rung{ position:absolute; left:-5px; width:11px; height:1px; background:rgba(255,255,255,.16); }
-  .ruler .rung.zero{ display:none; }
-  .ruler .rung-label{ position:absolute; left:-40px; transform:translateY(-50%); font-family:var(--mono); font-size:10.5px; color:var(--pulse-ash); width:26px; text-align:right; direction:ltr; }
-  .ruler .rung-label.neg{ color:#7fa8b0; }
-  .ruler .rung-label.pos{ color:#b98a72; }
-  .sea-line-wrap{ position:absolute; left:0; right:0; height:22px; overflow:hidden; z-index:2; }
+  /* ---- bespoke workspace: signed-position scene + book-procedure panel side by side,
+     built to the SAME app-shell archetype as 4-5-geometric-constructions-apple-integrated
+     (SCHOOLS_FINGERPRINT.md §10.3/§10.4) — this file was previously a smaller `.shell`
+     layout with its own drifting logic; rebuilt so both lessons share one visual grammar:
+     one continuous dark canvas, a bare-text procedure rail, the same notebook/cursor
+     system, the same token set. There is no JSXGraph board here (this scene is a plain
+     absolutely-positioned diver/ruler diagram, not geometry construction), so `.scene`
+     plays the role `.jxgbox` plays in the reference lesson — same flex slot, same
+     edge-to-edge treatment, same 18px radius. ---- */
+  .stage{ background:var(--core-black); border:1px solid rgba(255,255,255,.045); border-radius:22px; }
+  .workspace{ display:flex; gap:0; }
+  .board-wrap{ flex:1 1 64%; min-width:0; position:relative; padding:6px 0 6px 6px; }
+
+  /* the scene itself = the dark canvas. No inner frame, no drifting glow (the shared
+     .scene::before radial glow is switched off below) — it merges into the stage so
+     there is one surface, not a box inside a box, same as the geometric board. */
+  .zone-sky{ position:absolute; inset:0 0 50% 0; background:linear-gradient(to bottom, var(--core-black), var(--rich-carbon)); }
+  .zone-water{ position:absolute; inset:50% 0 0 0; background:linear-gradient(to bottom, rgba(var(--electric-teal-rgb),.14), rgba(var(--electric-teal-rgb),.03) 60%, var(--rich-carbon)); }
+  .bubble{ position:absolute; border-radius:50%; background:rgba(var(--electric-teal-rgb),.4); }
+  .sea-line-wrap{ position:absolute; left:0; right:0; height:22px; overflow:hidden; z-index:2; color:var(--electric-teal); }
   .sea-tile{ position:absolute; top:0; left:0; width:200%; height:100%; display:flex; }
   .sea-tile svg{ width:50%; height:100%; display:block; }
-  .zero-badge{ position:absolute; left:88px; margin-top:-11px; font-family:var(--mono); font-size:10.5px; letter-spacing:.04em; color:var(--electric-teal); background:rgba(9,9,9,.7); border:1px solid rgba(92,147,159,.4); border-radius:100px; padding:3px 9px; white-space:nowrap; z-index:4; direction:ltr; }
-  .diver{ position:absolute; left:64px; width:30px; height:30px; margin-left:-15px; margin-top:-15px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #8fbec6, var(--electric-teal) 70%); box-shadow:0 6px 18px rgba(92,147,159,.45), inset 0 0 0 2px rgba(9,9,9,.25); cursor:grab; touch-action:none; z-index:6; }
-  .diver:active{ cursor:grabbing; }
-  .diver-tag{ position:absolute; left:88px; top:50%; transform:translateY(-50%); font-family:var(--mono); font-size:12px; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.12); border-radius:6px; padding:3px 8px; white-space:nowrap; z-index:6; direction:ltr; }
-  .drag-hint{ position:absolute; left:64px; transform:translateX(-50%); font-family:var(--mono); font-size:10.5px; letter-spacing:.03em; color:var(--pulse-ash); white-space:nowrap; z-index:6; transition:opacity .5s ease; animation:hintFloat 1.6s ease-in-out infinite; direction:ltr; }
-  @keyframes hintFloat{ 0%,100%{ transform:translateX(-50%) translateY(0);} 50%{ transform:translateX(-50%) translateY(4px);} }
+  .zero-badge{ position:absolute; left:88px; margin-top:-11px; font-family:var(--mono); font-size:10.5px; letter-spacing:.04em; color:var(--electric-teal); background:rgba(0,0,0,.7); border:1px solid rgba(var(--electric-teal-rgb),.4); border-radius:100px; padding:3px 9px; white-space:nowrap; z-index:4; direction:ltr; }
+  /* the JSXGraph board: transparent, sits between the water/sea-line decoration (z-index
+     2) and the HTML tag pills (z-index 4/6) — the ruler ticks/labels and the diver are
+     now real JSXGraph elements (a glider on a vertical line), not hand-positioned divs;
+     JSXGraph computes the world-to-pixel projection itself instead of a hand-written
+     yFor()/vFromClientY() formula. */
+  .jxgboard{ position:absolute; inset:0; z-index:3; background:transparent; }
+  .jxgboard .JXGtext{ direction:ltr; }
+  /* flat contact shadow on the diver point itself (a real SVG node once JSXGraph draws
+     it, tagged with this id — see tag() in the script) — no ambient colored glow. */
+  #diver{ filter: drop-shadow(0 3px 8px rgba(0,0,0,.5)); cursor:grab; }
+  #diver:active{ cursor:grabbing; }
+  .diver-tag{ position:absolute; left:88px; top:50%; transform:translateY(-50%); font-family:var(--mono); font-size:12px; color:var(--off-white); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.12); border-radius:100px; padding:3px 8px; white-space:nowrap; z-index:6; direction:ltr; pointer-events:none; }
+  /* these three carry real Arabic words (not just digits) once translated, so unlike
+     .rung-label (digits only, direction:ltr is correct there) they need an AR override —
+     without it the shared .ar-ui{font-family:Vazirmatn} rule loses the cascade tie to
+     this file's own later, equal-specificity font-family:var(--mono). */
+  .zero-badge.ar-ui, .diver-tag.ar-ui{ font-family:"Vazirmatn", sans-serif; direction:rtl; letter-spacing:0; }
+  /* left-aligned at the same 88px anchor as the tags, not centred on the 64px diver
+     column — both language strings are wider than the 128px that centering on a 64px
+     anchor allows, so a centered hint clips against the scene's own overflow:hidden. */
+  .drag-hint{ position:absolute; left:88px; font-family:var(--mono); font-size:10.5px; letter-spacing:.03em; color:var(--pulse-ash); white-space:nowrap; z-index:6; transition:opacity .5s ease; animation:hintFloat 1.6s ease-in-out infinite; direction:ltr; }
+  .drag-hint.ar-ui{ font-family:"Vazirmatn", sans-serif; direction:rtl; letter-spacing:0; }
+  @keyframes hintFloat{ 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(4px);} }
+
+  /* procedure = bare text rail on the same black canvas. No panel background, no box —
+     just a single hairline divider on its inline-start so it never reads as a column
+     inside a square. Identical to the reference lesson's rail. */
+  .procedure{
+    position:relative;
+    flex:0 0 36%; max-width:380px; padding:var(--sp-5) var(--sp-6) var(--sp-5);
+    border-left:1px solid rgba(255,255,255,.06);
+    background:none;
+    display:flex; flex-direction:column; gap:var(--sp-2);
+  }
+  .procedure-head{ font-family:var(--display); font-size:var(--fs-2xs); letter-spacing:var(--tr-label); text-transform:uppercase; color:var(--electric-teal); margin-bottom:var(--sp-1); font-weight:600; }
+  .procedure-head.ar-ui{ letter-spacing:0; text-transform:none; font-size:var(--fs-sm); }
+  .proc-step{ display:flex; gap:var(--sp-3); padding:var(--sp-3); border-radius:var(--sp-3); border:1px solid transparent; transition:background .25s cubic-bezier(.16,1,.3,1), border-color .25s ease, box-shadow .25s ease; cursor:pointer; }
+  .proc-step:hover{ background:rgba(255,255,255,.03); }
+  .proc-step.is-active{ background:linear-gradient(90deg, rgba(var(--electric-teal-rgb),.16), rgba(var(--electric-teal-rgb),.02)); border-color:rgba(var(--electric-teal-rgb),.30); box-shadow: inset 3px 0 0 var(--electric-teal); }
+  .proc-num{ flex:0 0 22px; height:22px; border-radius:50%; border:1px solid rgba(255,255,255,.18); font-family:var(--mono); font-size:var(--fs-2xs); display:flex; align-items:center; justify-content:center; color:var(--pulse-ash); box-shadow: inset 0 1px 1px rgba(255,255,255,.06), 0 2px 4px rgba(0,0,0,.4); transition:all .25s cubic-bezier(.16,1,.3,1); margin-top:1px; }
+  .proc-step.is-active .proc-num{ background:var(--electric-teal); border-color:var(--electric-teal); color:var(--core-black); font-weight:700; }
+  .proc-body{ font-size:var(--fs-sm); color:var(--neural-fog); line-height:var(--lh-snug); }
+  .proc-body.ar-body{ font-size:var(--fs-sm); line-height:var(--lh-relaxed); }
+  .proc-why{ margin-top:var(--sp-2); padding:var(--sp-3) var(--sp-4); border-radius:var(--sp-3); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.08); font-size:var(--fs-xs); color:var(--neural-fog); line-height:var(--lh-snug); }
+  .proc-why b{ color:var(--electric-teal); font-weight:500; }
+  .proc-why.ar-body{ font-size:var(--fs-xs); line-height:var(--lh-relaxed); }
+  .procedure .teach{ padding:var(--sp-4) 0 0; border-top:1px solid rgba(255,255,255,.06); background:none; }
+  .procedure .teach p{ font-size:var(--fs-xs); line-height:var(--lh-snug); }
+  .procedure .teach p.ar-body{ line-height:var(--lh-relaxed); }
+  .procedure{ scrollbar-width: thin; scrollbar-color: rgba(var(--electric-teal-rgb),.45) transparent; scrollbar-gutter: stable; }
+  .procedure::-webkit-scrollbar{ width:9px; }
+  .procedure::-webkit-scrollbar-track{ background:transparent; margin:var(--sp-3) 0; }
+  .procedure::-webkit-scrollbar-thumb{ background:linear-gradient(180deg, rgba(var(--electric-teal-rgb),.55), rgba(var(--electric-teal-rgb),.28)); border-radius:100px; border:2px solid transparent; background-clip:padding-box; transition:background .2s ease; }
+  .procedure::-webkit-scrollbar-thumb:hover{ background:linear-gradient(180deg, rgba(var(--electric-teal-rgb),.85), rgba(var(--electric-teal-rgb),.5)); background-clip:padding-box; }
+  .procedure::-webkit-scrollbar-corner{ background:transparent; }
+
+  /* premium slider: a true progress fill driven by a --fill var the JS sets on input. */
+  .control-row input[type="range"]{
+    --fill:70%;
+    background:linear-gradient(90deg, var(--electric-teal) 0%, var(--electric-teal) var(--fill), rgba(255,255,255,.10) var(--fill), rgba(255,255,255,.10) 100%);
+    height:6px;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.5);
+  }
+  .control-row input[type="range"]::-moz-range-progress{ background:transparent; }
+
+  /* eq-bar: bare on the black canvas — no pane, no box. */
+  .eq-bar{ background:none; -webkit-backdrop-filter:none; backdrop-filter:none; }
+
+  .explain-btn{ transition:background .2s cubic-bezier(.16,1,.3,1), box-shadow .25s ease, transform .25s cubic-bezier(.16,1,.3,1), border-color .2s ease; will-change:transform; }
+  .explain-btn:hover{ background:rgba(var(--electric-teal-rgb),.10); box-shadow:0 2px 0 rgba(0,0,0,.35), 0 0 10px rgba(var(--electric-teal-rgb),.12); }
+
+  .explain-pop{ position:absolute; z-index:30; top:calc(100% + 8px); right:0; width:300px;
+    padding:var(--sp-4); border-radius:16px; background:rgba(16,17,20,.96);
+    -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+    border:1px solid rgba(var(--electric-teal-rgb),.28);
+    box-shadow:0 12px 32px rgba(0,0,0,.5), inset 0 1px 0 rgba(var(--electric-teal-rgb),.18);
+    display:none; flex-direction:column; gap:var(--sp-2); }
+  .explain-pop.is-open{ display:flex; animation:nbIn .32s cubic-bezier(.16,1,.3,1); }
+  .explain-pop-close{ position:absolute; top:10px; right:12px; width:24px; height:24px; border-radius:50%;
+    border:1px solid rgba(255,255,255,.16); background:none; color:var(--pulse-ash); font-size:17px; line-height:1;
+    cursor:pointer; transition:color .2s ease, border-color .2s ease; }
+  .explain-pop-close:hover{ color:var(--electric-teal); border-color:rgba(var(--electric-teal-rgb),.5); }
+  .explain-pop-title{ font-family:var(--display); font-size:var(--fs-2xs); letter-spacing:var(--tr-label);
+    text-transform:uppercase; color:var(--electric-teal); font-weight:600; }
+  .explain-pop-title.ar-ui{ letter-spacing:0; text-transform:none; font-size:var(--fs-xs); }
+  .explain-opt--whole{ font-family:var(--display); font-size:var(--fs-sm); color:var(--core-black); font-weight:600;
+    background:linear-gradient(180deg, #6fa9b4, var(--electric-teal)); border:none; border-radius:100px;
+    padding:var(--sp-3) var(--sp-4); cursor:pointer; text-align:start;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 4px 14px rgba(var(--electric-teal-rgb),.35);
+    transition:filter .2s ease, transform .15s cubic-bezier(.16,1,.3,1); }
+  .explain-opt--whole:hover{ filter:brightness(1.06); }
+  .explain-opt--whole:active{ transform:translateY(1px); }
+  .explain-opt--whole.ar-ui{ font-family:"Vazirmatn", sans-serif; }
+  .explain-pop-divider{ font-family:var(--display); font-size:var(--fs-2xs); color:var(--pulse-ash); text-align:center; }
+  .explain-pop-divider.ar-ui{ font-family:"Vazirmatn", sans-serif; }
+  .explain-steps{ display:flex; flex-direction:column; gap:var(--sp-1); }
+  .explain-step{ display:flex; align-items:center; gap:var(--sp-2); font-family:var(--display); font-size:var(--fs-xs);
+    color:var(--neural-fog); background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08);
+    border-radius:10px; padding:var(--sp-2) var(--sp-3); cursor:pointer; text-align:start;
+    transition:background .2s ease, border-color .2s ease, transform .15s cubic-bezier(.16,1,.3,1); }
+  .explain-step:hover{ background:rgba(var(--electric-teal-rgb),.10); border-color:rgba(var(--electric-teal-rgb),.4); transform:translateX(2px); }
+  .explain-step.ar-ui{ font-family:"Vazirmatn", sans-serif; }
+  .explain-step-n{ flex:0 0 20px; height:20px; border-radius:50%; background:rgba(var(--electric-teal-rgb),.18);
+    color:var(--electric-teal); font-family:var(--mono); font-size:var(--fs-2xs);
+    display:flex; align-items:center; justify-content:center; }
+
+  .nb-cursor{ position:absolute; z-index:5; width:20px; height:20px; pointer-events:none; opacity:0;
+    transition:opacity .3s ease, left .55s cubic-bezier(.16,1,.3,1), top .55s cubic-bezier(.16,1,.3,1);
+    filter:none; }
+  .nb-cursor.is-visible{ opacity:1; }
+  .nb-cursor svg{ display:block; width:20px; height:20px; }
+  .nb-cursor-glyph{ fill:var(--explain-accent, var(--electric-teal)); stroke:rgba(0,0,0,.18); stroke-width:.4; }
+  .nb-cursor-ripple{ position:absolute; left:0; top:0; width:34px; height:34px; margin:-17px 0 0 -17px;
+    border-radius:50%; border:2px solid rgba(var(--explain-accent-rgb, var(--electric-teal-rgb)),.8); opacity:0; pointer-events:none; }
+  .nb-cursor-label{ position:absolute; left:26px; top:13px; white-space:nowrap; font-family:var(--mono);
+    font-size:var(--fs-2xs); letter-spacing:var(--tr-label); text-transform:uppercase; color:var(--explain-accent, var(--electric-teal));
+    background:rgba(9,9,9,.85); border:1px solid rgba(var(--explain-accent-rgb, var(--electric-teal-rgb)),.35); border-radius:100px; padding:var(--sp-1) var(--sp-3); }
+  .nb-cursor-label.ar-ui{ text-transform:none; letter-spacing:0; font-size:var(--fs-xs); }
+
+  /* ---- full-screen app shell: scene + explanation fill the viewport, no page scroll.
+     Compact header bar (crumb eyebrow + single-language title | lang + explain). The
+     stage is a flex column — eq strip, controls, then the workspace (scene | rail)
+     flexes to fill the rest. The rail scrolls internally; the scene never clips. ---- */
+  html,body{ height:100%; }
+  .app{ max-width:none; height:100dvh; margin:0; padding:var(--sp-2) var(--sp-6); display:flex; flex-direction:column; gap:var(--sp-2); overflow:hidden; }
+  .app-bar{ display:flex; justify-content:space-between; align-items:center; gap:var(--sp-4); flex:0 0 auto; padding-bottom:var(--sp-2); border-bottom:1px solid rgba(255,255,255,.06); }
+  .app-bar-left{ display:flex; flex-direction:column; gap:var(--sp-1); min-width:0; }
+  .app-bar-left .crumb{ font-size:var(--fs-2xs); }
+  .app-bar-left .title-primary{ font-size:clamp(22px, 2.6vw, 30px); line-height:var(--lh-tight); letter-spacing:var(--tr-tight); }
+  .app-bar-right{ display:flex; align-items:center; gap:var(--sp-3); flex-wrap:wrap; }
+  .bar-sep{ width:1px; align-self:stretch; background:rgba(255,255,255,.10); margin:0 var(--sp-1); }
+
+  .stage{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
+  .eq-bar{ flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; gap:var(--sp-5); padding:var(--sp-3) var(--sp-6) var(--sp-2); flex-wrap:wrap; }
+  .eq-left{ display:flex; flex-direction:column; gap:var(--sp-1); min-width:0; }
+  .control-row{ flex:0 0 auto; padding:var(--sp-2) var(--sp-6) var(--sp-3); }
+  .control-sep{ width:1px; align-self:stretch; background:rgba(255,255,255,.08); margin:0 var(--sp-2); }
+  .workspace{ flex:1 1 auto; min-height:0; }
+  .board-wrap{ flex:1 1 64%; min-width:0; position:relative; padding:0; }
+  /* the scene fills the wrap exactly the way .jxgbox does in the reference lesson */
+  .board-wrap .scene{ position:absolute; inset:0; width:auto; height:auto; margin:0; border-radius:18px; }
+  .board-wrap .scene::before{ display:none; } /* no ambient glow — see stage rebuild note above */
+  .procedure{ flex:0 0 36%; max-width:380px; min-height:0; overflow-y:auto; }
+  .app-bar .nav-pill{ flex:0 0 auto; width:fit-content; max-width:30ch; display:inline-flex; align-items:center; gap:var(--sp-2); font-family:var(--display); font-size:var(--fs-xs); color:var(--pulse-ash); border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.02); border-radius:100px; padding:var(--sp-2) var(--sp-4); text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,.30); transition:border-color .2s ease, background .25s cubic-bezier(.16,1,.3,1), color .2s ease, transform .2s cubic-bezier(.16,1,.3,1), box-shadow .25s ease; }
+  .app-bar .nav-pill:hover{ border-color:rgba(var(--electric-teal-rgb),.5); background:linear-gradient(180deg, rgba(var(--electric-teal-rgb),.16), rgba(var(--electric-teal-rgb),.04)); color:var(--off-white); transform:translateY(-1px); box-shadow:0 6px 16px rgba(0,0,0,.34), 0 0 0 1px rgba(var(--electric-teal-rgb),.18); }
+  .app-bar .nav-pill:active{ transform:scale(.97); }
+  .app-bar .nav-pill svg{ width:14px; height:14px; fill:none; stroke:var(--electric-teal); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:0 0 auto; }
+  html[dir="rtl"] .app-bar .nav-pill svg{ transform:scaleX(-1); }
+  .app-bar .nav-pill b{ color:var(--neural-fog); font-family:var(--display); font-size:var(--fs-xs); font-weight:500; line-height:var(--lh-tight); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:26ch; }
+  .app-bar .nav-pill b.ar-body{ font-weight:600; }
+
+  @media (prefers-reduced-motion: reduce){
+    .nb-cursor{ transition:opacity .3s ease; }
+    .drag-hint{ animation:none; }
+  }
+
+  html[lang="en"] #titleAr { display:none; }
+  html[lang="ar"] #titleEn { display:none; }
+
+  @media (max-width:760px){
+    .app{ height:auto; min-height:100dvh; overflow:auto; }
+    .app-bar{ align-items:flex-start; }
+    .workspace{ flex-direction:column; }
+    .procedure{ flex:none; max-width:none; min-height:0; overflow-y:visible; border-left:none; border-top:1px solid rgba(255,255,255,.06); }
+    .board-wrap{ position:relative; padding:6px; }
+    .board-wrap .scene{ position:relative; inset:auto; width:100%; height:440px; }
+  }
+
+  /* ======================================================================
+     APPLE PASS — INTEGRATED variant, identical to
+     4-5-geometric-constructions-apple-integrated.html (SCHOOLS_FINGERPRINT.md §10.3):
+     flat, quiet, one-accent-by-weight — no glow, opaque panels, one 18px/pill radius
+     scale, calmer motion. No font swap (Azeret Mono / Bricolage Grotesque / Roc
+     Grotesk, from the shared shell) and the single accent is the lab's own teal
+     (#5c939f) rather than the shared shell's default Apple blue (#0A84FF) — same
+     rationale as the reference lesson, ported verbatim so both lessons carry the
+     same identity instead of two different "corrected" looks.
+     ====================================================================== */
+  :root{
+    --core-black:#000000;
+    --rich-carbon:#1c1c1e;
+    --urban-smoke:#2c2c2e;
+    --pulse-ash:#98989d;
+    --off-white:#f5f5f7;
+    --neural-fog:#ebebf5;
+    --electric-teal:#5c939f;
+    --electric-teal-rgb:92,147,159;
+    --infrared:#5c939f;
+    --infrared-rgb:92,147,159;
+    --validation-green:#5c939f;
+  }
+  html,body{ background:#000; color:#f5f5f7; -webkit-font-smoothing:antialiased; }
+
+  .app{ padding:22px 32px; gap:16px; }
+  .app-bar{ border-bottom:1px solid #38383a; padding-bottom:14px; }
+  .app-bar-left .title-primary{ font-family:var(--display); font-weight:600; letter-spacing:-0.022em; }
+  .app-bar-left .crumb{ color:#5c939f; }
+  .bar-sep{ background:#38383a; }
+
+  .lang-pill{ background:#1c1c1e; border:1px solid #38383a; box-shadow:none; }
+  .lang-pill button{ color:#98989d; }
+  .lang-pill button.active{ background:#5c939f; color:#fff; box-shadow:none; }
+  .explain-btn{ background:#1c1c1e; border:1px solid #38383a; color:#5c939f; box-shadow:none; }
+  .explain-btn:hover{ background:#2c2c2e; box-shadow:none; }
+  .explain-btn::before{ border-color:#5c939f; }
+
+  .app-bar .nav-pill{ background:#1c1c1e; border:1px solid #38383a; color:#f5f5f7; box-shadow:none; }
+  .app-bar .nav-pill:hover{ border-color:#5c939f; background:#2c2c2e; box-shadow:none; transform:none; }
+  .app-bar .nav-pill:active{ transform:scale(.98); }
+  .app-bar .nav-pill svg{ stroke:#5c939f; }
+  .app-bar .nav-pill b{ color:#f5f5f7; }
+
+  .stage{ background:#1c1c1e; border:1px solid #38383a; border-radius:18px; box-shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 30px rgba(0,0,0,.45); }
+
+  .board-wrap{ padding:0; }
+  .board-wrap .scene{ background-color:#000; }
+
+  .eq-bar{ border-bottom:1px solid #2c2c2e; }
+  .eq-line .katex{ color:#f5f5f7; }
+  .eq-sub{ color:#98989d; }
+
+  .control-row{ border-bottom:1px solid #2c2c2e; }
+  .control-row label{ color:#98989d; }
+  .control-row input[type="range"]{ background:#3a3a3c; box-shadow:none; }
+  .control-row input[type="range"]::-webkit-slider-thumb{ background:#f5f5f7; border:1px solid #5c939f; box-shadow:0 1px 3px rgba(0,0,0,.5); }
+  .control-row input[type="range"]::-webkit-slider-thumb:hover{ box-shadow:0 1px 5px rgba(0,0,0,.6); transform:none; }
+  .control-row input[type="range"]::-moz-range-thumb{ background:#f5f5f7; border:1px solid #5c939f; box-shadow:0 1px 3px rgba(0,0,0,.5); }
+  .control-val{ background:#2c2c2e; border:1px solid #38383a; color:#f5f5f7; box-shadow:none; }
+  .control-sep{ background:#3a3a3c; }
+
+  .procedure{ border-left:1px solid #2c2c2e; scrollbar-color:#48484a transparent; }
+  .procedure-head{ color:#5c939f; }
+  .proc-step{ border-radius:12px; }
+  .proc-step:hover{ background:#2c2c2e; }
+  .proc-step.is-active{ background:#2c2c2e; border-color:transparent; box-shadow: inset 3px 0 0 #5c939f; }
+  .proc-num{ border:1px solid #38383a; color:#98989d; box-shadow:none; }
+  .proc-step.is-active .proc-num{ background:#5c939f; border-color:#5c939f; color:#fff; }
+  .proc-body{ color:#f5f5f7; }
+  .proc-why{ background:#2c2c2e; border:1px solid #38383a; color:#ebebf5; }
+  .proc-why b{ color:#5c939f; }
+  .procedure .teach{ border-top:1px solid #2c2c2e; }
+  .procedure .teach p{ color:#98989d; }
+  .procedure .teach b{ color:#f5f5f7; }
+  .procedure::-webkit-scrollbar-thumb{ background:#48484a; }
+  .procedure::-webkit-scrollbar-thumb:hover{ background:#5c939f; }
+
+  .notebook{ background:#1c1c1e; backdrop-filter:none; -webkit-backdrop-filter:none; box-shadow:-1px 0 0 #2c2c2e; }
+  .notebook-close{ border:1px solid #38383a; color:#98989d; background:#1c1c1e; }
+  .notebook-kicker{ color:#5c939f; }
+  .nb-sec h4.nb-h{ color:#f5f5f7; }
+  .nb-sec p.nb-p{ color:#ebebf5; }
+  .notebook-ring{ border-color:rgba(92,147,159,.55); box-shadow:0 0 0 3px rgba(92,147,159,.18); animation:none; }
+  .nb-cursor-ripple{ border-color:rgba(92,147,159,.8); }
+  .nb-cursor-label{ color:#fff; background:#5c939f; border:1px solid #5c939f; }
+
+  .explain-pop{ background:#1c1c1e; backdrop-filter:none; -webkit-backdrop-filter:none; border:1px solid #38383a; box-shadow:0 8px 28px rgba(0,0,0,.6); }
 </style>
 </head>
 <body>
 
-<div class="shell">
-  <div class="page-head">
-    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 1 · LESSON 4</div>
-    <div class="lang-pill">
-      <button data-lang="en" class="active">EN</button>
-      <button data-lang="ar">AR</button>
+<div class="app">
+  <header class="app-bar">
+    <div class="app-bar-left">
+      <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 1 · LESSON 4</div>
+      <h1 class="title-primary" id="titleEn">Negative Numbers</h1>
+      <h1 class="title-primary ar-display" id="titleAr">الأعداد السالبة</h1>
     </div>
-  </div>
-  <div class="titles">
-    <h1 class="title-primary" id="titleEn">Negative Numbers</h1>
-    <span class="title-secondary ar-display" id="titleAr">الأعداد السالبة</span>
-  </div>
-  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I recognize negative numbers, and place them on a number line.</span></p>
-
-  <div class="stage" id="stage">
-    <div class="eq-bar">
-      <div>
-        <div class="eq-line" id="eqLine"></div>
-        <div class="eq-sub" data-role="ui" data-i18n="eqSub">the diver's signed position relative to sea level</div>
+    <div class="app-bar-right">
+      <a class="nav-pill prev" href="1-3-adding-subtracting-whole-numbers.html" title="1.3 · Adding &amp; Subtracting Whole Numbers">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+        <b data-role="body" id="navPrevText">1.3 · Adding &amp; Subtracting Whole Numbers</b>
+      </a>
+      <a class="nav-pill next" href="1-5-make-a-table.html" title="1.5 · Make a Table">
+        <b data-role="body" id="navNextText">1.5 · Make a Table</b>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+      </a>
+      <span class="bar-sep" aria-hidden="true"></span>
+      <div class="lang-pill">
+        <button data-lang="en" class="active">EN</button>
+        <button data-lang="ar">AR</button>
       </div>
       <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
     </div>
+  </header>
+
+  <div class="stage" id="stage">
+    <div class="eq-bar">
+      <div class="eq-left">
+        <div class="eq-line" id="eqLine"></div>
+        <div class="eq-sub" data-role="ui" data-i18n="eqSub" id="eqSubLine">the diver's signed position relative to sea level</div>
+      </div>
+    </div>
 
     <div class="control-row">
-      <label data-role="ui" data-i18n="controlLabel">depth / height</label>
+      <label data-role="ui" data-i18n="valueLabel">depth / height</label>
       <input type="range" id="valSlider" min="-10" max="10" step="1" value="-4" />
       <span class="control-val" id="sliderReadout">−4 m</span>
+      <span class="control-sep" aria-hidden="true"></span>
+      <label data-role="ui" data-i18n="stepLabel">step</label>
+      <input type="range" id="stepSlider" min="0" max="3" step="1" value="0" />
+      <span class="control-val" id="stepReadout">1 / 4</span>
     </div>
 
-    <div class="scene" id="scene">
-      <div class="zone-sky"></div>
-      <div class="zone-water"></div>
-      <div class="bubbles" id="bubbles"></div>
-      <div class="ruler" id="ruler"></div>
-      <div class="sea-line-wrap" id="seaWrap">
-        <div class="sea-tile" id="seaTile">
-          <svg viewBox="0 0 300 22" preserveAspectRatio="none"><path d="M0,11 Q37.5,2 75,11 T150,11 T225,11 T300,11" fill="none" stroke="#5c939f" stroke-width="1.6" opacity=".8"/></svg>
-          <svg viewBox="0 0 300 22" preserveAspectRatio="none"><path d="M0,11 Q37.5,2 75,11 T150,11 T225,11 T300,11" fill="none" stroke="#5c939f" stroke-width="1.6" opacity=".8"/></svg>
+    <div class="workspace">
+      <div class="board-wrap">
+        <div class="scene" id="scene">
+          <div class="zone-sky"></div>
+          <div class="zone-water"></div>
+          <div class="bubbles" id="bubbles"></div>
+          <div class="sea-line-wrap" id="seaWrap">
+            <div class="sea-tile" id="seaTile">
+              <svg viewBox="0 0 300 22" preserveAspectRatio="none"><path d="M0,11 Q37.5,2 75,11 T150,11 T225,11 T300,11" fill="none" stroke="currentColor" stroke-width="1.6" opacity=".8"/></svg>
+              <svg viewBox="0 0 300 22" preserveAspectRatio="none"><path d="M0,11 Q37.5,2 75,11 T150,11 T225,11 T300,11" fill="none" stroke="currentColor" stroke-width="1.6" opacity=".8"/></svg>
+            </div>
+          </div>
+          <div class="jxgboard" id="board"></div>
+          <div class="zero-badge dimmable" data-el="sea" data-role="ui" id="zeroBadge">0 — sea level</div>
+          <div class="diver-tag" data-role="ui" id="diverTag">depth 4 m</div>
+          <div class="drag-hint" data-role="ui" data-i18n="dragHint" id="dragHint">drag, or use the slider</div>
         </div>
       </div>
-      <div class="zero-badge dimmable" data-el="sea" data-role="ui" id="zeroBadge">0 — sea level</div>
-      <div class="diver dimmable" data-el="diver" id="diver"></div>
-      <div class="diver-tag" data-role="ui" id="diverTag">depth 4 m</div>
-      <div class="drag-hint" data-role="ui" data-i18n="dragHint" id="dragHint">drag, or use the slider</div>
+      <div class="procedure" id="procedure">
+        <div class="procedure-head" data-role="ui" data-i18n="procHead">Reading the number line</div>
+        <div id="procList"></div>
+        <div class="proc-why" id="procWhy" data-role="body"></div>
+        <div class="teach">
+          <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Introduces negative numbers as representing values below a zero reference point (sea level, ground floor, temperature below freezing), using a vertical number-line model. Students read a position as a signed number from a diagram, and place given numbers on a number line, distinguishing negative from positive by their side of zero.</span></p>
+        </div>
+      </div>
     </div>
-
-    <div class="teach">
-      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Introduces negative numbers as representing values below a zero reference point (sea level, ground floor, temperature below freezing), using a vertical number-line model. Students read a position as a signed number from a diagram, and place given numbers on a number line, distinguishing negative from positive by their side of zero.</span></p>
-    </div>
-  </div>
-
-  <div class="nav-row">
-    <a class="nav-pill prev" href="1-3-adding-subtracting-whole-numbers.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">1.3 · Adding &amp; Subtracting Whole Numbers</b></a>
-    <a class="nav-pill next" href="1-5-make-a-table.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">1.5 · Make a Table</b></a>
   </div>
 </div>
 
 <script>
-  const { digits, initI18n, renderEquation, buildTour } = LessonShell;
+  const { digits, initI18n, renderEquation, buildNotebook } = LessonShell;
+  const { reveal } = LessonMotion;
 
   const T = {
     en: {
       crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 1 · LESSON 4",
       objectiveLabel: "Objective —",
       objectiveText: "I recognize negative numbers, and place them on a number line.",
-      eqSub: "the diver's signed position relative to sea level",
       explainBtn: "Explain this",
-      controlLabel: "depth / height",
+      explainTitle: "Explain", explainWhole: "Whole walkthrough", explainSingle: "or a single step",
+      eqSub: "the diver's signed position relative to sea level",
+      valueLabel: "depth / height", stepLabel: "step",
+      procHead: "Reading the number line",
       dragHint: "drag, or use the slider",
       depthWord: "depth ", heightWord: "height ", seaWord: "at sea level",
       zeroWord: "sea level", unit: "m",
-      navPrevLabel: "—", navPrevText: "1.3 · Adding & Subtracting Whole Numbers",
-      navNextLabel: "next", navNext: "1.5 · Make a Table",
+      navPrev: "1.3 · Adding & Subtracting Whole Numbers",
+      navNext: "1.5 · Make a Table",
       teachLabel: "What this teaches:",
-      teachBody: "Introduces negative numbers as representing values below a zero reference point (sea level, ground floor, temperature below freezing), using a vertical number-line model. Students read a position as a signed number from a diagram, and place given numbers on a number line, distinguishing negative from positive by their side of zero.",
+      teachBody: "Negative numbers are positions below a chosen zero — sea level, ground floor, freezing point — on a vertical number line. Read any position as a signed number: how far from zero, and which side. Then place given numbers on the line the same way.",
+      proc: [
+        "Zero is the reference — sea level, marked with a badge.",
+        "Drag below the line: every position there reads as negative.",
+        "Drag above the line: every position there reads as positive.",
+        "Read the position as a signed number — the sign tells you the side, the number tells you the distance."
+      ],
+      why: "<b>Why it works:</b> The sign isn't glued onto the number afterward — it IS the direction from zero. −4 and +4 are the same distance from zero, just opposite ways, which is why depth and height share one number line instead of needing two separate scales.",
       tour: [
-        { elKey: "sea", label: "Sea level = zero", body: "This badge marks our zero reference point. Every position on the ruler is a signed distance from it." },
-        { elKey: "diver", label: "Reading a position", body: "Drag the diver, or use the slider above. Below the line is negative, above is positive — like a floor below ground, or a temperature below freezing." },
-        { ids: ["eqLine"], label: "Writing it as a number", body: "A position below zero is written with a minus sign — the diver's depth becomes a negative number." }
+        { label: "Zero is the reference" },
+        { label: "Below zero is negative" },
+        { label: "Above zero is positive" },
+        { label: "Writing it as a number" }
       ]
     },
     ar: {
       crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ١ · الدرس ٤",
       objectiveLabel: "فكرة الدرس —",
       objectiveText: "أتعرّف الأعداد السالبة، وأضعها على خط الأعداد.",
-      eqSub: "موضع الغطّاس بإشارته، بالنسبة لسطح البحر",
       explainBtn: "اشرح هذا",
-      controlLabel: "العمق / الارتفاع",
+      explainTitle: "اشرح", explainWhole: "الشرح كاملًا", explainSingle: "أو خطوة واحدة",
+      eqSub: "موضع الغطّاس بإشارته، بالنسبة لسطح البحر",
+      valueLabel: "العمق / الارتفاع", stepLabel: "الخطوة",
+      procHead: "قراءة خط الأعداد",
       dragHint: "اسحب الغطّاس، أو استخدم شريط التمرير",
       depthWord: "عمق ", heightWord: "ارتفاع ", seaWord: "عند مستوى سطح البحر",
       zeroWord: "سطح البحر", unit: "م",
-      navPrevLabel: "—", navPrevText: "١.٣ · جمع الأعداد الكلّية وطرحها",
-      navNextLabel: "التالي", navNext: "١.٥ · خطة حل المسألة: أنشئ جدولاً",
+      navPrev: "١.٣ · جمع الأعداد الكلّية وطرحها",
+      navNext: "١.٥ · خطة حل المسألة: أنشئ جدولاً",
       teachLabel: "ماذا يعلّمنا هذا الدرس:",
-      teachBody: "يقدّم هذا الدرس الأعداد السالبة كقيم تقع تحت نقطة مرجعية صفرية (سطح البحر، الطابق الأرضي، درجة حرارة تحت الصفر)، باستخدام نموذج خط أعداد رأسي. يقرأ الطلبة الموضع كعدد بإشارته من رسم توضيحي، ويضعون أعدادًا معطاة على خط الأعداد، مميّزين السالب عن الموجب بحسب جهته من الصفر.",
+      teachBody: "الأعداد السالبة مواضع تقع تحت صفرٍ نختاره — سطح البحر، الطابق الأرضي، درجة التجمّد — على خط أعداد رأسي. اقرأ أي موضع كعدد موجّه: كم يبعد عن الصفر، وفي أي جهة. ثم ضع الأعداد المعطاة على الخط بالطريقة نفسها.",
+      proc: [
+        "الصفر هو المرجع — سطح البحر، محدَّدًا ببطاقة.",
+        "اسحب تحت الخط: كل موضع هناك يُقرأ سالبًا.",
+        "اسحب فوق الخط: كل موضع هناك يُقرأ موجبًا.",
+        "اقرأ الموضع كعدد موجّه — الإشارة تخبرك بالجهة، والعدد يخبرك بالمسافة."
+      ],
+      why: "<b>لماذا يعمل:</b> الإشارة ليست مُلصَقة على العدد بعد حسابه — هي الاتجاه من الصفر نفسه. −٤ و+٤ يبعدان المسافة نفسها عن الصفر، فقط في جهتين متعاكستين، ولهذا يتشارك العمق والارتفاع خط الأعداد نفسه بدل الحاجة إلى مقياسين منفصلين.",
       tour: [
-        { elKey: "sea", label: "سطح البحر = الصفر", body: "تمثّل هذه البطاقة نقطة الصفر المرجعية. كل موضع على المسطرة هو مسافة موجّهة عنها." },
-        { elKey: "diver", label: "قراءة الموضع", body: "اسحب الغطّاس، أو استخدم شريط التمرير أعلاه. تحت الخط قيمة سالبة، وفوقه قيمة موجبة — تمامًا مثل طابق تحت الأرض، أو درجة حرارة تحت الصفر." },
-        { ids: ["eqLine"], label: "كتابته كعدد", body: "يُكتب الموضع الواقع تحت الصفر بإشارة سالبة — فيصبح عمق الغطّاس عددًا سالبًا." }
+        { label: "الصفر هو المرجع" },
+        { label: "تحت الصفر سالب" },
+        { label: "فوق الصفر موجب" },
+        { label: "كتابته كعدد" }
       ]
     }
   };
 
+  // ---- professor's notebook content (state-aware) ------------------------------
+  // Each entry is a function of the live diver value and returns
+  //   { ids:[...], kicker, sections:[{h,p}, ...] }
+  // "{value}" is interpolated at render time with the diver's CURRENT signed
+  // position, so the explanation tracks what's actually on screen — same contract
+  // as "{r}" in the geometric-constructions reference.
+  const EXPLAIN = {
+    en: [
+      () => ({ ids: ["zeroBadge"], kicker: "Step 1 of 4 · Reading a signed position", sections: [
+        { h: "On the board now", p: "A badge marks 0 at sea level — the reference point every position on the ruler is measured from." },
+        { h: "The move", p: "Step 1 — fix the reference. Nothing is negative or positive yet; sea level is only the point we're calling zero." },
+        { h: "Why it holds", p: "Any point could have been chosen as zero — sea level is just this problem's choice. Move the reference point and the same physical spot gets a different signed number." },
+        { h: "Next", p: "Next, drag below sea level and see what a negative position looks like." }
+      ]}),
+      (v) => ({ ids: ["diver"], kicker: "Step 2 of 4 · Reading a signed position", sections: [
+        { h: "On the board now", p: "The diver sits {value} below sea level — a position on the negative side of zero." },
+        { h: "The move", p: "Step 2 — drag below the line, or use the slider. Every position under sea level reads as negative." },
+        { h: "Why it holds", p: "The sign isn't stuck onto the number afterward — it IS the direction from zero. Negative doesn't mean \"less than nothing\"; it means \"this many units the other way.\"" },
+        { h: "Next", p: "Next, drag above sea level and compare — same idea, the opposite direction." }
+      ]}),
+      (v) => ({ ids: ["diver"], kicker: "Step 3 of 4 · Reading a signed position", sections: [
+        { h: "On the board now", p: "The diver sits {value} above sea level — a position on the positive side of zero." },
+        { h: "The move", p: "Step 3 — drag above the line. Every position over sea level reads as positive." },
+        { h: "Why it holds", p: "Same rule as below zero, opposite direction: a signed distance from zero. −4 and +4 are the same distance from zero, just opposite ways." },
+        { h: "Next", p: "Next, see how a position like this gets written as an actual signed number." }
+      ]}),
+      (v) => ({ ids: ["eqLine"], kicker: "Step 4 of 4 · Reading a signed position", sections: [
+        { h: "On the board now", p: "The equation shows the diver's exact signed position: {value}." },
+        { h: "The move", p: "Step 4 — read the position straight off as a number, sign included. No separate depth scale and height scale — one signed number does both jobs." },
+        { h: "Why it holds", p: "−7 and +7 are the same distance from zero, just opposite directions — that's why depth and height use the same number with a different sign, not two unrelated scales." },
+        { h: "Result", p: "That's the whole idea. Drag the diver anywhere: the sign always tells you which side of zero you're on, and the number always tells you how far." }
+      ]})
+    ],
+    ar: [
+      () => ({ ids: ["zeroBadge"], kicker: "الخطوة ١ من ٤ · قراءة موضع بإشارته", sections: [
+        { h: "على اللوح الآن", p: "بطاقة تحدّد ٠ عند سطح البحر — نقطة المرجع التي يُقاس منها كل موضع على المسطرة." },
+        { h: "الخطوة", p: "الخطوة ١ — أثبّت نقطة المرجع. لا شيء سالب أو موجب بعد؛ سطح البحر هو فقط النقطة التي نسمّيها صفرًا." },
+        { h: "لماذا يصح", p: "أي نقطة كان يمكن اختيارها صفرًا — سطح البحر هو فقط اختيار هذه المسألة. غيّر نقطة المرجع فيحصل الموضع الفعلي نفسه على عدد موجّه مختلف." },
+        { h: "التالي", p: "التالي: اسحب تحت سطح البحر لترى كيف يبدو الموضع السالب." }
+      ]}),
+      (v) => ({ ids: ["diver"], kicker: "الخطوة ٢ من ٤ · قراءة موضع بإشارته", sections: [
+        { h: "على اللوح الآن", p: "يقف الغطّاس عند {value} تحت سطح البحر — موضع على الجهة السالبة من الصفر." },
+        { h: "الخطوة", p: "الخطوة ٢ — اسحب تحت الخط، أو استخدم شريط التمرير. كل موضع تحت سطح البحر يُقرأ سالبًا." },
+        { h: "لماذا يصح", p: "الإشارة ليست مُلصَقة على العدد بعد حسابه — هي الاتجاه من الصفر نفسه. السالب لا يعني «أقل من العدم»، بل يعني «بهذا العدد من الوحدات في الجهة الأخرى»." },
+        { h: "التالي", p: "التالي: اسحب فوق سطح البحر وقارن — الفكرة نفسها، بالاتجاه المعاكس." }
+      ]}),
+      (v) => ({ ids: ["diver"], kicker: "الخطوة ٣ من ٤ · قراءة موضع بإشارته", sections: [
+        { h: "على اللوح الآن", p: "يقف الغطّاس عند {value} فوق سطح البحر — موضع على الجهة الموجبة من الصفر." },
+        { h: "الخطوة", p: "الخطوة ٣ — اسحب فوق الخط. كل موضع فوق سطح البحر يُقرأ موجبًا." },
+        { h: "لماذا يصح", p: "القاعدة نفسها تحت الصفر، بالاتجاه المعاكس: مسافة موجّهة عن الصفر. −٤ و+٤ يبعدان المسافة نفسها عن الصفر، فقط في جهتين متعاكستين." },
+        { h: "التالي", p: "التالي: انظر كيف يُكتب موضع كهذا كعدد موجّه فعلي." }
+      ]}),
+      (v) => ({ ids: ["eqLine"], kicker: "الخطوة ٤ من ٤ · قراءة موضع بإشارته", sections: [
+        { h: "على اللوح الآن", p: "تُظهر المعادلة موضع الغطّاس بإشارته بالضبط: {value}." },
+        { h: "الخطوة", p: "الخطوة ٤ — اقرأ الموضع مباشرة كعدد، بإشارته. لا مقياس عمق منفصل ومقياس ارتفاع منفصل — عدد موجّه واحد يؤدّي المهمتين." },
+        { h: "لماذا يصح", p: "−٧ و+٧ يبعدان المسافة نفسها عن الصفر، فقط في جهتين متعاكستين — لهذا يُستعمل العمق والارتفاع العددَ نفسه بإشارة مختلفة، لا مقياسين مختلفين لا علاقة بينهما." },
+        { h: "النتيجة", p: "هذه هي الفكرة كاملة. اسحب الغطّاس إلى أي مكان: الإشارة تخبرك دائمًا بأي جهة من الصفر أنت، والعدد يخبرك دائمًا بالمسافة." }
+      ]})
+    ]
+  };
+
+  // ---- palette (DESIGN_SYSTEM.md §1) — JSXGraph takes hex strings, not CSS vars,
+  // same reason as the geometric-constructions reference's own C object. ---------
+  const C = { fog: "#ebebf5", ash: "#98989d", white: "#f5f5f7", teal: "#5c939f" };
+
+  // ---- DOM refs -----------------------------------------------------------------
   const MIN = -10, MAX = 10;
   const scene = document.getElementById("scene");
-  function bounds() { const r = scene.getBoundingClientRect(); return { top: 36, bottom: r.height - 36 }; }
-  function yFor(v) { const b = bounds(); return b.top + (MAX - v) / (MAX - MIN) * (b.bottom - b.top); }
-  function vFromClientY(clientY) {
-    const r = scene.getBoundingClientRect(); const b = bounds();
-    const raw = MAX - ((clientY - r.top) - b.top) / (b.bottom - b.top) * (MAX - MIN);
-    return Math.max(MIN, Math.min(MAX, Math.round(raw)));
-  }
-
-  const ruler = document.getElementById("ruler");
-  function buildRuler() {
-    ruler.innerHTML = "";
-    for (let v = MIN; v <= MAX; v++) {
-      const rung = document.createElement("div");
-      rung.className = "rung" + (v === 0 ? " zero" : "");
-      rung.style.top = (yFor(v) - 30) + "px";
-      ruler.appendChild(rung);
-      if (v % 2 === 0 && v !== 0) {
-        const label = document.createElement("div");
-        label.className = "rung-label " + (v < 0 ? "neg" : "pos");
-        label.style.top = (yFor(v) - 30) + "px";
-        label.textContent = digits(v, i18n.lang);
-        ruler.appendChild(label);
-      }
-    }
-  }
-
-  document.getElementById("seaWrap").style.top = (yFor(0) - 11) + "px";
-  document.getElementById("zeroBadge").style.top = yFor(0) + "px";
-
-  const bubbleLayer = document.getElementById("bubbles");
-  const seaY = yFor(0);
-  for (let i = 0; i < 9; i++) {
-    const b = document.createElement("div");
-    b.className = "bubble";
-    const size = 2.5 + Math.random() * 5.5;
-    b.style.width = size + "px"; b.style.height = size + "px";
-    b.style.left = (140 + Math.random() * 740) + "px";
-    b.style.top = (seaY + 30) + "px";
-    b.style.opacity = 0;
-    bubbleLayer.appendChild(b);
-    gsap.set(b, { y: Math.random() * 260 });
-    gsap.to(b, { y: -260, opacity: .55, duration: 5 + Math.random() * 4, repeat: -1, ease: "none", delay: Math.random() * 5, onRepeat() { gsap.set(b, { y: 0 }); } });
-  }
-  gsap.to("#seaTile", { xPercent: -50, duration: 6, repeat: -1, ease: "none" });
-
-  const diver = document.getElementById("diver");
+  const boardEl = document.getElementById("board");
+  const eqLine = document.getElementById("eqLine");
+  const eqSubLine = document.getElementById("eqSubLine");
+  const valSlider = document.getElementById("valSlider");
+  const sliderReadout = document.getElementById("sliderReadout");
+  const stepSlider = document.getElementById("stepSlider");
+  const stepReadout = document.getElementById("stepReadout");
+  const procList = document.getElementById("procList");
+  const procWhy = document.getElementById("procWhy");
   const diverTag = document.getElementById("diverTag");
   const dragHint = document.getElementById("dragHint");
   const zeroBadge = document.getElementById("zeroBadge");
-  const slider = document.getElementById("valSlider");
-  const sliderReadout = document.getElementById("sliderReadout");
-  const eqLine = document.getElementById("eqLine");
+  const seaWrap = document.getElementById("seaWrap");
+  const bubbleLayer = document.getElementById("bubbles");
 
+  // ---- state ----------------------------------------------------------------
   let value = -4;
+  let step = 0;
   let hintDismissed = false;
+  let notebook = null;
+  let board = null, diverPt = null, originPt = null;
+  const tweenObj = { y: value }; // gsap tweens this plain object; onUpdate writes it into the real JSXGraph point
+  const STEP_VALUE = [0, -4, 4, -7]; // the representative position each step demonstrates
+
+  // tag a JSXGraph element's SVG node for the notebook + dim scheme, give it a stable
+  // id — same helper as the geometric-constructions reference.
+  function tag(el, id, groupKey) {
+    el.rendNode.id = id;
+    el.rendNode.classList.add("dimmable");
+    if (groupKey) el.rendNode.dataset.el = groupKey;
+  }
+
+  function makeBoard() {
+    board = JXG.JSXGraph.initBoard(boardEl.id, {
+      boundingbox: [-4, MAX + 1, 4, MIN - 1],
+      axis: false, showCopyright: false, showNavigation: false,
+      keepaspectratio: false, // a number line has no shape to preserve, unlike a geometric construction
+      pan: { enabled: false }, zoom: { enabled: false }, grid: false
+    });
+    board.options.point.highlight = false;
+  }
+
+  // builds the axis spine, the tick marks + labels, and the draggable diver point.
+  // Rebuilt (not just re-styled) on language change because the tick labels are
+  // JSXGraph text elements baked with a language-specific digit string.
+  function buildScene() {
+    if (board) JXG.JSXGraph.freeBoard(board);
+    makeBoard();
+
+    board.create("segment", [[0, MIN - 1], [0, MAX + 1]], { strokeColor: "rgba(255,255,255,.10)", strokeWidth: 1, fixed: true, highlight: false, name: "" });
+
+    for (let v = MIN; v <= MAX; v++) {
+      if (v === 0) continue;
+      board.create("segment", [[-0.15, v], [0.15, v]], { strokeColor: "rgba(255,255,255,.16)", strokeWidth: 1, fixed: true, highlight: false, name: "" });
+      if (v % 2 === 0) {
+        board.create("text", [-0.4, v, () => digits(v, i18n.lang)], {
+          anchorX: "right", anchorY: "middle", fontSize: 11,
+          color: v < 0 ? C.ash : C.fog,
+          cssStyle: "font-family:'Azeret Mono',monospace;",
+          fixed: true, highlight: false
+        });
+      }
+    }
+
+    // an invisible fixed point purely so syncOverlay() can read where world (0,0)
+    // lands on screen, via the exact same coords API the diver itself uses.
+    originPt = board.create("point", [0, 0], { visible: false, fixed: true, name: "" });
+
+    diverPt = board.create("point", [0, value], {
+      name: "", size: 8, face: "o", fillColor: C.teal, strokeColor: C.teal, strokeWidth: 2,
+      showInfobox: false, highlightFillColor: C.teal
+    });
+    tag(diverPt, "diver", "diver");
+    diverPt.on("drag", () => {
+      dismissHint(); stopAuto();
+      const v = Math.max(MIN, Math.min(MAX, Math.round(diverPt.Y())));
+      diverPt.setPosition(JXG.COORDS_BY_USER, [0, v]); // snap to the nearest whole metre while dragging
+      board.update();
+      syncOverlay();
+      if (v !== value) { value = v; tweenObj.y = v; renderLabels(); nbUpdate(); }
+    });
+
+    requestAnimationFrame(syncBoardSize);
+  }
+
+  // keep the JSXGraph canvas matched to its flex container on resize — same fix as
+  // the geometric-constructions reference (JSXGraph pins an inline pixel size on
+  // its container, so a mode/lang rebuild leaves it stale otherwise).
+  function syncBoardSize() {
+    if (!board) return;
+    const r = scene.getBoundingClientRect();
+    if (r.width > 0 && r.height > 0) { try { board.resizeContainer(r.width, r.height); } catch (e) {} }
+    syncOverlay();
+  }
+
+  // positions the HTML tag pills (zero-badge, diver-tag, drag-hint, sea-line) from
+  // JSXGraph's own screen-coordinate projection — this is the piece that used to be
+  // a hand-written yFor()/vFromClientY() formula; now the library computes it.
+  function syncOverlay() {
+    if (!board || !originPt || !diverPt) return;
+    const zpx = originPt.coords.scrCoords;
+    zeroBadge.style.top = zpx[2] + "px";
+    seaWrap.style.top = (zpx[2] - 11) + "px";
+    const dpx = diverPt.coords.scrCoords;
+    diverTag.style.top = dpx[2] + "px";
+    dragHint.style.top = (dpx[2] + 26) + "px";
+  }
+
+  // needs originPt (real sea-level pixel position), so this runs after buildScene(),
+  // not at top level — same reason syncOverlay() can't run before the board exists.
+  function buildBubbles() {
+    const seaY = originPt.coords.scrCoords[2];
+    for (let i = 0; i < 9; i++) {
+      const b = document.createElement("div");
+      b.className = "bubble";
+      const size = 2.5 + Math.random() * 5.5;
+      b.style.width = size + "px"; b.style.height = size + "px";
+      b.style.left = (140 + Math.random() * 740) + "px";
+      b.style.top = (seaY + 30) + "px";
+      b.style.opacity = 0;
+      bubbleLayer.appendChild(b);
+      gsap.set(b, { y: Math.random() * 260 });
+      gsap.to(b, { y: -260, opacity: .55, duration: 5 + Math.random() * 4, repeat: -1, ease: "none", delay: Math.random() * 5, onRepeat() { gsap.set(b, { y: 0 }); } });
+    }
+  }
+  gsap.to("#seaTile", { xPercent: -50, duration: 6, repeat: -1, ease: "none" });
+
   function dismissHint() { if (hintDismissed) return; hintDismissed = true; dragHint.style.opacity = "0"; }
 
-  function render(animate) {
-    const y = yFor(value);
-    const targets = animate ? { duration: .45, ease: "back.out(1.7)" } : { duration: 0 };
-    gsap.to(diver, { top: y, ...targets });
+  // format a signed value for the notebook's {value} interpolation, e.g. "−4 m" / "٤- م"
+  function signedValue(v, lang) { return digits(v, lang) + " " + T[lang].unit; }
 
+  // updates every text/equation/slider readout from the CURRENT `value` — split out
+  // from render() so the drag handler (where JSXGraph, not gsap, already owns the
+  // point's position) can refresh these without also kicking off a redundant position
+  // tween on top of the drag that's already in progress.
+  function renderLabels() {
     const t = T[i18n.lang];
     const posWord = value < 0 ? t.depthWord : value > 0 ? t.heightWord : t.seaWord;
     diverTag.textContent = posWord + (value !== 0 ? digits(Math.abs(value), i18n.lang) + " " + t.unit : "");
+    // at value 0 the diver sits exactly on the zero badge — same text ("at sea
+    // level"), same position, so the two pills would stack and overlap. The badge
+    // already says it; hide the redundant tag instead of letting them collide.
+    diverTag.style.display = value === 0 ? "none" : "block";
     zeroBadge.textContent = digits(0, i18n.lang) + " — " + t.zeroWord;
 
     const eqSource = `\\color{#5c939f}{${value}}`;
     renderEquation(eqLine, eqSource);
 
-    slider.value = value;
+    valSlider.value = value;
     sliderReadout.textContent = (value > 0 ? "+" : "") + value + " m";
   }
 
-  gsap.ticker.add(() => {
-    diverTag.style.top = diver.style.top;
-    dragHint.style.top = (parseFloat(diver.style.top || 0) + 26) + "px";
+  function render(animate) {
+    gsap.to(tweenObj, {
+      y: value, duration: animate ? .45 : 0, ease: "back.out(1.7)",
+      onUpdate: () => {
+        if (!diverPt) return;
+        diverPt.setPosition(JXG.COORDS_BY_USER, [0, tweenObj.y]);
+        board.update();
+        syncOverlay();
+        // keep the notebook's ring + cursor pinned to the diver every frame while it
+        // tweens — reposition(true) skips the ring/cursor's own CSS transition so it
+        // tracks 1:1 instead of chasing a moving target through a second, independent
+        // ease on top of gsap's, which is what read as "out of sync" (§10.4/§10.5).
+        if (notebook) notebook.reposition(true);
+      }
+    });
+    renderLabels();
+  }
+
+  valSlider.addEventListener("input", () => {
+    dismissHint(); stopAuto();
+    const v = parseInt(valSlider.value, 10);
+    if (v !== value) { value = v; render(true); nbUpdate(); }
   });
 
-  let dragging = false;
-  diver.addEventListener("pointerdown", e => { dragging = true; diver.setPointerCapture(e.pointerId); dismissHint(); });
-  diver.addEventListener("pointerup", () => dragging = false);
-  diver.addEventListener("pointermove", e => {
-    if (!dragging) return;
-    const v = vFromClientY(e.clientY);
-    if (v !== value) { value = v; render(true); }
-  });
-  slider.addEventListener("input", () => {
-    dismissHint();
-    const v = parseInt(slider.value, 10);
-    if (v !== value) { value = v; render(true); }
-  });
-  window.addEventListener("resize", () => { buildRuler(); render(false); });
+  // ---- step control: jumps the diver to the step's representative position,
+  // exactly like the reference lesson's step slider reveals/hides construction
+  // groups — here there is nothing to reveal, so "step" instead drives WHICH of
+  // the four ideas is being demonstrated and highlighted. ----------------------
+  function applyStep(s) {
+    step = s;
+    stepReadout.textContent = (s + 1) + " / 4";
+    value = STEP_VALUE[s];
+    render(true);
+    highlightProcedure(s);
+    nbUpdate();
+  }
 
-  const i18n = initI18n(T, { onLangChange: () => { buildRuler(); render(false); } });
-  buildRuler();
+  function renderProcedure() {
+    const t = T[i18n.lang];
+    procList.innerHTML = "";
+    t.proc.forEach((body, i) => {
+      const row = document.createElement("div");
+      row.className = "proc-step" + (i === step ? " is-active" : "");
+      row.dataset.idx = i;
+      const num = document.createElement("div");
+      num.className = "proc-num" + (i18n.lang === "ar" ? " ar-ui" : "");
+      num.textContent = i + 1;
+      const txt = document.createElement("div");
+      txt.className = "proc-body" + (i18n.lang === "ar" ? " ar-body" : "");
+      txt.textContent = body;
+      row.appendChild(num); row.appendChild(txt);
+      row.addEventListener("click", () => { stopAuto(); stepSlider.value = i; applyStep(i); setSliderFill(stepSlider); });
+      procList.appendChild(row);
+    });
+    procWhy.innerHTML = t.why;
+    procWhy.className = "proc-why" + (i18n.lang === "ar" ? " ar-body" : "");
+    procWhy.setAttribute("dir", i18n.lang === "ar" ? "rtl" : "ltr");
+  }
+  function highlightProcedure(s) {
+    Array.from(procList.children).forEach((row, i) => row.classList.toggle("is-active", i === s));
+  }
+
+  // ---- live auto-demo — same contract as the reference lesson: starts on open/
+  // load, advances step 0→3 every 3s, stops (does not loop) at the end. Any manual
+  // control (drag, slider, step click) cancels it. --------------------------------
+  let autoTimer = null;
+  function stopAuto() { if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; } }
+  function startAuto() {
+    stopAuto();
+    const tick = () => {
+      if (step >= 3) { stopAuto(); return; }
+      const next = step + 1;
+      stepSlider.value = next; applyStep(next); setSliderFill(stepSlider);
+      autoTimer = setTimeout(tick, 3000);
+    };
+    autoTimer = setTimeout(tick, 3000);
+  }
+
+  function setSliderFill(slider) {
+    const min = parseFloat(slider.min) || 0, max = parseFloat(slider.max) || 1;
+    slider.style.setProperty("--fill", ((parseFloat(slider.value) - min) / (max - min) * 100) + "%");
+  }
+  stepSlider.addEventListener("input", () => { stopAuto(); applyStep(parseInt(stepSlider.value, 10)); setSliderFill(stepSlider); });
+
+  // ---- professor's notebook (state-aware "Explain this") ------------------------
+  function getEntry() {
+    const lang = i18n.lang;
+    const entry = EXPLAIN[lang][step](value);
+    const vs = signedValue(value, lang);
+    entry.kicker = entry.kicker;
+    entry.sections.forEach(function (s) { s.h = s.h.replace("{value}", vs); s.p = s.p.replace("{value}", vs); });
+    return entry;
+  }
+  notebook = buildNotebook(
+    document.getElementById("procedure"),
+    document.getElementById("stage"),
+    getEntry, () => i18n.lang,
+    { onClose: stopAuto });
+  function nbUpdate() { if (notebook && notebook.isOpen()) notebook.update(); }
+
+  function openExplain(auto, atStep) {
+    stopAuto();
+    const s = (atStep === undefined) ? 0 : atStep;
+    stepSlider.value = s; setSliderFill(stepSlider);
+    if (!notebook.isOpen()) notebook.open();
+    applyStep(s);
+    if (auto) startAuto();
+  }
+
+  // ---- premium Explain chooser popover — identical pattern to the reference ----
+  const explainBtn = document.getElementById("explainBtn");
+  const barRight = explainBtn.parentElement;
+  const pop = document.createElement("div");
+  pop.className = "explain-pop";
+  pop.setAttribute("id", "explainPop");
+  barRight.appendChild(pop);
+  if (getComputedStyle(barRight).position === "static") barRight.style.position = "relative";
+  pop.innerHTML =
+    '<button class="explain-pop-close" type="button" aria-label="close">&times;</button>' +
+    '<div class="explain-pop-title" data-i18n="explainTitle">Explain</div>' +
+    '<button class="explain-opt explain-opt--whole" type="button" data-i18n="explainWhole">Whole walkthrough</button>' +
+    '<div class="explain-pop-divider" data-i18n="explainSingle">or a single step</div>' +
+    '<div class="explain-steps"></div>';
+  const stepsWrap = pop.querySelector(".explain-steps");
+  function buildStepChoices() {
+    const lang = i18n.lang;
+    const labels = T[lang].tour;
+    stepsWrap.innerHTML = "";
+    labels.forEach((entry, i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "explain-step";
+      b.dataset.step = i;
+      const n = lang === "ar" ? digits(i + 1, "ar") : (i + 1);
+      b.innerHTML = '<span class="explain-step-n">' + n + '</span><span class="explain-step-l">' + entry.label + '</span>';
+      b.addEventListener("click", () => { closePop(); openExplain(false, i); });
+      stepsWrap.appendChild(b);
+    });
+  }
+  function openPop() { buildStepChoices(); pop.classList.add("is-open"); }
+  function closePop() { pop.classList.remove("is-open"); }
+  function togglePop() { pop.classList.contains("is-open") ? closePop() : openPop(); }
+  pop.querySelector(".explain-pop-close").addEventListener("click", closePop);
+  pop.querySelector(".explain-opt--whole").addEventListener("click", () => { closePop(); openExplain(true, 0); });
+  explainBtn.addEventListener("click", (e) => { e.stopPropagation(); togglePop(); });
+  document.addEventListener("click", (e) => { if (!pop.contains(e.target) && e.target !== explainBtn) closePop(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closePop(); });
+
+  // magnetic Explain button — identical microinteraction to the reference lesson.
+  (function () {
+    const btn = document.getElementById("explainBtn");
+    const fine = window.matchMedia("(pointer: fine)").matches;
+    if (!fine) return;
+    let raf = 0, tx = 0, ty = 0;
+    btn.addEventListener("mousemove", (e) => {
+      const r = btn.getBoundingClientRect();
+      tx = (e.clientX - (r.left + r.width / 2)) * 0.3;
+      ty = (e.clientY - (r.top + r.height / 2)) * 0.3;
+      if (!raf) raf = requestAnimationFrame(() => { btn.style.transform = `translate(${tx}px, ${ty}px)`; raf = 0; });
+    });
+    btn.addEventListener("mouseleave", () => { btn.style.transform = ""; });
+  })();
+
+  window.addEventListener("resize", syncBoardSize);
+
+  // ---- i18n bootstrap -------------------------------------------------------
+  // rebuilds the board (tick labels are baked-in text elements, language-specific)
+  // rather than just re-rendering, same as buildScene() being the reference lesson's
+  // own rebuild-on-mode-switch unit.
+  const i18n = initI18n(T, { onLangChange: () => { buildScene(); render(false); renderProcedure(); nbUpdate(); if (pop && pop.classList.contains("is-open")) buildStepChoices(); } });
+
+  // ---- mount ------------------------------------------------------------------
+  buildScene();
+  buildBubbles();
   render(false);
-
-  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
-  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+  renderProcedure();
+  setSliderFill(stepSlider);
+  reveal(document.querySelector(".stage"));
+  reveal(document.querySelector(".app-bar-right"));
+  requestAnimationFrame(syncBoardSize);
+  // auto-play the walkthrough 0 → 3 on load, then stop (does not loop)
+  setTimeout(startAuto, 900);
 </script>
 </body>
 </html>

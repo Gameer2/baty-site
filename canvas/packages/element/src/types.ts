@@ -435,9 +435,17 @@ export type ExcalidrawElbowArrowElement = Merge<
 
 export type StrokeVariability = "variable" | "constant";
 
+/**
+ * Pen-style variants for the freedraw tool. Each maps to a rendering profile
+ * (size factor, thinning, taper, optional grain) in `packages/element/src/shape.ts`.
+ * `highlighter` is rendered as a constant-width, multiply-blended band.
+ */
+export type PenStyle = "pen" | "marker" | "pencil" | "highlighter";
+
 export type StrokeOptions = Readonly<{
   variability: StrokeVariability;
   streamline: number;
+  penStyle: PenStyle;
 }>;
 
 export type ExcalidrawFreeDrawElement = _ExcalidrawElementBase &

@@ -1,0 +1,35 @@
+/* ==========================================================================
+   Shared identity color tokens — the single source of truth for the lab's
+   color identity. Both the main math-lab (engine.css @imports this) and the
+   Schools vertical (lesson-shell.css @imports this) read from here, so the two
+   surfaces can never drift apart. See DESIGN_SYSTEM.md §1.
+
+   Scope: color only. Fonts, type scale, spacing, radius, and layout metrics are
+   NOT shared — each consumer keeps its own (the lab and Schools use different
+   font stacks and roles). Keep this file to color tokens.
+   ========================================================================== */
+
+:root {
+  /* neutrals — structure / given / surface */
+  --core-black: #090909;
+  --rich-carbon: #111111;
+  --urban-smoke: #1b1b1b;
+  --pulse-ash: #7d858c;
+  --off-white: #e7e7e7;
+  --neural-fog: #dadada;
+
+  /* accents — one role each (see DESIGN_SYSTEM.md / SCHOOLS_FINGERPRINT.md §3) */
+  --electric-teal: #5c939f;
+  --electric-teal-rgb: 92,147,159;
+  --infrared: #ed6d40;
+  --infrared-rgb: 237,109,64;
+  --validation-green: #59a993;
+  --validation-green-rgb: 89,169,147;
+  --validation-red: #cb3500;
+
+  /* secondary accent slots — used sparingly, never as a primary role */
+  --accent-violet: #9b8bd9;
+  --accent-violet-rgb: 155,139,217;
+  --accent-amber: #d9a24e;
+  --accent-amber-rgb: 217,162,78;
+}

@@ -329,7 +329,6 @@ import {
   actionSendBackward,
   actionSendToBack,
   actionToggleGridMode,
-  actionToggleStats,
   actionToggleZenMode,
   actionUnbindText,
   actionBindText,
@@ -623,6 +622,22 @@ let isDraggingScrollBar: boolean = false;
 let currentScrollBars: ScrollBars = { horizontal: null, vertical: null };
 let touchTimeout = 0;
 let invalidateContextMenu = false;
+
+// When penMode is on (a pen/stylus has been detected), these tools stay
+// finger-operable — a touch on the canvas selects/edits instead of panning.
+// Every other tool (freedraw, arrow, line, rectangle, …) is a *drawing* tool:
+// there, a single-finger touch pans the canvas (Apple-Notes/OneNote style)
+// instead of being dropped on the floor. Kept in sync with the
+// `allowOnPointerDown` gate in `handleCanvasPointerDown` and the penMode-touch
+// pan branch in `handleCanvasPanUsingWheelOrSpaceDrag`.
+const PEN_MODE_TOUCH_OPERABLE_TOOLS = new Set<string>([
+  TOOL_TYPE.selection,
+  TOOL_TYPE.lasso,
+  TOOL_TYPE.text,
+  TOOL_TYPE.image,
+  TOOL_TYPE.video,
+  TOOL_TYPE.pdf,
+]);
 
 /**
  * Map of youtube embed video states
@@ -8775,14 +8790,16 @@ class App extends React.Component<AppProps, AppState> {
     const allowOnPointerDown =
       !this.state.penMode ||
       event.pointerType !== "touch" ||
-      this.state.activeTool.type === "selection" ||
-      this.state.activeTool.type === "lasso" ||
-      this.state.activeTool.type === "text" ||
-      this.state.activeTool.type === "image" ||
-      this.state.activeTool.type === "video" ||
-      this.state.activeTool.type === "pdf";
+      PEN_MODE_TOUCH_OPERABLE_TOOLS.has(this.state.activeTool.type);
 
     if (!allowOnPointerDown) {
+      // penMode is on, this is a touch, and the active tool is a *drawing*
+      // tool (not in PEN_MODE_TOUCH_OPERABLE_TOOLS). A finger is not a precise
+      // drawing instrument, so rather than dropping the touch we pan the
+      // canvas — Apple-Notes/OneNote-style "pen draws, finger moves the page".
+      // The pan itself is initiated earlier in this handler, by the
+      // penMode-touch branch of `handleCanvasPanUsingWheelOrSpaceDrag`; if we
+      // ever reach here it means that branch decided not to pan, so just bail.
       return;
     }
 
@@ -9123,7 +9140,21 @@ class App extends React.Component<AppProps, AppState> {
           // via `interaction.enabled.tools` — panning must remain gated on
           // `navigation` then
           (this.isInteractionEnabled() || this.isNavigationEnabled())) ||
-          (this.state.viewModeEnabled && !this.isActiveToolPointerCapturing()))
+          (this.state.viewModeEnabled &&
+            !this.isActiveToolPointerCapturing()) ||
+          // penMode (a pen/stylus was detected): let a single-finger touch pan
+          // the canvas when the active tool is a *drawing* tool. The
+          // finger-operable tools (selection/lasso/text/image/video/pdf) are
+          // excluded so a finger can still select/edit there — see
+          // PEN_MODE_TOUCH_OPERABLE_TOOLS, which mirrors the `allowOnPointerDown`
+          // gate in `handleCanvasPointerDown`. Two-finger touch is handled by
+          // the gesture handler (pinch-zoom), so the `pointers.size <= 1`
+          // guard above keeps this to a single finger.
+          (this.state.penMode &&
+            "pointerType" in event &&
+            event.pointerType === "touch" &&
+            !PEN_MODE_TOUCH_OPERABLE_TOOLS.has(this.state.activeTool.type) &&
+            (this.isInteractionEnabled() || this.isNavigationEnabled())))
       )
     ) {
       return false;
@@ -10037,6 +10068,7 @@ class App extends React.Component<AppProps, AppState> {
       strokeOptions: {
         variability: strokeVariability,
         streamline,
+        penStyle: this.state.currentItemPenStyle,
       },
       locked: false,
       frameId: topLayerFrame ? topLayerFrame.id : null,
@@ -14455,7 +14487,6 @@ class App extends React.Component<AppProps, AppState> {
           actionToggleGridMode,
           actionToggleZenMode,
           actionToggleViewMode,
-          actionToggleStats,
         ];
       }
 
@@ -14475,7 +14506,6 @@ class App extends React.Component<AppProps, AppState> {
         actionToggleMidpointSnapping,
         actionToggleZenMode,
         actionToggleViewMode,
-        actionToggleStats,
       ];
     }
 

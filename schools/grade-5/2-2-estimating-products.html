@@ -4,101 +4,356 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Estimating Products — Grade 5</title>
+
 <script src="../../math-lab/assets/vendor/gsap.min.js"></script>
+<script src="../assets/vendor/motion.min.js"></script>
+
 <link rel="stylesheet" href="../../math-lab/assets/vendor/katex.min.css" />
 <script src="../../math-lab/assets/vendor/katex.min.js"></script>
 <link rel="stylesheet" href="../assets/css/lesson-shell.css" />
 <script src="../assets/js/lesson-shell.js"></script>
+<script src="../assets/js/lesson-motion.js"></script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
 <style>
-  .chart{ padding:36px 24px 30px; display:flex; flex-direction:column; align-items:center; gap:24px; }
+  /* ---- bespoke workspace: rounding line + estimate/exact comparison + book-procedure
+     panel, rebuilt to the app-shell archetype (SCHOOLS_FINGERPRINT.md §10.5). Input is
+     a native range slider, not a drag on the diagram itself — the rounding line is a
+     derived, one-way visualization, not a reverse pixel→value mapping — so no JSXGraph
+     port is warranted (§10.6). ---- */
+  .stage{ background:var(--core-black); border:1px solid rgba(255,255,255,.045); border-radius:22px; }
+  .workspace{ display:flex; gap:0; }
+  .board-wrap{ flex:1 1 64%; min-width:0; position:relative; padding:6px 0 6px 6px; }
+  .board-wrap .chart{ position:absolute; inset:0; padding:36px 24px 30px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px; overflow-y:auto; border-radius:18px; }
+
   .rline-wrap{ width:100%; max-width:560px; position:relative; height:70px; }
   .rline{ position:absolute; top:34px; left:0; right:0; height:1px; background:rgba(255,255,255,.14); }
   .rline .tick{ position:absolute; top:-5px; width:1px; height:11px; background:rgba(255,255,255,.2); transform:translateX(-50%); }
   .rline .tick-label{ position:absolute; top:12px; transform:translateX(-50%); font-family:var(--mono); font-size:11px; color:var(--pulse-ash); direction:ltr; }
-  .rline .marker{ position:absolute; top:-13px; width:26px; height:26px; margin-left:-13px; border-radius:50%; background:var(--infrared); box-shadow:0 4px 12px rgba(237,109,64,.4); transform:translateX(-50%); }
-  .rline .snap-label{ position:absolute; top:-42px; transform:translateX(-50%); font-family:var(--mono); font-size:12px; font-weight:700; color:var(--infrared); direction:ltr; white-space:nowrap; }
+  /* the marker (the real, unrounded A) stays teal — the primary/exact value; the
+     snap-label (what A rounds TO, the estimate input) is gold, same estimate/exact
+     color pairing as the other estimation lessons and the bar-graph's two series
+     (§3's --validation-red exception: a real semantic pair, not decoration). */
+  .rline .marker{ position:absolute; top:-13px; width:26px; height:26px; margin-left:-13px; border-radius:50%; background:#5c939f; box-shadow:0 4px 12px rgba(92,147,159,.35); transform:translateX(-50%); }
+  .rline .snap-label{ position:absolute; top:-42px; transform:translateX(-50%); font-family:var(--mono); font-size:12px; font-weight:700; color:#c99a3c; direction:ltr; white-space:nowrap; }
 
   .compare-row{ display:flex; gap:28px; flex-wrap:wrap; justify-content:center; }
   .compare-card{ background:var(--urban-smoke); border:1px solid rgba(255,255,255,.1); border-radius:14px; padding:16px 22px; text-align:center; min-width:190px; }
   .compare-card .label{ font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--pulse-ash); margin-bottom:8px; }
   .compare-card .val{ font-family:var(--mono); font-size:22px; font-weight:700; color:var(--off-white); direction:ltr; unicode-bidi:isolate; }
-  .compare-card.estimate .val{ color:var(--infrared); }
-  .compare-card.exact .val{ color:var(--electric-teal); }
-  .verdict{ font-family:var(--mono); font-size:13px; color:var(--validation-green); direction:ltr; unicode-bidi:isolate; }
+  .compare-card.estimate .val{ color:#c99a3c; }
+  .compare-card.exact .val{ color:#5c939f; }
+  .verdict{ font-family:var(--mono); font-size:13px; color:var(--electric-teal); direction:ltr; unicode-bidi:isolate; }
+  /* the verdict is a full translated sentence ("over-estimate by 1,200"), not just a
+     number — same cascade-tie fix as .zero-badge/.diver-tag/.cat-label elsewhere
+     (§9.1/§10.5/§10.6): this file's own font-family:var(--mono) beats the shared
+     .ar-body rule on equal specificity, and a real Arabic sentence also needs rtl,
+     not the digit-only direction:ltr this rule was written for. */
+  .verdict.ar-body{ font-family:"Vazirmatn", sans-serif; direction:rtl; unicode-bidi:normal; }
 
   .precision-row{ display:flex; gap:8px; }
   .precision-btn{ font-family:var(--mono); font-size:11px; letter-spacing:.04em; text-transform:uppercase; color:var(--electric-teal); background:none; border:1px solid rgba(92,147,159,.4); border-radius:100px; padding:6px 14px; cursor:pointer; }
   .precision-btn.active{ background:var(--electric-teal); color:var(--core-black); }
+
+  .procedure{
+    position:relative;
+    flex:0 0 36%; max-width:380px; padding:var(--sp-5) var(--sp-6) var(--sp-5);
+    border-left:1px solid rgba(255,255,255,.06);
+    background:none;
+    display:flex; flex-direction:column; gap:var(--sp-2);
+  }
+  .procedure-head{ font-family:var(--display); font-size:var(--fs-2xs); letter-spacing:var(--tr-label); text-transform:uppercase; color:var(--electric-teal); margin-bottom:var(--sp-1); font-weight:600; }
+  .procedure-head.ar-ui{ letter-spacing:0; text-transform:none; font-size:var(--fs-sm); }
+  .proc-step{ display:flex; gap:var(--sp-3); padding:var(--sp-3); border-radius:var(--sp-3); border:1px solid transparent; transition:background .25s cubic-bezier(.16,1,.3,1), border-color .25s ease, box-shadow .25s ease; cursor:pointer; }
+  .proc-step:hover{ background:rgba(255,255,255,.03); }
+  .proc-step.is-active{ background:linear-gradient(90deg, rgba(var(--electric-teal-rgb),.16), rgba(var(--electric-teal-rgb),.02)); border-color:rgba(var(--electric-teal-rgb),.30); box-shadow: inset 3px 0 0 var(--electric-teal); }
+  .proc-num{ flex:0 0 22px; height:22px; border-radius:50%; border:1px solid rgba(255,255,255,.18); font-family:var(--mono); font-size:var(--fs-2xs); display:flex; align-items:center; justify-content:center; color:var(--pulse-ash); box-shadow: inset 0 1px 1px rgba(255,255,255,.06), 0 2px 4px rgba(0,0,0,.4); transition:all .25s cubic-bezier(.16,1,.3,1); margin-top:1px; }
+  .proc-step.is-active .proc-num{ background:var(--electric-teal); border-color:var(--electric-teal); color:var(--core-black); font-weight:700; }
+  .proc-body{ font-size:var(--fs-sm); color:var(--neural-fog); line-height:var(--lh-snug); }
+  .proc-body.ar-body{ font-size:var(--fs-sm); line-height:var(--lh-relaxed); }
+  .proc-why{ margin-top:var(--sp-2); padding:var(--sp-3) var(--sp-4); border-radius:var(--sp-3); background:var(--urban-smoke); border:1px solid rgba(255,255,255,.08); font-size:var(--fs-xs); color:var(--neural-fog); line-height:var(--lh-snug); }
+  .proc-why b{ color:var(--electric-teal); font-weight:500; }
+  .proc-why.ar-body{ font-size:var(--fs-xs); line-height:var(--lh-relaxed); }
+  .procedure .teach{ padding:var(--sp-4) 0 0; border-top:1px solid rgba(255,255,255,.06); background:none; }
+  .procedure .teach p{ font-size:var(--fs-xs); line-height:var(--lh-snug); }
+  .procedure .teach p.ar-body{ line-height:var(--lh-relaxed); }
+  .procedure{ scrollbar-width: thin; scrollbar-color: rgba(var(--electric-teal-rgb),.45) transparent; scrollbar-gutter: stable; }
+  .procedure::-webkit-scrollbar{ width:9px; }
+  .procedure::-webkit-scrollbar-track{ background:transparent; margin:var(--sp-3) 0; }
+  .procedure::-webkit-scrollbar-thumb{ background:linear-gradient(180deg, rgba(var(--electric-teal-rgb),.55), rgba(var(--electric-teal-rgb),.28)); border-radius:100px; border:2px solid transparent; background-clip:padding-box; transition:background .2s ease; }
+  .procedure::-webkit-scrollbar-thumb:hover{ background:linear-gradient(180deg, rgba(var(--electric-teal-rgb),.85), rgba(var(--electric-teal-rgb),.5)); background-clip:padding-box; }
+  .procedure::-webkit-scrollbar-corner{ background:transparent; }
+
+  .control-row input[type="range"]{
+    --fill:0%;
+    background:linear-gradient(90deg, var(--electric-teal) 0%, var(--electric-teal) var(--fill), rgba(255,255,255,.10) var(--fill), rgba(255,255,255,.10) 100%);
+    height:6px;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.5);
+  }
+  .control-row input[type="range"]::-moz-range-progress{ background:transparent; }
+
+  .eq-bar{ background:none; -webkit-backdrop-filter:none; backdrop-filter:none; }
+
+  .explain-btn{ transition:background .2s cubic-bezier(.16,1,.3,1), box-shadow .25s ease, transform .25s cubic-bezier(.16,1,.3,1), border-color .2s ease; will-change:transform; }
+  .explain-btn:hover{ background:rgba(var(--electric-teal-rgb),.10); box-shadow:0 2px 0 rgba(0,0,0,.35), 0 0 10px rgba(var(--electric-teal-rgb),.12); }
+
+  .explain-pop{ position:absolute; z-index:30; top:calc(100% + 8px); right:0; width:300px;
+    padding:var(--sp-4); border-radius:16px; background:rgba(16,17,20,.96);
+    -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+    border:1px solid rgba(var(--electric-teal-rgb),.28);
+    box-shadow:0 12px 32px rgba(0,0,0,.5), inset 0 1px 0 rgba(var(--electric-teal-rgb),.18);
+    display:none; flex-direction:column; gap:var(--sp-2); }
+  .explain-pop.is-open{ display:flex; animation:nbIn .32s cubic-bezier(.16,1,.3,1); }
+  .explain-pop-close{ position:absolute; top:10px; right:12px; width:24px; height:24px; border-radius:50%;
+    border:1px solid rgba(255,255,255,.16); background:none; color:var(--pulse-ash); font-size:17px; line-height:1;
+    cursor:pointer; transition:color .2s ease, border-color .2s ease; }
+  .explain-pop-close:hover{ color:var(--electric-teal); border-color:rgba(var(--electric-teal-rgb),.5); }
+  .explain-pop-title{ font-family:var(--display); font-size:var(--fs-2xs); letter-spacing:var(--tr-label);
+    text-transform:uppercase; color:var(--electric-teal); font-weight:600; }
+  .explain-pop-title.ar-ui{ letter-spacing:0; text-transform:none; font-size:var(--fs-xs); }
+  .explain-opt--whole{ font-family:var(--display); font-size:var(--fs-sm); color:var(--core-black); font-weight:600;
+    background:linear-gradient(180deg, #6fa9b4, var(--electric-teal)); border:none; border-radius:100px;
+    padding:var(--sp-3) var(--sp-4); cursor:pointer; text-align:start;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 4px 14px rgba(var(--electric-teal-rgb),.35);
+    transition:filter .2s ease, transform .15s cubic-bezier(.16,1,.3,1); }
+  .explain-opt--whole:hover{ filter:brightness(1.06); }
+  .explain-opt--whole:active{ transform:translateY(1px); }
+  .explain-opt--whole.ar-ui{ font-family:"Vazirmatn", sans-serif; }
+  .explain-pop-divider{ font-family:var(--display); font-size:var(--fs-2xs); color:var(--pulse-ash); text-align:center; }
+  .explain-pop-divider.ar-ui{ font-family:"Vazirmatn", sans-serif; }
+  .explain-steps{ display:flex; flex-direction:column; gap:var(--sp-1); }
+  .explain-step{ display:flex; align-items:center; gap:var(--sp-2); font-family:var(--display); font-size:var(--fs-xs);
+    color:var(--neural-fog); background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08);
+    border-radius:10px; padding:var(--sp-2) var(--sp-3); cursor:pointer; text-align:start;
+    transition:background .2s ease, border-color .2s ease, transform .15s cubic-bezier(.16,1,.3,1); }
+  .explain-step:hover{ background:rgba(var(--electric-teal-rgb),.10); border-color:rgba(var(--electric-teal-rgb),.4); transform:translateX(2px); }
+  .explain-step.ar-ui{ font-family:"Vazirmatn", sans-serif; }
+  .explain-step-n{ flex:0 0 20px; height:20px; border-radius:50%; background:rgba(var(--electric-teal-rgb),.18);
+    color:var(--electric-teal); font-family:var(--mono); font-size:var(--fs-2xs);
+    display:flex; align-items:center; justify-content:center; }
+
+  .nb-cursor{ position:absolute; z-index:5; width:20px; height:20px; pointer-events:none; opacity:0;
+    transition:opacity .3s ease, left .55s cubic-bezier(.16,1,.3,1), top .55s cubic-bezier(.16,1,.3,1);
+    filter:none; }
+  .nb-cursor.is-visible{ opacity:1; }
+  .nb-cursor svg{ display:block; width:20px; height:20px; }
+  .nb-cursor-glyph{ fill:var(--explain-accent, var(--electric-teal)); stroke:rgba(0,0,0,.18); stroke-width:.4; }
+  .nb-cursor-ripple{ position:absolute; left:0; top:0; width:34px; height:34px; margin:-17px 0 0 -17px;
+    border-radius:50%; border:2px solid rgba(var(--explain-accent-rgb, var(--electric-teal-rgb)),.8); opacity:0; pointer-events:none; }
+  .nb-cursor-label{ position:absolute; left:26px; top:13px; white-space:nowrap; font-family:var(--mono);
+    font-size:var(--fs-2xs); letter-spacing:var(--tr-label); text-transform:uppercase; color:var(--explain-accent, var(--electric-teal));
+    background:rgba(9,9,9,.85); border:1px solid rgba(var(--explain-accent-rgb, var(--electric-teal-rgb)),.35); border-radius:100px; padding:var(--sp-1) var(--sp-3); }
+  .nb-cursor-label.ar-ui{ text-transform:none; letter-spacing:0; font-size:var(--fs-xs); }
+
+  html,body{ height:100%; }
+  .app{ max-width:none; height:100dvh; margin:0; padding:var(--sp-2) var(--sp-6); display:flex; flex-direction:column; gap:var(--sp-2); overflow:hidden; }
+  .app-bar{ display:flex; justify-content:space-between; align-items:center; gap:var(--sp-4); flex:0 0 auto; padding-bottom:var(--sp-2); border-bottom:1px solid rgba(255,255,255,.06); }
+  .app-bar-left{ display:flex; flex-direction:column; gap:var(--sp-1); min-width:0; }
+  .app-bar-left .crumb{ font-size:var(--fs-2xs); }
+  .app-bar-left .title-primary{ font-size:clamp(22px, 2.6vw, 30px); line-height:var(--lh-tight); letter-spacing:var(--tr-tight); }
+  .app-bar-right{ display:flex; align-items:center; gap:var(--sp-3); flex-wrap:wrap; }
+  .bar-sep{ width:1px; align-self:stretch; background:rgba(255,255,255,.10); margin:0 var(--sp-1); }
+
+  .stage{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
+  .eq-bar{ flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; gap:var(--sp-5); padding:var(--sp-3) var(--sp-6) var(--sp-2); flex-wrap:wrap; }
+  .eq-left{ display:flex; flex-direction:column; gap:var(--sp-1); min-width:0; }
+  .control-row{ flex:0 0 auto; padding:var(--sp-2) var(--sp-6) var(--sp-3); }
+  .control-sep{ width:1px; align-self:stretch; background:rgba(255,255,255,.08); margin:0 var(--sp-2); }
+  .workspace{ flex:1 1 auto; min-height:0; }
+  .board-wrap{ flex:1 1 64%; min-width:0; position:relative; padding:0; }
+  .procedure{ flex:0 0 36%; max-width:380px; min-height:0; overflow-y:auto; }
+  .app-bar .nav-pill{ flex:0 0 auto; width:fit-content; max-width:30ch; display:inline-flex; align-items:center; gap:var(--sp-2); font-family:var(--display); font-size:var(--fs-xs); color:var(--pulse-ash); border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.02); border-radius:100px; padding:var(--sp-2) var(--sp-4); text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,.30); transition:border-color .2s ease, background .25s cubic-bezier(.16,1,.3,1), color .2s ease, transform .2s cubic-bezier(.16,1,.3,1), box-shadow .25s ease; }
+  .app-bar .nav-pill:hover{ border-color:rgba(var(--electric-teal-rgb),.5); background:linear-gradient(180deg, rgba(var(--electric-teal-rgb),.16), rgba(var(--electric-teal-rgb),.04)); color:var(--off-white); transform:translateY(-1px); box-shadow:0 6px 16px rgba(0,0,0,.34), 0 0 0 1px rgba(var(--electric-teal-rgb),.18); }
+  .app-bar .nav-pill:active{ transform:scale(.97); }
+  .app-bar .nav-pill svg{ width:14px; height:14px; fill:none; stroke:var(--electric-teal); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:0 0 auto; }
+  html[dir="rtl"] .app-bar .nav-pill svg{ transform:scaleX(-1); }
+  .app-bar .nav-pill b{ color:var(--neural-fog); font-family:var(--display); font-size:var(--fs-xs); font-weight:500; line-height:var(--lh-tight); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:26ch; }
+  .app-bar .nav-pill b.ar-body{ font-weight:600; }
+
+  @media (prefers-reduced-motion: reduce){ .nb-cursor{ transition:opacity .3s ease; } }
+
+  html[lang="en"] #titleAr { display:none; }
+  html[lang="ar"] #titleEn { display:none; }
+
+  @media (max-width:760px){
+    .app{ height:auto; min-height:100dvh; overflow:auto; }
+    .app-bar{ align-items:flex-start; }
+    .workspace{ flex-direction:column; }
+    .procedure{ flex:none; max-width:none; min-height:0; overflow-y:visible; border-left:none; border-top:1px solid rgba(255,255,255,.06); }
+    .board-wrap{ position:relative; padding:6px; min-height:420px; }
+    .board-wrap .chart{ position:relative; inset:auto; }
+  }
+
+  /* ======================================================================
+     APPLE PASS — INTEGRATED variant, identical to the other rebuilt lessons
+     (SCHOOLS_FINGERPRINT.md §10.3/§10.5): flat, quiet, one-accent-by-weight, no font
+     swap, single accent = the lab's own teal. Estimate/exact gold-vs-teal is the one
+     deliberate exception — see the comment above .rline .marker.
+     ====================================================================== */
+  :root{
+    --core-black:#000000;
+    --rich-carbon:#1c1c1e;
+    --urban-smoke:#2c2c2e;
+    --pulse-ash:#98989d;
+    --off-white:#f5f5f7;
+    --neural-fog:#ebebf5;
+    --electric-teal:#5c939f;
+    --electric-teal-rgb:92,147,159;
+    --infrared:#5c939f;
+    --infrared-rgb:92,147,159;
+    --validation-green:#5c939f;
+  }
+  html,body{ background:#000; color:#f5f5f7; -webkit-font-smoothing:antialiased; }
+
+  .app{ padding:22px 32px; gap:16px; }
+  .app-bar{ border-bottom:1px solid #38383a; padding-bottom:14px; }
+  .app-bar-left .title-primary{ font-family:var(--display); font-weight:600; letter-spacing:-0.022em; }
+  .app-bar-left .crumb{ color:#5c939f; }
+  .bar-sep{ background:#38383a; }
+
+  .lang-pill{ background:#1c1c1e; border:1px solid #38383a; box-shadow:none; }
+  .lang-pill button{ color:#98989d; }
+  .lang-pill button.active{ background:#5c939f; color:#fff; box-shadow:none; }
+  .explain-btn{ background:#1c1c1e; border:1px solid #38383a; color:#5c939f; box-shadow:none; }
+  .explain-btn:hover{ background:#2c2c2e; box-shadow:none; }
+  .explain-btn::before{ border-color:#5c939f; }
+
+  .app-bar .nav-pill{ background:#1c1c1e; border:1px solid #38383a; color:#f5f5f7; box-shadow:none; }
+  .app-bar .nav-pill:hover{ border-color:#5c939f; background:#2c2c2e; box-shadow:none; transform:none; }
+  .app-bar .nav-pill:active{ transform:scale(.98); }
+  .app-bar .nav-pill svg{ stroke:#5c939f; }
+  .app-bar .nav-pill b{ color:#f5f5f7; }
+
+  .stage{ background:#1c1c1e; border:1px solid #38383a; border-radius:18px; box-shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 30px rgba(0,0,0,.45); }
+  .board-wrap .chart{ background:#000; }
+
+  .eq-bar{ border-bottom:1px solid #2c2c2e; }
+  .eq-line .katex{ color:#f5f5f7; }
+  .eq-sub{ color:#98989d; }
+
+  .control-row{ border-bottom:1px solid #2c2c2e; }
+  .control-row label{ color:#98989d; }
+  .control-row input[type="range"]{ background:#3a3a3c; box-shadow:none; }
+  .control-row input[type="range"]::-webkit-slider-thumb{ background:#f5f5f7; border:1px solid #5c939f; box-shadow:0 1px 3px rgba(0,0,0,.5); }
+  .control-row input[type="range"]::-webkit-slider-thumb:hover{ box-shadow:0 1px 5px rgba(0,0,0,.6); transform:none; }
+  .control-row input[type="range"]::-moz-range-thumb{ background:#f5f5f7; border:1px solid #5c939f; box-shadow:0 1px 3px rgba(0,0,0,.5); }
+  .control-val{ background:#2c2c2e; border:1px solid #38383a; color:#f5f5f7; box-shadow:none; }
+  .control-sep{ background:#3a3a3c; }
+
+  .procedure{ border-left:1px solid #2c2c2e; scrollbar-color:#48484a transparent; }
+  .procedure-head{ color:#5c939f; }
+  .proc-step{ border-radius:12px; }
+  .proc-step:hover{ background:#2c2c2e; }
+  .proc-step.is-active{ background:#2c2c2e; border-color:transparent; box-shadow: inset 3px 0 0 #5c939f; }
+  .proc-num{ border:1px solid #38383a; color:#98989d; box-shadow:none; }
+  .proc-step.is-active .proc-num{ background:#5c939f; border-color:#5c939f; color:#fff; }
+  .proc-body{ color:#f5f5f7; }
+  .proc-why{ background:#2c2c2e; border:1px solid #38383a; color:#ebebf5; }
+  .proc-why b{ color:#5c939f; }
+  .procedure .teach{ border-top:1px solid #2c2c2e; }
+  .procedure .teach p{ color:#98989d; }
+  .procedure .teach b{ color:#f5f5f7; }
+  .procedure::-webkit-scrollbar-thumb{ background:#48484a; }
+  .procedure::-webkit-scrollbar-thumb:hover{ background:#5c939f; }
+
+  .notebook{ background:#1c1c1e; backdrop-filter:none; -webkit-backdrop-filter:none; box-shadow:-1px 0 0 #2c2c2e; }
+  .notebook-close{ border:1px solid #38383a; color:#98989d; background:#1c1c1e; }
+  .notebook-kicker{ color:#5c939f; }
+  .nb-sec h4.nb-h{ color:#f5f5f7; }
+  .nb-sec p.nb-p{ color:#ebebf5; }
+  .notebook-ring{ border-color:rgba(92,147,159,.55); box-shadow:0 0 0 3px rgba(92,147,159,.18); animation:none; }
+  .nb-cursor-ripple{ border-color:rgba(92,147,159,.8); }
+  .nb-cursor-label{ color:#fff; background:#5c939f; border:1px solid #5c939f; }
+
+  .explain-pop{ background:#1c1c1e; backdrop-filter:none; -webkit-backdrop-filter:none; border:1px solid #38383a; box-shadow:0 8px 28px rgba(0,0,0,.6); }
 </style>
 </head>
 <body>
 
-<div class="shell">
-  <div class="page-head">
-    <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 2 · LESSON 2</div>
-    <div class="lang-pill">
-      <button data-lang="en" class="active">EN</button>
-      <button data-lang="ar">AR</button>
+<div class="app">
+  <header class="app-bar">
+    <div class="app-bar-left">
+      <div class="crumb ar-ui" data-role="ui" data-i18n="crumb">JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 2 · LESSON 2</div>
+      <h1 class="title-primary" id="titleEn">Estimating Products</h1>
+      <h1 class="title-primary ar-display" id="titleAr">تقدير نواتج الضرب</h1>
     </div>
-  </div>
-  <div class="titles">
-    <h1 class="title-primary" id="titleEn">Estimating Products</h1>
-    <span class="title-secondary ar-display" id="titleAr">تقدير نواتج الضرب</span>
-  </div>
-  <p class="objective"><b data-role="body" data-i18n="objectiveLabel">Objective —</b> <span data-role="body" data-i18n="objectiveText">I estimate multiplication products using rounding.</span></p>
+    <div class="app-bar-right">
+      <a class="nav-pill prev" href="2-1-mental-multiplication.html" title="2.1 · Mental Multiplication">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+        <b data-role="body" id="navPrevText">2.1 · Mental Multiplication</b>
+      </a>
+      <a class="nav-pill next" href="2-3-multiplying-whole-numbers.html" title="2.3 · Multiplying Whole Numbers">
+        <b data-role="body" id="navNextText">2.3 · Multiplying Whole Numbers</b>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+      </a>
+      <span class="bar-sep" aria-hidden="true"></span>
+      <div class="lang-pill">
+        <button data-lang="en" class="active">EN</button>
+        <button data-lang="ar">AR</button>
+      </div>
+      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
+    </div>
+  </header>
 
   <div class="stage" id="stage">
     <div class="eq-bar">
-      <div>
+      <div class="eq-left">
         <div class="eq-line" id="eqLine"></div>
         <div class="eq-sub" data-role="ui" data-i18n="eqSub">round first, then multiply the easy way</div>
       </div>
-      <button class="explain-btn" id="explainBtn" data-role="ui" data-i18n="explainBtn">Explain this</button>
     </div>
 
     <div class="control-row">
       <label data-role="ui" data-i18n="controlLabel">number A</label>
       <input type="range" id="aSlider" min="1000" max="9000" step="1" value="2491" />
       <span class="control-val" id="aReadout">2,491</span>
+      <span class="control-sep" aria-hidden="true"></span>
+      <label data-role="ui" data-i18n="stepLabel">step</label>
+      <input type="range" id="stepSlider" min="0" max="2" step="1" value="0" />
+      <span class="control-val" id="stepReadout">1 / 3</span>
     </div>
 
-    <div class="scene chart" id="scene">
-      <div class="precision-row" id="precisionRow">
-        <button class="precision-btn active" data-round="100" data-role="ui" data-i18n="roundHundred">nearest 100</button>
-        <button class="precision-btn" data-round="1000" data-role="ui" data-i18n="roundThousand">nearest 1000</button>
-      </div>
-      <div class="rline-wrap" id="rlineArea">
-        <div class="rline" id="rline"></div>
-      </div>
-      <div class="compare-row">
-        <div class="compare-card estimate">
-          <div class="label" data-role="ui" data-i18n="estimateLabel">estimate</div>
-          <div class="val" id="estimateVal"></div>
+    <div class="workspace">
+      <div class="board-wrap">
+        <div class="chart" id="scene">
+          <div class="precision-row" id="precisionRow">
+            <button class="precision-btn active" data-round="100" data-role="ui" data-i18n="roundHundred">nearest 100</button>
+            <button class="precision-btn" data-round="1000" data-role="ui" data-i18n="roundThousand">nearest 1000</button>
+          </div>
+          <div class="rline-wrap" id="rlineArea">
+            <div class="rline" id="rline"></div>
+          </div>
+          <div class="compare-row">
+            <div class="compare-card estimate">
+              <div class="label" data-role="ui" data-i18n="estimateLabel">estimate</div>
+              <div class="val" id="estimateVal"></div>
+            </div>
+            <div class="compare-card exact">
+              <div class="label" data-role="ui" data-i18n="exactLabel">exact</div>
+              <div class="val" id="exactVal"></div>
+            </div>
+          </div>
+          <div class="verdict" id="verdict" data-role="body"></div>
         </div>
-        <div class="compare-card exact">
-          <div class="label" data-role="ui" data-i18n="exactLabel">exact</div>
-          <div class="val" id="exactVal"></div>
+      </div>
+      <div class="procedure" id="procedure">
+        <div class="procedure-head" data-role="ui" data-i18n="procHead">Estimating a product</div>
+        <div id="procList"></div>
+        <div class="proc-why" id="procWhy" data-role="body"></div>
+        <div class="teach">
+          <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Round one factor to a leading place value (or pick compatible numbers), multiply the easy way, then reason about whether rounding up or down over- or under-estimates the real product.</span></p>
         </div>
       </div>
-      <div class="verdict" id="verdict"></div>
     </div>
-
-    <div class="teach">
-      <p><b data-role="body" data-i18n="teachLabel">What this teaches:</b> <span data-role="body" data-i18n="teachBody">Two estimation strategies: rounding one or both factors to a leading place value before multiplying with basic facts, and choosing "compatible numbers" that are easy to multiply mentally. Students also reason about whether an estimate is an over- or under-estimate based on rounding direction.</span></p>
-    </div>
-  </div>
-
-  <div class="nav-row">
-    <a class="nav-pill prev" href="2-1-mental-multiplication.html"><span id="navPrevLabel">—</span> <b data-role="body" id="navPrevText">2.1 · Mental Multiplication</b></a>
-    <a class="nav-pill next" href="2-3-multiplying-whole-numbers.html"><span id="navNextLabel">next</span> <b data-role="body" id="navNextText">2.3 · Multiplying Whole Numbers</b></a>
   </div>
 </div>
 
 <script>
-  const { groupInt, initI18n, renderEquation, buildTour } = LessonShell;
+  const { groupInt, initI18n, renderEquation, buildNotebook } = LessonShell;
+  const { reveal } = LessonMotion;
   const FACTOR_B = 4;
 
   const T = {
@@ -106,42 +361,102 @@
       crumb: "JORDAN NATIONAL CURRICULUM · GRADE 5 · UNIT 2 · LESSON 2",
       objectiveLabel: "Objective —",
       objectiveText: "I estimate multiplication products using rounding.",
-      eqSub: "round first, then multiply the easy way",
       explainBtn: "Explain this",
-      controlLabel: "number A",
+      explainTitle: "Explain", explainWhole: "Whole walkthrough", explainSingle: "or a single step",
+      eqSub: "round first, then multiply the easy way",
+      controlLabel: "number A", stepLabel: "step",
+      procHead: "Estimating a product",
       roundHundred: "nearest 100", roundThousand: "nearest 1000",
       estimateLabel: "estimate", exactLabel: "exact",
       over: "over-estimate by", under: "under-estimate by", exactMatch: "estimate matches exactly",
-      navPrevLabel: "—", navPrevText: "2.1 · Mental Multiplication",
-      navNextLabel: "next", navNext: "2.3 · Multiplying Whole Numbers",
+      navPrev: "2.1 · Mental Multiplication",
+      navNext: "2.3 · Multiplying Whole Numbers",
       teachLabel: "What this teaches:",
-      teachBody: "Two estimation strategies: rounding one or both factors to a leading place value before multiplying with basic facts, and choosing “compatible numbers” that are easy to multiply mentally. Students also reason about whether an estimate is an over- or under-estimate based on rounding direction.",
+      teachBody: "Round one factor to a leading place value (or pick compatible numbers), multiply the easy way, then reason about whether rounding up or down over- or under-estimates the real product.",
+      proc: [
+        "Round A to a nearby easy number — pick the precision.",
+        "Multiply the rounded number for a fast estimate.",
+        "Check: did rounding up or down make the estimate too big or too small?"
+      ],
+      why: "<b>Why it works:</b> Rounding one factor to a friendly number turns a hard multiplication into a fast mental one. The direction you rounded tells you the direction of the error before you even check the exact answer.",
       tour: [
-        { ids: ["rline"], label: "Round to a nearby easy number", body: "Slide A along the line — the marker snaps to the nearest round number at your chosen precision." },
-        { ids: ["estimateVal", "exactVal"], label: "Estimate vs. exact", body: "Multiplying the rounded number is fast mental math. Compare it to the real product to see how close it lands." },
-        { ids: ["verdict"], label: "Over or under?", body: "Rounding up makes the estimate bigger than the real answer; rounding down makes it smaller — the verdict tells you which." }
+        { label: "Round to a nearby easy number" },
+        { label: "Estimate vs. exact" },
+        { label: "Over or under?" }
       ]
     },
     ar: {
       crumb: "المنهاج الوطني الأردني · الصف الخامس · الوحدة ٢ · الدرس ٢",
       objectiveLabel: "فكرة الدرس —",
       objectiveText: "أُقدِّر نواتج الضرب باستخدام التقريب.",
-      eqSub: "قرِّب أوّلًا، ثم اضرب بالطريقة السهلة",
       explainBtn: "اشرح هذا",
-      controlLabel: "العدد A",
+      explainTitle: "اشرح", explainWhole: "الشرح كاملًا", explainSingle: "أو خطوة واحدة",
+      eqSub: "قرِّب أوّلًا، ثم اضرب بالطريقة السهلة",
+      controlLabel: "العدد A", stepLabel: "الخطوة",
+      procHead: "تقدير ناتج الضرب",
       roundHundred: "أقرب مئة", roundThousand: "أقرب ألف",
       estimateLabel: "التقدير", exactLabel: "الناتج الدقيق",
       over: "تقدير زائد بمقدار", under: "تقدير ناقص بمقدار", exactMatch: "التقدير مطابق تمامًا",
-      navPrevLabel: "—", navPrevText: "٢.١ · الضرب الذهني",
-      navNextLabel: "التالي", navNext: "٢.٣ · ضرب الأعداد",
+      navPrev: "٢.١ · الضرب الذهني",
+      navNext: "٢.٣ · ضرب الأعداد",
       teachLabel: "ماذا يعلّمنا هذا الدرس:",
-      teachBody: "استراتيجيتان للتقدير: تقريب أحد العاملين أو كليهما إلى منزلة قائدة قبل الضرب بحقائق أساسية، واختيار «أعداد متناغمة» يسهل ضربها ذهنيًا. يستنتج الطلبة أيضًا ما إذا كان التقدير زائدًا أم ناقصًا بحسب جهة التقريب.",
+      teachBody: "قرِّب أحد العاملين إلى منزلة قائدة (أو اختر أعدادًا متناغمة)، اضرب بالطريقة السهلة، ثم استنتج هل يجعل التقريب لأعلى أو لأسفل التقديرَ زائدًا أم ناقصًا عن الناتج الحقيقي.",
+      proc: [
+        "قرِّب A إلى عدد قريب سهل — اختر الدقّة.",
+        "اضرب العدد المقرَّب للحصول على تقدير سريع.",
+        "تحقّق: هل جعل التقريب لأعلى أو لأسفل التقدير أكبر أم أصغر من اللازم؟"
+      ],
+      why: "<b>لماذا يعمل:</b> تقريب أحد العاملين إلى عدد سهل يحوّل ضربًا صعبًا إلى حساب ذهني سريع. جهة التقريب تخبرك باتجاه الخطأ حتى قبل أن تتحقّق من الإجابة الدقيقة.",
       tour: [
-        { ids: ["rline"], label: "قرِّب إلى عدد قريب سهل", body: "حرِّك A على الخط — تنجذب العلامة إلى أقرب عدد مقرَّب حسب الدقّة التي اخترتها." },
-        { ids: ["estimateVal", "exactVal"], label: "التقدير مقابل الناتج الدقيق", body: "ضرب العدد المقرَّب حساب ذهني سريع. قارنه بالناتج الحقيقي لترى مدى قربه." },
-        { ids: ["verdict"], label: "زائد أم ناقص؟", body: "التقريب لأعلى يجعل التقدير أكبر من الإجابة الحقيقية؛ والتقريب لأسفل يجعله أصغر — والحكم يوضّح أيّهما." }
+        { label: "قرِّب إلى عدد قريب سهل" },
+        { label: "التقدير مقابل الناتج الدقيق" },
+        { label: "زائد أم ناقص؟" }
       ]
     }
+  };
+
+  // ---- professor's notebook content (state-aware) ------------------------------
+  const EXPLAIN = {
+    en: [
+      () => ({ ids: ["rline"], kicker: "Step 1 of 3 · Estimating a product", sections: [
+        { h: "On the board now", p: "A slid along the line — the marker snaps to the nearest round number at your chosen precision." },
+        { h: "The move", p: "Step 1 — round A to a nearby easy number. Switch the precision buttons to round to the nearest 100 or 1000." },
+        { h: "Why it holds", p: "A round number multiplies cleanly in your head — that's the entire point of rounding before multiplying, not after." },
+        { h: "Next", p: "Next, see what multiplying the rounded number gives you, next to the real exact product." }
+      ]}),
+      () => ({ ids: ["estimateVal", "exactVal"], kicker: "Step 2 of 3 · Estimating a product", sections: [
+        { h: "On the board now", p: "The gold estimate multiplies the rounded number; the teal exact value multiplies the real one." },
+        { h: "The move", p: "Step 2 — compare the two. Multiplying the rounded number is fast mental math — see how close it lands to the real product." },
+        { h: "Why it holds", p: "Both computations use the same second factor — the only difference is whether A was rounded first, so any gap between them comes entirely from the rounding." },
+        { h: "Next", p: "Next, see whether that gap makes the estimate too big or too small." }
+      ]}),
+      () => ({ ids: ["verdict"], kicker: "Step 3 of 3 · Estimating a product", sections: [
+        { h: "On the board now", p: "The verdict names the direction and size of the estimate's error against the exact product." },
+        { h: "The move", p: "Step 3 — read the verdict. Rounding up makes the estimate bigger than reality; rounding down makes it smaller." },
+        { h: "Why it holds", p: "Multiplying a larger rounded factor by the same second number always gives a larger product — the direction of the rounding error carries straight through to the direction of the estimate's error." },
+        { h: "Result", p: "That's the whole idea: round for speed, then reason about which way the rounding pushed your answer." }
+      ]})
+    ],
+    ar: [
+      () => ({ ids: ["rline"], kicker: "الخطوة ١ من ٣ · تقدير ناتج الضرب", sections: [
+        { h: "على اللوح الآن", p: "ينزلق A على الخط — تنجذب العلامة إلى أقرب عدد مقرَّب حسب الدقّة التي اخترتها." },
+        { h: "الخطوة", p: "الخطوة ١ — قرِّب A إلى عدد قريب سهل. بدِّل أزرار الدقّة للتقريب إلى أقرب مئة أو ألف." },
+        { h: "لماذا يصح", p: "العدد المقرَّب يُضرب بسهولة ذهنيًا — هذا هو بيت القصيد من التقريب قبل الضرب، لا بعده." },
+        { h: "التالي", p: "التالي: انظر ماذا يعطيك ضرب العدد المقرَّب، بجانب الناتج الدقيق الحقيقي." }
+      ]}),
+      () => ({ ids: ["estimateVal", "exactVal"], kicker: "الخطوة ٢ من ٣ · تقدير ناتج الضرب", sections: [
+        { h: "على اللوح الآن", p: "التقدير الذهبي يضرب العدد المقرَّب؛ والناتج التركوازي الدقيق يضرب العدد الحقيقي." },
+        { h: "الخطوة", p: "الخطوة ٢ — قارن بين الاثنين. ضرب العدد المقرَّب حساب ذهني سريع — انظر مدى قربه من الناتج الحقيقي." },
+        { h: "لماذا يصح", p: "يستعمل الحسابان العامل الثاني نفسه — والفرق الوحيد هو تقريب A أولًا أم لا، فأي فجوة بينهما مصدرها التقريب فقط." },
+        { h: "التالي", p: "التالي: انظر هل تجعل تلك الفجوة التقدير أكبر أم أصغر من اللازم." }
+      ]}),
+      () => ({ ids: ["verdict"], kicker: "الخطوة ٣ من ٣ · تقدير ناتج الضرب", sections: [
+        { h: "على اللوح الآن", p: "يُسمّي الحكمُ اتجاه خطأ التقدير وحجمه مقارنةً بالناتج الدقيق." },
+        { h: "الخطوة", p: "الخطوة ٣ — اقرأ الحكم. التقريب لأعلى يجعل التقدير أكبر من الحقيقة؛ والتقريب لأسفل يجعله أصغر." },
+        { h: "لماذا يصح", p: "ضرب عامل مقرَّب أكبر في العدد الثاني نفسه يعطي دائمًا ناتجًا أكبر — فاتجاه خطأ التقريب ينتقل مباشرة إلى اتجاه خطأ التقدير." },
+        { h: "النتيجة", p: "هذه هي الفكرة كاملة: قرِّب من أجل السرعة، ثم استنتج إلى أي جهة دفع التقريب إجابتك." }
+      ]})
+    ]
   };
 
   let roundTo = 100;
@@ -152,6 +467,13 @@
   const estimateVal = document.getElementById("estimateVal");
   const exactVal = document.getElementById("exactVal");
   const verdict = document.getElementById("verdict");
+  const stepSlider = document.getElementById("stepSlider");
+  const stepReadout = document.getElementById("stepReadout");
+  const procList = document.getElementById("procList");
+  const procWhy = document.getElementById("procWhy");
+
+  let step = 0;
+  let notebook = null;
 
   function render(animate) {
     const t = T[i18n.lang];
@@ -159,7 +481,6 @@
     aReadout.textContent = groupInt(A, "en");
     const rounded = Math.round(A / roundTo) * roundTo;
 
-    // rebuild the rounding line around the current value
     rline.innerHTML = "";
     const lo = Math.floor(A / roundTo) * roundTo - roundTo;
     for (let v = lo, i = 0; i <= 4; v += roundTo, i++) {
@@ -196,24 +517,150 @@
     const diff = estimate - exact;
     verdict.textContent = diff === 0 ? t.exactMatch : diff > 0 ? `${t.over} ${groupInt(diff, "en")}` : `${t.under} ${groupInt(-diff, "en")}`;
 
-    const eqSource = `\\color{#ed6d40}{${groupInt(rounded, "en")}} \\times ${FACTOR_B} \\approx \\color{#ed6d40}{${groupInt(estimate, "en")}} \\quad\\quad \\color{#5c939f}{${groupInt(A, "en")}} \\times ${FACTOR_B} = \\color{#5c939f}{${groupInt(exact, "en")}}`;
+    const eqSource = `\\color{#c99a3c}{${groupInt(rounded, "en")}} \\times ${FACTOR_B} \\approx \\color{#c99a3c}{${groupInt(estimate, "en")}} \\quad\\quad \\color{#5c939f}{${groupInt(A, "en")}} \\times ${FACTOR_B} = \\color{#5c939f}{${groupInt(exact, "en")}}`;
     renderEquation(eqLine, eqSource);
   }
 
-  aSlider.addEventListener("input", () => render(true));
+  function applyStep(s) {
+    step = s;
+    stepReadout.textContent = (s + 1) + " / 3";
+    highlightProcedure(s);
+    nbUpdate();
+  }
+
+  function renderProcedure() {
+    const t = T[i18n.lang];
+    procList.innerHTML = "";
+    t.proc.forEach((body, i) => {
+      const row = document.createElement("div");
+      row.className = "proc-step" + (i === step ? " is-active" : "");
+      row.dataset.idx = i;
+      const num = document.createElement("div");
+      num.className = "proc-num" + (i18n.lang === "ar" ? " ar-ui" : "");
+      num.textContent = i + 1;
+      const txt = document.createElement("div");
+      txt.className = "proc-body" + (i18n.lang === "ar" ? " ar-body" : "");
+      txt.textContent = body;
+      row.appendChild(num); row.appendChild(txt);
+      row.addEventListener("click", () => { stepSlider.value = i; applyStep(i); setSliderFill(stepSlider); });
+      procList.appendChild(row);
+    });
+    procWhy.innerHTML = t.why;
+    procWhy.className = "proc-why" + (i18n.lang === "ar" ? " ar-body" : "");
+    procWhy.setAttribute("dir", i18n.lang === "ar" ? "rtl" : "ltr");
+  }
+  function highlightProcedure(s) {
+    Array.from(procList.children).forEach((row, i) => row.classList.toggle("is-active", i === s));
+  }
+
+  function setSliderFill(slider) {
+    const min = parseFloat(slider.min) || 0, max = parseFloat(slider.max) || 1;
+    slider.style.setProperty("--fill", ((parseFloat(slider.value) - min) / (max - min) * 100) + "%");
+  }
+  stepSlider.addEventListener("input", () => { applyStep(parseInt(stepSlider.value, 10)); setSliderFill(stepSlider); });
+
+  aSlider.addEventListener("input", () => { render(true); setSliderFill(aSlider); nbUpdate(); });
   document.getElementById("precisionRow").addEventListener("click", e => {
     const btn = e.target.closest(".precision-btn");
     if (!btn) return;
     roundTo = parseInt(btn.dataset.round, 10);
     document.querySelectorAll(".precision-btn").forEach(b => b.classList.toggle("active", b === btn));
     render(true);
+    nbUpdate();
   });
 
-  const i18n = initI18n(T, { onLangChange: () => render(false) });
-  render(false);
+  // ---- professor's notebook (state-aware "Explain this") ------------------------
+  function getEntry() { return EXPLAIN[i18n.lang][step](); }
+  notebook = buildNotebook(
+    document.getElementById("procedure"),
+    document.getElementById("stage"),
+    getEntry, () => i18n.lang,
+    {});
+  function nbUpdate() { if (notebook && notebook.isOpen()) notebook.update(); }
 
-  const tour = buildTour(document.getElementById("stage"), () => T[i18n.lang].tour, () => i18n.lang);
-  document.getElementById("explainBtn").addEventListener("click", () => tour.toggle());
+  function openExplain(auto, atStep) {
+    const s = (atStep === undefined) ? 0 : atStep;
+    stepSlider.value = s; setSliderFill(stepSlider);
+    if (!notebook.isOpen()) notebook.open();
+    applyStep(s);
+    if (auto) startAuto();
+  }
+
+  let autoTimer = null;
+  function stopAuto() { if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; } }
+  function startAuto() {
+    stopAuto();
+    const tick = () => {
+      if (step >= 2) { stopAuto(); return; }
+      const next = step + 1;
+      stepSlider.value = next; applyStep(next); setSliderFill(stepSlider);
+      autoTimer = setTimeout(tick, 3000);
+    };
+    autoTimer = setTimeout(tick, 3000);
+  }
+
+  const explainBtn = document.getElementById("explainBtn");
+  const barRight = explainBtn.parentElement;
+  const pop = document.createElement("div");
+  pop.className = "explain-pop";
+  pop.setAttribute("id", "explainPop");
+  barRight.appendChild(pop);
+  if (getComputedStyle(barRight).position === "static") barRight.style.position = "relative";
+  pop.innerHTML =
+    '<button class="explain-pop-close" type="button" aria-label="close">&times;</button>' +
+    '<div class="explain-pop-title" data-i18n="explainTitle">Explain</div>' +
+    '<button class="explain-opt explain-opt--whole" type="button" data-i18n="explainWhole">Whole walkthrough</button>' +
+    '<div class="explain-pop-divider" data-i18n="explainSingle">or a single step</div>' +
+    '<div class="explain-steps"></div>';
+  const stepsWrap = pop.querySelector(".explain-steps");
+  function buildStepChoices() {
+    const lang = i18n.lang;
+    const labels = T[lang].tour;
+    stepsWrap.innerHTML = "";
+    labels.forEach((entry, i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "explain-step";
+      b.dataset.step = i;
+      const n = lang === "ar" ? groupInt(i + 1, "ar") : (i + 1);
+      b.innerHTML = '<span class="explain-step-n">' + n + '</span><span class="explain-step-l">' + entry.label + '</span>';
+      b.addEventListener("click", () => { closePop(); openExplain(false, i); });
+      stepsWrap.appendChild(b);
+    });
+  }
+  function openPop() { buildStepChoices(); pop.classList.add("is-open"); }
+  function closePop() { pop.classList.remove("is-open"); }
+  function togglePop() { pop.classList.contains("is-open") ? closePop() : openPop(); }
+  pop.querySelector(".explain-pop-close").addEventListener("click", closePop);
+  pop.querySelector(".explain-opt--whole").addEventListener("click", () => { closePop(); openExplain(true, 0); });
+  explainBtn.addEventListener("click", (e) => { e.stopPropagation(); togglePop(); });
+  document.addEventListener("click", (e) => { if (!pop.contains(e.target) && e.target !== explainBtn) closePop(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closePop(); });
+
+  (function () {
+    const btn = document.getElementById("explainBtn");
+    const fine = window.matchMedia("(pointer: fine)").matches;
+    if (!fine) return;
+    let raf = 0, tx = 0, ty = 0;
+    btn.addEventListener("mousemove", (e) => {
+      const r = btn.getBoundingClientRect();
+      tx = (e.clientX - (r.left + r.width / 2)) * 0.3;
+      ty = (e.clientY - (r.top + r.height / 2)) * 0.3;
+      if (!raf) raf = requestAnimationFrame(() => { btn.style.transform = `translate(${tx}px, ${ty}px)`; raf = 0; });
+    });
+    btn.addEventListener("mouseleave", () => { btn.style.transform = ""; });
+  })();
+
+  const i18n = initI18n(T, { onLangChange: () => { render(false); renderProcedure(); nbUpdate(); if (pop && pop.classList.contains("is-open")) buildStepChoices(); } });
+
+  // ---- mount ------------------------------------------------------------------
+  render(false);
+  renderProcedure();
+  setSliderFill(aSlider);
+  setSliderFill(stepSlider);
+  reveal(document.querySelector(".stage"));
+  reveal(document.querySelector(".app-bar-right"));
+  setTimeout(startAuto, 900);
 </script>
 </body>
 </html>

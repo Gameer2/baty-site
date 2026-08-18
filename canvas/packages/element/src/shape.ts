@@ -75,6 +75,7 @@ import type {
   ExcalidrawSelectionElement,
   ExcalidrawLinearElement,
   ExcalidrawFreeDrawElement,
+  PenStyle,
   ElementsMap,
   ExcalidrawLineElement,
   Arrowhead,
@@ -1280,7 +1281,6 @@ const getFreeDrawSvgPath = (element: ExcalidrawFreeDrawElement) => {
 const VARIABLE_WIDTH_FREEDRAW = {
   /** Stroke size relative to `strokeWidth` for pressure-sensitive strokes. */
   SIZE_FACTOR: 4.25,
-  THINNING: 0.6,
   SMOOTHING: 0.5,
 } as const;
 
@@ -1289,18 +1289,85 @@ const CONSTANT_WIDTH_FREEDRAW = {
   SIZE_FACTOR: 1.4,
 } as const;
 
+/**
+ * Per-pen-style rendering profile, ported from the Apple-Notes-feel pen
+ * prototype (pen-canvas-preview.html). Variable pens differ by thinning and
+ * end taper; the highlighter is a constant-width, multiply-blended band
+ * (the multiply composite op is applied in renderElement.ts).
+ *
+ * The original Excalidraw freedraw look is `pen` with thinning 0.6 / no taper;
+ * these profiles deliberately deviate to match the prototype the user signed
+ * off on.
+ */
+type VariablePenProfile = {
+  thinning: number;
+  taper: number; // 0 = capped ends, else fraction of stroke size
+  /** Multiplier on the base stroke size — the per-pen width that makes each
+   *  pen visually distinct (pen fine, marker broad, pencil finest). Ported
+   *  from the signed-off prototype's per-pen `width` field. */
+  sizeMul: number;
+};
+const PEN_STYLE_PROFILES: Record<
+  Exclude<PenStyle, "highlighter">,
+  VariablePenProfile
+> = {
+  pen: { thinning: 0.55, taper: 0.7, sizeMul: 1.7 },
+  marker: { thinning: 0.38, taper: 0.0, sizeMul: 2.8 },
+  pencil: { thinning: 0.5, taper: 0.5, sizeMul: 1.5 },
+};
+
+/** The highlighter is a wide, flat band — much larger than the ink pens.
+ *  Applied on top of the constant-width size factor (1.4), so highlighter
+ *  size = strokeWidth * 1.4 * 9 ≈ 12.6px at default width vs the pen's ~7.2px. */
+const HIGHLIGHTER_SIZE_MUL = 9;
+
 const getFreedrawStreamline = (element: ExcalidrawFreeDrawElement) =>
   element.strokeOptions?.streamline ?? DEFAULT_STROKE_STREAMLINE;
 
+const getFreedrawPenStyle = (element: ExcalidrawFreeDrawElement): PenStyle =>
+  element.strokeOptions?.penStyle ?? "pen";
+
+/**
+ * Centered (non-causal) x/y smoothing pass on the raw input points before
+ * perfect-freehand. Removes per-sample pointer jitter that reads as
+ * high-frequency kinks, without the lag a stronger streamline would add.
+ * Pressure (the optional third coordinate) is passed through untouched —
+ * smoothing it shifts the width-derived centroid and reads as more wobble.
+ *
+ * Render-time only: returns a new array, never mutates `element.points`, so
+ * hit-testing and bucket-fill (which use raw points) are unaffected.
+ */
+const smoothFreedrawPoints = (
+  points: readonly (readonly number[])[],
+  amt = 0.35,
+): number[][] => {
+  if (points.length < 3 || amt <= 0) {
+    return points.map((p) => [...p]);
+  }
+  const w = amt;
+  const hw = w / 2;
+  const ow = 1 - w;
+  const out: number[][] = points.map((p) => [...p]);
+  for (let i = 1; i < out.length - 1; i++) {
+    const a = out[i - 1];
+    const b = out[i];
+    const c = out[i + 1];
+    out[i][0] = ow * b[0] + hw * (a[0] + c[0]);
+    out[i][1] = ow * b[1] + hw * (a[1] + c[1]);
+  }
+  return out;
+};
+
 /**
  * Pressure-sensitive (variable width) freedraw outline, rendered with
- * perfect-freehand. This is the original Excalidraw freedraw look.
+ * perfect-freehand. Thinning and end taper come from the pen-style profile.
  */
 const getVariableWidthFreedrawOutline = (
   element: ExcalidrawFreeDrawElement,
+  profile: VariablePenProfile,
 ): [number, number][] => {
   // If input points are empty (should they ever be?) return a dot
-  const inputPoints = element.simulatePressure
+  const rawPoints: readonly (readonly number[])[] = element.simulatePressure
     ? element.points
     : element.points.length
     ? element.points.map(
@@ -1308,20 +1375,27 @@ const getVariableWidthFreedrawOutline = (
       )
     : [[0, 0, 0.5]];
 
-  return getStroke(inputPoints as number[][], {
+  const inputPoints = smoothFreedrawPoints(rawPoints);
+  const size =
+    element.strokeWidth * VARIABLE_WIDTH_FREEDRAW.SIZE_FACTOR * profile.sizeMul;
+  const taperPx = profile.taper * size;
+
+  return getStroke(inputPoints, {
     simulatePressure: element.simulatePressure,
-    size: element.strokeWidth * VARIABLE_WIDTH_FREEDRAW.SIZE_FACTOR,
-    thinning: VARIABLE_WIDTH_FREEDRAW.THINNING,
+    size,
+    thinning: profile.thinning,
     smoothing: VARIABLE_WIDTH_FREEDRAW.SMOOTHING,
     streamline: getFreedrawStreamline(element),
     easing: (t) => Math.sin((t * Math.PI) / 2), // https://easings.net/#easeOutSine
     last: true,
+    start: taperPx ? { taper: taperPx } : { cap: true },
+    end: taperPx ? { taper: taperPx } : { cap: true },
   }) as [number, number][];
 };
 
-const createLaserPointer = (element: ExcalidrawFreeDrawElement) =>
+const createLaserPointer = (element: ExcalidrawFreeDrawElement, sizeMul = 1) =>
   new LaserPointer({
-    size: element.strokeWidth * CONSTANT_WIDTH_FREEDRAW.SIZE_FACTOR,
+    size: element.strokeWidth * CONSTANT_WIDTH_FREEDRAW.SIZE_FACTOR * sizeMul,
     streamline: getFreedrawStreamline(element),
     simplify: 0,
     sizeMapping: (details) => Math.max(0.1, details.pressure),
@@ -1330,11 +1404,14 @@ const createLaserPointer = (element: ExcalidrawFreeDrawElement) =>
 /**
  * Uniform (constant width) freedraw outline, rendered with the laser-pointer
  * geometry. Pressure is pinned to 1 so the stroke keeps a constant width.
+ * Used for the highlighter pen style (wide, `sizeMul` = HIGHLIGHTER_SIZE_MUL)
+ * and the legacy "constant" variability (neutral size, `sizeMul` = 1).
  */
 const getConstantWidthFreedrawOutline = (
   element: ExcalidrawFreeDrawElement,
+  sizeMul = 1,
 ): [number, number][] => {
-  const laserPointer = createLaserPointer(element);
+  const laserPointer = createLaserPointer(element, sizeMul);
   element.points.map(([x, y]) => laserPointer.addPoint([x, y, 1]));
 
   return laserPointer
@@ -1342,13 +1419,24 @@ const getConstantWidthFreedrawOutline = (
     .map(([x, y]) => [x, y] as [number, number]);
 };
 
+/** True for highlighter freedraw elements (used to apply multiply blending). */
+export const isHighlighterFreedraw = (element: ExcalidrawFreeDrawElement) =>
+  getFreedrawPenStyle(element) === "highlighter";
+
 export const getFreedrawOutlinePoints = (
   element: ExcalidrawFreeDrawElement,
 ): [number, number][] => {
-  // Unknown/absent variability falls back to the original variable rendering.
-  return element.strokeOptions?.variability === "constant"
-    ? getConstantWidthFreedrawOutline(element)
-    : getVariableWidthFreedrawOutline(element);
+  const penStyle = getFreedrawPenStyle(element);
+  // Highlighter is always constant-width, and wide.
+  if (penStyle === "highlighter") {
+    return getConstantWidthFreedrawOutline(element, HIGHLIGHTER_SIZE_MUL);
+  }
+  // Preserve the legacy "constant" variability look for the neutral pen style
+  // (old elements restored without a penStyle default to "pen").
+  if (penStyle === "pen" && element.strokeOptions?.variability === "constant") {
+    return getConstantWidthFreedrawOutline(element);
+  }
+  return getVariableWidthFreedrawOutline(element, PEN_STYLE_PROFILES[penStyle]);
 };
 
 /**

@@ -5,8 +5,13 @@
    off-white #e7e7e7, neural-fog #dadada,
    electric-teal #5c939f, infrared #ed6d40, validation-green #59a993, validation-red #cb3500
    Fonts: Roc Grotesk (display), Azeret Mono (labels/mono)
+
+   Color identity tokens live in ./tokens.css, imported below — shared with the
+   Schools vertical so the two surfaces never drift. Only fonts/radius/layout
+   stay in :root here.
    ========================================================================== */
 
+@import url("./tokens.css");
 @font-face {
   font-family: "Roc Grotesk";
   src: url("../fonts/roc-grotesk-regular.woff2") format("woff2"),
@@ -50,23 +55,7 @@
 }
 
 :root {
-  --core-black: #090909;
-  --rich-carbon: #111111;
-  --urban-smoke: #1b1b1b;
-  --pulse-ash: #7d858c;
-  --off-white: #e7e7e7;
-  --neural-fog: #dadada;
-  --electric-teal: #5c939f;
-  --electric-teal-rgb: 92,147,159;
-  --infrared: #ed6d40;
-  --infrared-rgb: 237,109,64;
-  --validation-green: #59a993;
-  --validation-green-rgb: 89,169,147;
-  --validation-red: #cb3500;
-  --accent-violet: #9b8bd9;
-  --accent-violet-rgb: 155,139,217;
-  --accent-amber: #d9a24e;
-  --accent-amber-rgb: 217,162,78;
+  /* color identity tokens are imported from ./tokens.css */
 
   --font-display: "Roc Grotesk", "Helvetica Neue", Arial, sans-serif;
   --font-mono: "Azeret Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;

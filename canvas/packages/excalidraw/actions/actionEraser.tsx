@@ -5,6 +5,8 @@ import {
   ERASER_SIZE_MAX,
   ERASER_SIZE_STEP,
   ERASER_MODES,
+  CODES,
+  KEYS,
 } from "@excalidraw/common";
 
 import type { EraserMode } from "@excalidraw/common";
@@ -87,9 +89,19 @@ export const actionChangeEraserMode = register<EraserMode>({
   label: "labels.eraserMode",
   trackEvent: false,
   perform: (elements, appState, value) => {
+    // From the panel `value` is the chosen mode; from the keyboard
+    // (Shift+E) `value` is null, so cycle to the next mode in order.
+    const mode: EraserMode = value
+      ? value
+      : ERASER_MODES[
+          (Math.max(
+            0,
+            ERASER_MODES.indexOf(appState.currentItemEraserMode),
+          ) + 1) % ERASER_MODES.length
+        ];
     return {
       elements,
-      appState: { ...appState, currentItemEraserMode: value },
+      appState: { ...appState, currentItemEraserMode: mode },
       captureUpdate: CaptureUpdateAction.EVENTUALLY,
     };
   },
@@ -113,4 +125,9 @@ export const actionChangeEraserMode = register<EraserMode>({
       </div>
     </fieldset>
   ),
+  keyTest: (event) =>
+    event.shiftKey &&
+    event.code === CODES.E &&
+    !event[KEYS.CTRL_OR_CMD] &&
+    !event.altKey,
 });

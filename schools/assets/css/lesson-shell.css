@@ -1,16 +1,19 @@
 /* Schools lesson-page shared shell — see DESIGN_SYSTEM.md §14 for the decisions behind this.
    Scoped to the Schools vertical only; does not touch the main math-lab identity.
    Each lesson page loads this file, then adds its own <style> block for its bespoke scene
-   (per §14.3 — there is no shared "scene" component, only this shell). */
+   (per §14.3 — there is no shared "scene" component, only this shell).
 
+   Color identity tokens (neutrals + accents + -rgb variants + accent slots) are
+   @imported from the lab's tokens.css so the Schools vertical and math-lab share
+   one source of truth and can never drift. Only the vertical-specific fonts, type
+   scale, and spacing rhythm stay in :root below. */
+
+@import url("../../../math-lab/assets/css/tokens.css");
 @font-face { font-family: "Azeret Mono"; src: url("../../../math-lab/assets/fonts/azeret-mono-regular.otf") format("opentype"); font-weight: 400; }
 @font-face { font-family: "Roc Grotesk"; src: url("../../../math-lab/assets/fonts/roc-grotesk-regular.woff2") format("woff2"); font-weight: 400; }
 @font-face { font-family: "Roc Grotesk"; src: url("../../../math-lab/assets/fonts/roc-grotesk-medium.woff2") format("woff2"); font-weight: 500; }
 
 :root{
-  --core-black:#090909; --rich-carbon:#111111; --urban-smoke:#1b1b1b;
-  --pulse-ash:#7d858c; --off-white:#e7e7e7; --neural-fog:#dadada;
-  --electric-teal:#5c939f; --infrared:#ed6d40; --validation-green:#59a993;
   --mono:"Azeret Mono", ui-monospace, monospace;
   --serif:"Bricolage Grotesque", system-ui, sans-serif;
   --display:"Roc Grotesk", system-ui, sans-serif;
@@ -107,6 +110,16 @@ html,body{ background:var(--core-black); color:var(--off-white); margin:0; font-
 .tour-tip-label{ font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--electric-teal); margin-bottom:8px; }
 .tour-tip-label.ar-ui{ letter-spacing:0; text-transform:none; }
 .tour-tip-body{ font-size:14.5px; color:var(--neural-fog); line-height:1.55; margin-bottom:14px; }
+/* the reasoning beat, distinct from the description above it — a step can omit this
+   (display:none by default) when it genuinely has no invariant to state. */
+.tour-tip-why{ display:none; gap:8px; padding-top:10px; margin:-4px 0 14px;
+  border-top:1px solid rgba(255,255,255,.08); }
+.tour-tip-why.is-visible{ display:flex; }
+.tour-tip-why-mark{ flex:0 0 auto; font-family:var(--mono); font-size:10px; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--electric-teal); padding-top:2px; }
+.tour-tip-why-mark.ar-ui{ letter-spacing:0; text-transform:none; }
+.tour-tip-why-body{ font-size:13px; color:var(--pulse-ash); line-height:1.5; }
+.tour-tip-why-body.ar-body{ line-height:1.75; }
 .tour-tip-foot{ display:flex; align-items:center; justify-content:space-between; }
 .tour-dots{ display:flex; gap:6px; }
 .tour-dots span{ width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.2); }
@@ -151,12 +164,88 @@ html,body{ background:var(--core-black); color:var(--off-white); margin:0; font-
 @keyframes nbCaret{ 50%{ opacity:0; } }
 /* the highlight ring — non-blocking, pointer-events:none, teal (lab accent), no dim scrim */
 .notebook-ring{ position:absolute; z-index:4; pointer-events:none; border-radius:12px;
-  border:1.5px solid rgba(92,147,159,.65); box-shadow:0 0 10px rgba(92,147,159,.16); opacity:0;
+  /* --explain-accent(-rgb) is set per-entry by lesson-shell.js render() when a step names
+     its own role color (e.g. the result step -> --validation-green); falls back to the
+     default teal for every step that doesn't. */
+  border:1.5px solid rgba(var(--explain-accent-rgb, var(--electric-teal-rgb)),.65);
+  box-shadow:0 0 10px rgba(var(--explain-accent-rgb, var(--electric-teal-rgb)),.16); opacity:0;
   transition:opacity .25s ease, left .3s cubic-bezier(.16,1,.3,1), top .3s cubic-bezier(.16,1,.3,1),
     width .3s cubic-bezier(.16,1,.3,1), height .3s cubic-bezier(.16,1,.3,1); }
 .notebook-ring.is-visible{ opacity:1; animation: ringBreath 2.8s ease-in-out infinite; }
 @keyframes ringBreath{
-  0%,100%{ box-shadow: 0 0 8px rgba(92,147,159,.14); }
-  50%{ box-shadow: 0 0 14px rgba(92,147,159,.24); }
+  0%,100%{ box-shadow: 0 0 8px rgba(var(--explain-accent-rgb, var(--electric-teal-rgb)),.14); }
+  50%{ box-shadow: 0 0 14px rgba(var(--explain-accent-rgb, var(--electric-teal-rgb)),.24); }
 }
 @media (prefers-reduced-motion: reduce){ .notebook-ring.is-visible{ animation:none; } .notebook-close{ transition:none; } }
+
+/* ==========================================================================
+   SCHOOLS IDENTITY — Apple-pass palette, now the vertical's real default.
+   See SCHOOLS_FINGERPRINT.md §3/§10.3 for the decision record. This used to be
+   a per-lesson one-off `:root` override (copy-pasted into `-apple.html` and
+   then into `8-5-probabilities.html`); it now lives here once, so every lesson
+   gets it automatically and the two per-lesson copies are dead weight — safe
+   to delete next time either of those files is touched, not required now.
+
+   What changed vs. the base lab identity (math-lab/assets/css/tokens.css,
+   still shared and still authoritative for the main math-lab site):
+     - Pure black canvas + two flat elevation steps instead of the lab's
+       warmer near-blacks — no colored ambient glow behind elevated surfaces.
+     - ONE accent for the whole page (teal/infrared/green collapse together)
+       instead of the lab's one-accent-per-ROLE rule. A "provably correct"
+       result now reads by weight/position (solid + thicker + drawn last),
+       not by hue. `--validation-red` is deliberately NOT collapsed — a real
+       wrong-answer/error state still needs its own color, and no Apple-pass
+       lesson so far has removed that distinction (see 8-5-probabilities.html).
+     - No glow, no backdrop blur, opaque panels — glassmorphism-on-everything
+       and neon-on-dark glow are the two most common "AI slop" tells; both are
+       switched off below for the shell's own glassy/glowing components.
+     - One simpler corner-radius scale (18px surfaces, full-pill controls)
+       instead of the base shell's mixed 10/14/22/50%.
+
+   What deliberately did NOT change: --mono/--serif/--display stay Azeret
+   Mono / Bricolage Grotesque / Roc Grotesk, not SF Mono/SF Pro. Swapping to
+   the system font stack is what makes a demo read as "an Apple product typed
+   this lesson" rather than "this lab, restrained." The material language
+   (color, elevation, glow, motion, radius) is the actual anti-slop fix; the
+   typefaces are this vertical's own identity and are kept on purpose. */
+:root{
+  --core-black:#000000;
+  --rich-carbon:#1c1c1e;
+  --urban-smoke:#2c2c2e;
+  --pulse-ash:#98989d;
+  --off-white:#f5f5f7;
+  --neural-fog:#ebebf5;
+  --electric-teal:#0A84FF;
+  --electric-teal-rgb:10,132,255;
+  --infrared:#0A84FF;
+  --infrared-rgb:10,132,255;
+  --validation-green:#0A84FF;
+  --validation-green-rgb:10,132,255;
+}
+html,body{ background:#000; -webkit-font-smoothing:antialiased; }
+
+/* surfaces: real elevation via layered shadow, no colored glow */
+.stage{ border-radius:18px; border-color:#38383a; box-shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 30px rgba(0,0,0,.45); }
+.teach{ background:var(--rich-carbon); }
+.nav-pill, .tour-tip, .notebook-close, .notebook-ring{ border-radius:18px; }
+.notebook-close{ border-radius:50%; } /* stays a circle — it's a dismiss control, not a card */
+.lang-pill{ box-shadow:none; }
+.tour-ring{ border-radius:12px; }
+
+/* flatten glow → flat hairline hover, no colored blur */
+.explain-btn{ box-shadow:none; }
+.explain-btn:hover{ background:#2c2c2e; box-shadow:none; }
+.lang-pill button.active{ background:var(--electric-teal); box-shadow:none; }
+.nav-pill:hover{ box-shadow:none; transform:none; }
+.control-row input[type="range"]::-webkit-slider-thumb{ box-shadow:0 1px 3px rgba(0,0,0,.5); }
+.control-row input[type="range"]::-webkit-slider-thumb:hover{ box-shadow:0 1px 5px rgba(0,0,0,.6); transform:none; }
+.control-row input[type="range"]::-moz-range-thumb{ box-shadow:0 1px 3px rgba(0,0,0,.5); }
+.control-row input[type="range"]::-moz-range-thumb:hover{ box-shadow:0 1px 5px rgba(0,0,0,.6); transform:none; }
+
+/* opaque panels — no glass, no backdrop blur */
+.notebook{ background:#1c1c1e; backdrop-filter:none; -webkit-backdrop-filter:none; box-shadow:-1px 0 0 #2c2c2e; }
+.tour-tip{ background:#1c1c1e; box-shadow:0 14px 40px rgba(0,0,0,.6); }
+
+/* quiet motion — no pulsing rings/badges; reveals stay, they're brief, not ambient */
+.tour-ring.is-visible, .notebook-ring.is-visible{ animation:none; box-shadow:0 0 0 3px rgba(10,132,255,.18); }
+

@@ -24,3 +24,11 @@ Screenshot from *.png
 # Python bytecode cache
 __pycache__/
 *.pyc
+
+# Playwright probe scratch (in-tree CLI sessions from debugging)
+.playwright-cli/
+
+# One-off pen prototypes used during the pen-system upgrade (local reference, not deliverables)
+canvas/pen-apple-notes-prototype.html
+canvas/pen-canvas-preview.html
+canvas/pen-upgrade-prototype.html

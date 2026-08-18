@@ -62,11 +62,16 @@ const Documentation = () => (
   <div className="HelpDialog__doc">
     <DocTopic title="Pens">
       <p>
-        The pen favorites bar (top right) is six quick-swap presets — tap one to
-        switch straight to that color, width, and opacity. The two flat swatches
-        are highlighters: the same pen at a wide, low-opacity stroke. The slider
-        under the swatches dials in handwriting smoothing, from raw input to
-        heavily stabilized.
+        The Draw tool has four pen styles — Pen, Marker, Pencil, and
+        Highlighter — each with its own stroke width and opacity. Pick one
+        from the Pen control in the styles panel, or press Shift+P to cycle
+        through them. The highlighter lays down a wide, translucent wash that
+        blends with the paper — darkening on light paper and lightening on
+        dark — so any ink underneath stays readable.
+      </p>
+      <p>
+        The Stabilization slider sets handwriting smoothing, from raw input
+        at one end to heavily stabilized at the other.
       </p>
     </DocTopic>
     <DocTopic title="Paper">
@@ -220,7 +225,15 @@ export const HelpDialog = ({ onClose }: { onClose?: () => void }) => {
             />
             <Shortcut
               label={t("toolBar.freedraw")}
-              shortcuts={[KEYS.P, KEYS["7"]]}
+              shortcuts={[KEYS.P, KEYS.X, KEYS["7"]]}
+            />
+            <Shortcut
+              label={t("toolBar.autoshape")}
+              shortcuts={["Shift+X"]}
+            />
+            <Shortcut
+              label={t("labels.penStyle")}
+              shortcuts={["Shift+P"]}
             />
             <Shortcut
               label={t("toolBar.text")}
@@ -230,6 +243,10 @@ export const HelpDialog = ({ onClose }: { onClose?: () => void }) => {
             <Shortcut
               label={t("toolBar.eraser")}
               shortcuts={[KEYS.E, KEYS["0"]]}
+            />
+            <Shortcut
+              label={t("labels.eraserMode")}
+              shortcuts={["Shift+E"]}
             />
             <Shortcut label={t("toolBar.frame")} shortcuts={[KEYS.F]} />
             <Shortcut label={t("toolBar.laser")} shortcuts={[KEYS.K]} />
@@ -359,10 +376,6 @@ export const HelpDialog = ({ onClose }: { onClose?: () => void }) => {
                 shortcuts={[getShortcutKey("Alt+Shift+D")]}
               />
             )}
-            <Shortcut
-              label={t("stats.fullTitle")}
-              shortcuts={[getShortcutKey("Alt+/")]}
-            />
             <Shortcut
               label={t("search.title")}
               shortcuts={[getShortcutFromShortcutName("searchMenu")]}

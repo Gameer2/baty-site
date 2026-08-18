@@ -35,8 +35,11 @@ or **model** the student can *see being built* and *prove to themselves*:
 2. **Shared shell, bespoke scene.** Every page loads the same shell (chrome, tokens,
    i18n, notebook, tour) and then authors its **own** scene in its own `<style>`/`<script>`.
    There is no shared "scene" component — only the shell (DESIGN_SYSTEM.md §14.3).
-3. **The lab identity, not a generic widget.** One accent per role (§3). The page must
-   read as part of the lab, not as an off-the-shelf geometry/data widget.
+3. **The lab identity, not a generic widget or a generic "AI" look.** One accent for the
+   whole page, on true black, with no glow and no glass (§3). The page must read as part
+   of this lab specifically — its own typefaces, its own bilingual voice, its own
+   provably-correct pedagogy — not as an off-the-shelf geometry/data widget, and not as
+   a templated dark-mode dashboard either.
 4. **Real engines, not hand-rolled.** JSXGraph for geometry, Motion for animation, KaTeX
    for equations — all vendored. Don't reinvent them per lesson.
 5. **Bilingual by construction.** EN/AR from the first line; AR gets its own fonts and
@@ -118,48 +121,77 @@ latexSrc)`, `buildNotebook(...)`, `buildTour(...)`.
 
 ---
 
-## 3. The identity rule — one accent per role
+## 3. The identity rule — one accent for the whole page (Apple-pass, now canonical)
 
-This is the single most important fingerprint. **Every** lesson follows it (canonical).
+**Revised.** This vertical used to run a *one-accent-per-role* system (teal for active
+work, green for a provably-correct result, infrared for CTAs, each locked to its own
+job). That system is retired. Every lesson now runs the **Apple-pass identity**
+prototyped in `4-5-geometric-constructions-apple.html` and proven on a real canonical
+lesson in `8-5-probabilities.html`: **one accent for the whole page**, true black, no
+glow, no glass. It's defined once in `schools/assets/css/lesson-shell.css`'s trailing
+`:root` block (a Schools-only override — it does not touch `math-lab/assets/css/
+tokens.css`, so the main math-lab site's own multi-accent identity is untouched) and
+every lesson gets it automatically just by loading the shared shell.
 
-| Role | Token | Hex | Used for |
-|---|---|---|---|
-| Neutrals / given / structure | `--off-white`, `--neural-fog`, `--pulse-ash` | `#e7e7e7`/`#dadada`/`#7d858c` | the given elements (segment, rays, points), body text |
-| **Teal — compass work / active** | `--electric-teal` | `#5c939f` | construction arcs, active mode button, active step, links, the live cursor |
-| **Green — provably-correct result** | `--validation-green` | `#59a993` | the final constructed line/ray/value |
-| **Infrared — CTA only** | `--infrared` | `#ed6d40` | the Explain button, the tour ring, markers — **never on the board** |
+| Token | Hex | Used for |
+|---|---|---|
+| `--core-black` | `#000000` | Page/board background — pure black, not the lab's warmer near-black. |
+| `--rich-carbon` | `#1c1c1e` | Panel/surface background — the stage, the notebook, opaque (no blur). |
+| `--urban-smoke` | `#2c2c2e` | A second, slightly lighter elevation step. |
+| `--pulse-ash` / `--off-white` / `--neural-fog` | `#98989d` / `#f5f5f7` / `#ebebf5` | Tertiary / primary / secondary text — unchanged roles, Apple-pass values. |
+| `--electric-teal`, `--infrared`, `--validation-green` | **all `#0A84FF`** | The one accent, doing every job the old three tokens split up: active/selected state, the live cursor, the Explain CTA, **and** the provably-correct result. |
+| `--validation-red` | `#cb3500` (unchanged) | **Deliberately not collapsed.** A real wrong-answer/error state still needs its own color — this is the one place the page still has a second hue, and it means something specific (see §12.5 in the games-section plan for the same principle applied to Games). |
 
 **Rules:**
-- No orange/infrared reaches the construction geometry. The board reads as teal+green
-  on neutrals.
-- The result distinguishes itself from the compass arcs by being **solid + thicker**
-  (and green), not by being a different shape.
-- One accent per role, locked across the whole page. No warm-cool mixing, no second
-  accent for a stray badge.
+- A "provably correct" result distinguishes itself from in-progress construction work
+  by being **solid + thicker, drawn last** — not by hue, since hue no longer separates
+  them. This was already true of the geometry board's own convention; it's now the
+  whole page's convention.
+- No glow, no `backdrop-filter`/glass, on any shell component (the notebook overlay,
+  the Explain popover, button hovers, slider thumbs). Elevation is shown by a real
+  two-layer shadow (`0 1px 2px` tight + `0 10px 30px` soft), never a colored blur.
+  Glassmorphism-on-everything and neon-glow-on-dark are the two most common "this was
+  obviously AI-generated" tells in current design criticism — both are switched off.
+- One radius scale: **18px surfaces, full-pill (100px) controls.** Not the old mixed
+  10/14/22px set.
+- **Typography is not part of this collapse.** `--mono`/`--serif`/`--display` stay
+  Azeret Mono / Bricolage Grotesque / Roc Grotesk — never SF Mono/SF Pro/system-ui.
+  Swapping the type stack too would trade this vertical's own identity for a generic
+  "looks like an Apple settings panel" identity, which is a different kind of
+  genericness, not the absence of one. Apple-pass is a *material* language (color,
+  elevation, glow, radius, motion) borrowed on purpose; it is not a full skin-clone.
 
-**Company-design demos (Apple, Google, …) are a documented one-off** that may collapse
-all roles onto a single brand accent (e.g. Apple `#0A84FF`). They live in a *copy*
-file, keep all behavior identical, override identity via a **trailing `:root` token
-block + a swapped in-page palette object**, and must NOT propagate into canonical
-lessons. See §10.3.
+**Historical note, so this doesn't get "fixed" back by accident:** the two files that
+introduced this (`-apple.html`, `8-5-probabilities.html`) each still carry their own
+copy of this override as a per-file trailing `:root` block, written before it moved
+into the shared shell. Those per-file blocks are now redundant (the shell provides the
+same values by default) — safe to delete next time either file is touched, not urgent.
+**Do not read their presence as "this is still a one-off demo."** It isn't; see §10.3.
 
 ---
 
 ## 4. Tokens (from `lesson-shell.css`)
 
 ```
-colors: --core-black #090909  --rich-carbon #111  --urban-smoke #1b1b1b
-        --pulse-ash #7d858c  --off-white #e7e7e7  --neural-fog #dadada
-        --electric-teal #5c939f  --infrared #ed6d40  --validation-green #59a993
+colors (Apple-pass, from lesson-shell.css's trailing override — see §3):
+        --core-black #000000  --rich-carbon #1c1c1e  --urban-smoke #2c2c2e
+        --pulse-ash #98989d  --off-white #f5f5f7  --neural-fog #ebebf5
+        --electric-teal / --infrared / --validation-green  →  all #0A84FF
+        --validation-red #cb3500  (unchanged — the one real second hue, for errors)
 fonts:  --mono "Azeret Mono"  --serif "Bricolage Grotesque"  --display "Roc Grotesk"
+        (unchanged by the Apple pass — see §3's typography rule)
         AR: .ar-display "El Messiri"  .ar-body/.ar-ui "Vazirmatn"
 type:   --fs-2xs 11 … --fs-3xl 48 (1.2 ratio from 16px base)
         --lh-tight 1.12 / snug 1.4 / base 1.6 / relaxed 1.78
         --tr-tight -.015em / normal 0 / label .06em / wide .1em
 space:  --sp-1 4 … --sp-16 64 (4px rhythm)
+radius: 18px surfaces, 100px (full pill) controls — one scale, not the old mixed set
 ```
 Mono is reserved for numeric/coordinate readouts only. Chrome (crumb, labels, buttons,
 heads, nav) uses the display face. Use these tokens — don't hard-code sizes/colors.
+The base values `math-lab/assets/css/tokens.css` still defines (`#090909`/`#5c939f`/
+`#ed6d40`/`#59a993`, etc.) are unchanged and still power the main math-lab site — the
+Apple-pass values above are a Schools-only override layered on top, per §3.
 
 ---
 
@@ -170,18 +202,28 @@ The motion **is the metaphor**. Match the element type to the motion:
 | Element | Motion | Helper |
 |---|---|---|
 | Solid stroke (segment, the result line) | **draws on** via `stroke-dashoffset` | `draw(node, {duration})` |
-| Dashed compass arc / circle | **swings in** (fade ± scale ± deblur) | `appear`/`appearLayered` |
-| Intersection / marked point | **lands** (pop with overshoot spring) | `popPoint` |
+| Dashed compass arc / circle | **swings in** (plain fade, no blur/scale) | `appear` |
+| Intersection / marked point | **lands** (gentle scale-in, no overshoot) | `settle` |
 | Scene / panel on scroll-in | **reveals** (opacity + y) | `reveal` / `revealStagger` |
-| Continuous parameter (slider) | **springs** to the value (no jumps) | `springValue` |
+| Continuous parameter (slider) | **springs** to the value (no jumps, no bounce) | `springValue` |
 
-- `EXPO = [0.16, 1, 0.3, 1]` is the default ease. `STATE_SPRING` for spring transitions.
+- `EXPO = [0.16, 1, 0.3, 1]` is the default ease for non-spring transitions.
+- **Revised (was: elastic spring by default).** `QUIET_SPRING` (no overshoot, gentle
+  settle) is now the default for `springValue` and for `appear`/`settle` when
+  `opts.spring` isn't a specific config. `STATE_SPRING` (the ~back.out(1.7) elastic pop)
+  still exists and is still exported, but is now an explicit opt-in
+  (`{ spring: LessonMotion.STATE_SPRING }`) for a lesson that wants a livelier feel at
+  one specific moment — not the page-wide default anymore. This is the Apple-pass
+  motion decision (SCHOOLS_FINGERPRINT.md §3) made real in the shared module instead of
+  each lesson hand-flattening its own points/arcs.
 - **`draw` uses WAAPI**, not Motion's `animate` (Motion no-ops on `strokeDashoffset`,
   verified). See the contract in §6.
-- Apple/quiet demos may flatten `appearLayered`/`popPoint` to plain fades + gentle
-  settles (no blur, no overshoot). Canonical lessons keep the richer motion.
-- `@media (prefers-reduced-motion: reduce)` disables the ambient aurora and pulsing
-  badges; the reveals stay (they're brief).
+- `settle` supersedes the old per-lesson hand-rolled `popPoint` functions — it's now a
+  real shared primitive, not something every geometry lesson reimplements.
+- `@media (prefers-reduced-motion: reduce)` disables the ambient aurora and any
+  remaining pulsing badges; the reveals stay (they're brief). New/updated lessons
+  should skip the ambient board aurora glow by default now — it was already optional
+  per §1's motion principle, and the Apple pass turns it off outright.
 
 ---
 
@@ -202,6 +244,11 @@ per-lesson.
   - A finished line is just a solid line, so clearing the pattern is visually identical
     and drag-safe.
 - **`appear(node, {spring, duration, onComplete})`** — opacity 0→1, EXPO or spring.
+  `spring:true` now resolves to `QUIET_SPRING`; pass the `STATE_SPRING` object itself
+  for the elastic variant.
+- **`settle(node, {spring, onComplete})`** — opacity 0→1 + scale 0.6→1, `QUIET_SPRING`
+  by default. The shared "a point lands" primitive (§5) — use this instead of a
+  per-lesson hand-rolled pop function.
 - **`reveal(node)` / `revealStagger(nodes)`** — inView opacity+y.
 
 ---
@@ -274,6 +321,15 @@ per-lesson.
 - **Chooser popover** (premium): the Explain button opens a popover — "Whole
   construction" (auto-advance 0→3) vs a single step (jump, no auto) — then opens the
   notebook. Magnetic button parallax on `(pointer: fine)` only.
+- **Ring/cursor accent tracks the actual drawn color, not a fixed teal.** An entry can
+  set `accent:"result"` (currently the only role) and `buildNotebook`'s `render()` sets
+  `--explain-accent`/`--explain-accent-rgb` on the ring + cursor, read via
+  `rgba(var(--explain-accent-rgb, var(--electric-teal-rgb)),…)`; every step without a
+  tag falls back to teal. This exists because the reference lesson draws three role
+  colors (teal/green/neutral, §10.1) but the highlight was always teal regardless of
+  which one it was pointing at (§10.4). **Do not tag Apple-pass lessons with this** —
+  the shared Apple override (§3) doesn't redefine every `-rgb` companion token, so a
+  "result" tag there leaks a stray green into a theme whose whole point is one accent.
 
 ### 9.2 i18n
 - `i18n = initI18n(T, { onLangChange })`. `T` is `{en, ar}` with every string.
@@ -338,24 +394,318 @@ Each is a fingerprint-grade lesson — apply the same thinking to any lesson.
    accent + grew it on hover/click. Fix: `board.options.point.highlight = false` (drag
    still works). → *Suppress highlight feedback unless the lesson intends it.*
 
-### 10.3 The Apple dark demo (`-apple.html`)
-A **standalone one-off** that keeps all behavior/geometry identical and overrides only
-identity:
-- Trailing `:root` block re-points every shell token: pure-black `#000` canvas,
-  `#1c1c1e` surfaces, `#f5f5f7` text, single accent `#0A84FF` (teal+green+infrared all
-  collapse onto it), SF Pro system stack, opaque panels, no glows, 18px/100px radii.
-- In-page `C = { fog, ash, white, teal:#0A84FF, infrared:#0A84FF, green:#0A84FF }`.
-- Quieter motion: `appearLayered` = plain fade, `popPoint` = gentle scale 0.6→1 (no
-  blur, no overshoot spring).
-- The result line distinguishes itself by **solid + thicker**, not hue (since hue is
-  gone).
+### 10.3 The Apple pass — from one-off demo to the vertical's real identity
 
-> **To build another company-design copy** (Google, Linear, …): same pattern — trailing
-> token block + swapped `C` + a quiet-motion pass; keep all JS/geometry; document the
-> accent decision. A Google/Gemini copy was built+deleted this session: gradient
-> `#4285F4→#9b72cb→#d96570`, cards `#1e1f20` 28px radius, Google Sans + Roboto Mono,
-> drifting blue/purple/pink aurora on the board. Do not let any demo's collapsed-accent
-> choice leak into a canonical lesson.
+`-apple.html` started as a **standalone one-off**: keep all behavior/geometry
+identical, override only identity, via a trailing `:root` block + an in-page
+`C = {...}` palette object for JSXGraph (which needs literal hex, not CSS vars). That
+demo is what got read, liked, and then applied for real to a canonical lesson
+(`8-5-probabilities.html`, no `-apple` suffix) — at which point it stopped being a
+demo. **The decision this session: the Apple pass is now the whole vertical's
+identity**, promoted out of the two per-file overrides and into
+`schools/assets/css/lesson-shell.css` and `schools/assets/js/lesson-motion.js` (§3,
+§5, §6) so every lesson gets it by default instead of needing its own copy of the
+override block. See §3 for the exact rule and the token table.
+
+What the two original files still get right, as reference:
+- Pure-black `#000` canvas, `#1c1c1e` surfaces, single accent `#0A84FF`
+  (teal+green+infrared collapse onto it, `--validation-red` does not — §3).
+- Opaque panels, no glows, 18px/100px radii.
+- Quieter motion: plain fades for arcs, a gentle no-overshoot scale-in for points (now
+  `LessonMotion.settle`, §6) instead of the old elastic pop.
+- The result line distinguishes itself by **solid + thicker**, not hue (since hue no
+  longer separates it from in-progress work).
+
+What did **not** get promoted, and stays a per-lesson choice: the SF Pro/SF Mono
+typeface swap. §3 explains why — the type stack is this vertical's own identity, not
+part of the "avoid AI-slop" material fixes, and stays Azeret Mono / Bricolage
+Grotesque / Roc Grotesk everywhere.
+
+> **A Google/Gemini-styled copy was also built and deleted** in an earlier session
+> (gradient `#4285F4→#9b72cb→#d96570`, `#1e1f20` cards at 28px radius, Google Sans +
+> Roboto Mono, drifting multicolor aurora). It was not promoted — a second company-
+> design language competing with the now-canonical Apple pass would just be a new
+> source of drift. If a future company-design demo is worth building again, treat it
+> as exploration only; promoting a *different* one to canonical later means repeating
+> this section's process (audit what's genuinely a material-language win vs. what's
+> just skin-deep, move only the former into the shared shell), not stacking demos.
+
+**A third file, `4-5-geometric-constructions-apple-integrated.html`**, exists as a copy
+of `-apple.html` with two changes, made because the standalone demo's *own* local
+`<style>` override had drifted out of sync with the shared shell above and read as a
+different product wearing the lesson's layout rather than a calmer version of the same
+site:
+1. Deleted the local `--mono/--serif/--display` re-point to SF Pro/SF Mono, so the file
+   now inherits Azeret Mono / Bricolage Grotesque / Roc Grotesk from the shared shell —
+   exactly the "did not get promoted, stays per-lesson" typeface rule above, just
+   applied. This was the single biggest reason the demo read as foreign.
+2. Every hardcoded `#0A84FF` (CSS *and* the JSXGraph `C` palette object) is now `#5c939f`
+   — the lab's own flagship teal — instead of Apple's blue. Same "one accent, state read
+   by weight not hue" rule as the original pass, just tied to this site's own hue family.
+This is **not** merged into the shared shell yet — `lesson-shell.css`'s canonical
+Apple-pass override (§3) still defaults to `#0A84FF`. Treat the integrated file as a
+pending proposal to fold both changes into §3/§4's token table, not as a second
+standard living alongside the first.
+
+---
+
+### 10.4 The Explain cursor — from hand-drawn to a real glyph, this session
+
+The `.nb-cursor` glyph (the live pointer `buildNotebook` glides to the explained
+element) was a hand-tweaked SVG polygon (`M0,0 L0,14 L3.8,10.5 …`) filled flat white
+with a thick black outline — it read as generic clip-art, not part of this site's
+identity, and the outline made it look literally hand-drawn.
+
+- **Glyph replaced** with Lucide's `mouse-pointer-2` path (ISC-licensed, the standard
+  "collaborator's live cursor" shape used by tools like Figma) — same dart-with-flag
+  concept, real rounded corners at the tip/notch/tail instead of raw straight-edge
+  vertices at arbitrary coordinates. `viewBox` is offset (`4.037 4.037 17 17`) so the
+  glyph's own tip lands at local `(0,0)`, preserving the "tip sits at the cursor box's
+  origin" contract the positioning code in `buildNotebook` depends on.
+- **Colored solid fill, not an outline.** `fill:var(--explain-accent, var(--electric-teal))`
+  with only a hairline dark stroke for edge definition — no more fixed white+black.
+  This is also what plugs it into the §9.1 accent-tracking mechanism.
+- **Premium glow, plain lesson only.** `.nb-cursor`'s filter gained a second,
+  accent-tinted `drop-shadow` alongside the existing contact shadow, so the cursor now
+  has a soft colored halo instead of a flat dark shadow. The two Apple-pass files keep
+  `filter:none` — flat/no-glow is a deliberate rule of that theme (§10.3), not an
+  oversight, so this addition was scoped to the file that doesn't carry that rule.
+- Box resized 18×26 → 20×20 (the new glyph's bounding box is roughly square, unlike the
+  old tall polygon); the label offset was nudged to match.
+
+All three lesson files (`-apple.html`, `-apple-integrated.html`, and the plain lesson)
+keep the same base `.nb-cursor*` CSS in sync as a matter of course (§10, "reference
+implementation") — only the two things above that are theme-specific rules (the tag
+that drives green-on-result, and the glow) were deliberately left to diverge.
+
+---
+
+### 10.5 The rebuild recipe — porting a lesson to the full archetype
+
+**Status: proven on a second, non-construction lesson.** `4-5-geometric-constructions-
+apple-integrated.html` was the only lesson carrying the full app-shell + procedure rail
++ professor's-notebook archetype; every other shipped lesson (90 of 93 files) still used
+the older, thinner `.shell` layout + `buildTour`. `grade-5/1-4-negative-numbers.html`
+was rebuilt this session to match the reference **exactly**, proving the archetype isn't
+geometry-construction-specific — it generalizes to a lesson with no "modes," no
+discrete construction steps, and a continuous drag-driven diagram instead of a JSXGraph
+board. This section is the durable recipe for repeating that rebuild on the remaining
+lessons — written as a prompt so it can be handed to a fresh session verbatim.
+
+**Why a rebuild, not a styling pass:** the first attempt on this lesson was a color/
+token cleanup (hardcoded old-teal hex → `var(--electric-teal-rgb)`, no-glow, radius
+normalization) inside the *old* `.shell` layout. That was correct as far as it went, but
+the user's actual complaint was structural — "it's not even like the geometric
+construction" — because the layout archetype itself (app-shell, procedure rail,
+notebook) had never been ported, only the color tokens. **Match the archetype first;
+tokens alone are not enough.**
+
+**The rebuild prompt** (fill in the bracketed parts for the target lesson):
+
+> Rebuild `[target lesson].html` to structurally match
+> `schools/grade-6/4-5-geometric-constructions-apple-integrated.html` exactly — not a
+> styling pass, a full port of that file's architecture:
+>
+> 1. **Read the complete reference file** (head, CSS, HTML, JS — all of it, not an
+>    excerpt) and the complete target file before changing anything.
+> 2. **Head**: drop JSXGraph includes if the target has no geometry board; keep
+>    `gsap.min.js` only if the target's own bespoke diagram already depends on it (don't
+>    force a port to the Motion library purely for stack purity — that's an invisible
+>    implementation detail, not part of what the user is judging). Add
+>    `lesson-motion.js` + `motion.min.js` for `LessonMotion.reveal()` on mount.
+> 3. **CSS**: copy the reference's app-shell/procedure/explain-popover/nb-cursor blocks
+>    and the trailing Apple-pass-integrated `:root` override *verbatim* — these are
+>    generic machinery, not construction-specific. Only the bespoke board-content rules
+>    (the target lesson's own diagram) get rewritten, and when you do:
+>    - every hardcoded old-teal `rgba(92,147,159,…)` → `rgba(var(--electric-teal-rgb),…)`
+>    - every literal hex tied to the old palette → the matching token
+>    - remove ambient colored glow (soft colored `box-shadow`), replace with a flat dark
+>      contact shadow
+>    - normalize radii to the 18px/pill scale
+>    - any element carrying real words (not just digits) that will be Arabic in AR mode
+>      needs an explicit `.ar-ui`/`.ar-body` override for `font-family` + `direction` —
+>      the shared `.ar-ui{font-family:Vazirmatn}` rule loses the cascade tie to a
+>      same-specificity, later-loading per-file rule (§9.1's cursor accent note is the
+>      same class of bug)
+>    - check every absolutely-positioned label against its container's `overflow:hidden`
+>      — a centered-on-a-narrow-anchor label is the single most common clipping bug
+>      found so far (§10.5's own fix, and 9 other shipped lessons share the identical
+>      pattern, unfixed as of this writing — see the list below)
+> 4. **Layout**: header `.app-bar` (crumb, EN/AR `<h1>` pair, prev/next `nav-pill`s,
+>    lang-pill, explain-btn) → `.stage` → `.eq-bar` (+ `.mode-toggle` only if the lesson
+>    actually has multiple constructions/modes — don't invent one) → `.control-row` →
+>    `.workspace` (`.board-wrap` + `.procedure`).
+> 5. **Content adaptation, not literal copying**: the reference has 2 modes × 4 steps
+>    because a compass-and-straightedge construction naturally has 4 provable stages.
+>    Most lessons won't. Decide honestly:
+>    - If the lesson has real sequential steps → mirror the reference's step-reveal
+>      pattern directly.
+>    - If the lesson is continuous/drag-driven (no natural "steps") → repurpose the step
+>      slider as "which of N ideas is being demonstrated," each step jumping the
+>      interactive element to a representative value (see `STEP_VALUE` in
+>      `1-4-negative-numbers.html`) rather than revealing/hiding anything. This is a
+>      legitimate adaptation, not a deviation — the point being ported is the
+>      *mechanism* (a step axis independent of free-play, each step drivable from the
+>      procedure rail or the notebook popover), not the specific "construction reveals
+>      progressively" behavior.
+>    - Drop what doesn't apply (no mode-toggle for a single-construction lesson) rather
+>      than faking a second mode to fill the slot.
+> 6. **Procedure rail**: `procedure-head`, `#procList` (N numbered `.proc-step` rows,
+>    click-to-jump), `#procWhy` (one "why it works" callout), `.teach` (existing "what
+>    this teaches" paragraph, moved into the rail — not left in an old header position).
+> 7. **Explain system**: replace `buildTour` with `buildNotebook`. Write real 4-section
+>    content per step, in both languages — *On the board now* (what's visibly true right
+>    now) / *The move* (what the student just did or should do) / *Why it holds* (the
+>    actual invariant or reasoning — this is the section §9.1's original gap analysis
+>    found missing everywhere outside this one lesson) / *Next* (or *Result* on the
+>    final step). Interpolate the live state into the text (`{r}` for a construction's
+>    live radius, `{value}` for negative-numbers' live position) exactly like the
+>    reference's `getEntry()` pattern — the explanation must track the actual board,
+>    not describe a fixed example.
+> 8. **Explain chooser popover** ("whole walkthrough" vs. a single step) and the
+>    magnetic Explain-button microinteraction: port verbatim, they're generic.
+> 9. **If the lesson animates its own interactive element** (a drag-driven value tween,
+>    not just discrete step reveals): hook `notebook.reposition(true)` (§10.4's shared
+>    addition to `buildNotebook`) into whatever per-frame ticker already tracks that
+>    element, so the ring/cursor track it 1:1 instead of chasing it through their own
+>    CSS transition on top of the element's own easing. This is what "explain mode isn't
+>    synced with the canvas" turned out to mean on this lesson, and it will recur on any
+>    other lesson with a similarly-animated interactive element.
+> 10. **Verify, don't assume — use Playwright, not visual judgment** (this codebase's
+>     `glm-5.2:cloud` agent has no image input, §11): load the file, check zero console
+>     errors, check every `data-role` element's computed `font-family`/`direction` in
+>     both languages, check no element's rect starts left of its `overflow:hidden`
+>     ancestor, click through the explain popover and confirm the notebook actually
+>     opens and types content, switch language and re-check, resize to the mobile
+>     breakpoint and confirm the workspace stacks. Report exact measured deltas, not "it
+>     looks right."
+> 11. **The interactive element itself must use a real geometry/plotting library —
+>     never hand-rolled world-to-pixel projection math.** §10.6 covers this in full;
+>     the short version: if a lesson computes its own `value → pixel` formula
+>     (`yFor()`/`vFromClientY()`-style functions) to position a draggable diagram, that
+>     is the same "hardcoded canvas" problem the reference lesson's JSXGraph board
+>     avoids — port it onto JSXGraph (a `point`/`glider` constrained to an axis is
+>     usually enough) even when the lesson isn't "geometry" in the construction sense.
+
+**Known backlog from this pass** — lessons sharing the exact clipped-hint pattern found
+and fixed on `1-4-negative-numbers.html` (step 3 of the recipe above), not yet rebuilt:
+`grade-6/1-2-comparing-ordering-integers.html`, `grade-6/3-1-multiplying-decimals.html`,
+`grade-6/3-3-measurement-unit-problems.html`, `grade-6/6-4-percentage-decimal-
+fractions.html`. (`grade-6/1-1-integers-absolute-value.html`,
+`grade-5/5-4-double-bar-graph.html`, `grade-5/2-4-estimating-quotients.html`,
+`grade-5/2-2-estimating-products.html`, and
+`grade-5/6-7-multiplying-dividing-decimals-powers-ten.html` were in this list
+originally but are now fully rebuilt — see §10.6 and the notes below.)
+
+**Fourth/fifth/sixth proof points — click-and-type lessons, no drag at all.** The three
+estimation/place-value lessons above have no draggable diagram — inputs are typed
+numbers, native range sliders, and click-to-select buttons/points. Confirms §10.6's
+rule reads correctly in both directions: port to JSXGraph only when there's a genuine
+reverse pixel→value mapping to replace, and these three simply don't have one (the
+existing percentage-based/cell-width line-placement math is a one-way, low-risk
+formula, unlike the drag-reversal formulas that caused real bugs elsewhere). Two other
+things worth carrying forward:
+- **A second dual-role color pair recurred**: "estimate" vs. "exact" needs the same
+  treatment as the bar-graph's two series — gold (`#c99a3c`) for the approximate/
+  chosen value, teal (`#5c939f`) for the real/exact one, reused consistently across
+  `2-4-estimating-quotients.html` and `2-2-estimating-products.html` rather than
+  inventing a new pair each time. Worth checking for on any lesson that compares an
+  estimate to a precise answer.
+- **Found the same AR-font cascade-tie bug on a third kind of element**: a *static*
+  HTML node (`.verdict` in `2-2-estimating-products.html`) that was never given a
+  `data-role` attribute at all, so `initI18n`'s automatic scan skipped it entirely —
+  distinct from the dynamically-created-node case in §10.6's double-bar-graph note.
+  Check every element carrying translated sentences (not just dynamically created
+  ones) for a `data-role`, not just for the class actually landing once present.
+
+The
+
+**Third proof point — a lesson with no coordinate math at all.**
+`grade-5/5-4-double-bar-graph.html` (a bar chart, not a number line) was rebuilt to
+test whether the recipe over-applies §10.6 by reflex. It doesn't: bars are plain CSS
+heights, not a value-to-pixel formula, so there was no hand-rolled projection to port
+onto JSXGraph — the recipe correctly recognized §10.6 as irrelevant here rather than
+forcing a geometry-engine port where none was needed. Two things this lesson did
+differently from the two number-line rebuilds, both legitimate per §10.5 point 5:
+- **Step drives a real reveal**, not a value jump: step 0 shows series 1 only
+  (`opacity:0` on every series-2 bar), step 1 fades series 2 in, step 2 auto-triggers
+  the gap badge for the first category — closer to the geometric-constructions
+  reference's own "reveal groups progressively" behavior than either number-line
+  lesson's "jump to a representative value," because this content genuinely builds up
+  in layers the way a construction does.
+- **Two data series kept two distinct colors** (`#5c939f` teal / `#c99a3c` gold —
+  the gold reused from DESIGN_SYSTEM.md §8's existing accent palette, not invented)
+  instead of collapsing to the single accent — the same category of exception §3
+  already carries for `--validation-red`: a real semantic distinction (which series is
+  which), not decoration, so the "one accent" rule doesn't apply to it.
+
+Also caught and fixed the same Arabic-font cascade-tie bug as `.zero-badge`/
+`.diver-tag` elsewhere (§9.1) on a *new* element this time — `.cat-label` (the day-name
+labels), which hardcodes `font-family:var(--mono)` and never had an `.ar-body` class
+applied at all (not just outranked by the cascade — the class was never added on
+creation). Worth checking for on every rebuild: any dynamically-created text node needs
+its own `ar-ui`/`ar-body` class added explicitly in the JS that creates it; `initI18n`'s
+automatic `[data-role]` scan only reaches elements that exist in the static HTML.
+
+The
+other 80 lessons haven't been individually audited yet — this list is only the files
+sharing byte-for-byte the same hint-centering pattern grep found, not a full survey.
+
+---
+
+### 10.6 Real geometry, not hand-rolled projection math
+
+**The gap:** both number-line lessons (`1-4-negative-numbers.html`,
+`1-1-integers-absolute-value.html`) were rebuilt to match the app-shell/notebook
+archetype (§10.5) while keeping their *original* interactive engine — a hand-written
+`yFor(value)` / `vFromClientY(clientY)` pair of linear-interpolation formulas, plus
+manual `pointerdown`/`pointermove` listeners, to turn a signed number into a pixel
+position and back. That is the exact same "hardcoded canvas" problem the geometric-
+constructions reference avoids by using JSXGraph — a real geometry engine that owns
+the world-to-pixel projection, the drag constraint, and the coordinate math — for a
+board that happens to be 1-D (a number line) instead of 2-D (a construction).
+
+**The fix, applied to both lessons:**
+- The diver is now a JSXGraph `point` on a board with `boundingbox` set to the
+  value's actual range (`[-1.2, MAX+1, 6.8, MIN-1]` for the absolute-value lesson —
+  asymmetric so world `x=0`, the diver's column, lands near the *left* of the
+  container the way the original fixed-pixel layout did, not the horizontal centre).
+  Dragging is constrained to `x=0` and snapped to whole numbers inside the point's own
+  `on("drag", …)` handler — `diverPt.setPosition(JXG.COORDS_BY_USER, [0, v])` — rather
+  than a hand-derived `vFromClientY()` formula.
+- Tick marks + labels are real JSXGraph `segment`/`text` elements (a small loop,
+  still authored by hand, but every element's *position* comes from a world
+  coordinate the library projects — not a manually computed pixel `top`).
+- On `1-1-integers-absolute-value.html`, the "ghost" (opposite number) is a point
+  **functionally** dependent on the diver — `[0, () => -diverPt.Y()]` — so it is
+  structurally incapable of drifting out of sync; the absolute-value bracket is a
+  segment + two end-cap segments the same way, not three divs with hand-computed
+  `top`/`height`.
+- The HTML pill labels (zero-badge, diver-tag, ghost-tag, bracket-label, drag-hint)
+  **stay** as CSS-styled overlay divs — rebuilding those as JSXGraph text elements
+  too would lose the pill background/border/padding treatment for no real gain — but
+  their position is now read from JSXGraph's own projection
+  (`point.coords.scrCoords`) via a single `syncOverlay()` function, never computed by
+  hand. This hybrid (real geometry engine + CSS-styled label overlay synced from its
+  coordinates) is the pattern to reuse, not "port everything into JSXGraph including
+  the labels."
+
+**A real bug this surfaced, worth watching for on the next lesson:** the first pass of
+the drag handler updated the point's position and called `syncOverlay()` (which only
+repositions the *label pills*, via CSS `top`) but never refreshed the diver-tag text,
+the KaTeX equation, or the slider readout — because that text/equation update used to
+live entirely inside the position-tweening `render()` function, which the drag handler
+doesn't call (calling it would fight JSXGraph's own drag with a redundant gsap tween on
+top of it). Fixed by splitting `render()` into `renderLabels()` (text/equation/slider —
+called from *both* the drag handler and programmatic value changes) and the tween
+itself. **Any lesson with a draggable element needs this same split**: one function
+that only touches text/derived state, callable from a native-library drag event
+without also re-triggering a position animation.
+
+Verified via a real simulated Playwright drag (`page.mouse.down/move/up` with enough
+intermediate steps for the library's own drag threshold to register — a single large
+jump can get swallowed; several small moves with short waits between them works
+reliably), not assumed from the code reading correctly.
 
 ---
 
@@ -381,7 +731,7 @@ identity:
 Auditing or starting a lesson? Check it against this.
 
 - [ ] One self-contained HTML file; loads the shared shell + motion + jsxgraph-skin (+ JSXGraph/KaTeX as needed).
-- [ ] Uses the shell tokens (no hard-coded colors/sizes); one accent per role (§3).
+- [ ] Uses the shell tokens (no hard-coded colors/sizes); one accent for the whole page, Apple-pass palette (§3) — not the old one-accent-per-role split.
 - [ ] App-shell layout (or the simpler `.shell` for short lessons): eq-bar, controls, workspace (scene | rail), teach, nav.
 - [ ] `T = {en, ar}` with every string; `initI18n` + `onLangChange` re-renders; AR digits via `arNum`; strict title separation.
 - [ ] Equation bar (KaTeX) stating the invariant, revealed progressively; result text in the result color.
@@ -391,7 +741,8 @@ Auditing or starting a lesson? Check it against this.
 - [ ] JSXGraph board: `keepaspectratio`, tagged elements, `syncBoardSize` after any rebuild, `point.highlight = false`.
 - [ ] Explain affordance (tour and/or notebook, optionally behind a chooser popover); notebook state-aware + non-blocking.
 - [ ] `prefers-reduced-motion` quiets ambient motion.
-- [ ] No company-design accent collapse in a canonical lesson (demos stay in `-apple`/`-google` copies).
+- [ ] Motion uses `QUIET_SPRING`/`settle` by default (§5, §6); `STATE_SPRING`'s elastic pop is an explicit, deliberate opt-in, not left over from before the Apple pass.
+- [ ] No ambient board-aurora glow on a new/updated lesson (optional even before, off by default now — §5).
 
 ---
 
